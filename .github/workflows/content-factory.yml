@@ -1,12 +1,17 @@
 name: content-factory-cloud
 
 # Запуск контент-завода без собственного ПК и без Oracle:
-# GitHub Actions раз в 10 минут выполняет одну проверку расписания.
-# Публикация выключена, пока не задана переменная CONTENT_FACTORY_DRY_RUN=false.
+# запуск ровно в слоты каналов (16 раз/сутки, UTC), а не каждые 10 минут —
+# так укладываемся в бесплатные ~2000 минут GitHub Actions для приватного
+# репозитория. Публикация выключена, пока не задана переменная
+# CONTENT_FACTORY_DRY_RUN=false.
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    # Слоты каналов :00 — 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC
+    - cron: "0 0,3,6,9,12,15,18,21 * * *"
+    # Слоты каналов :30 — 01:30, 04:30, 07:30, 10:30, 13:30, 16:30, 19:30, 22:30 UTC
+    - cron: "30 1,4,7,10,13,16,19,22 * * *"
   workflow_dispatch:
 
 permissions:
@@ -59,6 +64,7 @@ jobs:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
+      OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
       HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_COMPAT_API_KEY: ${{ secrets.OPENAI_COMPAT_API_KEY }}

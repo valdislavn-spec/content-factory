@@ -99,6 +99,23 @@ llm:
 Если сервер не требует ключ, переменную `OPENAI_COMPAT_API_KEY` можно не
 заполнять. Ключ читается из окружения, в YAML его не пишут.
 
+**Ollama Cloud** подключается так же — это обычный OpenAI-совместимый endpoint
+`https://ollama.com/v1`, ключ берётся из [ollama.com/settings](https://ollama.com/settings)
+в `OLLAMA_API_KEY`. В конфиге — именованный провайдер:
+
+```yaml
+llm:
+  providers:
+    ollama_cloud:
+      base_url: https://ollama.com/v1
+      api_key_env: OLLAMA_API_KEY
+      model: gemma4:31b
+```
+
+На pay-as-you-go доступны открытые модели (`gemma4:31b`, `gpt-oss:20b/120b`,
+`nemotron-3-nano`), «pro»-модели (`glm-5.3`, `mistral-large-4`, `deepseek-v4`)
+отвечают `402` — им нужен Pro/кредиты.
+
 **Плюсы:** любые локальные модели и квантования, полный офлайн.
 **Минусы:** нужно самостоятельно поднять сервер и следить за ним.
 

@@ -101,8 +101,9 @@ Chat_id не секретны; токен — секрет.
 - `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` — основной LLM
   (Cloudflare Workers AI, free 10 000 neurons/день), работает и из РФ;
 - `OPENROUTER_API_KEY`, `GROQ_API_KEY`, `SAMBANOVA_API_KEY`,
-  `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY` — резервные LLM; на раннерах GitHub
-  Actions доступны и заблокированные в РФ OpenAI/Groq/OpenRouter;
+  `OLLAMA_API_KEY`, `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY` — резервные LLM;
+  на раннерах GitHub Actions доступны и заблокированные в РФ
+  OpenAI/Groq/OpenRouter;
 - `YANDEXGPT_API_KEY`, `YANDEX_FOLDER_ID`, `GIGACHAT_CREDENTIALS`,
   `OPENAI_COMPAT_API_KEY` — российские/локальные провайдеры, если используете;
 - `NEWSDATA_API_KEY`, `WORLD_NEWS_API_KEY`, `CURRENTS_API_KEY`,
