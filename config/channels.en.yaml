@@ -1,0 +1,878 @@
+# =====================================================================
+#  6 English-language Telegram channels (реальные каналы пользователя).
+#
+#  В telegram_chat_id прописаны числовые ID каналов (бот работает по ID,
+#  а не по @username — ID не меняются при переименовании канала):
+#    SPORTNews0007        -1003802742871  спорт (US)
+#    SPORTSAnalytics007   -1004391544104  спорт-аналитика и ставки (18+)
+#    WORLDNews0007        -1004355563628  мир
+#    AINEWS0007           -1004351191643  ИИ
+#    TechnologiesNews01   -1004304574421  технологии
+#    HOOPY0007            -1003891468537  крипто/блокчейн
+#
+#  Пост раз в 90 минут в каждый канал: 16 слотов/сутки (UTC), 96 постов/сутки.
+#  Слоты: 00:00, 01:30, 03:00, 04:30, 06:00, 07:30, 09:00, 10:30, 12:00,
+#         13:30, 15:00, 16:30, 18:00, 19:30, 21:00, 22:30.
+#
+#  Источники: RSS + API (World News / newsdata / Currents) с daily_limit;
+#  для US-спорта — ESPN JSON API (type: espn, без ключа, UA браузера).
+#  При исчерпании квоты API источник пропускается, канал работает на RSS.
+#  Бот должен быть админом каждого канала (ID в telegram_chat_id).
+# =====================================================================
+
+channels:
+- id: sport-news
+  title: US Sports News
+  description: 'NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis.'
+  telegram_chat_id: '-1003802742871'
+  language: en
+  topics:
+  - nfl
+  - nba
+  - mlb
+  - nhl
+  - ncaa
+  - college football
+  - super bowl
+  - playoffs
+  - quarterback
+  - touchdown
+  - home run
+  - draft
+  - trade
+  - injury
+  - coach
+  - championship
+  - mvp
+  - sport
+  exclude_keywords:
+  - advertisement
+  - sponsored
+  - casino
+  - horoscope
+  tone: friendly
+  hashtags:
+  - Sports
+  - NFL
+  - NBA
+  - MLB
+  sources:
+  - id: espn-nfl
+    type: espn
+    url: https://site.api.espn.com/apis/site/v2/sports/football/nfl/news
+    name: ESPN / NFL
+    weight: 1.4
+    options:
+      sport: football/nfl
+      max_items: 10
+      trust: true
+  - id: espn-nba
+    type: espn
+    url: https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news
+    name: ESPN / NBA
+    weight: 1.3
+    options:
+      sport: basketball/nba
+      max_items: 10
+      trust: true
+  - id: espn-mlb
+    type: espn
+    url: https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/news
+    name: ESPN / MLB
+    weight: 1.2
+    options:
+      sport: baseball/mlb
+      max_items: 10
+      trust: true
+  - id: espn-nhl
+    type: espn
+    url: https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/news
+    name: ESPN / NHL
+    weight: 1.0
+    options:
+      sport: hockey/nhl
+      max_items: 10
+      trust: true
+  - id: espn-cfb
+    type: espn
+    url: https://site.api.espn.com/apis/site/v2/sports/football/college-football/news
+    name: ESPN / College Football
+    weight: 1.1
+    options:
+      sport: football/college-football
+      max_items: 10
+      trust: true
+  - id: cbssports
+    type: rss
+    url: https://www.cbssports.com/rss/headlines/
+    name: CBS Sports
+    weight: 1.3
+    options:
+      trust: true
+      max_items: 12
+      full_text: true
+  - id: sportingnews
+    type: rss
+    url: https://www.sportingnews.com/us/rss
+    name: Sporting News
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 10
+      full_text: true
+  - id: clutchpoints
+    type: rss
+    url: https://clutchpoints.com/feed
+    name: ClutchPoints
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 10
+  - id: profootballtalk
+    type: rss
+    url: https://profootballtalk.nbcsports.com/feed/
+    name: Pro Football Talk
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 10
+  - id: mlb-news
+    type: rss
+    url: https://www.mlb.com/feeds/news/rss.xml
+    name: MLB.com
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 8
+      full_text: true
+  - id: worldnews
+    type: worldnews
+    url: https://api.worldnewsapi.com/search-news
+    name: World News API
+    weight: 1.1
+    options:
+      trust: true
+      query: NFL NBA MLB NHL college football sport
+      language: en
+      max_items: 10
+      sort: publish-time
+      daily_limit: 30
+  - id: newsdata
+    type: newsdata
+    url: https://newsdata.io/api/1/latest
+    name: newsdata.io
+    weight: 1.0
+    options:
+      trust: true
+      query: NFL NBA MLB NHL college football sport
+      language: en
+      max_items: 10
+      daily_limit: 100
+  - id: currents
+    type: currents
+    url: https://api.currentsapi.services/v1/latest-news
+    name: Currents API
+    weight: 1.0
+    options:
+      trust: true
+      query: NFL NBA MLB NHL college football sport
+      language: en
+      max_items: 10
+      daily_limit: 100
+  enabled: true
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - 00:00
+  - 01:30
+  - 03:00
+  - 04:30
+  - 06:00
+  - 07:30
+  - 09:00
+  - '10:30'
+  - '12:00'
+  - '13:30'
+  - '15:00'
+  - '16:30'
+  - '18:00'
+  - '19:30'
+  - '21:00'
+  - '22:30'
+  posts_per_day: 16
+  min_relevance: 0.18
+  timezone_offset: 0
+  max_post_chars: 3200
+  cta: ''
+- id: sports-analytics
+  title: Sports Analytics & Betting
+  description: Sports data, odds, betting markets and evidence-based analysis. 18+.
+  telegram_chat_id: '-1004391544104'
+  language: en
+  topics:
+  - sports betting
+  - betting odds
+  - bookmaker
+  - value bet
+  - sports analytics
+  - expected goals
+  - xg
+  - prediction model
+  - probability
+  - handicap
+  - over/under
+  - betting market
+  - data analysis
+  - performance metrics
+  exclude_keywords:
+  - advertisement
+  - sponsored
+  - casino
+  - horoscope
+  - guaranteed win
+  - fixed match
+  - sure bet
+  - free money
+  tone: science
+  hashtags:
+  - Betting
+  - SportsAnalytics
+  - Odds
+  cta: 18+ · Bet responsibly
+  sources:
+  - id: guardian-sport
+    type: rss
+    url: https://www.theguardian.com/uk/sport/rss
+    name: The Guardian / Sport
+    weight: 1.2
+    options:
+      trust: true
+  - id: guardian-football
+    type: rss
+    url: https://www.theguardian.com/football/rss
+    name: The Guardian / Football
+    weight: 1.1
+    options:
+      trust: true
+  - id: skysports
+    type: rss
+    url: https://www.skysports.com/rss/12040
+    name: Sky Sports
+    weight: 1.0
+    options:
+      trust: true
+  - id: worldnews
+    type: worldnews
+    url: https://api.worldnewsapi.com/search-news
+    name: World News API
+    weight: 1.1
+    options:
+      trust: true
+      query: sports betting odds analysis xg prediction model
+      language: en
+      max_items: 10
+      sort: publish-time
+      daily_limit: 30
+  - id: newsdata
+    type: newsdata
+    url: https://newsdata.io/api/1/latest
+    name: newsdata.io
+    weight: 1.0
+    options:
+      trust: true
+      query: sports betting odds analysis xg prediction model
+      language: en
+      max_items: 10
+      daily_limit: 100
+  - id: currents
+    type: currents
+    url: https://api.currentsapi.services/v1/latest-news
+    name: Currents API
+    weight: 1.0
+    options:
+      trust: true
+      query: sports betting odds analysis xg prediction model
+      language: en
+      max_items: 10
+      daily_limit: 100
+  enabled: true
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - 00:00
+  - 01:30
+  - 03:00
+  - 04:30
+  - 06:00
+  - 07:30
+  - 09:00
+  - '10:30'
+  - '12:00'
+  - '13:30'
+  - '15:00'
+  - '16:30'
+  - '18:00'
+  - '19:30'
+  - '21:00'
+  - '22:30'
+  posts_per_day: 16
+  min_relevance: 0.18
+  timezone_offset: 0
+  max_post_chars: 3200
+- id: world-news
+  title: World News
+  description: International affairs and world news, concise and factual.
+  telegram_chat_id: '-1004355563628'
+  language: en
+  topics:
+  - world news
+  - international
+  - politics
+  - conflict
+  - diplomacy
+  - election
+  - sanctions
+  - summit
+  - war
+  - ceasefire
+  - united nations
+  exclude_keywords:
+  - advertisement
+  - sponsored
+  - casino
+  - horoscope
+  tone: expert
+  hashtags:
+  - World
+  - Geopolitics
+  - News
+  sources:
+  - id: npr-world
+    type: rss
+    url: https://feeds.npr.org/1004/rss.xml
+    name: NPR / World
+    weight: 1.2
+    options:
+      trust: true
+  - id: aljazeera
+    type: rss
+    url: https://www.aljazeera.com/xml/rss/all.xml
+    name: Al Jazeera
+    weight: 1.1
+    options:
+      trust: true
+  - id: guardian-world
+    type: rss
+    url: https://www.theguardian.com/world/rss
+    name: The Guardian / World
+    weight: 1.2
+    options:
+      trust: true
+  - id: worldnews
+    type: worldnews
+    url: https://api.worldnewsapi.com/search-news
+    name: World News API
+    weight: 1.1
+    options:
+      trust: true
+      query: world news international politics
+      language: en
+      max_items: 10
+      sort: publish-time
+      daily_limit: 30
+  - id: newsdata
+    type: newsdata
+    url: https://newsdata.io/api/1/latest
+    name: newsdata.io
+    weight: 1.0
+    options:
+      trust: true
+      query: world news international politics
+      language: en
+      max_items: 10
+      daily_limit: 100
+  - id: currents
+    type: currents
+    url: https://api.currentsapi.services/v1/latest-news
+    name: Currents API
+    weight: 1.0
+    options:
+      trust: true
+      query: world news international politics
+      language: en
+      max_items: 10
+      daily_limit: 100
+  enabled: true
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - 00:00
+  - 01:30
+  - 03:00
+  - 04:30
+  - 06:00
+  - 07:30
+  - 09:00
+  - '10:30'
+  - '12:00'
+  - '13:30'
+  - '15:00'
+  - '16:30'
+  - '18:00'
+  - '19:30'
+  - '21:00'
+  - '22:30'
+  posts_per_day: 16
+  min_relevance: 0.18
+  timezone_offset: 0
+  max_post_chars: 3200
+  cta: ''
+- id: ai-news
+  title: AI News
+  description: 'AI for a US audience: models, products, policy and the companies building them.'
+  telegram_chat_id: '-1004351191643'
+  language: en
+  topics:
+  - artificial intelligence
+  - ai
+  - openai
+  - anthropic
+  - deepmind
+  - llm
+  - machine learning
+  - model release
+  - robotics
+  - agents
+  - neural network
+  - ai policy
+  - regulation
+  - chip
+  - gpu
+  - data center
+  - nvidia
+  exclude_keywords:
+  - advertisement
+  - sponsored
+  - horoscope
+  - casino
+  tone: expert
+  hashtags:
+  - AI
+  - ArtificialIntelligence
+  - TechNews
+  sources:
+  - id: tc-ai
+    type: rss
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    name: TechCrunch / AI
+    weight: 1.3
+    options:
+      trust: true
+      max_items: 15
+  - id: verge-ai
+    type: rss
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    name: The Verge / AI
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+  - id: mit-ai
+    type: rss
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+    name: MIT Technology Review / AI
+    weight: 1.3
+    options:
+      trust: true
+      max_items: 10
+  - id: wired-ai
+    type: rss
+    url: https://www.wired.com/feed/tag/ai/latest/rss
+    name: Wired / AI
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 15
+  - id: cnbc-tech
+    type: rss
+    url: https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910
+    name: CNBC / Tech
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 10
+      full_text: true
+  - id: openai-news
+    type: rss
+    url: https://openai.com/news/rss.xml
+    name: OpenAI / News
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 8
+      full_text: true
+  - id: nvidia-blog
+    type: rss
+    url: https://blogs.nvidia.com/feed/
+    name: NVIDIA / Blog
+    weight: 0.9
+    options:
+      trust: true
+      max_items: 8
+  - id: hf-blog
+    type: rss
+    url: https://huggingface.co/blog/feed.xml
+    name: Hugging Face / Blog
+    weight: 0.9
+    options:
+      trust: true
+      max_items: 8
+      full_text: true
+  - id: worldnews
+    type: worldnews
+    url: https://api.worldnewsapi.com/search-news
+    name: World News API
+    weight: 1.1
+    options:
+      trust: true
+      query: artificial intelligence OpenAI Anthropic Nvidia AI policy
+      language: en
+      max_items: 10
+      sort: publish-time
+      daily_limit: 30
+  - id: newsdata
+    type: newsdata
+    url: https://newsdata.io/api/1/latest
+    name: newsdata.io
+    weight: 1.0
+    options:
+      trust: true
+      query: artificial intelligence OpenAI Anthropic Nvidia AI policy
+      language: en
+      max_items: 10
+      daily_limit: 100
+  - id: currents
+    type: currents
+    url: https://api.currentsapi.services/v1/latest-news
+    name: Currents API
+    weight: 1.0
+    options:
+      trust: true
+      query: artificial intelligence OpenAI Anthropic Nvidia AI policy
+      language: en
+      max_items: 10
+      daily_limit: 100
+  enabled: true
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - 00:00
+  - 01:30
+  - 03:00
+  - 04:30
+  - 06:00
+  - 07:30
+  - 09:00
+  - '10:30'
+  - '12:00'
+  - '13:30'
+  - '15:00'
+  - '16:30'
+  - '18:00'
+  - '19:30'
+  - '21:00'
+  - '22:30'
+  posts_per_day: 16
+  min_relevance: 0.18
+  timezone_offset: 0
+  max_post_chars: 3200
+  cta: ''
+- id: tech-news
+  title: Tech News
+  description: 'Technology news: products, companies, security and the internet.'
+  telegram_chat_id: '-1004304574421'
+  language: en
+  topics:
+  - technology
+  - tech
+  - gadget
+  - smartphone
+  - app
+  - software
+  - cybersecurity
+  - cyberattack
+  - data breach
+  - chip
+  - semiconductor
+  - internet
+  - social media
+  - streaming
+  - gaming
+  - ai
+  exclude_keywords:
+  - advertisement
+  - sponsored
+  - casino
+  - horoscope
+  tone: expert
+  hashtags:
+  - Tech
+  - TechNews
+  - Security
+  sources:
+  - id: techcrunch
+    type: rss
+    url: https://techcrunch.com/feed/
+    name: TechCrunch
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+  - id: verge
+    type: rss
+    url: https://www.theverge.com/rss/index.xml
+    name: The Verge
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+  - id: wired
+    type: rss
+    url: https://www.wired.com/feed/rss
+    name: Wired
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 12
+  - id: arstechnica
+    type: rss
+    url: https://feeds.arstechnica.com/arstechnica/index
+    name: Ars Technica
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 12
+  - id: 9to5mac
+    type: rss
+    url: https://9to5mac.com/feed/
+    name: 9to5Mac
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 10
+  - id: techradar
+    type: rss
+    url: https://www.techradar.com/rss
+    name: TechRadar
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 10
+  - id: bleepingcomputer
+    type: rss
+    url: https://www.bleepingcomputer.com/feed/
+    name: BleepingComputer
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 10
+  enabled: true
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - '00:00'
+  - '01:30'
+  - '03:00'
+  - '04:30'
+  - '06:00'
+  - '07:30'
+  - '09:00'
+  - '10:30'
+  - '12:00'
+  - '13:30'
+  - '15:00'
+  - '16:30'
+  - '18:00'
+  - '19:30'
+  - '21:00'
+  - '22:30'
+  posts_per_day: 16
+  min_relevance: 0.18
+  timezone_offset: 0
+  max_post_chars: 3200
+  cta: ''
+- id: crypto-news
+  title: Crypto & Blockchain
+  description: 'US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain.'
+  telegram_chat_id: '-1003891468537'
+  language: en
+  topics:
+  - bitcoin
+  - ethereum
+  - crypto
+  - cryptocurrency
+  - blockchain
+  - defi
+  - stablecoin
+  - etf
+  - exchange
+  - token
+  - web3
+  - mining
+  - digital asset
+  - securities
+  - regulation
+  - custody
+  - reserve
+  exclude_keywords:
+  - advertisement
+  - sponsored
+  - casino
+  - giveaway
+  - airdrop scam
+  tone: expert
+  hashtags:
+  - Bitcoin
+  - Crypto
+  - Blockchain
+  sources:
+  - id: coindesk
+    type: rss
+    url: https://www.coindesk.com/arc/outboundfeeds/rss/
+    name: CoinDesk
+    weight: 1.3
+    options:
+      trust: true
+      max_items: 15
+  - id: theblock
+    type: rss
+    url: https://www.theblock.co/rss.xml
+    name: The Block
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 10
+      full_text: true
+  - id: decrypt
+    type: rss
+    url: https://decrypt.co/feed
+    name: Decrypt
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 15
+  - id: cointelegraph
+    type: rss
+    url: https://cointelegraph.com/rss
+    name: Cointelegraph
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 15
+  - id: unchained
+    type: rss
+    url: https://unchainedcrypto.com/feed/
+    name: Unchained
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 10
+  - id: dlnews
+    type: rss
+    url: https://www.dlnews.com/arc/outboundfeeds/rss/
+    name: DL News
+    weight: 1.0
+    options:
+      trust: true
+      max_items: 10
+  - id: sec-press
+    type: rss
+    url: https://www.sec.gov/news/pressreleases.rss
+    name: SEC / Press Releases
+    weight: 0.9
+    options:
+      max_items: 10
+  - id: cftc-press
+    type: rss
+    url: https://www.cftc.gov/RSS/RSSGP/rssgp.xml
+    name: CFTC / Press Releases
+    weight: 0.9
+    options:
+      max_items: 8
+  - id: worldnews
+    type: worldnews
+    url: https://api.worldnewsapi.com/search-news
+    name: World News API
+    weight: 1.1
+    options:
+      trust: true
+      query: bitcoin cryptocurrency regulation SEC ETF
+      language: en
+      max_items: 10
+      sort: publish-time
+      daily_limit: 30
+  - id: newsdata
+    type: newsdata
+    url: https://newsdata.io/api/1/latest
+    name: newsdata.io
+    weight: 1.0
+    options:
+      trust: true
+      query: bitcoin cryptocurrency regulation SEC ETF
+      language: en
+      max_items: 10
+      daily_limit: 100
+  - id: currents
+    type: currents
+    url: https://api.currentsapi.services/v1/latest-news
+    name: Currents API
+    weight: 1.0
+    options:
+      trust: true
+      query: bitcoin cryptocurrency regulation SEC ETF
+      language: en
+      max_items: 10
+      daily_limit: 100
+  enabled: true
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - 00:00
+  - 01:30
+  - 03:00
+  - 04:30
+  - 06:00
+  - 07:30
+  - 09:00
+  - '10:30'
+  - '12:00'
+  - '13:30'
+  - '15:00'
+  - '16:30'
+  - '18:00'
+  - '19:30'
+  - '21:00'
+  - '22:30'
+  posts_per_day: 16
+  min_relevance: 0.18
+  timezone_offset: 0
+  max_post_chars: 3200
+  cta: ''

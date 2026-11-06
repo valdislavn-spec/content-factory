@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Тестовая RSS-лента</title>
+    <link>https://example.com/</link>
+    <description>Лента для тестов</description>
+    <item>
+      <title>Первая новость об ИИ</title>
+      <link>https://example.com/news/1?utm_source=rss</link>
+      <description><![CDATA[<p>Описание <b>первой</b> новости.</p>]]></description>
+      <content:encoded><![CDATA[<p>Полный текст первой новости.</p>]]></content:encoded>
+      <pubDate>Wed, 14 Oct 2026 10:00:00 +0300</pubDate>
+      <author>Иван Петров</author>
+      <category>ИИ</category>
+      <guid isPermaLink="false">tag:example.com,2026:1</guid>
+    </item>
+    <item>
+      <title>Вторая новость</title>
+      <link>/news/2</link>
+      <description>Простое описание второй новости.</description>
+      <pubDate>2026-10-14T09:30:00+03:00</pubDate>
+    </item>
+    <item>
+      <title>Дубликат первой новости</title>
+      <link>https://example.com/news/1?utm_medium=rss</link>
+      <description>Дубль по другому URL.</description>
+      <pubDate>Wed, 14 Oct 2026 10:00:00 +0300</pubDate>
+    </item>
+    <item>
+      <title>Новость с нераспознанной датой</title>
+      <link>https://example.com/news/3</link>
+      <description>Третья новость без даты.</description>
+      <pubDate>не дата</pubDate>
+    </item>
+  </channel>
+</rss>

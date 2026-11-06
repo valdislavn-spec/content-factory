@@ -1,0 +1,610 @@
+# =====================================================================
+#  6 Telegram-каналов контент-завода.
+#
+#  Как изменить канал:
+#    1) скопируйте блок канала и задайте уникальный id;
+#    2) перечислите ключевые слова темы в topics (по ним отбираются новости);
+#    3) перечислите источники sources (rss / web / telegram);
+#    4) задайте schedule — времена публикации по Москве (HH:MM).
+#
+#  ID каналов в Telegram НЕ храните здесь: используйте .env
+#  (TELEGRAM_CHAT_ID_TECH_AI=@my_channel или -1001234567890).
+#  Пока не настроен бот, всё работает в dry_run и посты падают в data/outbox.
+#  options: {trust: true} — тематический источник, его лента принимается
+#  без жёсткого фильтра по ключевым словам (стоп-слова канала действуют).
+# =====================================================================
+
+channels:
+- id: tech-ai
+  title: Технологии и ИИ
+  description: Главное из мира технологий, нейросетей и цифровой жизни — коротко и по делу.
+  enabled: true
+  telegram_chat_id: ''
+  topics:
+  - искусственный интеллект
+  - нейросет
+  - ИИ
+  - машинное обучение
+  - ChatGPT
+  - OpenAI
+  - LLM
+  - робот
+  - технологи
+  - гаджет
+  - смартфон
+  - процессор
+  - чип
+  - кибербезопасн
+  - утечка данных
+  - приложени
+  - интернет
+  - космос
+  - стартап
+  - утечка
+  - данные
+  exclude_keywords:
+  - реклама
+  - гороскоп
+  - казино
+  tone: expert
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - 09:00
+  - '13:00'
+  - '19:00'
+  posts_per_day: 3
+  min_relevance: 0.18
+  max_post_chars: 3500
+  hashtags:
+  - '#технологии'
+  - '#ИИ'
+  - '#наука'
+  cta: Больше разборов — в нашем канале.
+  sources:
+  - id: habr-news
+    type: rss
+    url: https://habr.com/ru/rss/news/?fl=ru
+    name: Habr
+    weight: 1.2
+    options:
+      trust: true
+  - id: habr-ai
+    type: rss
+    url: https://habr.com/ru/rss/hub/artificial_intelligence/?fl=ru
+    name: Habr / ИИ
+    weight: 1.3
+    options:
+      trust: true
+  - id: cnews
+    type: rss
+    url: https://www.cnews.ru/inc/rss/news.xml
+    name: CNews
+    weight: 1.0
+    options:
+      trust: true
+  - id: 3dnews
+    type: rss
+    url: https://3dnews.ru/news/rss/
+    name: 3DNews
+    weight: 1.0
+    options:
+      trust: true
+  - id: tg-ria-tech
+    type: telegram
+    url: https://t.me/rian_ru
+    name: РИА Новости (Telegram)
+    enabled: false
+    options:
+      limit: 30
+- id: business-finance
+  title: Бизнес и финансы
+  description: Экономика, рынки, компании и личные финансы без воды.
+  enabled: true
+  telegram_chat_id: ''
+  topics:
+  - бизнес
+  - экономик
+  - финанс
+  - рынок
+  - банк
+  - инвест
+  - акци
+  - рубл
+  - курс
+  - инфляц
+  - налог
+  - бюджет
+  - компани
+  - стартап
+  - предпринимател
+  - ВВП
+  - санкц
+  - экспорт
+  - импорт
+  - процентн
+  - ипотек
+  - кредит
+  - сбережен
+  - ставк
+  - нефт
+  - доллар
+  - евро
+  - выручк
+  - прибыл
+  - убыт
+  - сделк
+  - контракт
+  - производств
+  - ритейл
+  - банкрот
+  - антимонопол
+  - тариф
+  - дефицит
+  - профицит
+  - пошлин
+  - акциз
+  - Мосбирж
+  - ОФЗ
+  - вклад
+  - зарплат
+  - безработ
+  - промпроизводств
+  - товарооборот
+  exclude_keywords:
+  - реклама
+  - казино
+  - ставки на спорт
+  - финансовый гороскоп
+  tone: expert
+  emoji: false
+  formats:
+  - story
+  - digest
+  - analysis
+  schedule:
+  - 08:30
+  - '12:30'
+  - '18:30'
+  posts_per_day: 3
+  max_post_chars: 3800
+  hashtags:
+  - '#экономика'
+  - '#финансы'
+  - '#бизнес'
+  sources:
+  - id: kommersant
+    type: rss
+    url: https://www.kommersant.ru/RSS/news.xml
+    name: Коммерсантъ
+    weight: 1.2
+  - id: rbc
+    type: rss
+    url: https://rssexport.rbc.ru/rbcnews/news/30/full.rss
+    name: РБК
+    weight: 1.2
+  - id: vedomosti
+    type: rss
+    url: https://www.vedomosti.ru/rss/news
+    name: Ведомости
+    weight: 1.2
+  - id: lenta-economy
+    type: rss
+    url: https://lenta.ru/rss/news
+    name: Lenta.ru
+    weight: 0.9
+    options:
+      max_items: 10
+  - id: tass
+    type: rss
+    url: https://tass.ru/rss/v2.xml
+    name: ТАСС
+    weight: 1.1
+  min_relevance: 0.15
+- id: science-health
+  title: Наука и здоровье
+  description: 'Достоверные новости науки и медицины: исследования, открытия, здоровье.'
+  enabled: true
+  telegram_chat_id: ''
+  topics:
+  - наук
+  - исследован
+  - учён
+  - учен
+  - медицин
+  - здоров
+  - болезн
+  - вирус
+  - вакцин
+  - лекарств
+  - мозг
+  - ген
+  - ДНК
+  - космос
+  - физик
+  - хими
+  - биолог
+  - археолог
+  - климат
+  - эксперимент
+  - пациент
+  - психолог
+  - иммунитет
+  - науч
+  - открыт
+  - обнаруж
+  - клетк
+  - геном
+  - сон
+  - питани
+  - витамин
+  - онколог
+  - иммун
+  - бактери
+  - антибиотик
+  - депресс
+  - стресс
+  - сердц
+  - давлен
+  - диабет
+  - ожирен
+  - Альцгеймер
+  - Паркинсон
+  - долголет
+  - спорт
+  - фитнес
+  exclude_keywords:
+  - реклама
+  - гороскоп
+  - целитель
+  - отзывы о
+  - ВСУ
+  - БПЛА
+  - беспилотник
+  - обстрел
+  - атак
+  - военн
+  tone: science
+  emoji: false
+  formats:
+  - story
+  - analysis
+  - digest
+  schedule:
+  - '10:00'
+  - '15:00'
+  - '20:00'
+  posts_per_day: 3
+  max_post_chars: 3800
+  hashtags:
+  - '#наука'
+  - '#здоровье'
+  - '#исследования'
+  cta: Подписывайтесь — только проверенные источники.
+  sources:
+  - id: nplus1
+    type: rss
+    url: https://nplus1.ru/rss
+    name: N+1
+    weight: 1.3
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: naked-science
+    type: rss
+    url: https://naked-science.ru/rss
+    name: Naked Science
+    weight: 1.2
+    options:
+      trust: true
+  - id: elementy
+    type: rss
+    url: https://elementy.ru/rss/news
+    name: Элементы
+    weight: 1.2
+    options:
+      trust: true
+  - id: tass-science
+    type: rss
+    url: https://tass.ru/rss/v2.xml
+    name: ТАСС
+    weight: 0.9
+  min_relevance: 0.15
+- id: auto
+  title: Авто и транспорт
+  description: Новые модели, электромобили, ПДД, дороги и транспорт — для водителей.
+  enabled: true
+  telegram_chat_id: ''
+  topics:
+  - автомобил
+  - машин
+  - авто
+  - электромобил
+  - двигател
+  - шин
+  - дорог
+  - ДТП
+  - водител
+  - бензин
+  - топлив
+  - кроссовер
+  - седан
+  - грузовик
+  - общественн транспорт
+  - метро
+  - парковк
+  - ГИБДД
+  - ОСАГО
+  - электромоб
+  - гибрид
+  - коробк
+  - дизел
+  - зарядк
+  - АЗС
+  - ПДД
+  - штраф
+  - регистрац
+  - техосмотр
+  - автосалон
+  - дилер
+  - КАСКО
+  - транспорт
+  exclude_keywords:
+  - реклама
+  - авторынок сша
+  - ВСУ
+  - БПЛА
+  - беспилотник
+  - обстрел
+  - атак
+  - военн
+  tone: expert
+  emoji: true
+  formats:
+  - story
+  - digest
+  - analysis
+  schedule:
+  - 09:30
+  - '14:00'
+  - '19:30'
+  posts_per_day: 3
+  max_post_chars: 3500
+  hashtags:
+  - '#авто'
+  - '#транспорт'
+  - '#электромобили'
+  sources:
+  - id: kolesa
+    type: rss
+    url: https://www.kolesa.ru/rss
+    name: Kolesa.ru
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: 5koleso
+    type: rss
+    url: https://5koleso.ru/feed/
+    name: 5 колесо
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: lenta-auto
+    type: rss
+    url: https://lenta.ru/rss/news
+    name: Lenta.ru
+    weight: 0.8
+    options:
+      max_items: 10
+  - id: ria-auto
+    type: rss
+    url: https://ria.ru/export/rss2/archive/index.xml
+    name: РИА Новости
+    weight: 0.9
+    options:
+      max_items: 10
+  - id: m24-auto
+    type: rss
+    url: https://www.m24.ru/rss.xml
+    name: М24
+    weight: 0.8
+    options:
+      max_items: 10
+      full_text: true
+  min_relevance: 0.15
+- id: travel
+  title: Путешествия
+  description: Куда поехать, сколько стоит, новые правила и лайфхаки для путешествий.
+  enabled: true
+  telegram_chat_id: ''
+  topics:
+  - путешеств
+  - турист
+  - туризм
+  - курорт
+  - отел
+  - билет
+  - рейс
+  - авиакомпан
+  - поезд
+  - виза
+  - отдых
+  - экскурс
+  - направлен
+  - тур
+  - гостиниц
+  - круиз
+  - пассажир
+  - пляж
+  - страховк
+  - багаж
+  - шенген
+  - паспорт
+  - авиабилет
+  - поездк
+  - экскурси
+  exclude_keywords:
+  - реклама
+  - гороскоп
+  - ВСУ
+  - БПЛА
+  - беспилотник
+  - обстрел
+  - атак
+  - военн
+  tone: friendly
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - '11:00'
+  - '16:00'
+  - '21:00'
+  posts_per_day: 3
+  max_post_chars: 3500
+  hashtags:
+  - '#путешествия'
+  - '#туризм'
+  - '#отдых'
+  cta: Сохраняйте пост и делитесь с попутчиками.
+  sources:
+  - id: tourdom
+    type: rss
+    url: https://www.tourdom.ru/rss/
+    name: TourDom
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: ratanews
+    type: rss
+    url: https://ratanews.ru/rss.xml
+    name: RATA-news
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: m24-travel
+    type: rss
+    url: https://www.m24.ru/rss.xml
+    name: М24
+    weight: 0.8
+    options:
+      max_items: 10
+      full_text: true
+  - id: ria-travel
+    type: rss
+    url: https://ria.ru/export/rss2/archive/index.xml
+    name: РИА Новости
+    weight: 0.9
+    options:
+      max_items: 10
+  min_relevance: 0.15
+- id: culture
+  title: Культура и кино
+  description: 'Кино, сериалы, театр, музыка и книги: что смотреть, читать и слушать.'
+  enabled: true
+  telegram_chat_id: ''
+  topics:
+  - культур
+  - кино
+  - фильм
+  - сериал
+  - театр
+  - актёр
+  - актер
+  - режиссёр
+  - режиссер
+  - музык
+  - концерт
+  - выставк
+  - музе
+  - книг
+  - литератур
+  - фестивал
+  - премьер
+  - артист
+  - спектакл
+  - показ
+  - художник
+  - библиотек
+  - роман
+  - альбом
+  - трек
+  - песн
+  - групп
+  - балет
+  - опер
+  - кинопремьер
+  exclude_keywords:
+  - реклама
+  - гороскоп
+  - ВСУ
+  - БПЛА
+  - беспилотник
+  - обстрел
+  - атак
+  - военн
+  tone: friendly
+  emoji: true
+  formats:
+  - digest
+  - story
+  - analysis
+  schedule:
+  - '10:30'
+  - '15:30'
+  - '20:30'
+  posts_per_day: 3
+  max_post_chars: 3500
+  hashtags:
+  - '#культура'
+  - '#кино'
+  - '#театр'
+  sources:
+  - id: intermedia
+    type: rss
+    url: https://www.intermedia.ru/rss/news
+    name: InterMedia
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: rewizor
+    type: rss
+    url: https://www.rewizor.ru/rss/
+    name: Ревизор.ru
+    weight: 1.1
+    options:
+      trust: true
+  - id: kinonews
+    type: rss
+    url: https://www.kinonews.ru/rss/
+    name: Кино-Новости
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 15
+      full_text: true
+  - id: m24-culture
+    type: rss
+    url: https://www.m24.ru/rss.xml
+    name: М24
+    weight: 0.7
+    options:
+      max_items: 10
+      full_text: true
+  min_relevance: 0.15

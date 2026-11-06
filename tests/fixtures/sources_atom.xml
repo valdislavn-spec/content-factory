@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Тестовая Atom-лента</title>
+  <entry>
+    <title type="html">&lt;b&gt;Заголовок Atom&lt;/b&gt;</title>
+    <link rel="self" href="https://example.org/feed/self"/>
+    <link rel="alternate" type="text/html" href="https://example.org/posts/10"/>
+    <id>tag:example.org,2026:10</id>
+    <updated>2026-10-13T12:00:00Z</updated>
+    <summary type="html">&lt;p&gt;Краткое описание записи.&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;Полный текст записи.&lt;/p&gt;</content>
+    <author><name>Мария</name></author>
+    <category term="наука"/>
+  </entry>
+  <entry>
+    <title>Вторая запись Atom</title>
+    <link href="/posts/11"/>
+    <id>tag:example.org,2026:11</id>
+    <published>2026-10-12T08:00:00+03:00</published>
+    <summary>Описание второй записи.</summary>
+  </entry>
+</feed>

@@ -1,0 +1,12 @@
+# Секреты и рабочие данные никогда не попадают в git
+.env
+data/
+*.sqlite3
+*.db
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.DS_Store

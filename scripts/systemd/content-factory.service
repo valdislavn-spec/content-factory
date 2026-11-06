@@ -1,0 +1,55 @@
+# =====================================================================
+#  systemd-сервис контент-завода (Linux).
+#
+#  УСТАНОВКА:
+#    1) Отредактируйте пути и пользователя ниже:
+#       - User=/Group= — пользователь, от которого работает сервис;
+#       - WorkingDirectory= — каталог проекта;
+#       - ExecStart= — python внутри venv проекта.
+#    2) Скопируйте файл и включите сервис:
+#         sudo cp scripts/systemd/content-factory.service /etc/systemd/system/
+#         sudo systemctl daemon-reload
+#         sudo systemctl enable --now content-factory
+#    3) Проверьте:
+#         systemctl status content-factory
+#         journalctl -u content-factory -f
+#
+#  ВАЖНО:
+#    - Перед запуском должен существовать .env с токенами и
+#      CONTENT_FACTORY_DRY_RUN=false (если нужна реальная публикация).
+#    - Запускайте только ОДИН процесс на базу data/factory.sqlite3.
+#    - EnvironmentFile читает .env как переменные окружения.
+# =====================================================================
+
+[Unit]
+Description=Content Factory — автопубликация в Telegram-каналы
+Documentation=file:///opt/content-factory/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Пользователь и группа, от которых работает сервис.
+User=content
+Group=content
+# Каталог проекта (абсолютный путь!).
+WorkingDirectory=/opt/content-factory
+# Переменные из .env (токены, CONTENT_FACTORY_DRY_RUN).
+EnvironmentFile=/opt/content-factory/.env
+# Python из venv проекта.
+ExecStart=/opt/content-factory/.venv/bin/python -m content_factory daemon
+# Перезапуск при падении и при перезагрузке.
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+# Логи — в journald:
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=content-factory
+
+# Дополнительная изоляция (по желанию, можно закомментировать).
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

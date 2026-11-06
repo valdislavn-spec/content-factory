@@ -1,0 +1,217 @@
+# =====================================================================
+#  Контент-завод: общие настройки
+#  Всё, что помечено token/secret, берётся из .env (см. .env.example).
+#  Файл можно править вручную — после изменений перезапустите демон.
+# =====================================================================
+
+app:
+  # Куда складывать базу, посты, отчёты и логи (относительно корня проекта)
+  data_dir: data
+  db_path: data/factory.sqlite3
+  outbox_dir: data/outbox
+  reports_dir: data/reports
+  logs_dir: data/logs
+
+  log_level: INFO
+  timezone_offset: 3            # МСК = UTC+3, в России перехода на летнее время нет
+  dry_run: true                 # true = ничего не публикуем, пишем в data/outbox
+  language: en                  # язык статей и постов: ru | en
+  # Список каналов. Английские каналы: config/channels.en.yaml,
+  # русские: config/channels.yaml. Можно переопределить env:
+  # CONTENT_FACTORY_CHANNELS=config/channels.yaml
+  channels_file: config/channels.en.yaml
+
+  # Таймауты и вежливость к источникам
+  request_timeout: 12             # быстрее слоты; при таймауте источник пропускается
+  request_retries: 1
+  daemon_interval_sec: 60       # как часто проверять расписание в режиме daemon
+
+pipeline:
+  lookback_hours: 30            # окно свежести новостей
+  max_articles_per_channel: 150
+  cluster_similarity: 0.34      # порог склейки новостей об одном событии
+  min_cluster_sources: 1        # 2 = публиковать только сюжеты, подтверждённые 2+ источниками
+  max_posts_per_run: 1          # 1 пост за запуск: при постинге каждый час этого хватает
+  # post_generator: internal — встроенная генерация (LLM/extractive)
+  # post_generator: dify_app — готовый пост из Dify workflow-приложения
+  # 144 поста/сутки: бесплатного Dify Sandbox не хватит, поэтому основной
+  # генератор — LLM-цепочка (Groq/OpenRouter/…), а не Dify-приложение.
+  # dify_app можно включить как эксперимент (там daily_limit 20 запусков).
+  post_generator: internal
+  dify_post_app: posts
+  min_relevance: 0.22           # общий порог релевантности темы канала
+  min_cluster_chars: 200        # если в сюжете меньше текста — не публикуем (нет фактов)
+  max_text_chars: 15000         # сколько символов статьи отдавать в анализ
+  post_duplicate_window_hours: 72
+  min_post_chars: 220
+  banned_words:                 # стоп-слова: посты с ними не публикуются
+    - "гарантированный доход"
+    - "100% заработок"
+    - "крипто-сигнал"
+    - "guaranteed income"
+    - "guaranteed profit"
+    - "100% profit"
+    - "crypto signal"
+    - "get rich quick"
+    - "guaranteed win"
+    - "fixed match"
+    - "sure bet"
+  cta: ""                       # общий призыв к действию (можно переопределить в канале)
+
+llm:
+  # extractive      — бесплатно, офлайн, без моделей: TextRank + шаблоны (по умолчанию)
+  # cloudflare      — Cloudflare Workers AI (free: ~10 000 neurons/день), OpenAI-совместимый API
+  # ollama          — локальная бесплатная LLM (qwen3.5:9b и т.п.), нужен Ollama на этом же ПК
+  # openai_compatible — локальный llama.cpp / LM Studio / vLLM с OpenAI-совместимым API
+  # gigachat        — GigaChat API (Сбер): есть бесплатный лимит, нужен аккаунт РФ
+  # yandexgpt       — YandexGPT API: пробный грант, нужен аккаунт Yandex Cloud
+  # dify            — приложение Dify (cloud.dify.ai или свой сервер) как LLM через Service API
+  # Основной провайдер + fallback-цепочка: если бесплатный лимит исчерпан,
+  # завод пробует следующего, а в крайнем случае — extractive (0 ₽).
+  # Cloudflare Workers AI: Free-план ~10 000 neurons/день; когда лимит
+  # исчерпан или сервис недоступен, автоматически уходим на локальную Ollama.
+  # Локальная LLM без ключей и лимитов: bash scripts/start-ollama.sh start
+  provider: cloudflare
+  fallback: [ollama, gigachat, yandexgpt, dify, openrouter, sambanova, huggingface, openai]
+  timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
+  max_tokens: 500
+  temperature: 0.3
+  # --- Экономия токенов без потери качества ---
+  # cache: одинаковый промпт → готовый ответ из data/llm_cache.sqlite3
+  #        (точное совпадение промпта/модели, ответ идентичен новому).
+  cache: true
+  cache_ttl_hours: 168  # сколько дней хранить ответы (7 суток)
+  # optimize.combined_analysis: резюме+тезисы одним запросом вместо двух
+  #        (исходный текст уходит модели один раз, а не два).
+  # optimize.compact_headline: заголовок переписывается по готовому резюме,
+  #        а не по 4000 символов исходного текста.
+  optimize:
+    combined_analysis: true
+    compact_headline: true
+  # daily_token_limit: суточный лимит токенов (0 = без лимита). Полезен для
+  # платных/лимитированных API: после исчерпания завод уходит в extractive,
+  # а локальная модель не ограничивается (её токены бесплатны).
+  daily_token_limit: 0
+  providers:
+    cloudflare:
+      # Cloudflare Workers AI — OpenAI-совместимый endpoint аккаунта.
+      # Токен: scoped API Token (cfut_/cfat_) с правом Account → Workers AI → Read.
+      # Free-план: ~10 000 neurons/день; расход виден в usage.neurons ответа.
+      base_url: https://api.cloudflare.com/client/v4/accounts/7f9b2708d31c026a01d2ac5b9e8eac70/ai/v1
+      api_key_env: CLOUDFLARE_API_TOKEN
+      model: "@cf/mistralai/mistral-small-3.1-24b-instruct"
+    groq:
+      # Из РФ недоступен (403 Cloudflare) — нужен VPN / GitHub Actions.
+      base_url: https://api.groq.com/openai/v1
+      api_key_env: GROQ_API_KEY
+      model: llama-3.3-70b-versatile
+    openrouter:
+      # Из РФ 403 «Access denied by security policy» — нужен VPN / GitHub Actions.
+      base_url: https://openrouter.ai/api/v1
+      api_key_env: OPENROUTER_API_KEY
+      model: meta-llama/llama-3.3-70b-instruct:free
+      headers:
+        HTTP-Referer: https://t.me
+        X-Title: content-factory
+    sambanova:
+      # API из РФ доступен, ключ валиден, но free-аккаунт требует payment
+      # method (402 PAYMENT_METHOD_REQUIRED) — без карты генерация не идёт.
+      # gemma-4-31B-it — единственная модель, ответившая до гейта.
+      base_url: https://api.sambanova.ai/v1
+      api_key_env: SAMBANOVA_API_KEY
+      model: gemma-4-31B-it
+    huggingface:
+      base_url: https://router.huggingface.co/v1
+      api_key_env: HUGGINGFACE_API_KEY
+      # ВАЖНО (2026-11): у free-аккаунта 0 бесплатных кредитов, PRO = $2/мес кредитов.
+      # Это ПЛАТНЫЙ провайдер-резерв, а не бесплатный. Для русского лучше Qwen:
+      model: Qwen/Qwen2.5-72B-Instruct
+    openai:
+      # Из РФ недоступен (403 unsupported_country_region_territory).
+      base_url: https://api.openai.com/v1
+      api_key_env: OPENAI_API_KEY
+      model: gpt-4o-mini
+  # Бесплатные лимиты LLM (Dify Sandbox = 200 message credits).
+  # При 0 ограничения нет; после исчерпания дневного бюджета
+  # завод продолжает публиковать посты в бесплатном extractive-режиме.
+  # 144 поста × ~2 вызова = ~288 запросов/сутки; остаток уходит в extractive.
+  daily_request_limit: 300
+  ollama:
+    base_url: http://127.0.0.1:11434
+    model: qwen3.5:9b
+    # Ollama по умолчанию может взять 4K контекста, а статьи — до 15k символов.
+    num_ctx: 8192
+    # Reasoning-модели (qwen3.5 и т.п.) по умолчанию «думают» — это в разы
+    # замедляет пост и тратит токены. Для новостных постов размышления не нужны.
+    think: false
+    # Держать модель в памяти между прогонами (демон ходит раз в 10 минут):
+    # экономит время на повторную загрузку весов.
+    keep_alive: 30m
+  openai_compatible:
+    base_url: http://127.0.0.1:11434/v1
+    model: qwen3.5:9b
+    api_key_env: OPENAI_COMPAT_API_KEY
+  gigachat:
+    base_url: https://gigachat.devices.sberbank.ru/api/v1
+    oauth_url: https://ngw.devices.sberbank.ru:9443/api/v2/oauth
+    model: GigaChat
+    credentials_env: GIGACHAT_CREDENTIALS
+    scope: GIGACHAT_API_PERS
+  yandexgpt:
+    base_url: https://llm.api.cloud.yandex.net/foundationModels/v1
+    model: yandexgpt-lite/latest
+    api_key_env: YANDEXGPT_API_KEY
+    folder_id_env: YANDEX_FOLDER_ID
+  dify:
+    base_url: https://api.dify.ai/v1   # self-hosted: свой адрес + /v1
+    app_mode: chat                      # chat = Chatbot/Agent/Chatflow, completion = Text Generator
+    api_key_env: DIFY_API_KEY
+    user: content-factory               # идентификатор конечного пользователя в Dify
+    include_system: true                # склеивать system-промпт фабрики с запросом
+    inputs: {}                          # переменные приложения Dify, если они заданы
+
+integrations:
+  # Workflow-приложения Dify (Service API). Ключи — в .env, подробности:
+  # docs/integrations.md. Проверка: python -m content_factory dify-apps
+  dify_apps:
+    # Готовые посты из «Six-Channel Editorial News Draft Factory»:
+    # приложение само ищет новости, делает SEO и возвращает готовый пост.
+    posts:
+      api_key_env: DIFY_POSTS_API_KEY
+      timeout: 180
+      daily_limit: 20          # запусков workflow в сутки; 0 = без лимита
+      output_key: ''           # имя переменной Output-узла; пусто = первая непустая
+      outputs:                 # какие поля Output-узла куда класть
+        text: result           # готовый пост
+        image_url: image_url   # картинка из статьи (sendPhoto в Telegram)
+        source_url: source_url # ссылка на источник (сокращается через TinyURL)
+      inputs:
+        channel: '{channel}'   # Telegram-id/handle канала или название
+        topic: '{topic}'       # тема сюжета (заголовок + ключевые слова)
+    news:
+      api_key_env: DIFY_NEWS_API_KEY
+      timeout: 180
+    trends:
+      api_key_env: DIFY_TRENDS_API_KEY
+      timeout: 120
+    seo:
+      api_key_env: DIFY_SEO_API_KEY
+      timeout: 120
+
+publishers:
+  telegram:
+    bot_token_env: TELEGRAM_BOT_TOKEN
+    parse_mode: HTML
+    disable_preview: false
+  vk:
+    access_token_env: VK_ACCESS_TOKEN
+    group_id_env: VK_GROUP_ID
+    api_version: "5.199"
+  dryrun:
+    enabled: true
+
+analytics:
+  enabled: true
+  report_title: "Контент-завод: аналитика"
+  collect_subscribers: true     # подписчики через Telegram Bot API
+  retention_days: 180

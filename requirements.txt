@@ -1,0 +1,9 @@
+# Обязательные зависимости (единственная внешняя — PyYAML).
+# Установка: python -m pip install -r requirements.txt
+PyYAML>=6.0
+
+# Необязательно: чтение Telegram-каналов как источников и просмотры постов.
+# Установка при необходимости: python -m pip install -r requirements-optional.txt
+# Telethon>=1.34
+
+# Для тестов (необязательно): python -m pip install pytest

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel>
+  <title>Лента с HTML-сущностями</title>
+  <item>
+    <title>Новость&nbsp;с сущностью &mdash; проверка</title>
+    <link>https://example.com/entity</link>
+    <description>Текст &mdash; с сущностями &laquo;внутри&raquo;</description>
+  </item>
+</channel></rss>
