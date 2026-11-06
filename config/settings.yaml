@@ -67,13 +67,13 @@ llm:
   # gigachat        — GigaChat API (Сбер): есть бесплатный лимит, нужен аккаунт РФ
   # yandexgpt       — YandexGPT API: пробный грант, нужен аккаунт Yandex Cloud
   # dify            — приложение Dify (cloud.dify.ai или свой сервер) как LLM через Service API
-  # Основной провайдер + fallback-цепочка: если бесплатный лимит исчерпан,
-  # завод пробует следующего, а в крайнем случае — extractive (0 ₽).
-  # Cloudflare Workers AI: Free-план ~10 000 neurons/день; когда лимит
-  # исчерпан или сервис недоступен, автоматически уходим на локальную Ollama.
-  # Локальная LLM без ключей и лимитов: bash scripts/start-ollama.sh start
-  provider: cloudflare
-  fallback: [ollama_cloud, ollama, gigachat, yandexgpt, dify, openrouter, sambanova, huggingface, openai]
+  # Основной провайдер + fallback-цепочка.
+  # provider: ollama_cloud — открытые модели Ollama Cloud (gemma4:31b) сейчас
+  #   идут без оплаты за счёт остатка usage credits; «pro»-модели требуют
+  #   Pro/оплату (402). Когда остаток кончится — авто-переход на бесплатный
+  #   Cloudflare Workers AI (10 000 neurons/день), затем на локальную Ollama.
+  provider: ollama_cloud
+  fallback: [cloudflare, ollama, gigachat, yandexgpt, dify, openrouter, sambanova, huggingface, openai]
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3
