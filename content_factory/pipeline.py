@@ -392,9 +392,41 @@ def slot_is_night(channel: ChannelConfig, slot: str) -> bool:
     return current >= start_min or current < end_min
 
 
-def day_formats(channel: ChannelConfig) -> List[str]:
-    """Взвешенный микс дневных форматов (по умолчанию 30/40/30)."""
-    mix = getattr(channel, "content_mix", None) or {}
+def _window_contains(window: str, slot: str) -> bool:
+    if "-" not in str(window):
+        return False
+    parsed = _parse_hhmm(slot)
+    start_text, end_text = str(window).split("-", 1)
+    start, end = _parse_hhmm(start_text), _parse_hhmm(end_text)
+    if parsed is None or start is None or end is None:
+        return False
+    current = parsed[0] * 60 + parsed[1]
+    start_min = start[0] * 60 + start[1]
+    end_min = end[0] * 60 + end[1]
+    if start_min == end_min:
+        return False
+    if start_min < end_min:
+        return start_min <= current < end_min
+    return current >= start_min or current < end_min
+
+
+def slot_phase(channel: ChannelConfig, slot: str) -> str:
+    """Фаза слота: night / peak / day (по статистике активности Telegram)."""
+    if slot_is_night(channel, slot):
+        return "night"
+    for window in getattr(channel, "peak_windows", None) or []:
+        if _window_contains(window, slot):
+            return "peak"
+    return "day"
+
+
+def day_formats(channel: ChannelConfig, phase: str = "day") -> List[str]:
+    """Взвешенный микс форматов: в пик — больше analysis/interactive."""
+    mix = (
+        getattr(channel, "content_mix_peak", None)
+        if phase == "peak"
+        else getattr(channel, "content_mix", None)
+    ) or {}
     order = ("story", "analysis", "interactive")
     weights = {name: max(0, int(mix.get(name, 0) or 0)) for name in order}
     formats: List[str] = []
@@ -436,11 +468,11 @@ def _detect_trends(articles: Sequence[Any], channel: ChannelConfig, limit: int =
     return (related or trending)[:limit]
 
 
-def _tag_slot_meta(post: GeneratedPost, slot: str, night: bool, max_chars: int) -> None:
+def _tag_slot_meta(post: GeneratedPost, slot: str, night: bool, max_chars: int, phase: str = "day") -> None:
     if not isinstance(post.meta, dict):
         post.meta = {}
     post.meta["slot_local"] = slot
-    post.meta["slot_mode"] = "night" if night else "day"
+    post.meta["slot_mode"] = "night" if night else ("peak" if phase == "peak" else "day")
     post.meta["max_chars_target"] = int(max_chars)
     post.meta.setdefault("content_type", str(post.format or "story"))
 
@@ -467,12 +499,13 @@ def generate_posts(
     # Готовые посты из Dify workflow-приложения (research + SEO внутри).
     dify_generator = build_post_generator(settings)
 
-    night_mode = slot_is_night(channel, slot)
+    phase = slot_phase(channel, slot)
+    night_mode = phase == "night"
     max_chars = int(getattr(channel, "night_max_chars", 900) or 900) if night_mode else int(channel.max_post_chars)
     if night_mode:
         formats = ["digest"]
     else:
-        formats = day_formats(channel)
+        formats = day_formats(channel, phase)
     rotation = _today_posts(storage, channel.id) % len(formats)
     fmt = formats[rotation]
     min_chars = int(settings.pipeline.get("min_cluster_chars", 200))
@@ -494,7 +527,7 @@ def generate_posts(
                 _attach_image(digest, digest_items[0][0])
                 # у дайджеста заголовок — его собственная шапка, а не 1-й сюжет
                 _attach_card(digest, channel, settings, None)
-            _tag_slot_meta(digest, slot, night_mode, max_chars)
+            _tag_slot_meta(digest, slot, night_mode, max_chars, phase)
             posts.append(digest)
             return posts, errors
         except Exception as exc:
@@ -555,7 +588,7 @@ def generate_posts(
                 log.warning("Пост отклонён проверками: %s", issues)
                 continue
             _attach_card(post, channel, settings, cluster)
-            _tag_slot_meta(post, slot, night_mode, max_chars)
+            _tag_slot_meta(post, slot, night_mode, max_chars, phase)
             posts.append(post)
         except Exception as exc:
             errors.append(f"сюжет «{cluster.title[:60]}»: {exc}")

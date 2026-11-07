@@ -67,6 +67,13 @@ class ChannelConfig:
     )
     night_max_chars: int = 900
     night_window: str = "23:00-07:00"
+    # Пиковые окна по локальному времени (статистика активности Telegram).
+    peak_windows: List[str] = field(
+        default_factory=lambda: ["08:00-10:00", "12:00-14:00", "18:00-23:00"]
+    )
+    content_mix_peak: Dict[str, int] = field(
+        default_factory=lambda: {"story": 20, "analysis": 40, "interactive": 40}
+    )
     hashtags: List[str] = field(default_factory=list)
     cta: str = ""
     telegram_chat_id: str = ""
@@ -97,6 +104,14 @@ class ChannelConfig:
         self.content_mix = mix or {"story": 30, "analysis": 40, "interactive": 30}
         self.night_max_chars = max(300, int(self.night_max_chars))
         self.night_window = str(self.night_window or "23:00-07:00").strip()
+        self.peak_windows = [str(value).strip() for value in (self.peak_windows or []) if str(value).strip()]
+        peak_mix: Dict[str, int] = {}
+        for key, value in (self.content_mix_peak or {}).items():
+            try:
+                peak_mix[str(key).strip().lower()] = max(0, int(value))
+            except (TypeError, ValueError):
+                continue
+        self.content_mix_peak = peak_mix or {"story": 20, "analysis": 40, "interactive": 40}
         self.min_relevance = float(self.min_relevance)
         self.timezone_offset = int(self.timezone_offset)
 

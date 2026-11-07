@@ -1,6 +1,6 @@
 """Тесты пикового режима: ночь/день, микс форматов, парсер трендов."""
 from content_factory.config import load_channels
-from content_factory.pipeline import day_formats, slot_is_night
+from content_factory.pipeline import day_formats, slot_is_night, slot_phase
 from content_factory.trends import parse_google_trends_rss
 
 
@@ -17,6 +17,19 @@ def test_night_and_day_slots():
     assert slot_is_night(channel, "07:00") is False
     assert slot_is_night(channel, "09:00") is False
     assert slot_is_night(channel, "22:00") is False
+
+
+def test_phases_and_peak_mix():
+    channel = _channel("ai-news")
+    assert slot_phase(channel, "08:00") == "peak"
+    assert slot_phase(channel, "13:00") == "peak"
+    assert slot_phase(channel, "20:00") == "peak"
+    assert slot_phase(channel, "10:20") == "day"
+    assert slot_phase(channel, "23:00") == "night"
+    peak = day_formats(channel, "peak")
+    day = day_formats(channel, "day")
+    assert peak.count("interactive") >= day.count("interactive")
+    assert peak.count("story") <= day.count("story")
 
 
 def test_day_formats_mix_interleaved():
