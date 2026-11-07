@@ -153,7 +153,7 @@ def build_cards(
     channels: Sequence[ChannelConfig],
     usernames: Optional[Dict[str, str]] = None,
     *,
-    contact: str = "@<ваш_контакт>",
+    contact: str = "@Novyi0007Bot",
 ) -> List[Dict[str, Any]]:
     """Собирает карточки каналов для каталогов.
 
@@ -198,7 +198,7 @@ def cards_to_markdown(
     cards: Sequence[Dict[str, Any]],
     *,
     generated_at: Optional[str] = None,
-    contact: str = "@<ваш_контакт>",
+    contact: str = "@Novyi0007Bot",
 ) -> str:
     """Готовый к копированию пакет: каталоги, карточки, рекомендации."""
     moment = generated_at or datetime.now(timezone.utc).strftime("%d.%m.%Y %H:%M UTC")

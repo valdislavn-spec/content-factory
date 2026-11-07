@@ -1,6 +1,6 @@
 # Пакет для каталогов — 6 каналов
 
-Сгенерировано: 07.11.2026 17:34 UTC. Контакт: `@<ваш_контакт>`.
+Сгенерировано: 07.11.2026 17:34 UTC. Контакт: `@Novyi0007Bot`.
 
 ## Куда добавлять
 
@@ -31,7 +31,7 @@
 - **Описание (120–200):** NFL, NBA, MLB, NHL and college football: scores, trades, injuries and sharp analysis for US sports fans. Daily updates from trusted sources.
 - **Ключевые слова:** NFL, NBA, MLB, NHL, college football, US sports
 - **Хэштеги:** #Sports, #NFL, #NBA
-- **Контакт:** @<ваш_контакт>
+- **Контакт:** @Novyi0007Bot
 
 ### AI News (EN)
 
@@ -40,7 +40,7 @@
 - **Описание (120–200):** AI for a US audience: model releases, products, policy and the companies building them. Clear, sourced updates — no hype.
 - **Ключевые слова:** AI, OpenAI, Anthropic, LLM, Nvidia, AI policy
 - **Хэштеги:** #AI, #ArtificialIntelligence, #TechNews
-- **Контакт:** @<ваш_контакт>
+- **Контакт:** @Novyi0007Bot
 
 ### Crypto & Blockchain (EN)
 
@@ -49,7 +49,7 @@
 - **Описание (120–200):** US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain. Daily coverage from CoinDesk, The Block, Decrypt, SEC and CFTC.
 - **Ключевые слова:** Bitcoin, Ethereum, crypto, blockchain, ETF, regulation
 - **Хэштеги:** #Bitcoin, #Crypto, #Blockchain
-- **Контакт:** @<ваш_контакт>
+- **Контакт:** @Novyi0007Bot
 
 ### ES AI News (ES)
 
@@ -58,7 +58,7 @@
 - **Описание (120–200):** Inteligencia artificial en español: modelos, productos, empresas y políticas de IA. Resúmenes diarios de Hipertextual, La Nación y FayerWayer.
 - **Ключевые слова:** inteligencia artificial, IA, tecnología, innovación, modelos, empresas
 - **Хэштеги:** #Tecnología, #IA, #InteligenciaArtificial
-- **Контакт:** @<ваш_контакт>
+- **Контакт:** @Novyi0007Bot
 
 ### ES Crypto & Blockchain (ES)
 
@@ -67,7 +67,7 @@
 - **Описание (120–200):** Cripto y blockchain en español: Bitcoin, Ethereum, mercados y regulación. Noticias diarias de CriptoNoticias, BeInCrypto y CriptoTendencia.
 - **Ключевые слова:** criptomonedas, Bitcoin, Ethereum, blockchain, regulación, DeFi
 - **Хэштеги:** #Bitcoin, #Cripto, #Blockchain
-- **Контакт:** @<ваш_контакт>
+- **Контакт:** @Novyi0007Bot
 
 ### ES Sports News (ES)
 
@@ -76,7 +76,7 @@
 - **Описание (120–200):** Deporte en español: fútbol, LaLiga, Liga MX, Argentina, MLS y Champions. Resultados, fichajes y análisis para aficionados.
 - **Ключевые слова:** fútbol, LaLiga, Liga MX, Champions, fichajes, deportes
 - **Хэштеги:** #Deportes, #Fútbol, #LaLiga
-- **Контакт:** @<ваш_контакт>
+- **Контакт:** @Novyi0007Bot
 
 ## Рекомендации по упаковке
 

@@ -34,7 +34,7 @@ from content_factory.promo import cards_to_json, cards_to_markdown, build_cards
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Пакет карточек каналов для каталогов")
-    parser.add_argument("--contact", default="@<ваш_контакт>", help="Контакт для каталогов")
+    parser.add_argument("--contact", default="@Novyi0007Bot", help="Контакт для каталогов")
     parser.add_argument("--out-dir", default="docs/promo", help="Куда писать пакет")
     parser.add_argument("--dry-run", action="store_true", help="Только показать текст")
     return parser.parse_args(argv)

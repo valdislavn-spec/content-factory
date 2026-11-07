@@ -22,7 +22,7 @@
         "#NFL",
         "#NBA"
       ],
-      "contact": "@<ваш_контакт>"
+      "contact": "@Novyi0007Bot"
     },
     {
       "id": "ai-news",
@@ -45,7 +45,7 @@
         "#ArtificialIntelligence",
         "#TechNews"
       ],
-      "contact": "@<ваш_контакт>"
+      "contact": "@Novyi0007Bot"
     },
     {
       "id": "crypto-news",
@@ -68,7 +68,7 @@
         "#Crypto",
         "#Blockchain"
       ],
-      "contact": "@<ваш_контакт>"
+      "contact": "@Novyi0007Bot"
     },
     {
       "id": "tech-ai-es",
@@ -91,7 +91,7 @@
         "#IA",
         "#InteligenciaArtificial"
       ],
-      "contact": "@<ваш_контакт>"
+      "contact": "@Novyi0007Bot"
     },
     {
       "id": "crypto-es",
@@ -114,7 +114,7 @@
         "#Cripto",
         "#Blockchain"
       ],
-      "contact": "@<ваш_контакт>"
+      "contact": "@Novyi0007Bot"
     },
     {
       "id": "futbol-es",
@@ -137,7 +137,7 @@
         "#Fútbol",
         "#LaLiga"
       ],
-      "contact": "@<ваш_контакт>"
+      "contact": "@Novyi0007Bot"
     }
   ],
   "catalogs": [
