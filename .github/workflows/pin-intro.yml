@@ -27,6 +27,9 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
+      TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
