@@ -84,6 +84,28 @@ _EMOJI_RE = re.compile(
 )
 
 
+def _guess_headline(text: str) -> str:
+    """Достаёт заголовок из текста поста, даже если переносы схлопнуты."""
+    text = " ".join(str(text or "").split())
+    if not text:
+        return ""
+    # 1) первая строка
+    first_line = str(text).split("\n")[0].strip()
+    if first_line and len(first_line) <= 150 and "\n" in str(text):
+        return first_line
+    # 2) длинный разделитель «———» / «===» / «---»
+    match = re.search(r"\s*[—–_=-]{3,}\s*", text)
+    if match:
+        candidate = text[: match.start()].strip()
+        if 8 <= len(candidate) <= 170:
+            return candidate
+    # 3) первое предложение
+    match = re.match(r"(.{15,170}?[.!?])\s", text)
+    if match:
+        return match.group(1).strip()
+    return text[:120].strip()
+
+
 def _clean_text(text: str) -> str:
     """Убирает эмодзи и служебные символы, которые Playfair/Inter не рисуют."""
     # нумерованные эмодзи "1️⃣" → "1." (после вырезания keycap остался бы "1")
@@ -231,6 +253,9 @@ def _fit_headline(draw, text: str, max_width: int, max_lines: int, start_size: i
         size -= 6
     font = _headline_font(min_size, weight=850)
     lines = _wrap(draw, text, font, max_width) if font else []
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+        lines[-1] = lines[-1].rstrip() + " …"
     return font, min_size, lines
 
 
@@ -288,9 +313,9 @@ def render_post_card(
     accent = theme["accent"]
     plain = getattr(post, "plain_text", "") or ""
 
-    # заголовок: headline из сюжета, иначе первая строка поста
-    lines = [line.strip() for line in plain.splitlines() if line.strip()]
-    text_headline = lines[0] if lines else ""
+    # заголовок: headline из сюжета, иначе шапка поста (до длинного
+    # разделителя «———»/переноса/первого предложения)
+    text_headline = _guess_headline(plain)
     if headline is None or len(str(headline).strip()) < 8:
         headline = text_headline
     headline = _clean_text(str(headline or ""))
@@ -298,9 +323,12 @@ def render_post_card(
         headline = _clean_text(str(getattr(channel, "title", "") or ""))
 
     # тело: пост без первой строки-заголовка, без хвоста источников/хэштегов
-    body_lines = lines
-    if len(lines) > 1 and len(lines[0]) <= 140:
-        body_lines = lines[1:]
+    body_lines = [line for line in plain.splitlines() if line.strip()]
+    if len(body_lines) > 1 and len(body_lines[0]) <= 140:
+        body_lines = body_lines[1:]
+    elif body_lines and body_lines[0].strip().startswith(text_headline[:40]):
+        remainder = body_lines[0][len(text_headline):].lstrip(" —–-\t")
+        body_lines = [remainder] if remainder else []
     kept = []
     for line in body_lines:
         stripped = line.strip()
