@@ -68,7 +68,12 @@ jobs:
       - name: Publish one post
         run: |
           python -m content_factory channels
-          python -m content_factory run --channel "${{ inputs.channel }}" --publish --max-posts 1
+          # dry_run=true — только в outbox (безопасно), --publish только по явному выбору
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python -m content_factory run --channel "${{ inputs.channel }}" --dry-run --max-posts 1
+          else
+            python -m content_factory run --channel "${{ inputs.channel }}" --publish --max-posts 1
+          fi
       - name: Upload outbox and logs
         if: always()
         uses: actions/upload-artifact@v4
