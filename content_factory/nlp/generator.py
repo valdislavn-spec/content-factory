@@ -144,17 +144,23 @@ _SYSTEM_WRITER = (
     "события, цифры, имена, цитаты и ссылки. Без markdown и без пояснений."
 )
 _SYSTEM_WRITER_EN = (
-    "You are the editor of a US news Telegram channel. Write in direct, concise, "
-    "high-impact American English: professional, sharp and engaging, no filler. "
-    "Use only the facts from the provided text: never invent events, numbers, "
-    "names, quotes or links. No markdown and no explanations."
+    "You are a professional journalist writing for a US news Telegram channel. "
+    "Write a tight article: a strong SEO headline with the main keyword, a lead "
+    "paragraph answering what happened, then 2-3 short paragraphs of flowing prose. "
+    "Never use section labels (Key points, Why it matters, Context, Bottom line) "
+    "and never number list items. Use 1-3 relevant emojis naturally. Use only the "
+    "facts from the provided text: never invent events, numbers, names, quotes or "
+    "links. No markdown and no explanations."
 )
 _SYSTEM_WRITER_ES = (
-    "Eres el editor de un canal de noticias para América Latina. Escribe en "
-    "español neutro latinoamericano: usa siempre «ustedes», evita «vosotros» y "
-    "los regionalismos; tono autoritativo, cercano y confiable. Usa solo los "
-    "hechos del texto proporcionado: no inventes acontecimientos, cifras, "
-    "nombres, citas ni enlaces. Sin markdown y sin explicaciones."
+    "Eres un periodista profesional que escribe para un canal de noticias de "
+    "América Latina. Escribe un artículo breve: titular SEO con la palabra clave, "
+    "entradilla con lo que pasó y 2-3 párrafos de prosa periodística. Nunca uses "
+    "etiquetas (Puntos clave, Por qué importa, Contexto) ni numeres los elementos. "
+    "Usa 1-3 emojis con naturalidad. Español neutro latinoamericano: siempre "
+    "«ustedes», sin «vosotros» ni regionalismos. Usa solo los hechos del texto: "
+    "no inventes acontecimientos, cifras, nombres, citas ni enlaces. Sin markdown "
+    "y sin explicaciones."
 )
 
 # Тренды и интерактив: подписи по языкам.
@@ -449,6 +455,28 @@ def _link(title: str, url: str) -> str:
     return f'<a href="{_escape_url(url)}">{_escape(title or url)}</a>'
 
 
+_HTML_TAG_NAME_RE = re.compile(r"</?([A-Za-z0-9]+)")
+
+
+def html_is_balanced(fragment: str) -> bool:
+    """Проверка, что все открытые теги закрыты (для страховки лимита)."""
+    stack: List[str] = []
+    for match in re.finditer(r"<[^>]*>", str(fragment or "")):
+        token = match.group(0)
+        name_match = _HTML_TAG_NAME_RE.match(token)
+        if not name_match:
+            continue
+        name = name_match.group(1).lower()
+        if token.startswith("</"):
+            if stack and stack[-1] == name:
+                stack.pop()
+            elif name in stack:
+                stack = stack[: len(stack) - 1 - stack[::-1].index(name)]
+        elif not token.rstrip().endswith("/>"):
+            stack.append(name)
+    return not stack
+
+
 def _truncate_html(text: str, limit: int) -> str:
     """Жёстко обрезает HTML по лимиту, не разрывая теги и сущности."""
     if not text:
@@ -547,6 +575,86 @@ def _fit_blocks(blocks: Sequence[Dict[str, Any]], limit: int) -> str:
 
 def _section(style: Dict[str, str], key: str) -> str:
     return f"<i>{style.get(key, key)}:</i>"
+
+
+_LEAD_EMOJIS = {
+    "ai": "🤖", "ia": "🤖", "crypto": "🪙", "cripto": "🪙",
+    "sport": "🏆", "futbol": "⚽", "fútbol": "⚽", "tech": "💡", "tecnolog": "💡",
+}
+_DIGEST_EMOJIS = ["📌", "📈", "📊", "🔹", "📰", "🗞"]
+
+
+def _lead_emoji(channel: Any) -> str:
+    """Эмодзи под тематику канала (для начала поста)."""
+    key = f"{getattr(channel, 'id', '')} {getattr(channel, 'title', '')}".lower()
+    topics = " ".join(getattr(channel, "topics", None) or []).lower()
+    haystack = key + " " + topics
+    for needle, emoji in _LEAD_EMOJIS.items():
+        if needle in haystack:
+            return emoji
+    return "📰"
+
+
+def _prose(
+    sentences: Sequence[str],
+    lang: str,
+    *,
+    limit: int = 3,
+    max_len: int = 320,
+) -> str:
+    """Собирает плавный абзац из предложений без ярлыков и списков."""
+    picked: List[str] = []
+    for sentence in sentences:
+        if not _fits_language(sentence, lang):
+            continue
+        text = normalize_space(_shorten(sentence, max_len))
+        if not text or any(_similar(text, previous, 0.7) for previous in picked):
+            continue
+        picked.append(text)
+        if len(picked) >= limit:
+            break
+    return " ".join(picked)
+
+
+def _seo_tags(trends: Sequence[str], analysis: Analysis) -> List[str]:
+    """SEO-хэштеги из трендов и ключевых терминов."""
+    terms: List[str] = [str(term) for term in (trends or [])][:3]
+    terms += [str(term) for term in (getattr(analysis, "key_terms", None) or [])][:3]
+    tags: List[str] = []
+    for term in terms:
+        cleaned = re.sub(r"[^0-9A-Za-zÀ-ÿ]+", " ", term).strip()
+        if not cleaned:
+            continue
+        parts = cleaned.split()
+        tag = "".join(part[:1].upper() + part[1:] for part in parts[:2])
+        if len(tag) < 3:
+            continue
+        tag = "#" + tag
+        if tag.lower() not in {value.lower() for value in tags}:
+            tags.append(tag)
+        if len(tags) >= 3:
+            break
+    return tags
+
+
+def _perspectives_prose(analysis: Analysis, lang: str) -> str:
+    """Мнения источников — прозой, без ярлыка «Что пишут источники»."""
+    sentences: List[str] = []
+    foreign = _is_en(lang) or _is_es(lang)
+    for perspective in (getattr(analysis, "perspectives", None) or [])[:3]:
+        source = normalize_space(perspective.get("source_name", "")) or ""
+        quote = _shorten(perspective.get("quote", ""), 240)
+        angle = _shorten(perspective.get("angle", ""), 160)
+        if not quote and not angle:
+            continue
+        if foreign and (_has_cyrillic(source) or _has_cyrillic(quote) or _has_cyrillic(angle)):
+            continue
+        body = quote or angle
+        line = _quote(_escape(body), lang)
+        if source:
+            line += f" — <b>{_escape(source)}</b>"
+        sentences.append(line)
+    return " ".join(sentences)
 
 
 # ---------------------------------------------------------------------------
@@ -1187,26 +1295,31 @@ def _template_conclusion(analysis: Analysis, cluster: StoryCluster, lang: str = 
             parts.append(f"The picture emerges from reports by {count} sources.")
         elif count == 1:
             parts.append("The information is based on a single source.")
-        terms = [term for term in analysis.key_terms[:4] if _fits_language(term, lang)]
-        if terms:
-            parts.append(f"Key topics: {', '.join(terms)}.")
         return " ".join(parts)
     if _is_es(lang):
         if count >= 2:
             parts.append(f"El panorama surge de los mensajes de {count} fuentes.")
         elif count == 1:
             parts.append("La información se basa en una sola fuente.")
-        terms = [term for term in analysis.key_terms[:4] if _fits_language(term, lang)]
-        if terms:
-            parts.append(f"Temas clave: {', '.join(terms)}.")
         return " ".join(parts)
     if count >= 2:
         parts.append(f"Картина складывается из сообщений {count} источников.")
     elif count == 1:
         parts.append("Информация основана на одном источнике.")
-    if analysis.key_terms:
-        parts.append(f"Ключевые темы: {', '.join(analysis.key_terms[:4])}.")
     return " ".join(parts)
+
+
+def _numbers_sentence(analysis: Analysis, lang: str = "ru") -> str:
+    """Цифры из текста — обычным предложением, без ярлыков."""
+    numbers = [str(number) for number in (getattr(analysis, "numbers", None) or []) if _fits_language(number, lang)]
+    if not numbers:
+        return ""
+    chips = ", ".join(numbers[:4])
+    if _is_en(lang):
+        return f"The figures involved: {chips}."
+    if _is_es(lang):
+        return f"Las cifras que aparecen: {chips}."
+    return f"Фигурирующие цифры: {chips}."
 
 
 def _numbers_block(analysis: Analysis, style: Dict[str, str], lang: str = "ru") -> str:
@@ -1260,12 +1373,11 @@ def _build_story(
     lang: str = "ru",
     trends: Sequence[str] = (),
 ) -> Tuple[List[Dict[str, Any]], bool]:
+    """Новость как статья: заголовок, лид, детали прозой — без ярлыков."""
     llm_used = False
     compact_headline = bool(_setting(settings, "llm.optimize.compact_headline", False))
     title = (
-        _llm_headline(
-            cluster, analysis, source_text, llm, lang, compact=compact_headline
-        )
+        _llm_headline(cluster, analysis, source_text, llm, lang, compact=compact_headline)
         if _llm_available(llm)
         else ""
     )
@@ -1274,35 +1386,22 @@ def _build_story(
     else:
         title = _headline(cluster, analysis, lang)
 
-    blocks: List[Dict[str, Any]] = [{"text": f"<b>{_escape(title)}</b>"}]
-    trend_line = _trends_block(trends, lang)
-    if trend_line:
-        blocks.append({"text": trend_line})
+    lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
+    prefix = f"{lead_emoji} " if lead_emoji else ""
+    blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
     bullets = _story_bullets(analysis, title, lang)
-    if bullets:
-        lines = "\n".join(f"{style.get('bullet', '•')} {_escape(bullet)}" for bullet in bullets)
-        summary_label = style.get("summary", "Главное")
-        if summary_label.lower() in title.lower():
-            # Заголовок уже содержит «главное» — не дублируем подпись.
-            summary_label = _SHORT_SUMMARY_LABEL.get(language_code(lang), "Коротко")
-        blocks.append({"text": f"<i>{summary_label}:</i>\n{lines}"})
-
-    why = _llm_why(analysis, source_text, llm, lang) if _llm_available(llm) else ""
-    if why:
-        llm_used = True
-    else:
-        why = _template_why(analysis, cluster, lang)
-    # «Почему это важно» не должно повторять уже показанный тезис.
-    if why and any(_similar(why, bullet, 0.5) for bullet in bullets):
-        why = ""
-    if why:
-        blocks.append(
-            {
-                "text": f"<b>{style.get('why', 'Почему это важно')}:</b> {_escape(why)}",
-                "optional": True,
-                "drop_priority": 90,
-            }
-        )
+    lead_sentences = [sentence for sentence in split_sentences(analysis.summary)]
+    lead = _prose(lead_sentences or bullets, lang, limit=2, max_len=340)
+    if lead:
+        blocks.append({"text": _escape(lead)})
+    details = _prose(bullets[2:] if lead else bullets, lang, limit=2, max_len=280)
+    if details:
+        blocks.append({"text": _escape(details)})
+    current_len = sum(len(strip_html(block.get("text", ""))) for block in blocks)
+    if current_len < 300:
+        numbers_sentence = _numbers_sentence(analysis, lang)
+        if numbers_sentence:
+            blocks.append({"text": _escape(numbers_sentence)})
 
     sources_text = _sources_block(sources, style)
     if sources_text:
@@ -1314,6 +1413,9 @@ def _build_story(
     if tags_text:
         blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
     return blocks, llm_used
+
+
+
 
 
 def _build_analysis(
@@ -1329,12 +1431,11 @@ def _build_analysis(
     lang: str = "ru",
     trends: Sequence[str] = (),
 ) -> Tuple[List[Dict[str, Any]], bool]:
+    """Разбор как колонка журналиста: лид, контекст, вывод — без ярлыков."""
     llm_used = False
     compact_headline = bool(_setting(settings, "llm.optimize.compact_headline", False))
     title = (
-        _llm_headline(
-            cluster, analysis, source_text, llm, lang, compact=compact_headline
-        )
+        _llm_headline(cluster, analysis, source_text, llm, lang, compact=compact_headline)
         if _llm_available(llm)
         else ""
     )
@@ -1343,29 +1444,23 @@ def _build_analysis(
     else:
         title = _headline(cluster, analysis, lang)
 
-    blocks: List[Dict[str, Any]] = [
-        {"text": f"<b>{style.get('analysis', 'Разбор')}: {_escape(title)}</b>"}
-    ]
-    trend_line = _trends_block(trends, lang)
-    if trend_line:
-        blocks.append({"text": trend_line})
+    lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
+    prefix = f"{lead_emoji} " if lead_emoji else ""
+    blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
+    lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=340)
+    if lead:
+        blocks.append({"text": _escape(lead)})
 
-    context_sentences = [
-        sentence
-        for sentence in split_sentences(analysis.summary)[:2]
-        if _fits_language(sentence, lang)
-    ]
-    if context_sentences:
-        context = " ".join(_shorten(sentence, 300) for sentence in context_sentences)
-        blocks.append({"text": f"{_section(style, 'context')}\n{_escape(context)}"})
-
-    perspectives_text = _perspectives_block(analysis, style, lang)
-    if perspectives_text:
-        blocks.append({"text": perspectives_text, "optional": True, "drop_priority": 65})
-
-    numbers_text = _numbers_block(analysis, style, lang)
-    if numbers_text:
-        blocks.append({"text": numbers_text, "optional": True, "drop_priority": 60})
+    context = _perspectives_prose(analysis, lang)
+    if context:
+        blocks.append({"text": context})
+    else:
+        extra = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=280)
+        if extra:
+            blocks.append({"text": _escape(extra)})
+        numbers_sentence = _numbers_sentence(analysis, lang)
+        if numbers_sentence:
+            blocks.append({"text": _escape(numbers_sentence)})
 
     conclusion = _llm_conclusion(analysis, source_text, llm, lang) if _llm_available(llm) else ""
     if conclusion:
@@ -1373,13 +1468,7 @@ def _build_analysis(
     else:
         conclusion = _template_conclusion(analysis, cluster, lang)
     if conclusion:
-        blocks.append(
-            {
-                "text": f"<b>{style.get('conclusion', 'Вывод')}:</b> {_escape(conclusion)}",
-                "optional": True,
-                "drop_priority": 75,
-            }
-        )
+        blocks.append({"text": _escape(conclusion)})
 
     sources_text = _sources_block(sources, style)
     if sources_text:
@@ -1391,59 +1480,6 @@ def _build_analysis(
     if tags_text:
         blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
     return blocks, llm_used
-
-
-def _build_single_digest(
-    cluster: StoryCluster,
-    analysis: Analysis,
-    channel: ChannelConfig,
-    settings: Any,
-    style: Dict[str, str],
-    sources: Sequence[Dict[str, str]],
-    hashtags: Sequence[str],
-    lang: str = "ru",
-    trends: Sequence[str] = (),
-) -> Tuple[List[Dict[str, Any]], bool]:
-    date = _format_date(
-        channel, lang, cluster.last_published or utcnow(), with_time=False
-    )
-    header = f"<b>{style.get('digest', 'Дайджест')} · {_escape(date)}</b>"
-    blocks: List[Dict[str, Any]] = [{"text": header}]
-    trend_line = _trends_block(trends, lang)
-    if trend_line:
-        blocks.append({"text": trend_line})
-    trend_line = _trends_block(trends, lang)
-    if trend_line:
-        blocks.append({"text": trend_line})
-    title = _headline(cluster, analysis, lang)
-    blocks.append({"text": f"<b>{_escape(title)}</b>"})
-
-    # Короткий лид, чтобы одиночный дайджест не выглядел пустым.
-    for sentence in split_sentences(analysis.summary):
-        if not _fits_language(sentence, lang):
-            continue
-        if not _similar(sentence, title, 0.6):
-            blocks.append({"text": _escape(_shorten(sentence, 260))})
-            break
-
-    lines: List[str] = []
-    for bullet in _story_bullets(analysis, title, lang)[:3]:
-        lines.append(f"{style.get('bullet', '•')} {_escape(_shorten(bullet, 170))}")
-    if not lines and sources:
-        lines.append(f"<b>{_link(sources[0]['source'], sources[0]['url'])}</b>")
-    if lines:
-        blocks.append({"text": "\n".join(lines)})
-
-    sources_text = _sources_block(sources, style)
-    if sources_text:
-        blocks.append({"text": sources_text, "optional": True, "drop_priority": 70})
-    cta_text = _cta_block(channel, settings, lang)
-    if cta_text:
-        blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
-    tags_text = _hashtags_block(hashtags)
-    if tags_text:
-        blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
-    return blocks, False
 
 
 def _build_interactive(
@@ -1459,7 +1495,7 @@ def _build_interactive(
     lang: str = "ru",
     trends: Sequence[str] = (),
 ) -> Tuple[List[Dict[str, Any]], bool]:
-    """Пост-вовлечение: факт/контекст + вопрос к аудитории (30% днём)."""
+    """Пост-вовлечение: короткая статья + вопрос в конце (без ярлыка)."""
     llm_used = False
     compact_headline = bool(_setting(settings, "llm.optimize.compact_headline", False))
     title = (
@@ -1472,32 +1508,21 @@ def _build_interactive(
     else:
         title = _headline(cluster, analysis, lang)
 
-    blocks: List[Dict[str, Any]] = [{"text": f"<b>{_escape(title)}</b>"}]
-    trend_line = _trends_block(trends, lang)
-    if trend_line:
-        blocks.append({"text": trend_line})
-
-    context_sentences = [
-        sentence
-        for sentence in split_sentences(analysis.summary)[:2]
-        if _fits_language(sentence, lang)
-    ]
-    if context_sentences:
-        context = " ".join(_shorten(sentence, 300) for sentence in context_sentences)
-        blocks.append({"text": f"{_section(style, 'context')}\n{_escape(context)}"})
-
-    bullets = _story_bullets(analysis, title, lang)[:3]
-    context_plain = " ".join(context_sentences)
-    bullets = [bullet for bullet in bullets if not _similar(bullet, context_plain, 0.6)]
-    if bullets:
-        lines = "\n".join(f"{style.get('bullet', '•')} {_escape(bullet)}" for bullet in bullets)
-        blocks.append({"text": lines})
+    lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
+    prefix = f"{lead_emoji} " if lead_emoji else ""
+    blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
+    lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=340)
+    if lead:
+        blocks.append({"text": _escape(lead)})
+    facts = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=260)
+    if facts:
+        blocks.append({"text": _escape(facts)})
 
     questions = _INTERACTIVE_QUESTIONS.get(language_code(lang), _INTERACTIVE_QUESTIONS["ru"])
     if questions:
         index = sum(ord(char) for char in title) % len(questions)
-        label = _QUESTION_LABELS.get(language_code(lang), _QUESTION_LABELS["ru"])
-        blocks.append({"text": f"<b>{label}:</b> {_escape(questions[index])}"})
+        question_emoji = "🤔 " if getattr(channel, "emoji", True) else ""
+        blocks.append({"text": f"{question_emoji}{_escape(questions[index])}"})
 
     sources_text = _sources_block(sources, style)
     if sources_text:
@@ -1511,9 +1536,35 @@ def _build_interactive(
     return blocks, llm_used
 
 
-# ---------------------------------------------------------------------------
-# Проверки качества
-# ---------------------------------------------------------------------------
+def _build_single_digest(
+    cluster: StoryCluster,
+    analysis: Analysis,
+    channel: ChannelConfig,
+    settings: Any,
+    style: Dict[str, str],
+    sources: Sequence[Dict[str, str]],
+    hashtags: Sequence[str],
+    lang: str = "ru",
+    trends: Sequence[str] = (),
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """Ночной дайджест: короткая статья без нумерации и ярлыков."""
+    title = _headline(cluster, analysis, lang)
+    lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
+    prefix = f"{lead_emoji} " if lead_emoji else ""
+    blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
+    lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=300)
+    if lead:
+        blocks.append({"text": _escape(lead)})
+    facts = _prose(_story_bullets(analysis, title, lang)[:3], lang, limit=2, max_len=240)
+    if facts:
+        blocks.append({"text": _escape(facts)})
+    sources_text = _sources_block(sources, style)
+    if sources_text:
+        blocks.append({"text": sources_text, "optional": True, "drop_priority": 70})
+    tags_text = _hashtags_block(hashtags)
+    if tags_text:
+        blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
+    return blocks, False
 
 
 def _quality_issues(
@@ -1574,7 +1625,11 @@ def _make_post(
     extra_meta: Optional[Dict[str, Any]] = None,
     max_chars: Optional[int] = None,
 ) -> GeneratedPost:
-    text = _fit_blocks(blocks, int(max_chars or channel.max_post_chars))
+    limit = int(max_chars or channel.max_post_chars)
+    text = _fit_blocks(blocks, limit)
+    if len(text) > limit or not html_is_balanced(text):
+        # страховка: лимит и валидность важнее форматирования
+        text = strip_html(text)[:limit].rstrip()
     quality = _quality_issues(text, channel, settings, sources)
     meta: Dict[str, Any] = {
         "format": fmt,
@@ -1626,7 +1681,7 @@ def generate_post(
     fmt = _normalize_format(fmt, channel)
     lang = _channel_language(channel)
     sources = _extract_sources(cluster, lang)
-    hashtags = _post_hashtags(channel, analysis, lang)
+    hashtags = _post_hashtags(channel, analysis, lang) + _seo_tags(trends, analysis)
     style = _style(channel, lang)
     source_text = normalize_space(cluster.combined_text or " ".join([analysis.summary] + list(analysis.bullets)))
     llm_used = False
@@ -1664,7 +1719,12 @@ def generate_post(
         llm_used=llm_used,
         llm=llm,
         score=cluster.score,
-        extra_meta={"source_count": len(cluster.source_names), "trends": list(trends)},
+        extra_meta={
+            "source_count": len(cluster.source_names),
+            "trends": list(trends),
+            "seo_keywords": [str(term) for term in (trends or [])][:5],
+            "seo_title": str(cluster.title or ""),
+        },
         max_chars=max_chars,
     )
 
@@ -1677,7 +1737,7 @@ def generate_digest(
     max_chars: Optional[int] = None,
     trends: Sequence[str] = (),
 ) -> GeneratedPost:
-    """Генерирует дайджест из 3–5 коротких новостей со ссылками на источники."""
+    """Дайджест как подборка новостей: эмодзи-абзацы, без нумерации и ярлыков."""
     if channel is None:
         raise ValueError("generate_digest: channel обязателен")
     normalized: List[Tuple[StoryCluster, Analysis]] = []
@@ -1694,18 +1754,19 @@ def generate_digest(
     lang = _channel_language(channel)
     style = _style(channel, lang)
     hashtags = _post_hashtags(channel, normalized[0][1] if normalized else None, lang)
+    hashtags = list(hashtags) + _seo_tags(trends, normalized[0][1] if normalized else Analysis())
+
     date_source = utcnow()
     for cluster, _analysis in normalized:
         if cluster.last_published and cluster.last_published > date_source:
             date_source = cluster.last_published
     date = _format_date(channel, lang, date_source, with_time=False)
     if _is_en(lang):
-        default_digest_label = "Digest"
+        digest_label = style.get("digest", "Digest")
     elif _is_es(lang):
-        default_digest_label = "Resumen"
+        digest_label = style.get("digest", "Resumen")
     else:
-        default_digest_label = "Дайджест"
-    digest_label = style.get("digest", default_digest_label)
+        digest_label = style.get("digest", "Дайджест")
 
     sources: List[Dict[str, str]] = []
     seen_urls = set()
@@ -1721,20 +1782,25 @@ def generate_digest(
         if sources
         else "digest-" + stable_id(*[cluster.id for cluster, _analysis in normalized])
     )
+    seo_meta = {
+        "trends": list(trends),
+        "seo_keywords": [str(term) for term in (trends or [])][:5],
+        "seo_title": f"{digest_label} · {date}",
+    }
     if not normalized:
         post = _make_post(
             post_id=stable_id(channel.id, cluster_id, "digest"),
             channel=channel,
             cluster_id=cluster_id,
             fmt="digest",
-            blocks=[{"text": f"<b>{digest_label} · {_escape(date)}</b>"}],
+            blocks=[{"text": f"{_lead_emoji(channel)} <b>{digest_label} · {_escape(date)}</b>"}],
             hashtags=hashtags,
             sources=[],
             settings=settings,
             llm_used=False,
             llm=llm,
             score=0.0,
-            extra_meta={"items_count": 0, "quality_issues_extra": ["нет новостей для дайджеста"]},
+            extra_meta={"items_count": 0, "quality_issues_extra": ["нет новостей для дайджеста"], **seo_meta},
             max_chars=max_chars,
         )
         post.meta["quality_issues"].append("нет новостей для дайджеста")
@@ -1749,30 +1815,18 @@ def generate_digest(
     )
     llm_used = bool(llm_lines)
 
-    if _is_en(lang):
-        channel_title = channel.title if not _has_cyrillic(channel.title) else "News digest"
-        header = f"<b>{digest_label} — {_escape(channel_title)}: {_escape(date)}</b>"
-    elif _is_es(lang):
-        channel_title = (
-            channel.title if not _has_cyrillic(channel.title) else "Resumen de noticias"
-        )
-        header = f"<b>{digest_label} — {_escape(channel_title)}: {_escape(date)}</b>"
-    else:
-        header = f"<b>{digest_label} «{_escape(channel.title)}»: {_escape(date)}</b>"
-    blocks: List[Dict[str, Any]] = [{"text": header}]
-    trend_line = _trends_block(trends, lang)
-    if trend_line:
-        blocks.append({"text": trend_line})
+    blocks: List[Dict[str, Any]] = [
+        {"text": f"{_lead_emoji(channel)} <b>{_escape(digest_label)} · {_escape(date)}</b>"}
+    ]
     for index, (cluster, analysis) in enumerate(normalized):
         title = _headline(cluster, analysis, lang)
         one_line = (
-            llm_lines[index] if llm_used else _digest_fallback_line(analysis, title, lang)
+            llm_lines[index] if llm_used and index < len(llm_lines) else _digest_fallback_line(analysis, title, lang)
         )
-        marker = _DIGIT_EMOJI[index] if channel.emoji and index < len(_DIGIT_EMOJI) else f"{index + 1}."
+        emoji = _DIGEST_EMOJIS[index % len(_DIGEST_EMOJIS)] if getattr(channel, "emoji", True) else ""
         item_sources = _extract_sources(cluster, lang)
         link = ""
         if item_sources:
-            # Ссылка на источник — жирная, чтобы пункт читался отдельно.
             if _is_en(lang):
                 default_link_label = "source"
             elif _is_es(lang):
@@ -1781,10 +1835,10 @@ def generate_digest(
                 default_link_label = "источник"
             link_label = item_sources[0]["source"] or default_link_label
             link = " " + f"<b>{_link(link_label, item_sources[0]['url'])}</b>"
-        # Разделитель внутри блока помогает и в Telegram, и в plain-тексте dry-run,
-        # где strip_html схлопывает переводы строк.
-        text = f"{_DIGEST_SEPARATOR}\n{marker} <b>{_escape(title)}</b> — {_escape(one_line)}{link}"
-        blocks.append({"text": text})
+        prefix = f"{emoji} " if emoji else ""
+        blocks.append(
+            {"text": f"{prefix}<b>{_escape(title)}</b> — {_escape(one_line)}{link}"}
+        )
 
     cta_text = _cta_block(channel, settings, lang)
     if cta_text:
@@ -1809,9 +1863,10 @@ def generate_digest(
         llm_used=llm_used,
         llm=llm,
         score=score,
-        extra_meta={"items_count": len(normalized), "trends": list(trends)},
+        extra_meta={"items_count": len(normalized), **seo_meta},
         max_chars=max_chars,
     )
+
 
 
 def _digest_fallback_line(analysis: Analysis, title: str, lang: str = "ru") -> str:

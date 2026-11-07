@@ -720,7 +720,7 @@ class SpanishScenarioTest(unittest.TestCase):
         self.assertEqual(post.meta["language"], "es")
         self.assertFalse(_has_cyrillic(post.text))
         self.assertFalse(_has_cyrillic(post.plain_text))
-        self.assertIn("Claves:", post.text)
+        self.assertNotIn("Claves:", post.text)
         self.assertIn("Fuentes:", post.text)
         self.assertIn("#Economía", post.text)
         self.assertIn("Lee nuestro canal para más noticias.", post.text)

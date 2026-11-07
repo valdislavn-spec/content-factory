@@ -13,6 +13,7 @@ from content_factory.sources import (
     get_adapter,
 )
 from content_factory.sources.base import SourceAdapter
+from content_factory.sources.docs import DocsAdapter
 from content_factory.sources.espn import ESPNAdapter
 from content_factory.sources.rss import RSSAdapter
 from content_factory.sources.telegram import (
@@ -61,7 +62,7 @@ class RegistryTest(unittest.TestCase):
     def test_available_types(self) -> None:
         self.assertEqual(
             available_types(),
-            ["currents", "espn", "newsdata", "rss", "telegram", "web", "worldnews"],
+            ["currents", "docs", "espn", "newsdata", "rss", "telegram", "web", "worldnews"],
         )
 
     def test_get_adapter_returns_instances(self) -> None:

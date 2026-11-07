@@ -12,6 +12,7 @@ from ..config import Settings
 from ..models import Article, SourceConfig
 from ..utils import FetchError
 from .base import SourceAdapter
+from .docs import DocsAdapter
 from .espn import ESPNAdapter
 from .rss import RSSAdapter
 from .telegram import TelegramAdapter
@@ -28,11 +29,12 @@ _ADAPTERS: Dict[str, SourceAdapter] = {
     NewsDataAdapter.type: NewsDataAdapter(),
     CurrentsAdapter.type: CurrentsAdapter(),
     ESPNAdapter.type: ESPNAdapter(),
+    DocsAdapter.type: DocsAdapter(),
 }
 
 
 def get_adapter(source_type: str) -> SourceAdapter:
-    """Возвращает адаптер по типу источника (rss/web/telegram/worldnews/espn)."""
+    """Возвращает адаптер по типу источника (rss/web/telegram/worldnews/espn/docs)."""
     key = str(source_type or "").strip().lower()
     adapter = _ADAPTERS.get(key)
     if adapter is None:

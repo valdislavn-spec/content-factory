@@ -7,6 +7,7 @@
     python -m content_factory run --channel all --dry-run
     python -m content_factory preview --channel tech-ai
     python -m content_factory daemon
+    python -m content_factory ingest --dir data/inbox
     python -m content_factory report --days 7
 """
 from __future__ import annotations
@@ -390,6 +391,53 @@ def cmd_dify_apps(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def cmd_ingest(args: argparse.Namespace, settings: Settings) -> int:
+    """Конвертирует документы (PDF/Word/PPT/Excel/HTML) в Markdown для источников."""
+    from .ingest import SUPPORTED_EXTENSIONS, convert_many
+
+    targets: List[Path] = [Path(p).expanduser() for p in (args.paths or [])]
+    if args.dir:
+        base = Path(args.dir).expanduser()
+        if not base.is_absolute():
+            base = Path(settings.root) / base
+        if not base.is_dir():
+            print(f"Каталог не найден: {base}")
+            return 2
+        for path in sorted(base.rglob("*")):
+            if not path.is_file() or path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+                continue
+            if any(part == ".markdown" for part in path.parts):
+                continue
+            targets.append(path)
+    if not targets:
+        print("Нечего конвертировать: передайте файлы или --dir.")
+        return 2
+    out_dir = Path(args.out).expanduser() if args.out else settings.data_dir / "inbox"
+    if not out_dir.is_absolute():
+        out_dir = Path(settings.root) / out_dir
+    results = convert_many(targets, out_dir)
+    ok = sum(1 for _src, md, error in results if md is not None and error is None)
+    failed = len(results) - ok
+    if args.json:
+        payload = [
+            {
+                "source": str(src),
+                "markdown": str(md) if md is not None else None,
+                "error": error,
+            }
+            for src, md, error in results
+        ]
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    else:
+        print(f"Конвертация: {ok} успешно, {failed} с ошибками. Каталог: {out_dir}")
+        for src, md, error in results:
+            if error:
+                print(f"  ! {src.name}: {error}")
+            else:
+                print(f"  • {src.name} → {md.name}")
+    return 0 if failed == 0 else 1
+
+
 def _split_channels(value: Optional[str]) -> List[str]:
     if not value:
         return ["all"]
@@ -469,6 +517,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--input", action="append", default=[], help="key=value для тестового запуска"
     )
     p_apps.set_defaults(func=cmd_dify_apps)
+
+    p_ingest = sub.add_parser(
+        "ingest", help="Конвертировать PDF/Word/PPT/Excel/HTML в Markdown для источников"
+    )
+    p_ingest.add_argument("paths", nargs="*", help="Файлы документов")
+    p_ingest.add_argument("--dir", default="", help="Каталог с документами (рекурсивно)")
+    p_ingest.add_argument("--out", default="", help="Каталог для .md (по умолчанию data/inbox)")
+    p_ingest.add_argument("--json", action="store_true", help="Машинный вывод результата")
+    p_ingest.set_defaults(func=cmd_ingest)
 
     return parser
 
