@@ -13,6 +13,8 @@ import logging
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from ..config import Settings
@@ -124,6 +126,71 @@ class TelegramPublisher(Publisher):
             )
         return data.get("result")
 
+    def _call_multipart(
+        self,
+        method: str,
+        fields: Dict[str, Any],
+        files: Dict[str, Tuple[str, bytes]],
+    ) -> Any:
+        """POST multipart/form-data (нужен для sendPhoto с локальным файлом)."""
+        token = self._token()
+        if not token:
+            raise TelegramAPIError("Не задан токен Telegram-бота (TELEGRAM_BOT_TOKEN).")
+        base = str(env("TELEGRAM_API_BASE", "") or self._config().get("api_base") or API_BASE)
+        url = "{}/bot{}/{}".format(base.rstrip("/"), token, method)
+        boundary = "----ContentFactory{}".format(uuid.uuid4().hex)
+        body = bytearray()
+        for key, value in fields.items():
+            if value is None:
+                continue
+            body += (
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n".format(
+                    boundary, key, value
+                )
+            ).encode("utf-8")
+        for key, (filename, content) in files.items():
+            body += (
+                "--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\n"
+                "Content-Type: application/octet-stream\r\n\r\n".format(boundary, key, filename)
+            ).encode("utf-8")
+            body += content
+            body += b"\r\n"
+        body += "--{}--\r\n".format(boundary).encode("utf-8")
+
+        request = urllib.request.Request(
+            url,
+            data=bytes(body),
+            headers={
+                "Content-Type": "multipart/form-data; boundary={}".format(boundary),
+                "User-Agent": self.settings.user_agent or "ContentFactory/1.0",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.settings.request_timeout) as response:
+                raw = response.read()
+        except urllib.error.HTTPError as exc:
+            try:
+                raw = exc.read()
+            except Exception:  # noqa: BLE001
+                raw = b""
+            description = _extract_description(raw) or "HTTP {} {}".format(exc.code, exc.reason)
+            raise TelegramAPIError("Telegram Bot API: {}".format(description)) from exc
+        except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+            raise TelegramAPIError("Сетевая ошибка Telegram Bot API: {}".format(exc)) from exc
+
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError) as exc:
+            raise TelegramAPIError("Некорректный ответ Telegram Bot API") from exc
+        if not isinstance(data, dict):
+            raise TelegramAPIError("Неожиданный формат ответа Telegram Bot API")
+        if not data.get("ok"):
+            raise TelegramAPIError(
+                "Telegram Bot API: {}".format(data.get("description") or "ответ ok=false без описания")
+            )
+        return data.get("result")
+
     # ------------------------------------------------------------------
     # публикация
     # ------------------------------------------------------------------
@@ -171,13 +238,64 @@ class TelegramPublisher(Publisher):
             config = self._config()
             parse_mode = str(config.get("parse_mode") or "HTML")
             disable_preview = bool(config.get("disable_preview", False))
+            # Сначала — фирменная фото-карточка (Playfair Display + Inter),
+            # сгенерированная пайплайном. Если её нет/не удалось загрузить,
+            # работаем как раньше: картинка статьи или текст.
+            card_message_id = ""
+            card_path = str((post.meta or {}).get("card_path") or "").strip()
+            if card_path and Path(card_path).is_file():
+                try:
+                    caption = (
+                        parts[0]
+                        if len(parts) == 1 and len(strip_html(parts[0])) <= 1000
+                        else ""
+                    )
+                    fields: Dict[str, Any] = {"chat_id": chat_id, "parse_mode": parse_mode}
+                    if caption:
+                        fields["caption"] = caption
+                    photo_result = self._call_multipart(
+                        "sendPhoto",
+                        fields,
+                        {"photo": (Path(card_path).name, Path(card_path).read_bytes())},
+                    )
+                    message_id = ""
+                    if isinstance(photo_result, dict):
+                        message_id = str(photo_result.get("message_id") or "")
+                    username = self._username(chat_id)
+                    url = (
+                        "https://t.me/{}/{}".format(username, message_id)
+                        if username and message_id
+                        else ""
+                    )
+                    if caption:
+                        logger.info(
+                            "Telegram: пост %s канала %s опубликован карточкой (id=%s)",
+                            post.id,
+                            channel.id,
+                            message_id or "-",
+                        )
+                        return self._result(post, channel, ok=True, external_id=message_id, url=url)
+                    card_message_id = message_id
+                    logger.info(
+                        "Telegram: карточка поста %s канала %s загружена (id=%s), далее текст",
+                        post.id,
+                        channel.id,
+                        message_id or "-",
+                    )
+                except TelegramAPIError as exc:
+                    logger.warning(
+                        "Telegram: карточка поста %s не загрузилась (%s) — отправляю текст",
+                        post.id,
+                        exc,
+                    )
+
             image_url = str((post.meta or {}).get("image_url") or "").strip()
             caption_ok = (
                 image_url.startswith(("http://", "https://"))
                 and len(parts) == 1
                 and len(strip_html(parts[0])) <= 1000
             )
-            if caption_ok:
+            if caption_ok and not card_message_id:
                 try:
                     photo_result = self._call(
                         "sendPhoto",
@@ -211,7 +329,7 @@ class TelegramPublisher(Publisher):
                         "Telegram: sendPhoto не удался (%s) — отправляю текстом", exc
                     )
 
-            message_ids: List[str] = []
+            message_ids: List[str] = [card_message_id] if card_message_id else []
             for index, part in enumerate(parts, start=1):
                 try:
                     result = self._call(

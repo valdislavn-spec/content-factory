@@ -7,3 +7,6 @@ PyYAML>=6.0
 # Telethon>=1.34
 
 # Для тестов (необязательно): python -m pip install pytest
+
+# фото-карточки постов (Playfair Display + Inter)
+Pillow>=10.0

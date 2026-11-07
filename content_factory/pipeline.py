@@ -319,6 +319,41 @@ def _attach_image(post: GeneratedPost, cluster: StoryCluster) -> None:
             return
 
 
+def _attach_card(
+    post: GeneratedPost,
+    channel: ChannelConfig,
+    settings: Settings,
+    cluster: Optional[StoryCluster] = None,
+) -> None:
+    """Рисует фирменную фото-карточку поста (Playfair Display + Inter).
+
+    Карточка сохраняется в ``data/outbox/cards/<post>.png``, путь кладётся в
+    ``post.meta["card_path"]``; Telegram-публикатор отправит её через sendPhoto.
+    Любая ошибка рендера не должна ломать публикацию — только логируется.
+    """
+    try:
+        config = settings.publishers.get("telegram", {})
+        card_config = config.get("photo_card", {}) if isinstance(config, dict) else {}
+        if isinstance(card_config, dict) and not card_config.get("enabled", True):
+            return
+        from .cards import render_post_card
+
+        headline = str(getattr(cluster, "title", "") or "").strip() if cluster is not None else None
+        path = render_post_card(
+            post,
+            channel,
+            settings,
+            headline=headline or None,
+            width=int((card_config or {}).get("width", 1080)),
+            height=int((card_config or {}).get("height", 1350)),
+            body_chars=int((card_config or {}).get("body_chars", 640)),
+        )
+        if path and isinstance(post.meta, dict):
+            post.meta["card_path"] = str(path)
+    except Exception:  # noqa: BLE001 - карточка не должна ломать публикацию
+        log.debug("Не удалось нарисовать карточку для %s", channel.id, exc_info=True)
+
+
 def generate_posts(
     channel: ChannelConfig,
     clusters: Sequence[StoryCluster],
@@ -354,6 +389,8 @@ def generate_posts(
             digest = generate_digest(digest_items, channel, settings, llm=llm)
             if digest_items:
                 _attach_image(digest, digest_items[0][0])
+                # у дайджеста заголовок — его собственная шапка, а не 1-й сюжет
+                _attach_card(digest, channel, settings, None)
             posts.append(digest)
             return posts, errors
         except Exception as exc:
@@ -385,6 +422,7 @@ def generate_posts(
                 dify_post = dify_generator.generate(channel, cluster)
                 if dify_post is not None:
                     _attach_image(dify_post, cluster)
+                    _attach_card(dify_post, channel, settings, cluster)
                     posts.append(dify_post)
                     continue
             analysis = analyze_cluster(
@@ -400,6 +438,7 @@ def generate_posts(
                 )
                 log.warning("Пост отклонён проверками: %s", issues)
                 continue
+            _attach_card(post, channel, settings, cluster)
             posts.append(post)
         except Exception as exc:
             errors.append(f"сюжет «{cluster.title[:60]}»: {exc}")

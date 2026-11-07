@@ -218,6 +218,14 @@ publishers:
     bot_token_env: TELEGRAM_BOT_TOKEN
     parse_mode: HTML
     disable_preview: false
+    # Фирменные фото-карточки постов: заголовок Playfair Display,
+    # тело — Inter (шрифты в assets/fonts, OFL). Публикуются через
+    # sendPhoto (multipart) вместо картинки статьи.
+    photo_card:
+      enabled: true
+      width: 1080
+      height: 1350
+      body_chars: 640
   vk:
     access_token_env: VK_ACCESS_TOKEN
     group_id_env: VK_GROUP_ID
