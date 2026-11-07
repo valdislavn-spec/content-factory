@@ -106,12 +106,17 @@ def _guess_headline(text: str) -> str:
     return text[:120].strip()
 
 
+_SYMBOL_RE = re.compile("[\u2190-\u21FF\u2300-\u23FF\u2500-\u27BF\u2B00-\u2BFF]")
+
+
 def _clean_text(text: str) -> str:
     """Убирает эмодзи и служебные символы, которые Playfair/Inter не рисуют."""
     # нумерованные эмодзи "1️⃣" → "1." (после вырезания keycap остался бы "1")
     text = re.sub(r"([0-9])\ufe0f?\u20e3", r"\1. ", text)
     text = _EMOJI_RE.sub(" ", text)
     text = text.replace("\ufe0f", "").replace("\u20e3", "")
+    # маркеры списков/рамки: ▪ • □ ■ и т.п. — без них карточка чище
+    text = _SYMBOL_RE.sub(" ", text)
     return " ".join(text.split())
 
 
@@ -273,6 +278,19 @@ def _trim_body(text: str, max_chars: int) -> str:
     return (cut[:pos] if pos > 0 else cut).rstrip() + " …"
 
 
+def _strip_headline_prefix(text: str, headline: str) -> str:
+    """Убирает заголовок в начале текста, не резая текст по длине."""
+    if not text or not headline:
+        return text
+    words = str(headline).split()
+    lowered = text.lower()
+    for count in range(min(len(words), 12), 2, -1):
+        prefix = " ".join(words[:count]).lower()
+        if lowered.startswith(prefix):
+            return text[len(prefix):].lstrip(" —–-:·|")
+    return text
+
+
 def _avatar(channel_id: str, size: int):
     """Круглый аватар канала из assets/logos (или None)."""
     from PIL import Image, ImageDraw
@@ -322,23 +340,36 @@ def render_post_card(
     if not headline:
         headline = _clean_text(str(getattr(channel, "title", "") or ""))
 
-    # тело: пост без первой строки-заголовка, без хвоста источников/хэштегов
-    body_lines = [line for line in plain.splitlines() if line.strip()]
-    if len(body_lines) > 1 and len(body_lines[0]) <= 140:
-        body_lines = body_lines[1:]
-    elif body_lines and body_lines[0].strip().startswith(text_headline[:40]):
-        remainder = body_lines[0][len(text_headline):].lstrip(" —–-\t")
-        body_lines = [remainder] if remainder else []
-    kept = []
-    for line in body_lines:
-        stripped = line.strip()
-        if not stripped:
-            continue
-        if re.fullmatch(r"[—–\-=\u2022·\s]{2,}", stripped):
-            kept.append("")  # абзацный разрыв вместо линии-разделителя
-            continue
-        kept.append(re.sub(r"\s*[—–]{3,}\s*", "\n", stripped))
-    body = "\n".join(_clean_text(part) for part in kept)
+    # тело: пост без заголовка, без хвоста источников/хэштегов.
+    if "\n" not in plain:
+        # strip_html схлопывает переносы: отрезаем заголовок по словам,
+        # затем снимаем служебные подписи (Trending/Key points/Context...).
+        body_text = _strip_headline_prefix(plain, str(headline))
+        label_re = re.compile(
+            r"(?:Key points|Trending now|Context|In short|Why it matters|"
+            r"Principales|En tendencia|Fuentes|Главное|Контекст|В тренде)\s*:\s*"
+        )
+        for _ in range(4):  # снимаем несколько служебных префиксов подряд
+            label = label_re.search(body_text)
+            if label is not None and label.start() < 60:
+                body_text = body_text[label.end():]
+            else:
+                break
+        body = _clean_text(body_text)
+    else:
+        body_lines = [line for line in plain.splitlines() if line.strip()]
+        if len(body_lines) > 1 and len(body_lines[0]) <= 140:
+            body_lines = body_lines[1:]
+        kept = []
+        for line in body_lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if re.fullmatch(r"[—–\-=\u2022·\s]{2,}", stripped):
+                kept.append("")  # абзацный разрыв вместо линии-разделителя
+                continue
+            kept.append(re.sub(r"\s*[—–]{3,}\s*", "\n", stripped))
+        body = "\n".join(_clean_text(part) for part in kept)
     fmt_name = str((getattr(post, "meta", {}) or {}).get("format") or "").lower()
     if fmt_name == "digest":
         # пункты дайджеста "1. ... 2. ..." — с новой строки
