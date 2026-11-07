@@ -1,0 +1,14 @@
+name = "tg-cron"
+main = "tg-cron.mjs"
+compatibility_date = "2026-01-01"
+
+# account_id берётся из переменной окружения CLOUDFLARE_ACCOUNT_ID.
+# KV-неймспейс создаётся один раз: wrangler kv namespace create tg-cron-state
+# и его id подставляется ниже.
+
+[triggers]
+crons = ["*/22 * * * *"]
+
+[[kv_namespaces]]
+binding = "STATE"
+id = "4d766ea68e1f46299c862681ab32d012"

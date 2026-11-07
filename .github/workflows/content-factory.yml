@@ -155,6 +155,12 @@ jobs:
           restore-keys: |
             cf-state-
 
+      - name: Restore durable schedule state
+        env:
+          ALERT_GITHUB_TOKEN: ${{ secrets.ALERT_GITHUB_TOKEN }}
+        run: python scripts/state_sync.py pull
+        continue-on-error: true
+
       - name: Init project (idempotent)
         run: python -m content_factory init
 
@@ -183,6 +189,17 @@ jobs:
         run: |
           python -m content_factory channels
           python -m content_factory daemon --once
+
+      - name: Persist durable schedule state
+        if: always()
+        env:
+          ALERT_GITHUB_TOKEN: ${{ secrets.ALERT_GITHUB_TOKEN }}
+        run: python scripts/state_sync.py push
+        continue-on-error: true
+
+      - name: Check publication health
+        if: env.CONTENT_FACTORY_DRY_RUN == 'false'
+        run: python scripts/check_publish_health.py
 
       - name: Upload outbox, reports and logs
         if: always()

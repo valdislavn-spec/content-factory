@@ -6,9 +6,10 @@
 |---|---|---|
 | Падение публикации | шаг `Notify on failure` в `content-factory.yml` | Telegram @Novyi0007Bot |
 | Cloudflare не смог запустить Actions | Worker `tg-cron` → функция `tgAlert` | Telegram |
-| Cloudflare Worker упал / запусков нет | **health-endpoint** Worker | UptimeRobot (push/email) → iOS |
+| Запусков нет / health «протух» | Worker проверяет health каждые 22 мин (KV, антиспам 3 ч) | Telegram @Novyi0007Bot |
 | Ежедневный heartbeat 09:00 UTC | workflow `heartbeat` | Telegram: жив, запусков/ошибок за сутки, ссылки на ошибки |
 | Бэкап раз в неделю | workflow `backup` | GitHub artifact, хранится 90 дней |
+| Состояние слотов | дублируется в GitHub variable `CF_SCHEDULE_STATE` | переживает потерю кэша (без дублей) |
 
 **Health-endpoint:** https://tg-cron.valdislav-n.workers.dev/
 
@@ -21,7 +22,9 @@
 curl -s https://tg-cron.valdislav-n.workers.dev/
 ```
 
-## UptimeRobot (внешний монитор, 5 минут)
+## UptimeRobot (опционально, внешний дубль)
+
+Внутренние алерты уже покрывают «запусков нет» и «health упал». UptimeRobot нужен только как внешний независимый контроль.
 
 1. Зарегистрироваться на uptimerobot.com (Free: 50 мониторов, 5-минутный интервал).
 2. Add New Monitor → **HTTP(s)**:
