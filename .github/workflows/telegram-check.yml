@@ -2,9 +2,16 @@ name: telegram-check
 
 # Ручная проверка бота и прав в каналах из облака (с раннера GitHub
 # api.telegram.org доступен, в отличие от сети РФ).
-# Запуск: Actions → telegram-check → Run workflow.
+# Запуск: Actions → telegram-check → Run workflow → выбрать язык (en/es).
 on:
   workflow_dispatch:
+    inputs:
+      language:
+        description: "Набор каналов: en или es"
+        required: true
+        default: "en"
+        type: choice
+        options: ["en", "es"]
 
 permissions:
   contents: read
@@ -14,8 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      CONTENT_FACTORY_CHANNELS: config/channels.${{ inputs.language }}.yaml
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
+      TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

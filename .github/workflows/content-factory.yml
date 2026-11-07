@@ -1,44 +1,51 @@
-name: content-factory-cloud
+name: content-factory-cloud-en-es
 
-# Запуск контент-завода без собственного ПК и без Oracle:
-# запуск ровно в слоты каналов (16 раз/сутки, UTC), а не каждые 10 минут —
-# так укладываемся в бесплатные ~2000 минут GitHub Actions для приватного
-# репозитория. Публикация выключена, пока не задана переменная
-# CONTENT_FACTORY_DRY_RUN=false.
+# Контент-завод в облаке для ДВУХ языковых наборов сразу:
+#   en — 6 английских каналов (config/channels.en.yaml), 16 слотов/сутки;
+#   es — 3 испанских канала (config/channels.es.yaml), 6 слотов/сутки.
+# Матрица lang = [en, es]: один cron, два независимых джоба со своими
+# кэшами состояния, артефактами и concurrency-группами.
+# Публикация включена; безопасный режим — переменная CONTENT_FACTORY_DRY_RUN=true.
 
 on:
   schedule:
-    # Слоты каналов :00 — 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC
+    # Слоты :00 UTC — 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00
     - cron: "0 0,3,6,9,12,15,18,21 * * *"
-    # Слоты каналов :30 — 01:30, 04:30, 07:30, 10:30, 13:30, 16:30, 19:30, 22:30 UTC
+    # Слоты :30 UTC — 01:30, 04:30, 07:30, 10:30, 13:30, 16:30, 19:30, 22:30
     - cron: "30 1,4,7,10,13,16,19,22 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Два запуска не должны одновременно писать в SQLite.
-concurrency:
-  group: content-factory-cloud
-  cancel-in-progress: false
-
 jobs:
   tick:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [en, es]
+    concurrency:
+      group: content-factory-cloud-${{ matrix.lang }}
+      cancel-in-progress: false
 
     env:
       TZ: Europe/Moscow
-      # Пусто/не задано = безопасный dry-run из config/settings.yaml.
-      # Значения: "true" (по умолчанию, писать в outbox) / "false" (публиковать).
-      CONTENT_FACTORY_DRY_RUN: ${{ vars.CONTENT_FACTORY_DRY_RUN }}
-      # Пусто = channels_file из config/settings.yaml (сейчас — английские каналы).
-      # Для русских каналов: Variables → CONTENT_FACTORY_CHANNELS=config/channels.yaml
-      CONTENT_FACTORY_CHANNELS: ${{ vars.CONTENT_FACTORY_CHANNELS }}
+      # true = безопасный dry-run (только outbox/артефакты).
+      # Не задано / пусто → реальная публикация.
+      CONTENT_FACTORY_DRY_RUN: ${{ vars.CONTENT_FACTORY_DRY_RUN || 'false' }}
+      # Набор каналов задаёт матрица: en → channels.en.yaml, es → channels.es.yaml.
+      CONTENT_FACTORY_CHANNELS: config/channels.${{ matrix.lang }}.yaml
 
       # --- Публикация в Telegram / ВКонтакте ----------------------------
       # Секреты репозитория: Settings → Secrets and variables → Actions.
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      # ES-каналы: chat_id подставляются из секретов; пустые = канал пропускается.
+      TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
+      TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
+      # RU-каналы (на случай добавления ru в матрицу).
       TELEGRAM_CHAT_ID_TECH_AI: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI }}
       TELEGRAM_CHAT_ID_BUSINESS_FINANCE: ${{ secrets.TELEGRAM_CHAT_ID_BUSINESS_FINANCE }}
       TELEGRAM_CHAT_ID_SCIENCE_HEALTH: ${{ secrets.TELEGRAM_CHAT_ID_SCIENCE_HEALTH }}
@@ -113,8 +120,7 @@ jobs:
         run: mkdir -p data
 
       # SQLite, состояние расписания и LLM-кэш/бюджеты переживают запуски
-      # через кэш GitHub. Ключ уникален для каждого запуска, restore-keys
-      # подхватывает последний.
+      # через кэш GitHub. Ключ свой на каждый язык и запуск.
       - name: Restore SQLite, scheduler and LLM state
         uses: actions/cache@v4
         with:
@@ -125,9 +131,9 @@ jobs:
             data/llm_tokens.json
             data/llm_usage.json
             data/source_*_usage.json
-          key: cf-state-${{ github.run_id }}
+          key: cf-state-${{ matrix.lang }}-${{ github.run_id }}
           restore-keys: |
-            cf-state-
+            cf-state-${{ matrix.lang }}-
 
       - name: Init project (idempotent)
         run: python -m content_factory init
@@ -152,7 +158,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content-factory-${{ github.run_number }}
+          name: content-factory-${{ matrix.lang }}-${{ github.run_number }}
           path: |
             data/outbox
             data/reports

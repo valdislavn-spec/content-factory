@@ -6,22 +6,24 @@
 Ваш ПК при этом выключен.
 
 ```
-GitHub Actions (cron 10 мин)
+GitHub Actions (cron в слоты каналов, матрица EN+ES)
   → checkout проекта
-  → restore SQLite + schedule_state из кэша
+  → restore SQLite + schedule_state из кэша (свой на каждый язык)
   → python -m content_factory daemon --once
-  → публикация в Telegram (если разрешена)
+  → публикация в Telegram
   → save state в кэш + artifact с outbox/логами
 ```
 
-Готовый workflow: [`.github/workflows/content-factory.yml`](../.github/workflows/content-factory.yml).
+Готовый workflow: [`.github/workflows/content-factory.yml`](../.github/workflows/content-factory.yml) —
+workflow **`content-factory-cloud-en-es`**, матрица `lang = [en, es]`
+(EN — `channels.en.yaml`, ES — `channels.es.yaml`).
 
 ## 1. Что это даёт и чего не даёт
 
 **Даёт:**
 
 - 0 ₽, без карты, без Oracle и без своего сервера;
-- запуск каждые 10 минут, расписание каналов — по Москве;
+- запуск в слоты каналов (EN — 16/сутки, ES — 6/сутки), время — по Москве;
 - реальную публикацию в Telegram/VK, если заданы токены;
 - сохранение SQLite и состояния расписания между запусками;
 - артефакты с outbox, отчётами и логами.
@@ -98,10 +100,14 @@ Chat_id не секретны; токен — секрет.
 
 - `TELEGRAM_BOT_TOKEN` — обязательно для публикации;
 - `TELEGRAM_CHAT_ID_*` — если не хотите хранить chat_id в конфиге;
+- `TELEGRAM_CHAT_ID_TECH_AI_ES`, `TELEGRAM_CHAT_ID_CRYPTO_ES`,
+  `TELEGRAM_CHAT_ID_FUTBOL_ES` — chat_id испанских каналов (без них ES
+  пропускается);
 - `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` — основной LLM
   (Cloudflare Workers AI, free 10 000 neurons/день), работает и из РФ;
 - `OPENROUTER_API_KEY`, `GROQ_API_KEY`, `SAMBANOVA_API_KEY`,
-  `OLLAMA_API_KEY`, `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY` — резервные LLM;
+  `OLLAMA_API_KEY`, `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY`,
+  `DEEPSEEK_API_KEY` — резервные LLM;
   на раннерах GitHub Actions доступны и заблокированные в РФ
   OpenAI/Groq/OpenRouter;
 - `YANDEXGPT_API_KEY`, `YANDEX_FOLDER_ID`, `GIGACHAT_CREDENTIALS`,
@@ -117,31 +123,31 @@ Chat_id не секретны; токен — секрет.
 
 Переменные (Variables):
 
-- `CONTENT_FACTORY_DRY_RUN` = `true` на старте, `false` — когда готовы
-  публиковать.
-- `CONTENT_FACTORY_CHANNELS` = `config/channels.yaml` для русских каналов
-  (пусто = `channels_file` из `config/settings.yaml`).
+- `CONTENT_FACTORY_DRY_RUN` — **по умолчанию workflow публикует по-настоящему**;
+  поставьте `true`, чтобы включить безопасный dry-run (посты только в
+  artifacts).
+- `CONTENT_FACTORY_CHANNELS` больше не нужна: набор каналов задаёт матрица
+  workflow (`en`/`es`). Для русских каналов добавьте `ru` в матрицу и
+  `TELEGRAM_CHAT_ID_*`.
 
-Если переменная не задана, проект работает в `dry_run` из
-`config/settings.yaml` — это безопасно.
+### Шаг 4. Первый запуск и проверка
 
-### Шаг 4. Первый запуск (dry-run)
-
-1. Actions → `content-factory-cloud` → **Run workflow**.
-2. Дождитесь окончания (1–3 минуты).
-3. Откройте лог: шаг `Show channels and mode` покажет `DRY-RUN`.
-4. Скачайте артефакт `content-factory-<номер>`: там `data/outbox`,
+1. Actions → `content-factory-cloud-en-es` → **Run workflow**: запустятся
+   два джоба — `en` и `es`.
+2. Дождитесь окончания (1–3 минуты на язык).
+3. Откройте лог: шаг `Show channels and mode` покажет каналы и режим
+   (`DRY-RUN` / публикация), шаг `Show LLM chain` — какие провайдеры живы.
+4. Скачайте артефакт `content-factory-<lang>-<номер>`: там `data/outbox`,
    `data/reports`, `data/logs`.
-5. Проверьте посты в outbox.
 
 Первый запуск может «догнать» последний слот за 24 часа — по одному на канал.
-В dry-run это безопасно; именно поэтому сначала запускаем с `true`.
+Перед боевым запуском можно поставить `CONTENT_FACTORY_DRY_RUN=true`.
 
-### Шаг 5. Включение публикации
+### Шаг 5. Публикация
 
-1. Поставьте переменную `CONTENT_FACTORY_DRY_RUN=false`.
-2. Запустите workflow вручную ещё раз — проверьте, что публикация прошла.
-3. Дальше cron работает сам.
+Workflow публикует по-настоящему по умолчанию. Чтобы проверить безопасно —
+Variable `CONTENT_FACTORY_DRY_RUN=true`; для боевого режима уберите её или
+поставьте `false`. Дальше cron работает сам.
 
 Если хотите протестировать слот быстрее — временно поставьте в
 `config/channels.yaml` время на 2–3 минуты вперёд (по МСК), дождитесь тика,

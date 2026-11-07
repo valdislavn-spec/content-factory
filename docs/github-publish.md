@@ -1,43 +1,46 @@
-# Публикация через GitHub Actions
+# Публикация через GitHub Actions (EN + ES)
 
 Локальная сеть блокирует `api.telegram.org` (и OpenAI/Groq по региону), а
-раннеры GitHub Actions — нет. Поэтому публикацию можно целиком перенести в
-облако: workflow раз в 10 минут проверяет расписание каналов и публикует посты.
+раннеры GitHub Actions — нет. Поэтому публикация целиком живёт в облаке:
+workflow **`content-factory-cloud-en-es`** по слотам каналов запускает
+`daemon --once` и публикует посты. Один cron, матрица языков `lang = [en, es]`:
+английские и испанские каналы обслуживаются независимыми джобами.
 
 ## Что уже готово в репозитории
 
-- `.github/workflows/content-factory.yml` — cron каждые 10 минут:
-  `daemon --once`, состояние (SQLite, слоты, кэш LLM) сохраняется через
-  `actions/cache`, outbox/логи уходят в artifacts.
+- `.github/workflows/content-factory.yml` — workflow **`content-factory-cloud-en-es`**:
+  - матрица `lang: [en, es]`; `en` → `config/channels.en.yaml` (6 каналов,
+    16 слотов/сутки), `es` → `config/channels.es.yaml` (3 канала,
+    6 слотов/сутки);
+  - каждый язык — свой кэш состояния (`cf-state-<lang>-*`), свой concurrency
+    и свои artifacts (`content-factory-<lang>-<run>`);
+  - публикация включена по умолчанию (dry-run — переменная
+    `CONTENT_FACTORY_DRY_RUN=true`).
 - `.github/workflows/telegram-check.yml` — ручная проверка бота и прав в
-  каналах (Actions → telegram-check → Run workflow).
-- `.github/workflows/publish-once.yml` — ручная публикация одного поста в
-  выбранный канал (входы: `channel`, `dry_run`).
-- Английские каналы в `config/channels.en.yaml` уже прописаны числовыми ID,
-  поэтому отдельные `TELEGRAM_CHAT_ID_*` для них не нужны.
+  каналах (вход `language`: `en`/`es`).
+- `.github/workflows/publish-once.yml` — ручная публикация одного поста
+  (входы: `channel`, `language`, `dry_run`).
+- `.github/workflows/set-title.yml` — ручная смена названия канала
+  (`setChatTitle`; входы: `chat_id`, `title`).
+- Английские каналы в `config/channels.en.yaml` прописаны числовыми ID;
+  испанские — chat_id берутся из секретов (см. ниже).
 
-## 1. Создать репозиторий
+## 1. Репозиторий
 
-На github.com создайте **пустой приватный** репозиторий (без README),
-например `content-factory`, и запушьте проект:
+Приватный репозиторий `content-factory` уже создан и запушен
+(SSH-ключ этой машины авторизован в GitHub, аккаунт `valdislavn-spec`).
 
-```bash
-cd ~/Documents/deepseek-harness/default-workspace/content-factory
-git remote add origin git@github.com:<username>/content-factory.git
-git push -u origin main
-```
-
-SSH-ключ этой машины уже авторизован в GitHub (аккаунт `valdislavn-spec`).
-
-## 2. Добавить секреты
+## 2. Секреты
 
 Settings → Secrets and variables → Actions → **Secrets** (по одному):
 
 | Secret | Откуда взять |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | токен @Novyi0007Bot (уже в `.env`) |
+| `TELEGRAM_CHAT_ID_TECH_AI_ES`, `TELEGRAM_CHAT_ID_CRYPTO_ES`, `TELEGRAM_CHAT_ID_FUTBOL_ES` | ID/`@username` испанских каналов (без них ES-каналы пропускаются) |
 | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` | Cloudflare Workers AI |
-| `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `SAMBANOVA_API_KEY`, `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY` | ключи LLM (на раннере доступны, из РФ — нет) |
+| `OLLAMA_API_KEY` | Ollama Cloud (open-модели) |
+| `OPENROUTER_API_KEY`, `GROQ_API_KEY`, `SAMBANOVA_API_KEY`, `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY`, `DEEPSEEK_API_KEY` | резервные LLM (на раннере доступны и заблокированные в РФ) |
 | `NEWSDATA_API_KEY`, `GDELT_CLOUD_API_KEY`, `TAVILY_API_KEY`, `TAVILY_API_KEY_2` | новостные/поисковые API |
 | `DIFY_API_KEY`, `DIFY_POSTS_API_KEY` | если используется Dify |
 
@@ -48,28 +51,32 @@ Settings → Secrets and variables → Actions → **Secrets** (по одном�
 
 Settings → Secrets and variables → Actions → **Variables**:
 
-- `CONTENT_FACTORY_DRY_RUN = false` — реальная публикация;
-- не задана или `true` — безопасный dry-run (посты в artifacts).
+- по умолчанию workflow **публикует по-настоящему** (в workflow
+  `CONTENT_FACTORY_DRY_RUN: ${{ vars.CONTENT_FACTORY_DRY_RUN || 'false' }}`);
+- `CONTENT_FACTORY_DRY_RUN = true` — безопасный dry-run (посты только в
+  outbox/artifacts, в Telegram не уходят).
 
 ## 4. Проверка и первый пост
 
-1. Actions → **telegram-check** → Run workflow. В логе должно быть
-   `Бот: @Novyi0007Bot` и 6 каналов со статусом `administrator` и
-   `can_post=True`.
+1. Actions → **telegram-check** → Run workflow:
+   - `language = en` → бот `@Novyi0007Bot` и 6 каналов со статусом
+     `administrator`, `can_post=True`;
+   - `language = es` → 3 испанских канала (если chat_id заданы).
 2. Actions → **publish-once** → Run workflow:
-   `channel = ai-news`, `dry_run = false`. Проверьте канал — должен выйти
-   один пост.
-3. После этого cron-воркфлоу `content-factory-cloud` сам публикует по
-   расписанию каналов (16 слотов/сутки, UTC).
+   `channel = ai-news`, `language = en`, `dry_run = false`.
+3. После этого cron **`content-factory-cloud-en-es`** сам публикует по
+   расписанию каналов (EN — 16 слотов/сутки, ES — 6 слотов/сутки).
 
 ## Ограничения
 
-- GitHub cron запускается с задержкой 5–15 минут; для новостей это нормально.
+- GitHub cron запускается с задержкой 5–15 минут; испанские слоты
+  (07:00/08:00, 10:00/11:00 … MSK) догоняются ближайшим запуском общего cron —
+  задержка до ~1.5 часов.
+- Матрица — это **два джоба на каждый cron**: для приватного репозитория
+  следите за минутами (16 cron/сутки × 2 джоба). Если упираетесь в лимит
+  2000 мин/мес: уменьшите слоты, уберите `es` из матрицы на время или сделайте
+  репозиторий публичным (секреты остаются секретами).
 - Кэш `actions/cache` эфемерный: при редких запусках состояние может
-  откатываться, дубли отсекаются окном `post_duplicate_window_hours`.
-- GitHub Actions бесплатен для приватных репозиториев в пределах лимита
-  минут (2000/мес); 10-минутный cron укладывается в лимит с запасом.
-- Русские каналы (`config/channels.yaml`) в этом workflow не публикуются:
-  он читает `app.channels_file` из `config/settings.yaml`
-  (`config/channels.en.yaml`). Испанские каналы — отдельный workflow с
-  `CONTENT_FACTORY_CHANNELS=config/channels.es.yaml`, когда дойдём до них.
+  откатываться; дубли отсекаются окном `post_duplicate_window_hours`.
+- Русские каналы (`config/channels.yaml`) в этот workflow не входят. Чтобы
+  добавить: `lang: [en, es, ru]` + `TELEGRAM_CHAT_ID_*` для ru-каналов.

@@ -52,6 +52,21 @@ CONTENT_FACTORY_CHANNELS=config/channels.es.yaml ./.venv/bin/python -m content_f
 и английские каналы продолжают работать своим демоном, а испанские своим
 (состояние слотов и SQLite общие, id каналов не пересекаются).
 
+### 2.1. В облаке (GitHub Actions)
+
+Испанские каналы уже включены в основной облачный workflow
+**`content-factory-cloud-en-es`**: матрица `lang = [en, es]`, для `es`
+запускается `CONTENT_FACTORY_CHANNELS=config/channels.es.yaml`. Нужны:
+
+- Secret `TELEGRAM_BOT_TOKEN`;
+- Secrets с chat_id: `TELEGRAM_CHAT_ID_TECH_AI_ES`,
+  `TELEGRAM_CHAT_ID_CRYPTO_ES`, `TELEGRAM_CHAT_ID_FUTBOL_ES` (если не
+  заданы — канал пропускается);
+- LLM/новостные ключи — те же, что для английских каналов.
+
+Слоты ES (07:00/08:00, 10:00/11:00 … MSK) догоняются ближайшим запуском
+общего cron — задержка до ~1.5 часов, для новостей приемлемо.
+
 ## 3. Что переведено в генерации
 
 - промпты анализа и генерации (LLM) — испанские;
