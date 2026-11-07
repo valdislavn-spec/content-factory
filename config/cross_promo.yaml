@@ -30,6 +30,18 @@ entries:
       - |
         If you follow US sports — scores, trades, injuries and sharp analysis — our sister channel has you covered daily:
         → https://t.me/SPORTNews0007
+  - source: crypto-es
+    enabled: false   # включать, когда у crypto-es будет 300+ подписчиков
+    target: futbol-es
+    url: https://t.me/SPORTSAnalytics007
+    weight: 1
+    texts:
+      - |
+        Las criptomonedas no son el único mercado donde los datos mandan. En el deporte las cuotas también se mueven por probabilidad, información y flujo de dinero. Nuestro canal hermano analiza el porqué de cada movimiento — sin humo:
+        → https://t.me/SPORTSAnalytics007
+      - |
+        Si te gusta leer el mercado, mira también el mercado deportivo: probabilidades, cuotas y modelos explicados con criterio, no con promesas.
+        → https://t.me/SPORTSAnalytics007
   - source: ai-news
     enabled: false
     target: crypto-news
