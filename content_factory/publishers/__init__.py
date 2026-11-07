@@ -21,14 +21,22 @@ from .base import (
     split_html_message,
 )
 from .dryrun import DryRunPublisher
+from .facebook import FacebookPublisher
+from .linkedin import LinkedInPublisher
+from .medium import MediumPublisher
 from .telegram import TelegramPublisher
 from .vk import VKPublisher
+from .x import XPublisher
 
 __all__ = [
     "Publisher",
     "DryRunPublisher",
     "TelegramPublisher",
     "VKPublisher",
+    "XPublisher",
+    "FacebookPublisher",
+    "LinkedInPublisher",
+    "MediumPublisher",
     "TELEGRAM_MESSAGE_LIMIT",
     "VK_MESSAGE_LIMIT",
     "split_html_message",
@@ -40,6 +48,10 @@ __all__ = [
 _REGISTRY: Dict[str, Type[Publisher]] = {
     "telegram": TelegramPublisher,
     "vk": VKPublisher,
+    "x": XPublisher,
+    "facebook": FacebookPublisher,
+    "linkedin": LinkedInPublisher,
+    "medium": MediumPublisher,
     "dryrun": DryRunPublisher,
 }
 
@@ -50,6 +62,10 @@ _ALIASES = {
     "preview": "dryrun",
     "tg": "telegram",
     "vkontakte": "vk",
+    "twitter": "x",
+    "x.com": "x",
+    "fb": "facebook",
+    "li": "linkedin",
 }
 
 

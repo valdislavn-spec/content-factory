@@ -20,8 +20,12 @@ from content_factory.config import DEFAULT_SETTINGS, Settings
 from content_factory.models import ChannelConfig, GeneratedPost, SourceConfig
 from content_factory.publishers import (
     DryRunPublisher,
+    FacebookPublisher,
+    LinkedInPublisher,
+    MediumPublisher,
     TelegramPublisher,
     VKPublisher,
+    XPublisher,
     available_publishers,
     get_publisher,
     publisher_classes,
@@ -37,6 +41,15 @@ _ENV_KEYS = (
     "VK_GROUP_ID",
     "TG_API_ID",
     "TG_API_HASH",
+    "X_API_KEY",
+    "X_API_SECRET",
+    "X_ACCESS_TOKEN",
+    "X_ACCESS_SECRET",
+    "FACEBOOK_PAGE_ID",
+    "FACEBOOK_PAGE_TOKEN",
+    "LINKEDIN_ACCESS_TOKEN",
+    "LINKEDIN_AUTHOR_URN",
+    "MEDIUM_TOKEN",
 )
 
 
@@ -232,9 +245,13 @@ class DryRunPublisherTests(PublisherTestCase):
 # ---------------------------------------------------------------------------
 class PublisherRegistryTests(PublisherTestCase):
     def test_available_publishers(self) -> None:
-        self.assertEqual(available_publishers(), ["dryrun", "telegram", "vk"])
+        self.assertEqual(available_publishers(), ["dryrun", "facebook", "linkedin", "medium", "telegram", "vk", "x"])
         self.assertIn("telegram", publisher_classes())
         self.assertIn("vk", publisher_classes())
+        self.assertIn("x", publisher_classes())
+        self.assertIn("facebook", publisher_classes())
+        self.assertIn("linkedin", publisher_classes())
+        self.assertIn("medium", publisher_classes())
         self.assertIn("dryrun", publisher_classes())
 
     def test_dry_run_always_returns_dry_run(self) -> None:
@@ -253,7 +270,7 @@ class PublisherRegistryTests(PublisherTestCase):
     def test_unknown_publisher_raises(self) -> None:
         settings = self.make_settings(dry_run=False)
         with self.assertRaises(ValueError):
-            get_publisher("twitter", settings)
+            get_publisher("myspace", settings)
 
 
 # ---------------------------------------------------------------------------
@@ -508,6 +525,130 @@ class VKPublisherTests(PublisherTestCase):
 # ---------------------------------------------------------------------------
 # нарезка HTML
 # ---------------------------------------------------------------------------
+class XPublisherTests(PublisherTestCase):
+    def _run(self, response, env):
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post(text="<b>X</b>\n\nТекст для X.")
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["url"] = request.full_url
+            captured["auth"] = request.get_header("Authorization") or ""
+            captured["body"] = request.data.decode("utf-8") if request.data else ""
+            return response
+
+        with mock.patch.dict(os.environ, env), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = XPublisher(settings).publish(post, channel, settings)
+        return result, captured
+
+    def test_tweet_success(self) -> None:
+        env = {
+            "X_API_KEY": "ck", "X_API_SECRET": "cs",
+            "X_ACCESS_TOKEN": "at", "X_ACCESS_SECRET": "as",
+        }
+        result, captured = self._run(FakeResponse({"data": {"id": "12345"}}), env)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(result.publisher, "x")
+        self.assertEqual(result.url, "https://x.com/i/web/status/12345")
+        self.assertEqual(captured["url"], "https://api.x.com/2/tweets")
+        self.assertIn("Текст для X.", captured["body"])
+        self.assertNotIn("<b>", captured["body"])
+        self.assertTrue(captured["auth"].startswith("OAuth "))
+        self.assertIn("oauth_signature=", captured["auth"])
+
+    def test_missing_creds(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post()
+        with mock.patch(
+            "urllib.request.urlopen", side_effect=AssertionError("сеть не ожидалась")
+        ):
+            result = XPublisher(settings).publish(post, channel, settings)
+        self.assertFalse(result.ok)
+        self.assertIn("не настроен", result.error)
+
+    def test_api_error(self) -> None:
+        env = {
+            "X_API_KEY": "ck", "X_API_SECRET": "cs",
+            "X_ACCESS_TOKEN": "at", "X_ACCESS_SECRET": "as",
+        }
+        result, _ = self._run(FakeResponse({"detail": "Unauthorized"}), env)
+        self.assertFalse(result.ok)
+        self.assertIn("Unauthorized", result.error)
+
+
+class FacebookPublisherTests(PublisherTestCase):
+    def test_page_post_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post()
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["url"] = request.full_url
+            captured["payload"] = dict(urllib.parse.parse_qsl(request.data.decode("utf-8")))
+            return FakeResponse({"id": "111_222"})
+
+        with mock.patch.dict(os.environ, {"FACEBOOK_PAGE_ID": "111", "FACEBOOK_PAGE_TOKEN": "tok"}), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = FacebookPublisher(settings).publish(post, channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(captured["url"], "https://graph.facebook.com/v21.0/111/feed")
+        self.assertEqual(captured["payload"]["access_token"], "tok")
+        self.assertIn("111_222", result.url)
+
+
+class LinkedInPublisherTests(PublisherTestCase):
+    def test_post_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post()
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["auth"] = request.get_header("Authorization") or ""
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return FakeResponse({})
+
+        env = {"LINKEDIN_ACCESS_TOKEN": "tok", "LINKEDIN_AUTHOR_URN": "urn:li:organization:1"}
+        with mock.patch.dict(os.environ, env), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = LinkedInPublisher(settings).publish(post, channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(captured["auth"], "Bearer tok")
+        self.assertEqual(captured["body"]["author"], "urn:li:organization:1")
+        self.assertEqual(captured["body"]["lifecycleState"], "PUBLISHED")
+
+
+class MediumPublisherTests(PublisherTestCase):
+    def test_post_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post(text="<b>Заголовок</b>\n\nТекст статьи для Medium.")
+        calls = []
+
+        def fake_urlopen(request, timeout=None):
+            calls.append(request.full_url)
+            if request.full_url.endswith("/me"):
+                return FakeResponse({"data": {"id": "u1"}})
+            return FakeResponse(
+                {"data": {"id": "p1", "url": "https://medium.com/p/1"}}
+            )
+
+        with mock.patch.dict(os.environ, {"MEDIUM_TOKEN": "tok"}), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = MediumPublisher(settings).publish(post, channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(result.url, "https://medium.com/p/1")
+        self.assertEqual(len(calls), 2)
+
+
 class SplitHtmlMessageTests(unittest.TestCase):
     def test_short_text_unchanged(self) -> None:
         text = "<b>Короткий</b> пост"

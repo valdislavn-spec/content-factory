@@ -309,6 +309,14 @@ publishers:
     token_env: MASTODON_TOKEN
   discord:
     webhook_env: DISCORD_WEBHOOK_URL
+  x:
+    enabled: true            # X_API_KEY/X_API_SECRET/X_ACCESS_TOKEN/X_ACCESS_SECRET
+  facebook:
+    enabled: true            # FACEBOOK_PAGE_ID/FACEBOOK_PAGE_TOKEN
+  linkedin:
+    enabled: true            # LINKEDIN_ACCESS_TOKEN/LINKEDIN_AUTHOR_URN
+  medium:
+    enabled: true            # MEDIUM_TOKEN
   dryrun:
     enabled: true
 
