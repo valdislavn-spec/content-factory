@@ -78,13 +78,14 @@ def detect_lang(text: str) -> str:
 
 
 def api(method: str, token: str, base: str, payload: dict | None = None) -> dict:
+    query = urllib.parse.urlencode(payload or {})
     url = f"{base.rstrip('/')}/bot{token}/{method}"
-    data = urllib.parse.urlencode(payload or {}).encode()
+    if query:
+        url += "?" + query
     request = urllib.request.Request(
-        url, data=data, method="POST",
-        headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/x-www-form-urlencoded"},
+        url, method="GET", headers={"User-Agent": "Mozilla/5.0", "Connection": "close"},
     )
-    with urllib.request.urlopen(request, timeout=25) as response:
+    with urllib.request.urlopen(request, timeout=40) as response:
         return json.load(response)
 
 
