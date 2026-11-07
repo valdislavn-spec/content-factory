@@ -339,6 +339,10 @@ def render_post_card(
             continue
         kept.append(re.sub(r"\s*[—–]{3,}\s*", "\n", stripped))
     body = "\n".join(_clean_text(part) for part in kept)
+    fmt_name = str((getattr(post, "meta", {}) or {}).get("format") or "").lower()
+    if fmt_name == "digest":
+        # пункты дайджеста "1. ... 2. ..." — с новой строки
+        body = re.sub(r"\s+(?=[1-9]\.\s)", "\n", body)
     if not body:
         body = _clean_text(plain)
     for marker in ("Источники:", "Sources:", "#"):
