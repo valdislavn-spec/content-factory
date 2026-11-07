@@ -13,6 +13,32 @@ TCP-соединение к `149.154.166.110:443` уходит в таймаут
 В коде завода это уже поддержано: переменная `TELEGRAM_API_BASE` заменяет
 `https://api.telegram.org` (публикатор и `scripts/telegram_check.py`).
 
+## Готовый релей этого проекта (Cloudflare Worker)
+
+В аккаунте Cloudflare уже развёрнут Worker `telegram-proxy` — он проксирует
+запросы на `api.telegram.org`, сохраняя путь и метод:
+
+```
+https://telegram-proxy.valdislav-n.workers.dev
+```
+
+В `.env`:
+
+```bash
+TELEGRAM_API_BASE=https://telegram-proxy.valdislav-n.workers.dev
+```
+
+Проверка: `./.venv/bin/python scripts/telegram_check.py` → «Бот: @Novyi0007Bot»
+и статусы каналов. Важно: Cloudflare режет User-Agent `Python-urllib`
+(ошибка 1010), поэтому скрипт отправляет браузерный UA — не убирайте его.
+Проверить релей вручную:
+
+```bash
+curl -A "Mozilla/5.0" "https://telegram-proxy.valdislav-n.workers.dev/bot<TOKEN>/getMe"
+```
+
+Ниже — вариант с Pipedream, если Cloudflare-релея нет.
+
 ## 1. Workflow в Pipedream
 
 1. <https://pipedream.com> → **New Workflow** → имя, например `telegram-relay`.
