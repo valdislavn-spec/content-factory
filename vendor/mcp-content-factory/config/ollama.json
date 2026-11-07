@@ -1,0 +1,77 @@
+{
+  "providers": {
+    "ollama": {
+      "type": "ollama",
+      "base_url": "http://127.0.0.1:11434",
+      "timeout": 180
+    }
+  },
+  "routes": {
+    "classifier": {
+      "chain": [
+        {"provider": "ollama", "model": "qwen2.5:3b"},
+        {"provider": "ollama", "model": "qwen2.5:7b"}
+      ],
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "json": true
+    },
+    "researcher": {
+      "chain": [
+        {"provider": "ollama", "model": "qwen2.5:7b"},
+        {"provider": "ollama", "model": "qwen2.5:3b"}
+      ],
+      "temperature": 0.2,
+      "max_tokens": 900,
+      "json": true
+    },
+    "writer": {
+      "chain": [
+        {"provider": "ollama", "model": "qwen2.5:7b"},
+        {"provider": "ollama", "model": "qwen2.5:3b"}
+      ],
+      "temperature": 0.5,
+      "max_tokens": 1200,
+      "json": false
+    },
+    "critic": {
+      "chain": [
+        {"provider": "ollama", "model": "qwen2.5:7b"},
+        {"provider": "ollama", "model": "qwen2.5:3b"}
+      ],
+      "temperature": 0.0,
+      "max_tokens": 500,
+      "json": true
+    },
+    "editor": {
+      "chain": [
+        {"provider": "ollama", "model": "qwen2.5:7b"},
+        {"provider": "ollama", "model": "qwen2.5:3b"}
+      ],
+      "temperature": 0.4,
+      "max_tokens": 1200,
+      "json": false
+    }
+  },
+  "mcp": {
+    "servers": {
+      "content_tools": {"builtin": true}
+    }
+  },
+  "feeds": [
+    "https://news.google.com/rss/search?q=%D0%98%D0%98+OR+MCP&hl=ru&gl=RU&ceid=RU:ru",
+    "https://habr.com/ru/rss/news/?fl=ru",
+    "https://www.cnews.ru/inc/rss/news.xml"
+  ],
+  "pipeline": {
+    "channel": "tech-ai",
+    "max_articles": 8,
+    "min_articles": 2,
+    "allow_publish": false,
+    "telegram_chat_id": "@your_channel",
+    "hashtags": ["#ИИ", "#MCP", "#автоматизация"]
+  },
+  "budget": {
+    "max_tokens": 0
+  }
+}

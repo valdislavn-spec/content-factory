@@ -1,0 +1,90 @@
+{
+  "providers": {
+    "mock": {
+      "type": "mock"
+    }
+  },
+  "routes": {
+    "classifier": {
+      "chain": [
+        {
+          "provider": "mock",
+          "model": "mock-classifier"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "json": true
+    },
+    "researcher": {
+      "chain": [
+        {
+          "provider": "mock",
+          "model": "mock-researcher"
+        }
+      ],
+      "temperature": 0.2,
+      "max_tokens": 900,
+      "json": true
+    },
+    "writer": {
+      "chain": [
+        {
+          "provider": "mock",
+          "model": "mock-writer"
+        }
+      ],
+      "temperature": 0.5,
+      "max_tokens": 900,
+      "json": false
+    },
+    "critic": {
+      "chain": [
+        {
+          "provider": "mock",
+          "model": "mock-critic"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 450,
+      "json": true
+    },
+    "editor": {
+      "chain": [
+        {
+          "provider": "mock",
+          "model": "mock-editor"
+        }
+      ],
+      "temperature": 0.4,
+      "max_tokens": 900,
+      "json": false
+    }
+  },
+  "mcp": {
+    "servers": {
+      "content_tools": {
+        "builtin": true
+      }
+    }
+  },
+  "feeds": [
+    "sample://ai-news",
+    "sample://business-news"
+  ],
+  "pipeline": {
+    "channel": "tech-ai",
+    "max_articles": 6,
+    "min_articles": 2,
+    "allow_publish": false,
+    "hashtags": [
+      "#ИИ",
+      "#MCP",
+      "#контент"
+    ],
+    "max_revision_rounds": 1
+  },
+  "budget": {
+    "max_tokens": 0
+  }
+}

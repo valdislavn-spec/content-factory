@@ -25,6 +25,9 @@ brain:
   # «Мозг»: mcp-content-factory (LangGraph + RAG-фактчек + LangSmith).
   enabled: true
   path: ../mcp-content-factory
+  # Запасной вариант для GitHub Actions: копия в репозитории, обновляется
+  # python scripts/sync_brain_vendor.py.
+  vendor_path: vendor/mcp-content-factory
   python: .venv/bin/python
   config: ../mcp-content-factory/config/brain.json
   engine: langgraph

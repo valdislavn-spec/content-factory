@@ -173,6 +173,32 @@ class BrainGeneratorTests(unittest.TestCase):
         with mock.patch.dict("os.environ", {"CONTENT_FACTORY_BRAIN": "off"}):
             self.assertIsNone(build_brain_generator(self.settings))
 
+    def test_vendor_fallback_when_neighbor_missing(self):
+        vendor = self.root / "vendor" / "mcp-content-factory"
+        (vendor / "config").mkdir(parents=True)
+        (vendor / "config" / "brain.json").write_text("{}", encoding="utf-8")
+        self.settings.raw["brain"]["path"] = "../missing-mcp"
+        self.settings.raw["brain"]["python"] = "../missing-mcp/.venv/bin/python"
+        self.settings.raw["brain"]["config"] = "../missing-mcp/config/brain.json"
+        generator = build_brain_generator(self.settings)
+        self.assertIsNotNone(generator)
+        self.assertEqual(generator.brain_dir, vendor.resolve())
+        self.assertEqual(generator.config_path, (vendor / "config" / "brain.json").resolve())
+
+    def test_env_overrides_paths(self):
+        override = self.root / "custom-brain"
+        (override / "config").mkdir(parents=True)
+        (override / "config" / "brain.json").write_text("{}", encoding="utf-8")
+        env_values = {
+            "CONTENT_FACTORY_BRAIN_PATH": str(override),
+            "CONTENT_FACTORY_BRAIN_CONFIG": str(override / "config" / "brain.json"),
+            "CONTENT_FACTORY_BRAIN_PYTHON": "auto",
+        }
+        with mock.patch.dict("os.environ", env_values):
+            generator = build_brain_generator(self.settings)
+        self.assertIsNotNone(generator)
+        self.assertEqual(generator.brain_dir, override.resolve())
+
 
 if __name__ == "__main__":
     unittest.main()

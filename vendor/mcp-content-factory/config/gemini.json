@@ -1,0 +1,60 @@
+{
+  "providers": {
+    "gemini": {
+      "type": "gemini",
+      "api_key_env": "GEMINI_API_KEY",
+      "timeout": 120
+    }
+  },
+  "routes": {
+    "classifier": {
+      "chain": [{"provider": "gemini", "model": "gemini-2.5-flash-lite"}],
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "json": true
+    },
+    "researcher": {
+      "chain": [{"provider": "gemini", "model": "gemini-2.5-flash"}],
+      "temperature": 0.2,
+      "max_tokens": 900,
+      "json": true
+    },
+    "writer": {
+      "chain": [{"provider": "gemini", "model": "gemini-2.5-flash"}],
+      "temperature": 0.5,
+      "max_tokens": 1200,
+      "json": false
+    },
+    "critic": {
+      "chain": [{"provider": "gemini", "model": "gemini-2.5-flash"}],
+      "temperature": 0.0,
+      "max_tokens": 500,
+      "json": true
+    },
+    "editor": {
+      "chain": [{"provider": "gemini", "model": "gemini-2.5-flash"}],
+      "temperature": 0.4,
+      "max_tokens": 1200,
+      "json": false
+    }
+  },
+  "mcp": {
+    "servers": {
+      "content_tools": {"builtin": true}
+    }
+  },
+  "feeds": [
+    "https://news.google.com/rss/search?q=%D0%98%D0%98+OR+MCP&hl=ru&gl=RU&ceid=RU:ru",
+    "https://habr.com/ru/rss/news/?fl=ru"
+  ],
+  "pipeline": {
+    "channel": "tech-ai",
+    "max_articles": 8,
+    "min_articles": 2,
+    "allow_publish": false,
+    "hashtags": ["#ИИ", "#MCP", "#контент"]
+  },
+  "budget": {
+    "max_tokens": 0
+  }
+}

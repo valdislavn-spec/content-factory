@@ -1,0 +1,90 @@
+{
+  "providers": {
+    "cloudflare": {
+      "type": "openai_compatible",
+      "base_url": "https://api.cloudflare.com/client/v4/accounts/7f9b2708d31c026a01d2ac5b9e8eac70/ai/v1",
+      "api_key_env": "CLOUDFLARE_API_TOKEN",
+      "model": "@cf/mistralai/mistral-small-3.1-24b-instruct",
+      "timeout": 120
+    },
+    "cohere": {
+      "type": "openai_compatible",
+      "base_url": "https://api.cohere.ai/compatibility/v1",
+      "api_key_env": "COHERE_API_KEY",
+      "model": "command-a-03-2025",
+      "timeout": 120
+    },
+    "ollama_cloud": {
+      "type": "openai_compatible",
+      "base_url": "https://ollama.com/v1",
+      "api_key_env": "OLLAMA_API_KEY",
+      "model": "gemma4:31b",
+      "timeout": 180
+    }
+  },
+  "routes": {
+    "classifier": {
+      "chain": [
+        {"provider": "cloudflare", "model": "@cf/mistralai/mistral-small-3.1-24b-instruct"},
+        {"provider": "cohere", "model": "command-a-03-2025"},
+        {"provider": "ollama_cloud", "model": "gemma4:31b"}
+      ],
+      "temperature": 0.0,
+      "max_tokens": 220,
+      "json": true
+    },
+    "researcher": {
+      "chain": [
+        {"provider": "cloudflare", "model": "@cf/mistralai/mistral-small-3.1-24b-instruct"},
+        {"provider": "cohere", "model": "command-a-03-2025"},
+        {"provider": "ollama_cloud", "model": "gemma4:31b"}
+      ],
+      "temperature": 0.2,
+      "max_tokens": 900,
+      "json": true
+    },
+    "writer": {
+      "chain": [
+        {"provider": "cloudflare", "model": "@cf/mistralai/mistral-small-3.1-24b-instruct"},
+        {"provider": "cohere", "model": "command-a-03-2025"},
+        {"provider": "ollama_cloud", "model": "gemma4:31b"}
+      ],
+      "temperature": 0.5,
+      "max_tokens": 900,
+      "json": false
+    },
+    "critic": {
+      "chain": [
+        {"provider": "cloudflare", "model": "@cf/mistralai/mistral-small-3.1-24b-instruct"},
+        {"provider": "cohere", "model": "command-a-03-2025"},
+        {"provider": "ollama_cloud", "model": "gemma4:31b"}
+      ],
+      "temperature": 0.0,
+      "max_tokens": 450,
+      "json": true
+    },
+    "editor": {
+      "chain": [
+        {"provider": "cloudflare", "model": "@cf/mistralai/mistral-small-3.1-24b-instruct"},
+        {"provider": "cohere", "model": "command-a-03-2025"},
+        {"provider": "ollama_cloud", "model": "gemma4:31b"}
+      ],
+      "temperature": 0.4,
+      "max_tokens": 900,
+      "json": false
+    }
+  },
+  "feeds": ["sample://brain"],
+  "mcp": {"servers": {"content_tools": {"builtin": true}}},
+  "pipeline": {
+    "channel": "brain",
+    "max_articles": 8,
+    "min_articles": 1,
+    "allow_publish": false,
+    "hashtags": [],
+    "grounding": true,
+    "max_revision_rounds": 1,
+    "language": "en"
+  },
+  "budget": {"max_tokens": 0}
+}

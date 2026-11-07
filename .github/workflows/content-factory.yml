@@ -92,6 +92,9 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
       OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+      # LangSmith-трейсы моста «мозга» (mcp-content-factory vendored).
+      LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      LANGSMITH_PROJECT: content-factory-actions
       HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -135,6 +138,21 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      # «Мозг» (mcp-content-factory) лежит в vendor/ — так GitHub Actions
+      # видит его в одном репозитории. Шаги optional: если установка/смоук
+      # упадут, автопостинг продолжит на встроенной генерации (fallback моста).
+      - name: Install brain engine (optional)
+        continue-on-error: true
+        run: |
+          pip install -e "vendor/mcp-content-factory[langchain]" "langgraph>=0.6,<1"
+
+      - name: Brain smoke test (optional, mock, no network)
+        continue-on-error: true
+        run: |
+          printf '%s' '{"articles":[{"title":"Brain smoke test","url":"https://example.com/smoke","summary":"Smoke test for the vendored brain bridge.","source":"test"}],"channel":"crypto-news","language":"en"}' \
+            | python -m mcp_factory brain --config vendor/mcp-content-factory/config/demo.json --engine langgraph --grounding --out "$RUNNER_TEMP/brain-smoke" >/dev/null
+          echo "brain smoke: ok"
 
       - name: Prepare data directory
         run: mkdir -p data

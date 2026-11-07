@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-content-factory"
+version = "1.1.0"
+description = "Мультимодельный контент-завод: LLM-роли, MCP-инструменты, оркестратор"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "MCP Content Factory"}]
+dependencies = []
+
+[project.scripts]
+mcp-factory = "mcp_factory.cli:main"
+
+[project.optional-dependencies]
+# Движок LangGraph (опционально): на Python 3.9 ставится ветка 0.6.x,
+# на Python 3.10+ — 1.x. Без него работает встроенный пайплайн.
+langgraph = ["langgraph>=0.6,<2"]
+# LangChain 0.3.x — последняя ветка с поддержкой Python 3.9 (1.x требует 3.10+).
+langchain = ["langchain>=0.3,<0.4", "langchain-text-splitters>=0.3,<0.4"]
+# Экспериментальный агентный режим с MCP: требует Python >=3.10.
+agentic = ["langchain-mcp-adapters>=0.1"]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+include = ["mcp_factory*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

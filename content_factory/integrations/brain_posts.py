@@ -32,7 +32,9 @@ import json
 import logging
 import os
 import re
+import shutil
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -72,6 +74,65 @@ def _post_id(channel_id: str, cluster_id: str, now: datetime) -> str:
     return hashlib.sha1(seed.encode("utf-8")).hexdigest()[:16]
 
 
+def _resolve_brain_dir(root: Path, value: str) -> Path:
+    """Каталог мозга: env/конфиг → vendor/ → соседний mcp-content-factory."""
+    first = None
+    for candidate in (value, "vendor/mcp-content-factory", "../mcp-content-factory"):
+        path = Path(str(candidate))
+        if not path.is_absolute():
+            path = root / path
+        path = path.resolve()
+        first = first or path
+        if path.is_dir():
+            return path
+    return first or (root / "vendor" / "mcp-content-factory")
+
+
+def _resolve_config(root: Path, value: str, brain_dir: Path) -> Path:
+    """config/brain.json: env/конфиг → config внутри мозга → vendor."""
+    for candidate in (
+        value,
+        str(brain_dir / "config" / "brain.json"),
+        "vendor/mcp-content-factory/config/brain.json",
+    ):
+        path = Path(str(candidate))
+        if not path.is_absolute():
+            path = root / path
+        path = path.resolve()
+        if path.is_file():
+            return path
+    return (root / "vendor" / "mcp-content-factory" / "config" / "brain.json").resolve()
+
+
+def _resolve_python(root: Path, value: str) -> Path:
+    """Python для мозга: путь/команда из env/конфига → sys.executable.
+
+    Не resolve() относительный путь: bin/python в venv — симлинк, и resolve()
+    теряет venv (мозг запускался бы без langgraph). Для пути с '/' сохраняем
+    абсолютный путь как есть.
+    """
+    raw = str(value or "").strip()
+    if not raw or raw in ("auto", "python", "python3"):
+        found = shutil.which(raw) if raw in ("python", "python3") else None
+        if found:
+            return Path(found)
+        if raw in ("python", "python3"):
+            return Path(sys.executable)
+        return Path(sys.executable)
+    if "/" in raw or os.sep in raw:
+        path = Path(raw)
+        if not path.is_absolute():
+            path = root / path
+        absolute = Path(os.path.abspath(str(path)))
+        if absolute.is_file():
+            return absolute
+        return Path(sys.executable)
+    found = shutil.which(raw)
+    if found:
+        return Path(found)
+    return Path(sys.executable)
+
+
 class BrainPostGenerator:
     """Готовый пост из mcp-content-factory (LangGraph) для топ-сюжетов."""
 
@@ -96,14 +157,19 @@ class BrainPostGenerator:
         except (TypeError, AttributeError):
             root = Path.cwd()
         self.root = root
-        brain_path = str(cfg.get("path") or "../mcp-content-factory")
-        python_path = str(cfg.get("python") or "../mcp-content-factory/.venv/bin/python")
-        config_path = str(cfg.get("config") or "../mcp-content-factory/config/brain.json")
-        self.brain_dir = (root / brain_path).resolve()
-        # НЕ resolve(): bin/python в venv — симлинк на системный Python, и
-        # resolve() теряет venv (мозг запускался бы без langgraph).
-        self.python = Path(os.path.abspath(str(root / python_path)))
-        self.config_path = (root / config_path).resolve()
+        # Приоритет: env (CI/сервер) → settings.yaml → авто-fallback vendor/.
+        brain_path = env("CONTENT_FACTORY_BRAIN_PATH", "").strip() or str(
+            cfg.get("path") or "../mcp-content-factory"
+        )
+        python_path = env("CONTENT_FACTORY_BRAIN_PYTHON", "").strip() or str(
+            cfg.get("python") or "../mcp-content-factory/.venv/bin/python"
+        )
+        config_path = env("CONTENT_FACTORY_BRAIN_CONFIG", "").strip() or str(
+            cfg.get("config") or "../mcp-content-factory/config/brain.json"
+        )
+        self.brain_dir = _resolve_brain_dir(root, brain_path)
+        self.python = _resolve_python(root, python_path)
+        self.config_path = _resolve_config(root, config_path, self.brain_dir)
         try:
             data_dir = Path(getattr(settings, "data_dir"))
         except (TypeError, AttributeError):

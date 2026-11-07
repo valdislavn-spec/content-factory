@@ -259,11 +259,12 @@ def build_doctor_sections(
             "лендинг-хаб для SEO/био: {}".format(landing.relative_to(ROOT)),
         )
     )
+    indexnow_key = env("INDEXNOW_KEY", "")
     checks.append(
         _check(
-            PASS if env("INDEXNOW_KEY", "") else WARN,
+            PASS if indexnow_key else WARN,
             "IndexNow (бесплатная индексация лендинга)",
-            "INDEXNOW_KEY не задан",
+            "ключ задан" if indexnow_key else "INDEXNOW_KEY не задан",
         )
     )
     sections.append({"title": "3. Тренды и SEO", "checks": checks})
@@ -319,11 +320,24 @@ def build_doctor_sections(
     checks = []
     brain = unified.get("brain") or {}
     brain_dir = (ROOT / str(brain.get("path") or "../mcp-content-factory")).resolve()
+    vendor_dir = (ROOT / "vendor" / "mcp-content-factory").resolve()
+    if not brain_dir.is_dir() and vendor_dir.is_dir():
+        brain_dir = vendor_dir
     checks.append(
         _check(
             PASS if brain_dir.is_dir() else WARN,
             "mcp-content-factory",
-            str(brain_dir),
+            "{}{}".format(
+                str(brain_dir),
+                " (vendor, для GitHub Actions)" if brain_dir == vendor_dir else "",
+            ),
+        )
+    )
+    checks.append(
+        _check(
+            PASS if vendor_dir.is_dir() else WARN,
+            "vendor-мозг для Actions",
+            "vendor/mcp-content-factory" if vendor_dir.is_dir() else "нет vendor/",
         )
     )
     if brain_dir.is_dir():

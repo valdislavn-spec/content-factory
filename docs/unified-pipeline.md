@@ -173,11 +173,18 @@ export CONTENT_FACTORY_BRAIN=off        # или post_generator: internal
 # либо channels: []
 ```
 
-**Fallback.** Если рядом нет mcp-content-factory (например, GitHub Actions
-чекаутит только репозиторий content-factory), мост возвращает `None` —
-конвейер автоматически переходит на внутреннюю генерацию, публикация не
-падает. Для production в Actions нужно положить mcp рядом (submodule/vendor)
-или запускать завод на сервере; локально мост работает сразу.
+**Fallback и Actions.** Исходники mcp-content-factory лежат в репозитории в
+`vendor/mcp-content-factory` (пакет, config, pyproject; обновление —
+`python scripts/sync_brain_vendor.py`). Рабочий процесс GitHub Actions
+устанавливает его optional-шагом (`pip install -e "vendor/mcp-content-factory[langchain]"`)
+и прогоняет mock-смоук `mcp_factory brain`; если установка или вызов не
+удались, шаг не валит job, а мост возвращает `None` → внутренняя генерация.
+Так один репозиторий самодостаточен, а автопостинг не останавливается.
+
+Мост ищет мозг в порядке: env `CONTENT_FACTORY_BRAIN_PATH/PYTHON/CONFIG` →
+`settings.yaml` → `vendor/mcp-content-factory` → соседний `../mcp-content-factory`.
+В CI это автоматически даёт vendor + `sys.executable`, локально — dev-копию с
+venv. Остановить мост: `CONTENT_FACTORY_BRAIN=off`.
 
 Проверка и превью:
 
