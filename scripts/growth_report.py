@@ -248,6 +248,7 @@ def _write_raw_posts(
                         "published_at": post.published_at,
                         "views": post.views,
                         "reactions": post.reactions,
+                        "reactions_detail": post.reactions_detail,
                         "text": (post.text or "")[:600],
                         "sponsored": post.is_sponsored,
                     }
