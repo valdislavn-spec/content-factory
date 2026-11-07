@@ -47,7 +47,13 @@ channels:
   - sponsored
   - casino
   - horoscope
+  - cricket
+  - tennis
+  - golf
+  - wimbledon
+  - quiz
   tone: friendly
+  strict_topics: true
   hashtags:
   - Sports
   - NFL
@@ -225,6 +231,10 @@ channels:
   - sponsored
   - horoscope
   - casino
+  - spelling
+  - quiz
+  - quordle
+  - games
   tone: expert
   hashtags:
   - AI
@@ -381,6 +391,11 @@ channels:
   - casino
   - giveaway
   - airdrop scam
+  - quordle
+  - quiz
+  - spelling
+  - games
+  - horoscope
   tone: expert
   hashtags:
   - Bitcoin

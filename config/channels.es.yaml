@@ -51,6 +51,10 @@ channels:
   - casino
   - horóscopo
   - apuestas
+  - spelling
+  - quiz
+  - quordle
+  - juegos
   tone: expert
   emoji: true
   hashtags:
@@ -79,6 +83,7 @@ channels:
   - "22:00"
   - "23:00"
   posts_per_day: 15
+  strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
@@ -171,6 +176,11 @@ channels:
   - apuestas
   - ganancias garantizadas
   - señal de trading
+  - quordle
+  - quiz
+  - spelling
+  - juegos
+  - horóscopo
   tone: expert
   emoji: true
   hashtags:
@@ -199,6 +209,7 @@ channels:
   - "22:15"
   - "23:15"
   posts_per_day: 15
+  strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
@@ -301,6 +312,11 @@ channels:
   - publicidad
   - patrocinado
   - horóscopo
+  - cricket
+  - tennis
+  - tenis
+  - golf
+  - quiz
   tone: friendly
   emoji: true
   hashtags:
@@ -329,6 +345,7 @@ channels:
   - "22:30"
   - "23:30"
   posts_per_day: 15
+  strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800

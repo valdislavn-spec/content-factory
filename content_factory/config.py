@@ -507,6 +507,7 @@ def _parse_channel(raw: Any, index: int, settings: Settings) -> ChannelConfig:
         tone=str(data.get("tone") or "expert"),
         max_post_chars=int(data.get("max_post_chars", 3500)),
         min_relevance=float(data.get("min_relevance", settings.pipeline.get("min_relevance", 0.25))),
+        strict_topics=bool(data.get("strict_topics", False)),
         formats=formats,
         content_mix=data.get("content_mix") or {"story": 30, "analysis": 40, "interactive": 30},
         min_cluster_chars=int(data.get("min_cluster_chars", 0) or 0),

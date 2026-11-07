@@ -45,6 +45,7 @@ from .utils import (
     stable_id,
     strip_html,
     url_hash,
+    detect_text_language,
 )
 
 log = logging.getLogger("content_factory.pipeline")
@@ -101,6 +102,22 @@ def score_article(article: Article, channel: ChannelConfig) -> Tuple[float, List
     return min(1.0, points / 3.0), matched
 
 
+def post_language_ok(text: str, language: str) -> bool:
+    """Пост написан на языке канала?
+
+    Эвристика по алфавиту/служебным словам ненадёжна на коротких текстах,
+    поэтому короче 120 символов не проверяем. Для ``ru`` проверку не включаем:
+    текущая сеть работает на ``en``/``es``.
+    """
+    lang = str(language or "").strip().lower()
+    if lang not in ("en", "es"):
+        return True
+    plain = normalize_space(strip_html(text or ""))
+    if len(plain) < 120:
+        return True
+    return detect_text_language([plain], default=lang) == lang
+
+
 def filter_articles(
     channel: ChannelConfig,
     articles: Sequence[Article],
@@ -119,6 +136,7 @@ def filter_articles(
         for source in channel.sources
         if source.enabled and bool(source.options.get("trust"))
     }
+    strict_topics = bool(getattr(channel, "strict_topics", False))
     seen_urls: set = set()
     seen_titles: List[str] = []
     result: List[Article] = []
@@ -140,8 +158,9 @@ def filter_articles(
         title_and_body = ((article.title or "") + " " + (article.content_for_analysis or "")).lower()
         excluded = any(bad and bad in title_and_body for bad in channel.exclude_keywords)
         if article.source_id in trusted_sources and not excluded:
-            relevance = max(relevance, 0.5)
-            matched = matched or ["тематический источник"]
+            if not strict_topics:
+                relevance = max(relevance, 0.5)
+                matched = matched or ["тематический источник"]
         if relevance < min_relevance:
             continue
         if is_duplicate_title(article.title, seen_titles, threshold=0.72):
@@ -237,6 +256,8 @@ def quality_issues(post: GeneratedPost, channel: ChannelConfig, settings: Settin
     for bad in settings.pipeline.get("banned_words") or []:
         if bad and str(bad).lower() in lowered:
             issues.append(f"стоп-слово: {bad}")
+    if not post_language_ok(post.text, channel.language):
+        issues.append(f"язык поста не совпадает с языком канала ({channel.language})")
     if not post.sources:
         issues.append("нет ссылок на источники")
     if "http" in lowered and "<a href" not in post.text:
@@ -537,8 +558,11 @@ def generate_posts(
                 # у дайджеста заголовок — его собственная шапка, а не 1-й сюжет
                 _attach_card(digest, channel, settings, None)
             _tag_slot_meta(digest, slot, night_mode, max_chars, phase)
-            posts.append(digest)
-            return posts, errors
+            if not post_language_ok(digest.text, channel.language):
+                errors.append(f"дайджест отклонён: язык не {channel.language}")
+            else:
+                posts.append(digest)
+                return posts, errors
         except Exception as exc:
             errors.append(f"дайджест: {exc}")
             log.exception("Не удалось собрать дайджест для %s", channel.id)
@@ -575,6 +599,9 @@ def generate_posts(
                 continue
             if dify_generator is not None:
                 dify_post = dify_generator.generate(channel, cluster)
+                if dify_post is not None and not post_language_ok(dify_post.text, channel.language):
+                    errors.append(f"пост Dify отклонён: язык не {channel.language}")
+                    continue
                 if dify_post is not None:
                     _attach_image(dify_post, cluster)
                     _attach_card(dify_post, channel, settings, cluster)
@@ -678,6 +705,9 @@ def _recap_from_posts(
         text = f"{_recap_emoji(channel)} <b>{html_escape(headline)}</b>\n\n{paragraphs}"
         if channel.hashtags:
             text += "\n\n" + " ".join(channel.hashtags)
+        if not post_language_ok(text, channel.language):
+            log.info("Рекап пропущен: язык не %s", channel.language)
+            return None
         post = GeneratedPost(
             id=stable_id(channel.id, "recap", slot or utcnow().isoformat(), str(rotation)),
             channel_id=channel.id,
