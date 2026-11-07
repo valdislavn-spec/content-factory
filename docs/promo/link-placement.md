@@ -75,6 +75,14 @@ crypto-news → AI News и US Sports News, со ссылкой в каждом �
   страницы в `docs/channels/`, все URL в sitemap и IndexNow.
 - **besttelegramchannels.com** — бесплатная подача всех 6 каналов (EN + ES)
   принята: «successful! … live shortly after approval». Каталог в модерации.
+- **TeleJoiner.com** — гео-каталог, все 6 каналов **опубликованы live**
+  (EN → United States, ES → Mexico), подача без логина:
+  [Crypto](https://telejoiner.com/invite/1003891468537),
+  [AI](https://telejoiner.com/invite/1004351191643),
+  [US Sports](https://telejoiner.com/invite/1003802742871),
+  [ES Crypto](https://telejoiner.com/invite/1004304574421),
+  [ES AI](https://telejoiner.com/invite/1004355563628),
+  [ES Sports](https://telejoiner.com/invite/1004391544104).
 - Тексты, гео-матрица и план на неделю — `docs/promo/free-ads-geo-2026-11.md`.
 
 ### Проверено, но не удалось автоматически
@@ -93,6 +101,13 @@ crypto-news → AI News и US Sports News, со ссылкой в каждом �
 - **tgdr.io / tdirectory.me:** подача через Telegram-бота каталога (`/add`);
   **search-t.me** — нужен вход; **tgram.me** — капча; **tlgrm.eu** — форма
   недоступна из этой сети (таймаут), подавать из браузера.
+- **Новые площадки (поиск 08.11.2026):** [Telegramic.org](https://telegramic.org)
+  (бесплатно, модерация месяцами), [TDirectory.me](https://tdirectory.me)
+  (бесплатная форма), [TGbox.cc](https://tgbox.cc/en/enroll/) (бот
+  `@tgboxccbot`), [Grupos24h.com](https://grupos24h.com/publicar) (ES-каталог,
+  нужен email), [metricgram.com](https://metricgram.com/features/community_directory)
+  (нужен аккаунт), `nidium.com` → addcatalogbot (бот). Детали — §1a в
+  `free-ads-geo-2026-11.md`.
 
 ### Проверка
 
@@ -113,7 +128,7 @@ python scripts/edit_pinned.py --language es --dry-run
 | VK | описание сообщества, ссылки, закреп | все 6 ссылок | ☐ (VK-токен пуст) |
 | Reddit | профиль + закреп в профиле | хаб; в сабах — только по правилам | ☐ |
 | Личный Telegram | био + закреп в личном канале | @-упоминания каналов | ☐ (нужна сессия аккаунта) |
-| Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☑ besttelegramchannels — 6 каналов поданы; ☐ остальные (нужен Telegram-вход; GruposLatAm — форма 404) |
+| Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☑ TeleJoiner — 6 live; ☑ besttelegramchannels — поданы; ☐ остальные (нужен Telegram-вход/email; GruposLatAm — форма 404) |
 | Email / подпись | подпись писем | хаб-ссылка | ☐ |
 | GitHub profile | README профиля | хаб + 6 ссылок | ☑ сделано 08.11.2026 |
 | GitHub (поле website профиля) | ссылка в профиле | хаб | ☐ токен не может менять профиль — вручную 1 минута |
@@ -168,6 +183,7 @@ All → https://valdislavn-spec.github.io/content-factory/
 - [x] robots.txt + sitemap.xml + JSON-LD на хабе; заявка IndexNow (Bing/Yandex)
 - [x] 6 гео-лендингов каналов (US/LatAm/Испания) + sitemap + IndexNow
 - [x] бесплатный каталог besttelegramchannels.com — все 6 каналов поданы (модерация)
+- [x] гео-каталог TeleJoiner.com — все 6 каналов опубликованы (US / Mexico, EN/ES)
 - [ ] TikTok bio
 - [ ] YouTube ссылки
 - [ ] X bio + закреп-твит

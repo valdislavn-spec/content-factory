@@ -18,6 +18,7 @@ Discord и growth-бота), [link-placement.md](link-placement.md) (реест�
 | **Sitemap со всеми лендингами** | ✅ | `docs/sitemap.xml` |
 | **IndexNow-пинг** всех URL | ✅ (Bing — 200, Яндекс — 202) | `docs/40b6ae40a1da513993ba194f8f2048c5.txt` |
 | **Бесплатный каталог besttelegramchannels.com**: 6 каналов подано (EN + ES) | ⏳ на модерации | заявки приняты: «successful! … live shortly after approval» |
+| **TeleJoiner (гео-каталог)**: 6/6 каналов опубликованы (US / Mexico, EN/ES) | ✅ live | ссылки в §1a |
 | Хаб-лендинг, README, профиль GitHub, topics | ✅ ранее | [link-placement.md](link-placement.md) |
 
 Лендинги: `https://valdislavn-spec.github.io/content-factory/channels/`
@@ -26,6 +27,33 @@ ES: `noticias-cripto-telegram`, `noticias-ia-telegram`, `futbol-deportes-telegra
 На каждой странице — язык, гео-описание, кнопка «Открыть в Telegram» и кнопки
 «Поделиться» (Telegram share + X intent) — бесплатная виральная механика.
 
+## 1a. Новые площадки, найденные поиском 08.11.2026
+
+| Площадка | Что это | Статус у нас | Условия |
+|---|---|---|---|
+| **TeleJoiner** (telejoiner.com) | EN-каталог каналов/групп с фильтрами по категории, языку и **стране** | ✅ **6/6 каналов опубликованы** (проверено live) | Бесплатно, без логина: link, category, country, language, tags, description |
+| besttelegramchannels.com | EN-каталог (общий) | ⏳ 6 заявок поданы ранее, ждут модерации | Бесплатно, без логина, нужен PNG-аватар |
+| Telegramic.org | Международный каталог (языки/категории) | ☐ не подавали | Бесплатно; модерация долгая (по отзывам до 3 месяцев) |
+| TDirectory.me | Крупный каталог каналов/групп/ботов | ☐ не подавали | Бесплатная подача через форму на сайте |
+| TGbox.cc | Каталог с авто-обновлением метрик | ☐ не подавали | Бесплатно, через бота **@tgboxccbot** (нужен Telegram-аккаунт) |
+| Grupos24h.com | ES-каталог для Испании и ЛатАм | ☐ не подавали | Бесплатная карточка (**обязателен email** владельца) |
+| Metricgram community directory | Каталог групп (категории) | ☐ не подавали | Нужен аккаунт/подключённая группа |
+| nidium.com → addcatalogbot | Бот-каталог каналов | ☐ не подавали | Через Telegram-бота (нужен аккаунт) |
+
+**TeleJoiner — живые ссылки (08.11.2026):**
+
+- Crypto & Blockchain (US, English): https://telejoiner.com/invite/1003891468537
+- AI News (US, English): https://telejoiner.com/invite/1004351191643
+- US Sports News (US, English): https://telejoiner.com/invite/1003802742871
+- ES Crypto & Blockchain (Mexico, Spanish): https://telejoiner.com/invite/1004304574421
+- ES AI News (Mexico, Spanish): https://telejoiner.com/invite/1004355563628
+- ES Sports News (Mexico, Spanish): https://telejoiner.com/invite/1004391544104
+
+Вывод: TeleJoiner и besttelegramchannels — единственные найденные каталоги, куда
+можно подать **без логина**; у обоих есть гео-поля (страна/язык), что для
+«рекламы по гео» важнее общего каталога. Остальные — через Telegram-бота или
+нужен email владельца.
+
 ## 2. Гео-матрица
 
 | Канал | Гео | Язык | Часы (локальные) | Куда сеять бесплатно |
@@ -33,9 +61,11 @@ ES: `noticias-cripto-telegram`, `noticias-ia-telegram`, `futbol-deportes-telegra
 | Crypto & Blockchain `@HOOPY0007` | США | EN | 07:00–21:00 ET | besttelegramchannels (подано), TelegramChannels.me, tlgrm.eu, awesome-lists, Reddit r/CryptoCurrency, Bluesky/Mastodon EN |
 | AI News `@AINEWS0007` | США | EN | 08:00–20:00 ET | те же + r/artificial, r/MachineLearning (правила!), Hacker News (Show/новости), Bluesky EN |
 | US Sports News `@SPORTNews0007` | США | EN | 09:00–23:00 ET | те же + r/nfl, r/nba, r/baseball (только по правилам сабов), Bluesky EN |
-| ES Crypto `@TechnologiesNews01` | MX/AR/CO/CL + ES | ES | 08:00–22:00 UTC−5 | GruposTelegramLatAm (форма сломана), TelegramChannels.me (ES-раздел), Bluesky/Mastodon ES, r/mexico, r/argentina, r/Colombia |
+| ES Crypto `@TechnologiesNews01` | MX/AR/CO/CL + ES | ES | 08:00–22:00 UTC−5 | TeleJoiner ✅ (Mexico), Grupos24h (нужен email), GruposTelegramLatAm (форма 404), TelegramChannels.me (ES-раздел), Bluesky/Mastodon ES, r/mexico, r/argentina, r/Colombia |
 | ES AI `@WORLDNews0007` | MX/AR/CO/CL + ES | ES | 08:00–22:00 UTC−5 | те же + r/programacion, r/IA, foros de tecnología ES |
 | ES Sports `@SPORTSAnalytics007` | MX/AR/CO/CL + ES | ES | 08:00–23:00 UTC−5 | те же + r/futbol, r/LigaMX, r/fulbo (18+, аккуратно с правилами) |
+
+**Каталоги:** TeleJoiner — ✅ все 6 каналов live (US / Mexico); besttelegramchannels — ⏳ модерация. Полный список новых площадок — §1a.
 
 ## 3. Готовые тексты (копировать как есть)
 
