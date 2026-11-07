@@ -95,6 +95,7 @@ jobs:
       # LangSmith-трейсы моста «мозга» (mcp-content-factory vendored).
       LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
       LANGSMITH_PROJECT: content-factory-actions
+      LANGSMITH_TRACING: "true"
       HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
