@@ -110,7 +110,12 @@ def main() -> int:
         print("Нет TELEGRAM_BOT_TOKEN", file=sys.stderr)
         return 2
     state = load_state()
-    updates = api("getUpdates", token, base, {"offset": state.get("offset", 0), "timeout": 0, "limit": 50})
+    updates = api("getUpdates", token, base, {
+        "offset": state.get("offset", 0),
+        "timeout": 1,
+        "limit": 50,
+        "allowed_updates": json.dumps(["message", "edited_message"]),
+    })
     if not updates.get("ok"):
         print("getUpdates error:", updates, file=sys.stderr)
         return 1
