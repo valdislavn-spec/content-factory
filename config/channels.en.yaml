@@ -181,7 +181,7 @@ channels:
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
-  cta: ''
+  cta: "Share this post with a friend — it helps the channel grow."
   night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:
@@ -337,7 +337,7 @@ channels:
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
-  cta: ''
+  cta: "Share this post with a friend — it helps the channel grow."
   night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:
@@ -491,7 +491,7 @@ channels:
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
-  cta: ''
+  cta: "Share this post with a friend — it helps the channel grow."
   night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:

@@ -458,7 +458,7 @@ def render_post_card(
             y += line_h
 
     # --- подвал -------------------------------------------------------------
-    footer_y = height - 148
+    footer_y = height - 196
     draw.line((margin, footer_y - 26, width - margin, footer_y - 26), fill=(255, 255, 255, 34), width=2)
     hashtags = [str(tag) for tag in (getattr(post, "hashtags", []) or [])[:4]]
     if hashtags and label_font:
@@ -469,8 +469,19 @@ def render_post_card(
     username = username or HANDLES.get(channel_id, "")
     handle = "@" + username if username else ""
     if label_font and handle:
-        hw = draw.textlength(handle, font=label_font)
-        draw.text((width - margin - hw, footer_y - 4), handle, font=label_font, fill=(255, 255, 255, 150))
+        # Водяной знак: заметная «пилюля» с @username — каждая пересылка карточки
+        # приводит новых подписчиков, даже если текст поста потерялся.
+        wm_font = _body_font(28, weight=700)
+        if wm_font:
+            hw = draw.textlength(handle, font=wm_font)
+            pad_x, pad_y = 20, 10
+            wx = width - margin - hw - pad_x * 2
+            wy = footer_y + 46
+            draw.rounded_rectangle(
+                (wx, wy, wx + hw + pad_x * 2, wy + 28 + pad_y * 2),
+                radius=22, fill=(0, 0, 0, 96), outline=(255, 255, 255, 90), width=2,
+            )
+            draw.text((wx + pad_x, wy + pad_y - 2), handle, font=wm_font, fill=(255, 255, 255, 235))
 
     # --- сохранение ---------------------------------------------------------
     try:

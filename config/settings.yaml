@@ -32,6 +32,10 @@ pipeline:
   cluster_similarity: 0.34      # порог склейки новостей об одном событии
   min_cluster_sources: 1        # 2 = публиковать только сюжеты, подтверждённые 2+ источниками
   max_posts_per_run: 1          # 1 пост за запуск: при постинге каждый час этого хватает
+  # Без пропусков слотов: если свежих статей нет — рекап из истории.
+  fallback_recap_hours: 48      # окно свежих статей для рекапа
+  fallback_from_posts_hours: 72 # окно последних постов для крайнего рекапа
+  fallback_min_cluster_chars: 80
   # post_generator: internal — встроенная генерация (LLM/extractive)
   # post_generator: dify_app — готовый пост из Dify workflow-приложения
   # 144 поста/сутки: бесплатного Dify Sandbox не хватит, поэтому основной

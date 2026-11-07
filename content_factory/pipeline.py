@@ -485,6 +485,7 @@ def generate_posts(
     llm: Any,
     max_posts: int,
     slot: str = "",
+    recap: bool = False,
 ) -> Tuple[List[GeneratedPost], List[str]]:
     """Генерирует посты по лучшим сюжетам с ротацией форматов.
 
@@ -501,8 +502,9 @@ def generate_posts(
 
     phase = slot_phase(channel, slot)
     night_mode = phase == "night"
+    fallback_min = int(settings.pipeline.get("fallback_min_cluster_chars", 80))
     max_chars = int(getattr(channel, "night_max_chars", 900) or 900) if night_mode else int(channel.max_post_chars)
-    if night_mode:
+    if night_mode or recap:
         formats = ["digest"]
     else:
         formats = day_formats(channel, phase)
@@ -512,6 +514,8 @@ def generate_posts(
         getattr(channel, "min_cluster_chars", 0)
         or settings.pipeline.get("min_cluster_chars", 200)
     )
+    if recap:
+        min_chars = min(min_chars, fallback_min)
     trends = [] if night_mode else collect_trends(channel, settings, clusters)
 
     # Дайджест — один пост сразу по нескольким сюжетам.
@@ -519,13 +523,15 @@ def generate_posts(
         cluster for cluster in clusters
         if len((cluster.combined_text or "").strip()) >= min_chars
     ]
-    if dify_generator is None and fmt == "digest" and len(digest_clusters) >= 2:
+    if dify_generator is None and fmt == "digest" and (len(digest_clusters) >= 2 or (recap and digest_clusters)):
         try:
             digest_items = [
                 (cluster, analyze_cluster(cluster, settings, llm, language=channel.language))
                 for cluster in digest_clusters[: min(5, len(digest_clusters))]
             ]
-            digest = generate_digest(digest_items, channel, settings, llm=llm, max_chars=max_chars, trends=trends)
+            digest = generate_digest(
+                digest_items, channel, settings, llm=llm, max_chars=max_chars, trends=trends
+            )
             if digest_items:
                 _attach_image(digest, digest_items[0][0])
                 # у дайджеста заголовок — его собственная шапка, а не 1-й сюжет
@@ -564,7 +570,7 @@ def generate_posts(
         if current_fmt == "digest":
             current_fmt = "story"  # одиночный сюжет дайджестом не публикуем
         try:
-            if is_duplicate_title(cluster.title, recent_plain, threshold=0.55):
+            if not recap and is_duplicate_title(cluster.title, recent_plain, threshold=0.55):
                 log.info("Пропуск повтора сюжета: %s", cluster.title)
                 continue
             if dify_generator is not None:
@@ -604,6 +610,98 @@ def generate_posts(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Fallback: публиковать каждый слот, даже если свежих статей нет
+# ---------------------------------------------------------------------------
+def _recent_articles(storage: Storage, channel: ChannelConfig, hours: float) -> List[Article]:
+    try:
+        return storage.recent_articles(channel.id, hours=hours)
+    except Exception:  # noqa: BLE001
+        log.debug("Не удалось взять статьи из истории для %s", channel.id, exc_info=True)
+        return []
+
+
+def _recap_emoji(channel: ChannelConfig) -> str:
+    haystack = f"{channel.id} {channel.title} {' '.join(channel.topics)}".lower()
+    if any(word in haystack for word in ("crypto", "cripto", "blockchain", "bitcoin", "ethereum")):
+        return "🪙"
+    if any(word in haystack for word in ("futbol", "fútbol", "soccer", "la liga", "liga mx", "deporte")):
+        return "⚽"
+    if any(word in haystack for word in ("sport", "nfl", "nba", "mlb", "nhl")):
+        return "🏆"
+    if any(word in haystack for word in (" ai", " ai ", "ia ", "tech", "tecnolog", "inteligencia artificial")):
+        return "🤖"
+    return "📰"
+
+
+def _recap_from_posts(
+    channel: ChannelConfig,
+    storage: Storage,
+    settings: Settings,
+    slot: str = "",
+) -> Optional[GeneratedPost]:
+    """Дайджест из последних постов канала — гарантирует пост в каждом слоте."""
+    try:
+        hours = float(settings.pipeline.get("fallback_from_posts_hours", 72))
+        rows = storage.get_posts(channel.id, days=hours / 24, limit=40)
+        if not rows:
+            return None
+        rotation = _today_posts(storage, channel.id) % len(rows)
+        rows = rows[rotation:] + rows[:rotation]
+        sentences: List[str] = []
+        seen_prefixes = set()
+        for row in rows:
+            plain = strip_html(row.get("text") or "")
+            for candidate in re.split(r"(?<=[.!?])\s+", plain):
+                candidate = normalize_space(candidate)
+                if not (40 <= len(candidate) <= 300):
+                    continue
+                key = candidate.lower()[:60]
+                if key in seen_prefixes:
+                    continue
+                seen_prefixes.add(key)
+                sentences.append(candidate)
+                break
+            if len(sentences) >= 3:
+                break
+        if not sentences:
+            return None
+        lang = str(channel.language or "en")
+        if lang == "en":
+            headline = f"What's moving in {channel.title} right now"
+        elif lang == "es":
+            headline = f"Lo que se mueve ahora en {channel.title}"
+        else:
+            headline = f"Главное в «{channel.title}» сейчас"
+        from html import escape as html_escape
+        paragraphs = "\n\n".join(html_escape(sentence) for sentence in sentences)
+        text = f"{_recap_emoji(channel)} <b>{html_escape(headline)}</b>\n\n{paragraphs}"
+        if channel.hashtags:
+            text += "\n\n" + " ".join(channel.hashtags)
+        post = GeneratedPost(
+            id=stable_id(channel.id, "recap", slot or utcnow().isoformat(), str(rotation)),
+            channel_id=channel.id,
+            cluster_id="recap",
+            format="digest",
+            text=text,
+            hashtags=list(channel.hashtags),
+            sources=[],
+            score=0.0,
+            meta={
+                "format": "digest",
+                "fallback": True,
+                "generator": "recap",
+                "slot_local": slot,
+                "seo_keywords": [str(tag).lstrip("#") for tag in channel.hashtags][:5],
+            },
+        )
+        _attach_card(post, channel, settings, None)
+        return post
+    except Exception:  # noqa: BLE001 - fallback не должен ронять канал
+        log.exception("Не удалось собрать рекап для %s", channel.id)
+        return None
+
+
 def run_channel(
     channel: ChannelConfig,
     settings: Settings,
@@ -628,20 +726,22 @@ def run_channel(
         result.articles_fetched = len(articles)
         result.articles_new = len(articles)
         result.errors.extend(fetch_errors)
+
+        recap_mode = False
         if not articles:
-            logger.info("Нет новых релевантных статей — канал пропущен")
-            result.finish()
-            storage.save_run(result)
-            return result
+            fallback_hours = float(settings.pipeline.get("fallback_recap_hours", 48))
+            recent = _recent_articles(storage, channel, fallback_hours)
+            if recent:
+                articles = recent
+                recap_mode = True
+                logger.info(
+                    "Рекап: свежих статей нет — беру %d статей из истории (%.0f ч)",
+                    len(recent),
+                    fallback_hours,
+                )
 
-        clusters = build_clusters(channel, articles, settings, now=now)
+        clusters = build_clusters(channel, articles, settings, now=now) if articles else []
         result.clusters = len(clusters)
-        if not clusters:
-            logger.info("Не удалось собрать сюжеты")
-            result.finish()
-            storage.save_run(result)
-            return result
-
         llm = get_llm(settings)
         logger.info(
             "Сюжетов: %d; LLM: %s (%s)",
@@ -649,15 +749,23 @@ def run_channel(
             llm.name,
             "доступна" if llm.available else "fallback на extractive",
         )
-        # Не публикуем больше, чем канал планирует за день: при 3 слотах и
-        # 3 постах/день на слот приходится ровно один пост (защита от спама,
-        # особенно при catch-up первого запуска демона).
-        per_run_cap = max(1, int(channel.posts_per_day) // max(1, len(channel.schedule)))
-        configured = int(settings.pipeline.get("max_posts_per_run", 2))
-        limit = int(max_posts or min(configured, per_run_cap))
-        posts, generate_errors = generate_posts(
-            channel, clusters, settings, storage, llm, limit, slot=slot
-        )
+        if clusters:
+            # Не публикуем больше, чем канал планирует за день: при 3 слотах и
+            # 3 постах/день на слот приходится ровно один пост (защита от спама,
+            # особенно при catch-up первого запуска демона).
+            per_run_cap = max(1, int(channel.posts_per_day) // max(1, len(channel.schedule)))
+            configured = int(settings.pipeline.get("max_posts_per_run", 2))
+            limit = int(max_posts or min(configured, per_run_cap))
+            posts, generate_errors = generate_posts(
+                channel, clusters, settings, storage, llm, limit, slot=slot, recap=recap_mode
+            )
+        else:
+            posts, generate_errors = [], []
+        if not posts:
+            recap_post = _recap_from_posts(channel, storage, settings, slot=slot)
+            if recap_post is not None:
+                logger.info("Рекап: публикую дайджест из последних постов канала")
+                posts = [recap_post]
         result.errors.extend(generate_errors)
         result.posts_generated = len(posts)
 

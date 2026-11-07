@@ -161,8 +161,8 @@ class Storage:
                     article.url,
                     article.source_id,
                     article.source_name,
-                    format_iso(article.published_at),
-                    format_iso(article.fetched_at),
+                    format_iso(article.published_at) or None,
+                    format_iso(article.fetched_at or utcnow()),
                     article.text,
                     article.summary,
                     article.language,
@@ -192,6 +192,39 @@ class Storage:
         ).fetchall()
         known = {row["article_id"] for row in rows}
         return [a for a in articles if a.id not in known]
+
+    def recent_articles(
+        self, channel_id: str, hours: float = 48.0, limit: int = 120
+    ) -> List[Article]:
+        """Свежие статьи канала из истории (для рекапа, когда новых нет)."""
+        cutoff = format_iso(utcnow() - timedelta(hours=hours))
+        rows = self.conn.execute(
+            """SELECT * FROM articles
+               WHERE channel_id = ?
+                 AND (CASE WHEN published_at IS NULL OR published_at = ''
+                           THEN fetched_at ELSE published_at END) >= ?
+               ORDER BY (CASE WHEN published_at IS NULL OR published_at = ''
+                              THEN fetched_at ELSE published_at END) DESC
+               LIMIT ?""",
+            (channel_id, cutoff, int(limit)),
+        ).fetchall()
+        articles: List[Article] = []
+        for row in rows:
+            articles.append(
+                Article(
+                    id=row["article_id"],
+                    title=row["title"],
+                    url=row["url"],
+                    source_id=row["source_id"],
+                    source_name=row["source_name"],
+                    published_at=parse_datetime(row["published_at"]),
+                    text=row["text"] or "",
+                    summary=row["summary"] or "",
+                    language=row["language"] or "ru",
+                    meta=_loads(row["meta"], {}) or {},
+                )
+            )
+        return articles
 
     def count_articles(self, channel_id: Optional[str] = None, days: float = 7) -> int:
         query = "SELECT COUNT(*) AS c FROM articles WHERE fetched_at >= ?"
