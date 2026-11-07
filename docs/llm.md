@@ -592,3 +592,20 @@ Ollama Cloud/Cloudflare, затем на `extractive`.
 `Сюжетов: N; LLM анализ: cloudflare (доступна), генерация: deepseek_chat (доступна)`.
 Счётчики лимитов кэшируются в GitHub Actions (`data/llm_usage_*.json`), поэтому
 переживают перезапуски и не сбрасываются каждые 15 минут.
+
+### Проверка на живом прогоне (2026-11-07)
+
+Локальный dry-run канала AI News показал ровно целевое поведение:
+
+```
+LLM этап 'analysis': cloudflare (fallback: cohere, ollama_cloud, deepseek_chat, deepseek)
+LLM этап 'generation': deepseek_chat (fallback: ollama_cloud, cloudflare, cohere, deepseek)
+WARNING LLM cloudflare недоступна: HTTP 429 ... used up your daily free allocation of 10,000 neurons
+WARNING LLM cohere недоступна: HTTP 403 ... Forbidden (гео-блок из РФ)
+Итог «AI News»: статей 3, сюжетов 3, постов 1, опубликовано 1, ошибок 0 (26.7 c)
+```
+
+То есть бесплатный Cloudflare упёрся в дневной лимит, Cohere из РФ отдал 403,
+и завод автоматически сгенерировал пост через следующего провайдера
+(`ollama_cloud`), не потеряв слот. Посты, как и раньше, уходят в dry-run
+outbox/канал в зависимости от режима.
