@@ -283,8 +283,34 @@ def make_cover(channel_id: str, spec: dict, size=(1280, 720)) -> Image.Image:
                             x0 + 120, h * 0.30 + (draw.textbbox((0, 0), spec["title"], font=title_font)[3]) + 34),
                            radius=4, fill=spec["accent"] + (255,))
 
-    tag_font = _text_fit(draw, spec["tagline"], FONT_BOLD, 34, w - x0 - 90, 24)
-    draw.text((x0, h * 0.70), spec["tagline"], font=tag_font, fill=(255, 255, 255, 200))
+    # подпись: переносим в 2 строки, подбирая кегль
+    max_w = w - x0 - 90
+    tag_size = 34
+    tag_lines: list = []
+    while tag_size >= 22:
+        tag_font = _font(FONT_BOLD, tag_size)
+        words = spec["tagline"].split()
+        lines, cur = [], ""
+        for word in words:
+            candidate = (cur + " " + word).strip()
+            if draw.textlength(candidate, font=tag_font) <= max_w or not cur:
+                cur = candidate
+            else:
+                lines.append(cur)
+                cur = word
+        if cur:
+            lines.append(cur)
+        if len(lines) <= 2:
+            tag_lines = lines
+            break
+        tag_size -= 2
+    if not tag_lines:
+        tag_font = _font(FONT_BOLD, 22)
+        tag_lines = [spec["tagline"]]
+    y = h * 0.68
+    for line in tag_lines:
+        draw.text((x0, y), line, font=tag_font, fill=(255, 255, 255, 200))
+        y += tag_size + 8
     return img.convert("RGB")
 
 
