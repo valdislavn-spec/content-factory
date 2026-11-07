@@ -130,6 +130,19 @@ Python-пакеты; интерфейсы расширения описаны в
 Метрики — это **снимки**: подписчики приходят из Telegram Bot API, просмотры
 постов Bot API не отдаёт (см. [operations.md](operations.md)).
 
+### `telegram_posts` — метрики постов Telegram
+
+`channel_id`, `message_id` (PK в паре), `posted_at`, `views`, `forwards`,
+`reactions`, `replies`, `text_preview`, `url`, `collected_at`.
+Заполняется командой `telegram-metrics` через Telethon; повторный запуск
+обновляет запись (upsert), а не дублирует.
+
+### `telegram_channel_metrics` — срезы Telegram-метрик
+
+`id` (PK), `channel_id`, `collected_at`, `subscribers`, `posts_analyzed`,
+`total_views`, `avg_views`, `total_reactions`, `total_forwards`, `er`, `payload`
+(JSON). Используется блоком «Telegram-метрики» в отчёте.
+
 ### `runs` — история запусков
 
 `id` (PK), `channel_id`, `started_at`, `finished_at`, `duration_sec`,
@@ -138,7 +151,8 @@ Python-пакеты; интерфейсы расширения описаны в
 
 Индексы: `(channel_id, published_at)` у статей, `(channel_id, created_at)` у
 постов, `(channel_id, published_at)` у публикаций, `(channel_id, collected_at)`
-у метрик, `(channel_id, started_at)` у запусков.
+у метрик, `(channel_id, collected_at)` у Telegram-метрик,
+`(channel_id, posted_at)` у постов Telegram, `(channel_id, started_at)` у запусков.
 
 ## 6. Один запуск конвейера
 

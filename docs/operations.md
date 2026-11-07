@@ -183,6 +183,7 @@ sudo systemctl start content-factory
 python -m content_factory channels          # каналы и режим публикации
 python -m content_factory sources check     # доступность источников
 python -m content_factory metrics           # подписчики и объёмы
+python -m content_factory telegram-metrics  # просмотры/реакции/ER (Telethon)
 python -m content_factory report --days 7   # HTML+MD отчёт
 ```
 
@@ -193,6 +194,8 @@ python -m content_factory report --days 7   # HTML+MD отчёт
 - доля dry-run публикаций (если 100% — реальная публикация выключена);
 - топ источников (видно, кто даёт контент, а кто молчит);
 - ошибки запусков (`runs.errors`);
+- Telegram-метрики: подписчики, рост, средние просмотры, ER, лучший пост
+  (если запускались `telegram-metrics`/`metrics` с Telethon);
 - подписчики (если Bot API доступен);
 - средняя длина постов и распределение форматов.
 

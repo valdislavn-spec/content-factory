@@ -5,6 +5,8 @@
   • factory_status — каналы, последние посты и последние запуски;
   • factory_query  — read-only SQL по data/factory.sqlite3 (SELECT/PRAGMA/CTE);
   • trends_now     — актуальные тренды (Google Trends RSS + наши провайдеры);
+  • factory_schema — таблицы и колонки БД;
+  • hackernews_top — топ Hacker News;
   • web_search     — поиск через Tavily (если задан TAVILY_API_KEY).
 
 Подключение к DSH: см. docs/mcp-plugins.md. Сервер ничего не пишет в БД и
@@ -213,6 +215,46 @@ def tool_web_search(query: str, max_results: int = 5) -> Dict[str, Any]:
     return _google_news_search(query, limit)
 
 
+def tool_factory_schema() -> Dict[str, Any]:
+    """Список таблиц и колонок БД (аналог describe_table из SQLite MCP)."""
+    conn = _connect()
+    try:
+        tables = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+        ).fetchall()
+        schema: Dict[str, List[Dict[str, Any]]] = {}
+        for (table,) in [(row[0],) for row in tables][:30]:
+            columns = conn.execute(f'PRAGMA table_info("{table}")').fetchall()
+            schema[table] = [
+                {"name": row[1], "type": row[2], "notnull": bool(row[3]), "pk": bool(row[5])}
+                for row in columns
+            ]
+        return {"db": str(DB_PATH), "tables": schema}
+    finally:
+        conn.close()
+
+
+def tool_hackernews_top(limit: int = 5) -> Dict[str, Any]:
+    """Топ Hacker News (аналог mcp-hackernews, без ключа)."""
+    count = max(1, min(20, int(limit)))
+    url = "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage={}".format(count)
+    request = urllib.request.Request(url, headers={"User-Agent": "factory-mcp/1.0"})
+    with urllib.request.urlopen(request, timeout=25) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    hits = []
+    for item in (data.get("hits") or [])[:count]:
+        hits.append(
+            {
+                "title": item.get("title"),
+                "url": item.get("url") or "https://news.ycombinator.com/item?id={}".format(item.get("objectID")),
+                "points": item.get("points"),
+                "comments": item.get("num_comments"),
+                "created_at": item.get("created_at"),
+            }
+        )
+    return {"provider": "hackernews", "items": hits}
+
+
 # ---------------------------------------------------------------------------
 # MCP (stdio JSON-RPC)
 # ---------------------------------------------------------------------------
@@ -243,6 +285,19 @@ TOOLS: List[Dict[str, Any]] = [
         },
     },
     {
+        "name": "factory_schema",
+        "description": "Таблицы и колонки базы фабрики (read-only).",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "hackernews_top",
+        "description": "Топ Hacker News (front page) без API-ключа.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 20}},
+        },
+    },
+    {
         "name": "web_search",
         "description": "Поиск в вебе через Tavily.",
         "inputSchema": {
@@ -262,6 +317,10 @@ def call_tool(name: str, arguments: Dict[str, Any]) -> Any:
         return tool_factory_status()
     if name == "factory_query":
         return tool_factory_query(arguments.get("sql", ""))
+    if name == "factory_schema":
+        return tool_factory_schema()
+    if name == "hackernews_top":
+        return tool_hackernews_top(arguments.get("limit") or 5)
     if name == "trends_now":
         return tool_trends_now(
             arguments.get("channel_id") or "ai-news",

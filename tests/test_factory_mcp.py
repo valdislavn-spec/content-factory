@@ -65,7 +65,17 @@ class FactoryMcpTest(unittest.TestCase):
     def test_tools_list(self):
         response = mcp.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
         names = {tool["name"] for tool in response["result"]["tools"]}
-        self.assertEqual(names, {"factory_status", "factory_query", "trends_now", "web_search"})
+        self.assertEqual(
+            names,
+            {
+                "factory_status",
+                "factory_query",
+                "factory_schema",
+                "trends_now",
+                "hackernews_top",
+                "web_search",
+            },
+        )
 
     def test_unknown_method_error(self):
         response = mcp.handle({"jsonrpc": "2.0", "id": 3, "method": "does/not/exist"})
@@ -86,6 +96,12 @@ class FactoryMcpTest(unittest.TestCase):
             "только для чтения" in text or "разрешены только SELECT" in text,
             text,
         )
+
+    def test_schema_lists_tables(self):
+        result = mcp.tool_factory_schema()
+        self.assertIn("posts", result["tables"])
+        self.assertIn("runs", result["tables"])
+        self.assertTrue(any(column["name"] == "channel_id" for column in result["tables"]["posts"]))
 
     def test_status_tool_returns_json(self):
         try:

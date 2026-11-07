@@ -23,6 +23,10 @@
 - `apify-mcp-server` — скрапинг через Apify.
 
 **Важно:** подключение из сессии заблокировано политикой gateway
+(`mcp-add SQLite/tavily/mcp-hackernews` возвращает `server is not enabled and no
+enforcing policy is available…`). Эквиваленты уже есть в `factory-mcp`:
+`factory_query`/`factory_schema` ≈ SQLite, `web_search` ≈ tavily,
+`hackernews_top` ≈ mcp-hackernews.
 (`server is not enabled and no enforcing policy is available to authorize
 catalog access`). Серверы включает владелец окружения — через профиль/политику
 gateway, после чего агент может вызвать:
@@ -49,6 +53,8 @@ mcp-config-set(server="tavily", config={...})
 | `factory_status` | — | каналы, последние посты и запуски |
 | `factory_query` | `sql` | только SELECT/WITH/PRAGMA/EXPLAIN, максимум 200 строк |
 | `trends_now` | `channel_id`, `language` | Google Trends RSS, CoinGecko, GitHub, HN |
+| `factory_schema` | — | таблицы и колонки БД |
+| `hackernews_top` | `limit` | топ Hacker News (без ключа) |
 | `web_search` | `query`, `max_results` | Tavily, а при 403 (РФ) — Bing News RSS |
 
 ### Подключение к DSH
