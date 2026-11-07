@@ -532,6 +532,32 @@ def digest_window_clusters(
     return result
 
 
+def order_digest_clusters(
+    clusters: Sequence[StoryCluster], trend_terms: Sequence[str]
+) -> List[StoryCluster]:
+    """Сортировка сводки: сначала трендовые новости, затем свежие.
+
+    Трендовая = в заголовке/тексте есть термин из блока трендов канала
+    (Google Trends / CoinGecko / GitHub / HN и т.п. — см. content_factory.trends).
+    Внутри каждой группы — от новых к старым.
+    """
+    terms = [str(term).strip().lower() for term in (trend_terms or []) if str(term).strip()]
+
+    def sort_key(cluster: StoryCluster) -> Tuple[int, float]:
+        haystack = (
+            str(getattr(cluster, "title", "") or "") + " " + str(cluster.combined_text or "")
+        )[:2000].lower()
+        trending = 0 if terms and any(term in haystack for term in terms) else 1
+        published = getattr(cluster, "last_published", None)
+        if published is None:
+            published = utcnow()
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        return (trending, -published.timestamp())
+
+    return sorted(clusters, key=sort_key)
+
+
 def _build_window_digest(
     channel: ChannelConfig,
     clusters: Sequence[StoryCluster],
@@ -573,7 +599,9 @@ def _build_window_digest(
         if len((cluster.combined_text or "").strip()) >= min_chars
     ]
     window = long_enough or window
-    window.sort(key=lambda cluster: getattr(cluster, "last_published", None) or utcnow(), reverse=True)
+    # Сначала трендовые новости (совпадение с блоком трендов канала), потом свежие.
+    trend_terms = collect_trends(channel, settings, window)
+    window = order_digest_clusters(window, trend_terms)
 
     cap = int(settings.pipeline.get("digest_max_items", 10) or 10)
     if max_chars:
@@ -597,7 +625,7 @@ def _build_window_digest(
     try:
         digest = generate_digest(
             items, channel, settings, llm=llm,
-            max_chars=max_chars or None, trends=collect_trends(channel, settings, window),
+            max_chars=max_chars or None, trends=trend_terms,
         )
         _attach_image(digest, items[0][0])
         issues = quality_issues(digest, channel, settings)

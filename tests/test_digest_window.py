@@ -8,7 +8,7 @@ from datetime import timedelta
 from content_factory.config import Settings
 from content_factory.models import Analysis, Article, ChannelConfig, StoryCluster, utcnow
 from content_factory.nlp.generator import generate_digest
-from content_factory.pipeline import digest_window_clusters
+from content_factory.pipeline import digest_window_clusters, order_digest_clusters
 
 
 def _cluster(cluster_id: str, title: str, published_at) -> StoryCluster:
@@ -64,6 +64,22 @@ class DigestCapTest(unittest.TestCase):
         )
         post = generate_digest(items, channel, settings)
         self.assertEqual(post.meta["items_count"], 2)
+
+
+class TrendOrderTest(unittest.TestCase):
+    def test_trending_story_goes_first_even_if_older(self):
+        now = utcnow()
+        trending = _cluster("trend", "Bitcoin hits record high", now - timedelta(hours=2))
+        fresh = _cluster("fresh", "Weather update for the region", now)
+        ordered = order_digest_clusters([fresh, trending], ["bitcoin"])
+        self.assertEqual([cluster.id for cluster in ordered], ["trend", "fresh"])
+
+    def test_without_trends_order_is_fresh_first(self):
+        now = utcnow()
+        newer = _cluster("new", "New story", now)
+        older = _cluster("old", "Old story", now - timedelta(hours=2))
+        ordered = order_digest_clusters([older, newer], [])
+        self.assertEqual([cluster.id for cluster in ordered], ["new", "old"])
 
 
 if __name__ == "__main__":
