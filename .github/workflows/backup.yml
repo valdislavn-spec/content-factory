@@ -1,0 +1,56 @@
+name: backup
+
+# Еженедельный бэкап состояния (SQLite, слоты, outbox) + конфигов, чтобы
+# потеря кэша GitHub не убила историю. Плюс алерт в Telegram при ошибке.
+on:
+  schedule:
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore state cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/factory.sqlite3
+            data/schedule_state.json
+            data/schedule_state_es.json
+            data/llm_cache.sqlite3
+            data/llm_tokens.json
+            data/llm_usage.json
+            data/source_*_usage.json
+          key: cf-state-backup-${{ github.run_id }}
+          restore-keys: |
+            cf-state-
+      - name: Upload backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-factory-backup-${{ github.run_number }}
+          path: |
+            data/factory.sqlite3
+            data/schedule_state.json
+            data/schedule_state_es.json
+            data/outbox
+            config/channels.en.yaml
+            config/channels.es.yaml
+            config/settings.yaml
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Notify on failure
+        if: failure()
+        run: |
+          python scripts/notify_telegram.py "❌ backup не удался — ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
