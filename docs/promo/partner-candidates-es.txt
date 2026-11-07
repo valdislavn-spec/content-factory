@@ -1,0 +1,16 @@
+# Каналы-кандидаты для ВП: ES Sports Analytics (18+).
+# Источник: поиск Telemetr/TGStat/каталоги (08.11.2026), испаноязычные
+# спортивные/аналитические/около-беттинговые каналы.
+# Проверка: workflow partner-scan-es (запускается на push этого файла).
+# Критерии ВП: просмотры 50–5000, живой (1+ пост/24ч), без накрутки, без казино.
+
+@tipsanalistas   # TipsAnalistas ⚽️ — прогнозы/аналитика
+@jotabet01       # JOTABET — ставки/аналитика
+@Goolal90        # Gol al 90' — футбольные прогнозы
+@lapremier       # La Premier 🇬🇧 — АПЛ на испанском
+@apuestasnbaess  # PABLO ANALISTA — NBA/ставки
+@prodatabasexpert # Pro Analyst 🧠 — аналитика/данные
+@stakeanalistasbets # STAKE ANALISTAS — ставки/аналитика
+@sbganalitica    # SBG Analítica — спортивная аналитика
+# Крупные испанские медиа (не для ВП, только для платных посевов):
+# @marca @diarioas @mundodeportivo @relevo

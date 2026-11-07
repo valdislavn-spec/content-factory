@@ -1,0 +1,41 @@
+name: partner-scan-es
+
+# Скан испаноязычных каналов-кандидатов для ВП/обменов (ES Sports Analytics).
+# Запускается автоматически при push изменений в файл кандидатов, плюс вручную.
+# Ничего не публикует: только читает t.me/s и складывает отчёт в артефакт.
+
+on:
+  push:
+    paths:
+      - "docs/promo/partner-candidates-es.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Scan ES candidates
+        run: |
+          python scripts/partner_scan.py \
+            --file docs/promo/partner-candidates-es.txt \
+            --min-views 50 --max-views 5000
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: partner-scan-es
+          path: data/reports/partner-scan-*.md
+          if-no-files-found: ignore
+          retention-days: 14
