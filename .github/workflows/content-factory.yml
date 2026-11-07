@@ -63,10 +63,9 @@ jobs:
   tick:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    concurrency:
-      group: content-factory-cloud
-      cancel-in-progress: false
-
+    # ВАЖНО: concurrency только на уровне workflow (выше). Дублировать его
+    # на уровне job нельзя: job ждёт группу, которую держит его же workflow,
+    # и падает до запуска шагов (0 steps).
     env:
       TZ: Europe/Moscow
       # cron → live (если не задана Variable CONTENT_FACTORY_DRY_RUN=true).
