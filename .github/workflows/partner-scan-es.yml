@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - "docs/promo/partner-candidates-es.txt"
+      - "docs/promo/partner-candidates.txt"
       - "scripts/partner_scan.py"
   workflow_dispatch:
 
@@ -31,12 +32,17 @@ jobs:
         run: |
           python scripts/partner_scan.py \
             --file docs/promo/partner-candidates-es.txt \
-            --min-views 50 --max-views 5000
+            --min-views 50 --max-views 5000 --out-dir data/reports/es
+      - name: Scan EN crypto candidates
+        run: |
+          python scripts/partner_scan.py \
+            --file docs/promo/partner-candidates.txt \
+            --min-views 30 --max-views 2000 --out-dir data/reports/en
       - name: Upload scan report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: partner-scan-es
-          path: data/reports/partner-scan-*.md
+          path: data/reports/**/partner-scan-*.md
           if-no-files-found: ignore
           retention-days: 14
