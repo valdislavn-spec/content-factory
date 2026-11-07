@@ -52,6 +52,10 @@ on:
           - "dry-run"   # безопасно: посты только в outbox/artifacts
           - "live"      # реальная публикация
 
+concurrency:
+  group: content-factory-cloud
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
