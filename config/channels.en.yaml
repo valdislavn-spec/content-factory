@@ -441,6 +441,7 @@ channels:
     options:
       trust: true
       max_items: 15
+      full_text: true
   - id: theblock
     type: rss
     url: https://www.theblock.co/rss.xml
@@ -458,6 +459,7 @@ channels:
     options:
       trust: true
       max_items: 15
+      full_text: true
   - id: cointelegraph
     type: rss
     url: https://cointelegraph.com/rss
@@ -466,6 +468,7 @@ channels:
     options:
       trust: true
       max_items: 15
+      full_text: true
   - id: unchained
     type: rss
     url: https://unchainedcrypto.com/feed/
@@ -572,3 +575,4 @@ channels:
     story: 20
     analysis: 40
     interactive: 40
+  min_cluster_chars: 120

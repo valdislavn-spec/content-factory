@@ -508,7 +508,10 @@ def generate_posts(
         formats = day_formats(channel, phase)
     rotation = _today_posts(storage, channel.id) % len(formats)
     fmt = formats[rotation]
-    min_chars = int(settings.pipeline.get("min_cluster_chars", 200))
+    min_chars = int(
+        getattr(channel, "min_cluster_chars", 0)
+        or settings.pipeline.get("min_cluster_chars", 200)
+    )
     trends = [] if night_mode else collect_trends(channel, settings, clusters)
 
     # Дайджест — один пост сразу по нескольким сюжетам.

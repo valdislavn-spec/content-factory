@@ -65,6 +65,7 @@ class ChannelConfig:
     content_mix: Dict[str, int] = field(
         default_factory=lambda: {"story": 30, "analysis": 40, "interactive": 30}
     )
+    min_cluster_chars: int = 0  # 0 = взять глобальное значение из settings
     night_max_chars: int = 900
     night_window: str = "23:00-07:00"
     # Пиковые окна по локальному времени (статистика активности Telegram).
@@ -102,6 +103,7 @@ class ChannelConfig:
             except (TypeError, ValueError):
                 continue
         self.content_mix = mix or {"story": 30, "analysis": 40, "interactive": 30}
+        self.min_cluster_chars = max(0, int(self.min_cluster_chars))
         self.night_max_chars = max(300, int(self.night_max_chars))
         self.night_window = str(self.night_window or "23:00-07:00").strip()
         self.peak_windows = [str(value).strip() for value in (self.peak_windows or []) if str(value).strip()]
