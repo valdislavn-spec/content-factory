@@ -1,0 +1,67 @@
+name: set-channel-photos
+
+# Ручная установка аватаров (лого) для каналов из assets/logos/*.png
+# через Bot API setChatPhoto. Запуск: Actions → set-channel-photos → Run workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  set-photos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload channel logos
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          base = (os.environ.get("TELEGRAM_API_BASE") or "https://api.telegram.org").rstrip("/")
+          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          mapping = {
+              "ai-news": "-1004351191643",
+              "sport-news": "-1003802742871",
+              "crypto-news": "-1003891468537",
+              "tech-ai-es": "-1004355563628",
+              "crypto-es": "-1004304574421",
+              "futbol-es": "-1004391544104",
+          }
+          failures = []
+          for channel, chat_id in mapping.items():
+              path = f"assets/logos/{channel}.png"
+              if not os.path.exists(path):
+                  print(f"{channel}: нет файла {path}")
+                  failures.append(channel)
+                  continue
+              result = subprocess.run(
+                  [
+                      "curl", "-sS", "--max-time", "60", "-X", "POST",
+                      f"{base}/bot{token}/setChatPhoto",
+                      "-F", f"chat_id={chat_id}",
+                      "-F", f"photo=@{path};type=image/png",
+                  ],
+                  capture_output=True,
+                  text=True,
+              )
+              raw = (result.stdout or "").strip()
+              try:
+                  ok = bool(json.loads(raw).get("ok"))
+              except Exception:  # noqa: BLE001
+                  ok = False
+              print(f"{channel}: {'OK' if ok else 'FAIL'} {raw[:160]}")
+              if not ok:
+                  failures.append(channel)
+          if failures:
+              print("Не удалось:", ", ".join(failures))
+              sys.exit(1)
+          print("Все аватары установлены.")
+          PY
