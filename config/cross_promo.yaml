@@ -1,0 +1,42 @@
+# Нативные кросс-промо-посты в каналах сети (публикует workflow cross-promo.yml).
+# Ротация детерминированная: день UTC → запись, вариант текста чередуется.
+entries:
+  - source: crypto-news
+    enabled: true
+    target: ai-news
+    url: https://t.me/AINEWS0007
+    weight: 1
+    texts:
+      - |
+        AI is starting to move real money: agents trading, chip deals, inference costs and regulation. We cover that side of the story daily in <b>AI News</b> — no fluff, just what moves the market.
+        → https://t.me/AINEWS0007
+      - |
+        The AI and crypto markets are converging: new models, compute deals, policy and money flows. If you want the AI side of the story, our sister channel covers it daily:
+        → https://t.me/AINEWS0007
+  - source: ai-news
+    enabled: false
+    target: crypto-news
+    url: https://t.me/HOOPY0007
+    weight: 1
+    texts:
+      - |
+        AI is not the only market moving fast — crypto reacts to every model release and chip deal. We track those moves daily in <b>Crypto &amp; Blockchain</b>:
+        → https://t.me/HOOPY0007
+  - source: tech-ai-es
+    enabled: false
+    target: crypto-es
+    url: https://t.me/TechnologiesNews01
+    weight: 1
+    texts:
+      - |
+        La IA y las criptomonedas avanzan juntas: modelos nuevos, costos de cómputo y regulación. Si quieres la parte cripto en español, nuestro canal hermano la cubre a diario:
+        → https://t.me/TechnologiesNews01
+  - source: crypto-es
+    enabled: false
+    target: tech-ai-es
+    url: https://t.me/WORLDNews0007
+    weight: 1
+    texts:
+      - |
+        Las criptomonedas se mueven al ritmo de la IA: modelos, chips, energía y regulación. La parte de inteligencia artificial en español está en nuestro canal hermano:
+        → https://t.me/WORLDNews0007

@@ -82,7 +82,7 @@ channels:
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
-  cta: Síguenos para más tecnología en español.
+  cta: "Síguenos y comparte este post con un amigo."
   sources:
   - id: hipertextual
     type: rss
@@ -202,7 +202,7 @@ channels:
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
-  cta: ''
+  cta: "Comparte este post con un amigo, así crecemos."
   sources:
   - id: criptonoticias
     type: rss
@@ -332,7 +332,7 @@ channels:
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
-  cta: ¿Qué te pareció? Comparte tu opinión.
+  cta: "Comparte este post con un hincha."
   sources:
   - id: espn-laliga
     type: espn

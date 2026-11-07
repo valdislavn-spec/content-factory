@@ -376,7 +376,10 @@ def render_post_card(
         body = re.sub(r"\s+(?=[1-9]\.\s)", "\n", body)
     if not body:
         body = _clean_text(plain)
-    for marker in ("Источники:", "Sources:", "#"):
+    # хэштеги рисуются в подвале — убираем их из тела, чтобы не дублировались
+    body = re.sub(r"(?<!\w)#[^\s#<]+", "", body)
+    body = re.sub(r"[ \t]{2,}", " ", body).strip()
+    for marker in ("Источники:", "Sources:"):
         pos = body.find(marker)
         if pos > body_chars * 0.3:
             body = body[:pos]

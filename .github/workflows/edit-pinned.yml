@@ -1,0 +1,43 @@
+name: edit-pinned
+
+# Обновляет текст закреплённых постов (ссылки на каналы сети), не создавая новых.
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: "en или es"
+        required: true
+        default: "en"
+        type: choice
+        options: ["en", "es"]
+      dry_run:
+        description: "true = только показать"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: read
+
+jobs:
+  edit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Edit pinned post
+        run: |
+          flags=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then flags="--dry-run"; fi
+          python scripts/edit_pinned.py --language "${{ inputs.language }}" $flags
