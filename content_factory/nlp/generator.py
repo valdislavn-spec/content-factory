@@ -577,10 +577,12 @@ def _section(style: Dict[str, str], key: str) -> str:
     return f"<i>{style.get(key, key)}:</i>"
 
 
-_LEAD_EMOJIS = {
-    "ai": "🤖", "ia": "🤖", "crypto": "🪙", "cripto": "🪙",
-    "sport": "🏆", "futbol": "⚽", "fútbol": "⚽", "tech": "💡", "tecnolog": "💡",
-}
+_LEAD_EMOJI_RULES = [
+    (("crypto", "cripto", "blockchain", "bitcoin", "bitcoin", "ethereum"), "🪙"),
+    (("futbol", "fútbol", "futbol", "soccer", "la liga", "liga mx", "deporte"), "⚽"),
+    (("sport", "sports", "nfl", "nba", "mlb", "nhl", "ncaa"), "🏆"),
+    (("inteligencia artificial", "artificial intelligence", "tecnolog", "tech", "ai", "ia"), "🤖"),
+]
 _DIGEST_EMOJIS = ["📌", "📈", "📊", "🔹", "📰", "🗞"]
 
 
@@ -589,10 +591,29 @@ def _lead_emoji(channel: Any) -> str:
     key = f"{getattr(channel, 'id', '')} {getattr(channel, 'title', '')}".lower()
     topics = " ".join(getattr(channel, "topics", None) or []).lower()
     haystack = key + " " + topics
-    for needle, emoji in _LEAD_EMOJIS.items():
-        if needle in haystack:
-            return emoji
+    for needles, emoji in _LEAD_EMOJI_RULES:
+        for needle in needles:
+            if len(needle) <= 3:
+                if re.search(r"(?<![a-z0-9])" + re.escape(needle) + r"(?![a-z0-9])", haystack):
+                    return emoji
+            elif needle in haystack:
+                return emoji
     return "📰"
+
+
+def _dedupe_hashtags(tags: Sequence[str]) -> List[str]:
+    seen = set()
+    result: List[str] = []
+    for tag in tags:
+        value = str(tag).strip()
+        if not value:
+            continue
+        key = value.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(value)
+    return result
 
 
 def _prose(
@@ -1699,7 +1720,7 @@ def generate_post(
     fmt = _normalize_format(fmt, channel)
     lang = _channel_language(channel)
     sources = _extract_sources(cluster, lang)
-    hashtags = _post_hashtags(channel, analysis, lang) + _seo_tags(trends, analysis)
+    hashtags = _dedupe_hashtags(_post_hashtags(channel, analysis, lang) + _seo_tags(trends, analysis))
     style = _style(channel, lang)
     source_text = normalize_space(cluster.combined_text or " ".join([analysis.summary] + list(analysis.bullets)))
     llm_used = False
@@ -1772,7 +1793,9 @@ def generate_digest(
     lang = _channel_language(channel)
     style = _style(channel, lang)
     hashtags = _post_hashtags(channel, normalized[0][1] if normalized else None, lang)
-    hashtags = list(hashtags) + _seo_tags(trends, normalized[0][1] if normalized else Analysis())
+    hashtags = _dedupe_hashtags(
+        list(hashtags) + _seo_tags(trends, normalized[0][1] if normalized else Analysis())
+    )
 
     date_source = utcnow()
     for cluster, _analysis in normalized:
