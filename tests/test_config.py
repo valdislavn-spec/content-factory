@@ -1,4 +1,4 @@
-"""Тесты конфигурации: валидация, 6 каналов, переопределение chat_id из env."""
+"""Тесты конфигурации: валидация, EN/ES каналы, переопределение chat_id из env."""
 from __future__ import annotations
 
 import os
@@ -107,34 +107,37 @@ class ConfigTest(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_channels(Settings.load(root=self.root))
 
-    def test_real_six_channels(self) -> None:
-        """Реальный config/channels.en.yaml должен содержать 6 валидных каналов."""
+    def test_real_en_and_es_channels(self) -> None:
+        """EN и ES конфиги: по 3 валидных канала с числовыми ID и источниками."""
         project_root = Path(__file__).resolve().parents[1]
-        channels = load_channels(Settings.load(root=project_root))
-        self.assertEqual(len(channels), 6)
+        en_channels = load_channels(Settings.load(root=project_root))
         self.assertEqual(
-            {c.id for c in channels},
-            {
-                "sport-news",
-                "sports-analytics",
-                "world-news",
-                "ai-news",
-                "tech-news",
-                "crypto-news",
-            },
+            {c.id for c in en_channels},
+            {"sport-news", "ai-news", "crypto-news"},
         )
-        for channel in channels:
-            self.assertTrue(channel.topics, channel.id)
-            self.assertTrue(channel.sources, channel.id)
-            self.assertTrue(channel.schedule, channel.id)
-            for slot in channel.schedule:
-                from content_factory.utils import parse_hhmm
+        from unittest import mock
 
-                parse_hhmm(slot)
-        self.assertEqual(len({c.id for c in channels}), 6)
-        # Английские каналы работают по числовым ID, а не по @username.
-        for channel in channels:
-            self.assertTrue(channel.telegram_chat_id.startswith("-100"), channel.id)
+        with mock.patch.dict(os.environ, {"CONTENT_FACTORY_CHANNELS": "config/channels.es.yaml"}):
+            es_channels = load_channels(Settings.load(root=project_root))
+        self.assertEqual(
+            {c.id for c in es_channels},
+            {"tech-ai-es", "crypto-es", "futbol-es"},
+        )
+        for channels in (en_channels, es_channels):
+            for channel in channels:
+                self.assertTrue(channel.topics, channel.id)
+                self.assertTrue(channel.sources, channel.id)
+                self.assertTrue(channel.schedule, channel.id)
+                for slot in channel.schedule:
+                    from content_factory.utils import parse_hhmm
+
+                    parse_hhmm(slot)
+                # Каналы работают по числовым ID, а не по @username.
+                self.assertTrue(channel.telegram_chat_id.startswith("-100"), channel.id)
+        for channel in es_channels:
+            self.assertEqual(channel.language, "es", channel.id)
+        for channel in en_channels:
+            self.assertEqual(channel.language, "en", channel.id)
 
 
 class ConfigErrorCompatibilityTest(unittest.TestCase):

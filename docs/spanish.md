@@ -7,15 +7,15 @@
 
 ## 1. Что уже настроено
 
-`config/channels.es.yaml` — 3 канала, 6 постов в сутки каждый, время местное
+`config/channels.es.yaml` — 3 живых канала (ID прописаны прямо в конфиге), 6 постов в сутки каждый, время местное
 UTC−5 (Богота/Лима/Кито; в Мексике посты выйдут на час раньше, в Аргентине —
 на два позже):
 
 | id | Название | Тема | Источники |
 |---|---|---|---|
-| `tech-ai-es` | Tecnología e IA | технологии, ИИ, продукты, компании | Hipertextual, FayerWayer, ABC Tecnología, La Nación/Tecnología, El Financiero |
-| `crypto-es` | Cripto y Blockchain | Bitcoin, Ethereum, регулирование, рынки | CriptoNoticias, BeInCrypto Español, CriptoTendencia, Observatorio Blockchain |
-| `futbol-es` | Fútbol en Español | LaLiga, Liga MX, Аргентина, MLS, Champions | ESPN JSON API (lang=es, 5 лиг), Relevo, 90min, La Nación/Deportes, El Universal/Deportes, Récord |
+| `tech-ai-es` | ES AI News (-1004355563628) | ИИ, технологии, компании | Hipertextual, FayerWayer, ABC Tecnología, La Nación/Tecnología, El Financiero |
+| `crypto-es` | ES Crypto & Blockchain (-1004304574421) | Bitcoin, Ethereum, регулирование, рынки | CriptoNoticias, BeInCrypto Español, CriptoTendencia, Observatorio Blockchain |
+| `futbol-es` | ES Sports News (-1004391544104) | LaLiga, Liga MX, Аргентина, MLS, Champions | ESPN JSON API (lang=es, 5 лиг), Relevo, 90min, La Nación/Deportes, El Universal/Deportes, Récord |
 
 Источники проверены 06.11.2026. Отдельно отмечу:
 

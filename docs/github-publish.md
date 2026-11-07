@@ -12,12 +12,12 @@ workflow **`content-factory-cloud-en-es`** по слотам каналов за
 - `.github/workflows/content-factory.yml` — workflow **`content-factory-cloud-en-es`**:
   - плавающее расписание: 16 запусков/сутки со сдвигом +2…+19 минут от ровного
     часа (посты не выходят в одинаковые минуты);
-  - EN → `config/channels.en.yaml` (6 каналов, 16 слотов/сутки),
-    затем ES → `config/channels.es.yaml` (3 канала, 6 слотов/сутки);
+  - EN → `config/channels.en.yaml` (3 канала, 16 слотов/сутки = 48 постов),
+    затем ES → `config/channels.es.yaml` (3 канала, 6 слотов/сутки = 18 постов);
   - общий кэш состояния (`cf-state-*`), один concurrency, один artifact;
   - cron публикует live; **ручной запуск — dry-run по умолчанию**, live только
     при явном выборе `publish=live`;
-  - ES-тик пропускается, пока не заданы `TELEGRAM_CHAT_ID_*_ES`.
+  - ES-тик работает сразу: ID испанских каналов прописаны в `channels.es.yaml`.
 - `.github/workflows/telegram-check.yml` — ручная проверка бота и прав в
   каналах (вход `language`: `en`/`es`).
 - `.github/workflows/publish-once.yml` — ручная публикация одного поста
@@ -39,7 +39,6 @@ Settings → Secrets and variables → Actions → **Secrets** (по одном�
 | Secret | Откуда взять |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | токен @Novyi0007Bot (уже в `.env`) |
-| `TELEGRAM_CHAT_ID_TECH_AI_ES`, `TELEGRAM_CHAT_ID_CRYPTO_ES`, `TELEGRAM_CHAT_ID_FUTBOL_ES` | ID/`@username` испанских каналов (без них ES-каналы пропускаются) |
 | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` | Cloudflare Workers AI |
 | `OLLAMA_API_KEY` | Ollama Cloud (open-модели) |
 | `OPENROUTER_API_KEY`, `GROQ_API_KEY`, `SAMBANOVA_API_KEY`, `HUGGINGFACE_API_KEY`, `OPENAI_API_KEY`, `DEEPSEEK_API_KEY` | резервные LLM (на раннере доступны и заблокированные в РФ) |
@@ -61,9 +60,8 @@ Settings → Secrets and variables → Actions → **Variables**:
 ## 4. Проверка и первый пост
 
 1. Actions → **telegram-check** → Run workflow:
-   - `language = en` → бот `@Novyi0007Bot` и 6 каналов со статусом
-     `administrator`, `can_post=True`;
-   - `language = es` → 3 испанских канала (если chat_id заданы).
+   - `language = en` → бот `@Novyi0007Bot` и 3 EN-канала (`administrator`, `can_post=True`);
+   - `language = es` → 3 испанских канала с теми же правами.
 2. Actions → **publish-once** → Run workflow:
    `channel = ai-news`, `language = en`, **`dry_run = true`** (по умолчанию) —
    безопасная проверка. Для реальной публикации осознанно выберите `false`.
