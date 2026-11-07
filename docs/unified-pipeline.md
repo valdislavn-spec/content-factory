@@ -186,6 +186,11 @@ export CONTENT_FACTORY_BRAIN=off        # или post_generator: internal
 В CI это автоматически даёт vendor + `sys.executable`, локально — dev-копию с
 venv. Остановить мост: `CONTENT_FACTORY_BRAIN=off`.
 
+Проверено в GitHub Actions (run 42422281901): шаги «Install brain engine» и
+«Brain smoke test» — success, EN/ES тики прошли, трейс смоука виден в
+LangSmith в проекте `content-factory-actions`. Если что-то из этого падает,
+job остаётся зелёным, а посты генерируются internal-путём.
+
 Проверка и превью:
 
 ```bash

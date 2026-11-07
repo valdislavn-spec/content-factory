@@ -628,13 +628,18 @@ def cmd_daily(args: argparse.Namespace) -> int:
 def cmd_brain(args: argparse.Namespace) -> int:
     unified = load_unified(Path(args.config) if args.config else None)
     brain = unified.get("brain") or {}
-    brain_dir = (ROOT / str(brain.get("path") or "../mcp-content-factory")).resolve()
-    python_path = brain_dir / str(brain.get("python") or ".venv/bin/python")
-    if not python_path.is_file():
+    from content_factory.integrations.brain_posts import (
+        _resolve_brain_dir,
+        _resolve_python,
+    )
+
+    brain_dir = _resolve_brain_dir(
+        ROOT, str(brain.get("path") or "../mcp-content-factory")
+    )
+    python_path = _resolve_python(ROOT, str(brain.get("python") or ""))
+    if not brain_dir.is_dir():
         print(
-            "Мозг не настроен: нет {}. Установите окружение mcp-content-factory.".format(
-                python_path
-            ),
+            "Мозг не настроен: нет {} (и vendor/mcp-content-factory).".format(brain_dir),
             file=sys.stderr,
         )
         return 1
