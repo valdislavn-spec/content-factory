@@ -196,6 +196,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     reports_dir.mkdir(parents=True, exist_ok=True)
     report_path = reports_dir / "growth-{}.md".format(now.strftime("%Y-%m-%d"))
     report_path.write_text(markdown, encoding="utf-8")
+    raw_path = _write_raw_posts(reports_dir, now, channels, previews, usernames, subscribers)
+    print("Raw: %s" % raw_path, file=sys.stderr)
     if not args.quiet:
         print(markdown)
     print("Отчёт: %s" % report_path, file=sys.stderr)
@@ -216,6 +218,51 @@ def _chat_ids(channels: Sequence[ChannelConfig], usernames: Dict[str, str]) -> D
         if username and chat_id and not chat_id.startswith("@"):
             result[chat_id] = username
     return result
+
+
+def _write_raw_posts(
+    reports_dir: Path,
+    now: datetime,
+    channels: Sequence[ChannelConfig],
+    previews: Dict[str, Any],
+    usernames: Dict[str, str],
+    subscribers: Dict[str, int],
+) -> Path:
+    """Сырой снимок постов каналов для анализа контента.
+
+    В отличие от Markdown-отчёта хранит КАЖДЫЙ пост превью (просмотры,
+    реакции, дату, начало текста), чтобы можно было сопоставлять форматы,
+    время публикации и темы с отдачей. Файл попадает в артефакт Actions
+    вместе с остальными отчётами.
+    """
+    payload: Dict[str, Any] = {"generated_at": now.isoformat(), "channels": []}
+    for channel in channels:
+        preview = previews.get(channel.id)
+        posts: List[Dict[str, Any]] = []
+        if preview is not None:
+            for post in preview.posts:
+                posts.append(
+                    {
+                        "message_id": post.message_id,
+                        "url": post.post_url,
+                        "published_at": post.published_at,
+                        "views": post.views,
+                        "reactions": post.reactions,
+                        "text": (post.text or "")[:600],
+                        "sponsored": post.is_sponsored,
+                    }
+                )
+        payload["channels"].append(
+            {
+                "id": channel.id,
+                "username": usernames.get(channel.id, ""),
+                "subscribers": subscribers.get(channel.id),
+                "posts": posts,
+            }
+        )
+    path = reports_dir / "growth-raw-{}.json".format(now.strftime("%Y-%m-%d"))
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+    return path
 
 
 def _send_telegram(text: str) -> int:
