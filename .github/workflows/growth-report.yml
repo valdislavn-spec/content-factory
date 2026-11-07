@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   growth:
@@ -52,3 +52,20 @@ jobs:
             data/reports/growth-*.md
             data/reports/growth-raw-*.json
           if-no-files-found: ignore
+
+      # Отчёты коммитятся в ветку growth-reports: локально их забирает
+      # scripts/sync_growth.py, без скачивания артефактов из UI.
+      - name: Publish reports to growth-reports branch
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin growth-reports || true
+          git checkout -B growth-reports origin/growth-reports 2>/dev/null || git checkout --orphan growth-reports
+          git rm -rf . --quiet 2>/dev/null || true
+          mkdir -p reports
+          cp data/reports/growth-*.md reports/ 2>/dev/null || true
+          cp data/reports/growth-raw-*.json reports/ 2>/dev/null || true
+          git add reports
+          git commit -m "growth reports $(date -u +%F)" || echo "no changes"
+          git push origin HEAD:growth-reports

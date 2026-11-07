@@ -228,6 +228,16 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(snapshot["totals"]["subscribers"], 3666)
         self.assertEqual(snapshot["totals"]["posts_24h"], 0)  # посты старше окна
 
+    def test_reactions_suspicion_flagged(self) -> None:
+        channel = make_channel()
+        preview = parse_preview(self.html, username="HOOPY0007")
+        snapshot = build_snapshot([channel], {channel.id: preview}, now=NOW)
+        row = snapshot["channels"][0]
+        self.assertTrue(row["reactions_suspicious"])
+        self.assertEqual(row["reactions_single_emoji_share"], 1.0)
+        self.assertIn("накрутку", " ".join(snapshot["notes"]))
+        self.assertIn("⚠", format_markdown(snapshot))
+
     def test_delta_against_previous_snapshot(self) -> None:
         channel = make_channel()
         preview = parse_preview(self.html, username="HOOPY0007")

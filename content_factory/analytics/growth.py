@@ -145,6 +145,8 @@ def _channel_row(
         "max_views": None,
         "reactions_per_post": None,
         "engagement_rate": None,
+        "reactions_suspicious": False,
+        "reactions_single_emoji_share": None,
         "views_per_subscriber": None,
         "last_post_at": None,
         "top_post": None,
@@ -188,6 +190,20 @@ def _channel_row(
         row["_sample"] = len(sample)
         if total_views:
             row["engagement_rate"] = round(total_reactions / total_views, 4)
+        # Аудит реакций: покупные реакции дают ровный «пакет» одной эмодзи
+        # на каждом посте (обычно 50–500 штук), поэтому доля таких постов
+        # и завышенный ER — признак накрутки.
+        single_emoji = 0
+        for post, _moment in sample:
+            detail = {e: c for e, c in (post.reactions_detail or {}).items() if c}
+            if len(detail) == 1 and post.reactions >= 20:
+                single_emoji += 1
+        if sample:
+            share = single_emoji / len(sample)
+            row["reactions_single_emoji_share"] = round(share, 3)
+            row["reactions_suspicious"] = bool(
+                share >= 0.8 and total_views and (total_reactions / total_views) >= 0.2
+            )
         if preview.subscribers:
             row["views_per_subscriber"] = round(avg_views / preview.subscribers, 4)
         row["last_post_at"] = sample[-1][1].isoformat()
@@ -286,6 +302,12 @@ def build_snapshot(
             "нет превью (просмотры/ER): "
             + ", ".join(row["id"] for row in unavailable)
         )
+    suspicious = [row for row in rows if row.get("reactions_suspicious")]
+    if suspicious:
+        snapshot["notes"].append(
+            "реакции похожи на накрутку (все реакции одной эмодзи на ≥80% постов): "
+            + ", ".join(row["id"] for row in suspicious)
+        )
     return snapshot
 
 
@@ -316,6 +338,14 @@ def _percent(value: Optional[float]) -> str:
     return "{:.0f}%".format(value * 100)
 
 
+def _suspicious_suffix(snapshot: Dict[str, Any]) -> str:
+    """Пометка «реакции под вопросом», если в снимке есть накрутка."""
+    rows = snapshot.get("channels") or []
+    if any(row.get("reactions_suspicious") for row in rows):
+        return " ⚠ (похоже на накрутку — не для медиакита)"
+    return ""
+
+
 def _channel_handle(row: Dict[str, Any], snapshot: Dict[str, Any]) -> str:
     """@username канала: из превью или из резолва Bot API (snapshot["usernames"])."""
     username = row.get("username") or (snapshot.get("usernames") or {}).get(row["id"], "")
@@ -333,11 +363,12 @@ def format_telegram(snapshot: Dict[str, Any], *, max_chars: int = 3900) -> str:
     totals = snapshot.get("totals") or {}
     lines: List[str] = [
         "📊 Рост каналов · {}".format(snapshot.get("generated_at_utc", "")),
-        "Всего: {} подп.{} · {} постов/24ч · ER {}".format(
+        "Всего: {} подп.{} · {} постов/24ч · ER {}{}".format(
             _num(totals.get("subscribers")),
             _signed(totals.get("subscribers_delta")),
             _num(totals.get("posts_24h")),
             _percent(totals.get("engagement_rate")),
+            _suspicious_suffix(snapshot),
         ),
     ]
     for row in snapshot.get("channels") or []:
@@ -354,9 +385,10 @@ def format_telegram(snapshot: Dict[str, Any], *, max_chars: int = 3900) -> str:
             else:
                 lines.append(head + " · нет данных")
             continue
-        detail = "  просм ~{}/пост · ER {} · {} постов/24ч".format(
+        detail = "  просм ~{}/пост · ER {}{} · {} постов/24ч".format(
             _num(row.get("avg_views")),
             _percent(row.get("engagement_rate")),
+            " ⚠" if row.get("reactions_suspicious") else "",
             _num(row.get("posts_24h")),
         )
         lines.append(head + "\n" + detail)
@@ -378,7 +410,9 @@ def format_markdown(snapshot: Dict[str, Any]) -> str:
         ),
         "- Постов за 24 часа: **{}**".format(_num(totals.get("posts_24h"))),
         "- Средние просмотры на пост: **{}**".format(_num(totals.get("avg_views"))),
-        "- ER (реакции/просмотры): **{}**".format(_percent(totals.get("engagement_rate"))),
+        "- ER (реакции/просмотры): **{}**{}".format(
+            _percent(totals.get("engagement_rate")), _suspicious_suffix(snapshot)
+        ),
         "",
         "| Канал | @ | Подписчики | Δ сутки | Просм/пост | ER | Постов/24ч |",
         "|---|---|---|---|---|---|---|",
@@ -391,7 +425,8 @@ def format_markdown(snapshot: Dict[str, Any]) -> str:
                 _num(row.get("subscribers")),
                 _signed(row.get("subscribers_delta")).strip() or "—",
                 _num(row.get("avg_views")),
-                _percent(row.get("engagement_rate")),
+                _percent(row.get("engagement_rate"))
+                + (" ⚠" if row.get("reactions_suspicious") else ""),
                 _num(row.get("posts_24h")),
             )
         )

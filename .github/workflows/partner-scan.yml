@@ -1,0 +1,58 @@
+name: partner-scan
+
+# Подбор каналов-партнёров для ВП: читает список @username и снимает публичное
+# превью t.me/s (просмотры, реакции, живость). t.me доступен с раннеров GitHub,
+# поэтому скан живёт здесь. Ничего не публикует — только читает.
+
+on:
+  workflow_dispatch:
+    inputs:
+      users:
+        description: "Каналы через запятую (пусто = docs/promo/partner-candidates.txt)"
+        required: false
+        default: ""
+      min_views:
+        description: "Минимальные средние просмотры/пост"
+        required: false
+        default: "100"
+      max_views:
+        description: "Максимальные средние просмотры/пост"
+        required: false
+        default: "800"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Scan partner candidates
+        env:
+          USERS_INPUT: ${{ inputs.users }}
+          MIN_VIEWS: ${{ inputs.min_views }}
+          MAX_VIEWS: ${{ inputs.max_views }}
+        run: |
+          ARGS="--min-views $MIN_VIEWS --max-views $MAX_VIEWS"
+          if [ -n "$USERS_INPUT" ]; then
+            ARGS="$ARGS --users $USERS_INPUT"
+          else
+            ARGS="$ARGS --file docs/promo/partner-candidates.txt"
+          fi
+          python scripts/partner_scan.py $ARGS
+      - name: Upload scan artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partner-scan
+          path: data/reports/partner-scan-*
+          if-no-files-found: ignore
