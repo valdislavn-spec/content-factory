@@ -48,5 +48,7 @@ jobs:
         if: always()
         with:
           name: growth-report
-          path: data/reports/growth-*.md
+          path: |
+            data/reports/growth-*.md
+            data/reports/growth-raw-*.json
           if-no-files-found: ignore
