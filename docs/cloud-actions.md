@@ -6,17 +6,18 @@
 Ваш ПК при этом выключен.
 
 ```
-GitHub Actions (cron в слоты каналов, матрица EN+ES)
+GitHub Actions (cron в слоты каналов: EN, затем ES — один джоб)
   → checkout проекта
-  → restore SQLite + schedule_state из кэша (свой на каждый язык)
-  → python -m content_factory daemon --once
+  → restore SQLite + schedule_state из кэша (общий)
+  → python -m content_factory daemon --once   (EN)
+  → python -m content_factory daemon --once   (ES, если заданы chat_id)
   → публикация в Telegram
   → save state в кэш + artifact с outbox/логами
 ```
 
 Готовый workflow: [`.github/workflows/content-factory.yml`](../.github/workflows/content-factory.yml) —
-workflow **`content-factory-cloud-en-es`**, матрица `lang = [en, es]`
-(EN — `channels.en.yaml`, ES — `channels.es.yaml`).
+workflow **`content-factory-cloud-en-es`**: EN (`channels.en.yaml`), затем ES
+(`channels.es.yaml`), одним джобом (вдвое меньше минут Actions).
 
 ## 1. Что это даёт и чего не даёт
 
@@ -126,26 +127,27 @@ Chat_id не секретны; токен — секрет.
 - `CONTENT_FACTORY_DRY_RUN` — **по умолчанию workflow публикует по-настоящему**;
   поставьте `true`, чтобы включить безопасный dry-run (посты только в
   artifacts).
-- `CONTENT_FACTORY_CHANNELS` больше не нужна: набор каналов задаёт матрица
-  workflow (`en`/`es`). Для русских каналов добавьте `ru` в матрицу и
-  `TELEGRAM_CHAT_ID_*`.
+- `CONTENT_FACTORY_CHANNELS` больше не нужна: EN и ES задаются шагами workflow.
+  Для русских каналов добавьте отдельный шаг с
+  `CONTENT_FACTORY_CHANNELS=config/channels.yaml` и `TELEGRAM_CHAT_ID_*`.
 
 ### Шаг 4. Первый запуск и проверка
 
-1. Actions → `content-factory-cloud-en-es` → **Run workflow**: запустятся
-   два джоба — `en` и `es`.
-2. Дождитесь окончания (1–3 минуты на язык).
-3. Откройте лог: шаг `Show channels and mode` покажет каналы и режим
-   (`DRY-RUN` / публикация), шаг `Show LLM chain` — какие провайдеры живы.
-4. Скачайте артефакт `content-factory-<lang>-<номер>`: там `data/outbox`,
+1. Actions → `content-factory-cloud-en-es` → **Run workflow**: по умолчанию
+   ручной запуск идёт в **dry-run** (безопасно); live — только при явном
+   выборе `publish = live`.
+2. Дождитесь окончания (2–5 минут на оба языка).
+3. Откройте лог: шаги `Show EN channels` / `ES tick` покажут каналы и режим
+   (`DRY-RUN` / публикация), `Show LLM chain` — какие провайдеры живы.
+4. Скачайте артефакт `content-factory-<номер>`: там `data/outbox`,
    `data/reports`, `data/logs`.
 
 Первый запуск может «догнать» последний слот за 24 часа — по одному на канал.
-Перед боевым запуском можно поставить `CONTENT_FACTORY_DRY_RUN=true`.
+Перед боевым прогоном cron можно поставить Variable `CONTENT_FACTORY_DRY_RUN=true`.
 
 ### Шаг 5. Публикация
 
-Workflow публикует по-настоящему по умолчанию. Чтобы проверить безопасно —
+Cron публикует по-настоящему по умолчанию. Чтобы проверить безопасно —
 Variable `CONTENT_FACTORY_DRY_RUN=true`; для боевого режима уберите её или
 поставьте `false`. Дальше cron работает сам.
 

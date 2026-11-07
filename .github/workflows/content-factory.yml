@@ -1,19 +1,30 @@
 name: content-factory-cloud-en-es
 
-# Контент-завод в облаке для ДВУХ языковых наборов сразу:
+# Контент-завод в облаке для ДВУХ языковых наборов в ОДНОМ джобе:
 #   en — 6 английских каналов (config/channels.en.yaml), 16 слотов/сутки;
 #   es — 3 испанских канала (config/channels.es.yaml), 6 слотов/сутки.
-# Матрица lang = [en, es]: один cron, два независимых джоба со своими
-# кэшами состояния, артефактами и concurrency-группами.
-# Публикация включена; безопасный режим — переменная CONTENT_FACTORY_DRY_RUN=true.
+#
+# Почему один job, а не матрица из двух: вдвое меньше минут GitHub Actions
+# (приватный репозиторий = лимит 2000 мин/мес), меньше шансов упереться
+# в лимит и внезапно остановить публикации. Состояние (SQLite, слоты, кэш
+# LLM) общее: id каналов en/es не пересекаются.
+#
+# Риски и защита:
+#   • cron публикует по слотам (live по умолчанию);
+#   • ручной запуск (workflow_dispatch) по умолчанию dry-run — live только
+#     при явном выборе publish=live;
+#   • ES-тик пропускается, пока не заданы chat_id испанских каналов;
+#   • чтобы прогнать cron в dry-run, поставьте Variable
+#     CONTENT_FACTORY_DRY_RUN=true (потом снимите) — удобно для первого
+#     прогона в облаке;
+#   • concurrency: один запуск за раз, без наложений.
 
 on:
   schedule:
     # Плавающее расписание: каждый слот сдвинут на +2..+19 минут от ровного
     # времени (не 00:00/01:30, а 00:08/01:47 и т.д.), плюс GitHub добавляет
     # естественную задержку 5–15 минут — посты не выходят в одинаковые минуты.
-    # EN: 16 слотов/сутки; ES: 6 слотов/сутки (00:00,03:00,06:00,09:00,12:00,
-    # 15:00,18:00,21:00 UTC) — попадают в эти же запуски.
+    # EN: 16 слотов/сутки; ES: 6 слотов/сутки — попадают в эти же запуски.
     - cron: "8 0 * * *"
     - cron: "47 1 * * *"
     - cron: "14 3 * * *"
@@ -31,6 +42,15 @@ on:
     - cron: "9 21 * * *"
     - cron: "33 22 * * *"
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Режим ручного запуска"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - "dry-run"   # безопасно: посты только в outbox/artifacts
+          - "live"      # реальная публикация
 
 permissions:
   contents: read
@@ -38,31 +58,24 @@ permissions:
 jobs:
   tick:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        lang: [en, es]
+    timeout-minutes: 20
     concurrency:
-      group: content-factory-cloud-${{ matrix.lang }}
+      group: content-factory-cloud
       cancel-in-progress: false
 
     env:
       TZ: Europe/Moscow
-      # true = безопасный dry-run (только outbox/артефакты).
-      # Не задано / пусто → реальная публикация.
-      CONTENT_FACTORY_DRY_RUN: ${{ vars.CONTENT_FACTORY_DRY_RUN || 'false' }}
-      # Набор каналов задаёт матрица: en → channels.en.yaml, es → channels.es.yaml.
-      CONTENT_FACTORY_CHANNELS: config/channels.${{ matrix.lang }}.yaml
+      # cron → live (если не задана Variable CONTENT_FACTORY_DRY_RUN=true).
+      # ручной запуск → dry-run, кроме явного publish=live.
+      CONTENT_FACTORY_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish != 'live') || vars.CONTENT_FACTORY_DRY_RUN || 'false' }}
 
       # --- Публикация в Telegram / ВКонтакте ----------------------------
-      # Секреты репозитория: Settings → Secrets and variables → Actions.
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      # ES-каналы: chat_id подставляются из секретов; пустые = канал пропускается.
+      # ES-каналы: chat_id из секретов; пустые = весь ES-тик пропускается.
       TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
       TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
       TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
-      # RU-каналы (на случай добавления ru в матрицу).
+      # RU-каналы (на случай добавления ru-тика ниже).
       TELEGRAM_CHAT_ID_TECH_AI: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI }}
       TELEGRAM_CHAT_ID_BUSINESS_FINANCE: ${{ secrets.TELEGRAM_CHAT_ID_BUSINESS_FINANCE }}
       TELEGRAM_CHAT_ID_SCIENCE_HEALTH: ${{ secrets.TELEGRAM_CHAT_ID_SCIENCE_HEALTH }}
@@ -80,9 +93,8 @@ jobs:
       TG_SESSION: ${{ secrets.TG_SESSION }}
 
       # --- LLM-провайдеры ------------------------------------------------
-      # Основной — Cloudflare Workers AI (free-план: 10 000 neurons/день).
-      # На раннерах GitHub Actions доступны и OpenAI/Groq/OpenRouter, которые
-      # из РФ заблокированы по гео.
+      # Основной — Ollama Cloud (open-модели), резерв — Cloudflare Workers AI
+      # (free 10 000 neurons/день) и локальные/российские провайдеры.
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -136,8 +148,7 @@ jobs:
       - name: Prepare data directory
         run: mkdir -p data
 
-      # SQLite, состояние расписания и LLM-кэш/бюджеты переживают запуски
-      # через кэш GitHub. Ключ свой на каждый язык и запуск.
+      # SQLite, состояние слотов и LLM-кэш переживают запуски через кэш GitHub.
       - name: Restore SQLite, scheduler and LLM state
         uses: actions/cache@v4
         with:
@@ -148,14 +159,14 @@ jobs:
             data/llm_tokens.json
             data/llm_usage.json
             data/source_*_usage.json
-          key: cf-state-${{ matrix.lang }}-${{ github.run_id }}
+          key: cf-state-${{ github.run_id }}
           restore-keys: |
-            cf-state-${{ matrix.lang }}-
+            cf-state-
 
       - name: Init project (idempotent)
         run: python -m content_factory init
 
-      - name: Show channels and mode
+      - name: Show EN channels
         run: python -m content_factory channels
 
       # Показывает, какие LLM-провайдеры увидели ключи (без вызовов API).
@@ -168,14 +179,27 @@ jobs:
           print(get_llm(Settings.load()).describe())
           PY
 
-      - name: Scheduler tick
+      - name: EN tick (config/channels.en.yaml)
         run: python -m content_factory daemon --once
+
+      # ES-тик: пропускается, пока не заданы chat_id испанских каналов.
+      - name: ES tick (config/channels.es.yaml)
+        if: always()
+        env:
+          CONTENT_FACTORY_CHANNELS: config/channels.es.yaml
+        run: |
+          if [ -z "${TELEGRAM_CHAT_ID_TECH_AI_ES}${TELEGRAM_CHAT_ID_CRYPTO_ES}${TELEGRAM_CHAT_ID_FUTBOL_ES}" ]; then
+            echo "ES chat_id не заданы — испанские каналы пропущены (Secrets TELEGRAM_CHAT_ID_*_ES)"
+            exit 0
+          fi
+          python -m content_factory channels
+          python -m content_factory daemon --once
 
       - name: Upload outbox, reports and logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: content-factory-${{ matrix.lang }}-${{ github.run_number }}
+          name: content-factory-${{ github.run_number }}
           path: |
             data/outbox
             data/reports

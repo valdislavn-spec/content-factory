@@ -1,8 +1,9 @@
 name: publish-once
 
 # Ручная публикация одного поста в выбранный канал (без ожидания слота).
-# Запуск: Actions → publish-once → Run workflow → указать channel.
-# dry_run=false принудительно: пост уйдёт в Telegram.
+# Запуск: Actions → publish-once → Run workflow.
+# По умолчанию dry_run=true (безопасно): чтобы реально опубликовать,
+# выберите dry_run=false осознанно.
 on:
   workflow_dispatch:
     inputs:
@@ -17,11 +18,11 @@ on:
         type: choice
         options: ["en", "es"]
       dry_run:
-        description: "true = только в outbox, false = реальная публикация"
+        description: "true = только в outbox (безопасно), false = реальная публикация"
         required: true
-        default: "false"
+        default: "true"
         type: choice
-        options: ["false", "true"]
+        options: ["true", "false"]
 
 permissions:
   contents: read
