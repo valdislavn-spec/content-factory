@@ -1,0 +1,39 @@
+name: apply-profile
+
+# Ручное применение названий и описаний каналов из config/channels.en.yaml.
+# Запуск: Actions → apply-profile → Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true = только показать, false = применить в Telegram"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: read
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Apply channel profile
+        run: |
+          python -m content_factory channels
+          flags=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then flags="--dry-run"; fi
+          python scripts/telegram_apply_profile.py $flags
