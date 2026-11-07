@@ -523,3 +523,72 @@ llm:
 Отключить отдельные механизмы можно флагами `llm.optimize.*`, `llm.cache: false`
 или `llm.cache_ttl_hours: 0`. Комбинированный анализ при «строптивой» модели
 сам откатывается на два отдельных запроса — качество не падает.
+
+## 8. Автопереключение при лимитах и гибрид по этапам
+
+Завод больше не упирается в лимит одного провайдера: у каждого свой суточный
+счётчик, а исчерпание автоматически переключает на следующего — вплоть до
+платного DeepSeek. Когда кончаются все — остаётся бесплатный `extractive`,
+посты продолжают выходить.
+
+### Как это работает
+
+- **Лимиты по провайдерам** (`llm.provider_limits`) — счётчики
+  `data/llm_usage_<провайдер>.json`, сброс в 00:00 UTC. Исчерпали лимит →
+  провайдер помечается недоступным, `FallbackLLMClient` берёт следующего.
+- **Ошибки провайдера** (429/403/таймаут/пустой ответ) тоже помечают его
+  недоступным до конца процесса — следующий вызов идёт к другому провайдеру,
+  а не долбит исчерпанный.
+- **Гибрид по этапам** (`llm.stage_routes`): анализ (резюме/тезисы) — на
+  бесплатных моделях, генерация (заголовок/пост) — на качественном
+  `deepseek-chat`. У каждого этапа своя fallback-цепочка.
+- **Страховки:** `daily_token_limit: 700000` — общий суточный потолок токенов
+  (после него extractive, чтобы платный API не разорил); `daily_request_limit`
+  (общий жёсткий стоп на все запросы) по умолчанию `0` — выключен.
+
+```yaml
+llm:
+  daily_request_limit: 0          # жёсткий стоп на всё, 0 = выкл
+  daily_token_limit: 700000       # страховка от перерасхода платных API
+  provider_limits:
+    cloudflare: 150               # free ≈10 000 neurons/день
+    cohere: 30                    # trial 1 000 запросов/мес
+    ollama_cloud: 250             # кредиты Ollama Cloud
+    deepseek_chat: 120            # платная генерация + запас
+    gigachat: 60
+    yandexgpt: 60
+    dify: 20
+    openrouter: 50
+  stage_routes:
+    analysis:
+      provider: cloudflare
+      fallback: [cohere, ollama_cloud, deepseek_chat, deepseek]
+    generation:
+      provider: deepseek_chat
+      fallback: [ollama_cloud, cloudflare, cohere, deepseek]
+```
+
+### Порядок и стоимость
+
+Типовой день (90 постов): анализ (~180 вызовов) уходит в бесплатные
+Cloudflare → Cohere → Ollama Cloud; генерация (90 вызовов) идёт в
+`deepseek-chat` — это порядка 100–200 тыс. токенов в сутки, то есть примерно
+**$1–3 в месяц** по текущим ценам DeepSeek (цены меняются, проверяйте
+[api-docs.deepseek.com](https://api-docs.deepseek.com/quick_start/pricing)).
+Если дневной лимит DeepSeek исчерпан или API упал — работа продолжается на
+Ollama Cloud/Cloudflare, затем на `extractive`.
+
+### Как проверить
+
+```bash
+# общая цепочка (llm.provider + llm.fallback)
+./.venv/bin/python -m content_factory llm-test
+# маршрут этапа: анализ (дешёвый) и генерация (DeepSeek)
+./.venv/bin/python -m content_factory llm-test --stage analysis
+./.venv/bin/python -m content_factory llm-test --stage generation
+```
+
+В логах канала видно выбранные клиенты:
+`Сюжетов: N; LLM анализ: cloudflare (доступна), генерация: deepseek_chat (доступна)`.
+Счётчики лимитов кэшируются в GitHub Actions (`data/llm_usage_*.json`), поэтому
+переживают перезапуски и не сбрасываются каждые 15 минут.

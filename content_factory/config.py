@@ -342,6 +342,36 @@ def _validate_settings(settings: Dict[str, Any]) -> None:
         raise ConfigError(
             f"llm.provider={provider!r} неизвестен. Допустимо: {', '.join(sorted(allowed))}"
         )
+    stage_routes = llm_section.get("stage_routes") or {}
+    if not isinstance(stage_routes, dict):
+        raise ConfigError("llm.stage_routes должен быть объектом")
+    for stage_name, route in stage_routes.items():
+        if not isinstance(route, dict):
+            raise ConfigError(f"llm.stage_routes.{stage_name} должен быть объектом")
+        names = [route.get("provider")] + list(route.get("fallback") or [])
+        for name in names:
+            value = str(name or "").strip().lower()
+            if value and value not in allowed:
+                raise ConfigError(
+                    "llm.stage_routes.{}: неизвестный провайдер {!r}. Допустимо: {}".format(
+                        stage_name, name, ", ".join(sorted(allowed))
+                    )
+                )
+    provider_limits = llm_section.get("provider_limits") or {}
+    if not isinstance(provider_limits, dict):
+        raise ConfigError("llm.provider_limits должен быть объектом")
+    for name, value in provider_limits.items():
+        raw = value.get("daily_request_limit") if isinstance(value, dict) else value
+        try:
+            number = int(raw or 0)
+        except (TypeError, ValueError):
+            raise ConfigError(
+                "llm.provider_limits.{}: ожидается целое число запросов".format(name)
+            )
+        if number < 0:
+            raise ConfigError(
+                "llm.provider_limits.{}: лимит не может быть отрицательным".format(name)
+            )
     dify_mode = settings.get("llm", {}).get("dify", {}).get("app_mode", "chat")
     if dify_mode not in ("chat", "completion"):
         raise ConfigError(

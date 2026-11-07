@@ -80,6 +80,27 @@ llm:
   #   Cloudflare Workers AI (10 000 neurons/день), затем на локальную Ollama.
   provider: ollama_cloud
   fallback: [cloudflare, ollama, gigachat, yandexgpt, dify, cohere, openrouter, sambanova, huggingface, openai, deepseek]
+  # Суточные лимиты по провайдерам: после исчерпания провайдер помечается
+  # недоступным, и цепочка автоматически переходит к следующему (вплоть до
+  # платного DeepSeek). Счётчики: data/llm_usage_<провайдер>.json, сброс в 00:00 UTC.
+  provider_limits:
+    cloudflare: 100     # free ≈10 000 neurons/день ≈ 100–150 вызовов (берём 100 с запасом)
+    cohere: 30          # trial 1 000 запросов/мес ≈ 33/день
+    ollama_cloud: 250   # кредиты Ollama Cloud — берегём
+    deepseek_chat: 120  # платная генерация: ~90 постов/сутки + запас на ретраи
+    gigachat: 60
+    yandexgpt: 60
+    dify: 20
+    openrouter: 50      # free-лимит OpenRouter (~50/день)
+  # Гибрид по этапам: анализ — бесплатные/дешёвые модели, генерация — DeepSeek
+  # (deepseek-chat, без reasoning). У каждого этапа своя fallback-цепочка.
+  stage_routes:
+    analysis:
+      provider: cloudflare
+      fallback: [cohere, ollama_cloud, deepseek_chat, deepseek]
+    generation:
+      provider: deepseek_chat
+      fallback: [ollama_cloud, cloudflare, cohere, deepseek]
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3
@@ -95,10 +116,11 @@ llm:
   optimize:
     combined_analysis: true
     compact_headline: true
-  # daily_token_limit: суточный лимит токенов (0 = без лимита). Полезен для
-  # платных/лимитированных API: после исчерпания завод уходит в extractive,
-  # а локальная модель не ограничивается (её токены бесплатны).
-  daily_token_limit: 0
+  # daily_token_limit: общий суточный лимит токенов (0 = без лимита) —
+  # страховка от перерасхода платных API. ≈90 постов × ~3 100 токенов = ~280k;
+  # 700k оставляет запас на анализ, ретраи и длинные статьи. После лимита
+  # завод продолжает публиковать в бесплатном extractive-режиме.
+  daily_token_limit: 700000
   providers:
     cloudflare:
       # Cloudflare Workers AI — OpenAI-совместимый endpoint аккаунта.
@@ -147,6 +169,14 @@ llm:
       base_url: https://api.deepseek.com/v1
       api_key_env: DEEPSEEK_API_KEY
       model: deepseek-flash
+    deepseek_chat:
+      # Не-рассуждающая DeepSeek для генерации постов: reasoning-модель
+      # (deepseek-flash) тратит max_tokens на «размышления» и на коротких
+      # лимитах может вернуть пустой content. deepseek-chat отвечает сразу.
+      # Ключ тот же — DEEPSEEK_API_KEY.
+      base_url: https://api.deepseek.com/v1
+      api_key_env: DEEPSEEK_API_KEY
+      model: deepseek-chat
     openai:
       # Из РФ недоступен (403 unsupported_country_region_territory).
       base_url: https://api.openai.com/v1
@@ -162,10 +192,10 @@ llm:
       api_key_env: COHERE_API_KEY
       model: command-a-03-2025
   # Бесплатные лимиты LLM (Dify Sandbox = 200 message credits).
-  # При 0 ограничения нет; после исчерпания дневного бюджета
-  # завод продолжает публиковать посты в бесплатном extractive-режиме.
-  # 144 поста × ~2 вызова = ~288 запросов/сутки; остаток уходит в extractive.
-  daily_request_limit: 300
+  # Общий жёсткий потолок запросов на все провайдеры (0 = выключен): после него
+  # завод уходит в extractive. Лимиты отдельных провайдеров — в provider_limits:
+  # они не блокируют работу, а переключают на следующего провайдера.
+  daily_request_limit: 0
   ollama:
     base_url: http://127.0.0.1:11434
     model: qwen3.5:9b

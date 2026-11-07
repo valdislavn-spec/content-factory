@@ -87,6 +87,7 @@ jobs:
       # (free 10 000 neurons/день) и локальные/российские провайдеры.
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
@@ -149,6 +150,7 @@ jobs:
             data/llm_cache.sqlite3
             data/llm_tokens.json
             data/llm_usage.json
+            data/llm_usage_*.json
             data/source_*_usage.json
           key: cf-state-${{ github.run_id }}
           restore-keys: |

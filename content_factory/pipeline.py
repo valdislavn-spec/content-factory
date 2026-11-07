@@ -507,17 +507,22 @@ def generate_posts(
     max_posts: int,
     slot: str = "",
     recap: bool = False,
+    analysis_llm: Any = None,
 ) -> Tuple[List[GeneratedPost], List[str]]:
     """Генерирует посты по лучшим сюжетам с ротацией форматов.
 
     Ночью — только короткий дайджест (night_max_chars), днём — взвешенный
     микс форматов (story/analysis/interactive). В пиковые часы в начало поста
     ставится блок трендов, а сюжеты с трендами идут первыми.
+
+    ``llm`` — клиент для генерации, ``analysis_llm`` — для анализа (этап
+    ``analysis``); если не задан, используется тот же клиент.
     """
     errors: List[str] = []
     posts: List[GeneratedPost] = []
     if not clusters:
         return posts, errors
+    analysis_llm = analysis_llm if analysis_llm is not None else llm
     # Готовые посты из Dify workflow-приложения (research + SEO внутри).
     dify_generator = build_post_generator(settings)
 
@@ -547,7 +552,7 @@ def generate_posts(
     if dify_generator is None and fmt == "digest" and (len(digest_clusters) >= 2 or (recap and digest_clusters)):
         try:
             digest_items = [
-                (cluster, analyze_cluster(cluster, settings, llm, language=channel.language))
+                (cluster, analyze_cluster(cluster, settings, analysis_llm, language=channel.language))
                 for cluster in digest_clusters[: min(5, len(digest_clusters))]
             ]
             digest = generate_digest(
@@ -608,7 +613,7 @@ def generate_posts(
                     posts.append(dify_post)
                     continue
             analysis = analyze_cluster(
-                cluster, settings, llm, language=channel.language
+                cluster, settings, analysis_llm, language=channel.language
             )
             post = generate_post(
                 cluster, analysis, channel, settings, fmt=current_fmt, llm=llm,
@@ -772,12 +777,15 @@ def run_channel(
 
         clusters = build_clusters(channel, articles, settings, now=now) if articles else []
         result.clusters = len(clusters)
-        llm = get_llm(settings)
+        analysis_llm = get_llm(settings, stage="analysis")
+        generation_llm = get_llm(settings, stage="generation")
         logger.info(
-            "Сюжетов: %d; LLM: %s (%s)",
+            "Сюжетов: %d; LLM анализ: %s (%s), генерация: %s (%s)",
             len(clusters),
-            llm.name,
-            "доступна" if llm.available else "fallback на extractive",
+            analysis_llm.name,
+            "доступна" if analysis_llm.available else "extractive",
+            generation_llm.name,
+            "доступна" if generation_llm.available else "extractive",
         )
         if clusters:
             # Не публикуем больше, чем канал планирует за день: при 3 слотах и
@@ -787,7 +795,15 @@ def run_channel(
             configured = int(settings.pipeline.get("max_posts_per_run", 2))
             limit = int(max_posts or min(configured, per_run_cap))
             posts, generate_errors = generate_posts(
-                channel, clusters, settings, storage, llm, limit, slot=slot, recap=recap_mode
+                channel,
+                clusters,
+                settings,
+                storage,
+                generation_llm,
+                limit,
+                slot=slot,
+                recap=recap_mode,
+                analysis_llm=analysis_llm,
             )
         else:
             posts, generate_errors = [], []
@@ -904,14 +920,15 @@ def preview_channel(
     if not articles:
         return [], errors
     clusters = build_clusters(channel, articles, settings, now=now)
-    llm = get_llm(settings)
+    analysis_llm = get_llm(settings, stage="analysis")
+    generation_llm = get_llm(settings, stage="generation")
     posts: List[GeneratedPost] = []
     for cluster in clusters[: max(1, limit)]:
         try:
             analysis = analyze_cluster(
-                cluster, settings, llm, language=channel.language
+                cluster, settings, analysis_llm, language=channel.language
             )
-            posts.append(generate_post(cluster, analysis, channel, settings, fmt="story", llm=llm))
+            posts.append(generate_post(cluster, analysis, channel, settings, fmt="story", llm=generation_llm))
         except Exception as exc:
             errors.append(f"{cluster.title[:60]}: {exc}")
     return posts, errors
@@ -923,7 +940,11 @@ def preview_channel(
 
 
 def demo_settings(settings: Settings) -> Settings:
-    """Отдельные каталоги демо-режима, чтобы не засорять рабочие данные."""
+    """Отдельные каталоги демо-режима, чтобы не засорять рабочие данные.
+
+    Демо обязано быть полностью офлайн: принудительно extractive и без
+    stage_routes/provider_limits, чтобы не уйти в облачные модели.
+    """
     raw = copy.deepcopy(settings.raw)
     raw.setdefault("app", {})
     raw["app"].update(
@@ -936,6 +957,13 @@ def demo_settings(settings: Settings) -> Settings:
             "dry_run": True,
         }
     )
+    llm_section = raw.setdefault("llm", {})
+    llm_section["provider"] = "extractive"
+    llm_section["fallback"] = []
+    llm_section["stage_routes"] = {}
+    llm_section["provider_limits"] = {}
+    llm_section["daily_request_limit"] = 0
+    llm_section["daily_token_limit"] = 0
     return Settings(
         root=settings.root,
         raw=raw,

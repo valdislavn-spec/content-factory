@@ -716,6 +716,7 @@ class LimitedLLMClient(LLMClient):
             temperature=temperature,
             keep_lines=keep_lines,
         )
+        self.name = self._inner.name  # после fallback имя — фактический провайдер
         self.last_usage = self._inner.last_usage
         return text
 
@@ -849,6 +850,7 @@ class CachedLLMClient(LLMClient):
             temperature=temperature,
             keep_lines=keep_lines,
         )
+        self.name = self._inner.name  # фактический провайдер после fallback
         self.last_usage = self._inner.last_usage
         if text:
             usage = self._inner.last_usage or {}
@@ -978,12 +980,94 @@ def _build_llm(provider: str, settings: Any) -> LLMClient:
     return ExtractiveLLM({"provider": "extractive"})
 
 
-def get_llm(settings: Any) -> LLMClient:
+def _stage_route(settings: Any, stage: Optional[str]) -> Optional[tuple]:
+    """Маршрут этапа из ``llm.stage_routes``: (provider, fallback) или None.
+
+    Этапы: ``analysis`` (резюме/тезисы) и ``generation`` (заголовок/пост).
+    Позволяет держать анализ на бесплатных моделях, а генерацию — на качественной
+    платной: при исчерпании лимита анализ сам уходит на следующего провайдера.
+    """
+    if settings is None or not stage:
+        return None
+    try:
+        llm_section = dict(settings.llm or {})
+    except Exception:  # pragma: no cover - нестандартные Settings
+        return None
+    routes = llm_section.get("stage_routes") or {}
+    route = routes.get(str(stage)) if isinstance(routes, dict) else None
+    if not isinstance(route, dict):
+        return None
+    provider = str(route.get("provider") or "").strip().lower()
+    fallback = [
+        str(name).strip().lower()
+        for name in (route.get("fallback") or [])
+        if str(name).strip()
+    ]
+    if not provider and not fallback:
+        return None
+    return provider, fallback
+
+
+def _provider_request_limit(settings: Any, provider: str) -> int:
+    """Суточный лимит запросов провайдера (0 = без лимита).
+
+    Читается из ``llm.provider_limits.<name>`` (число или
+    ``{daily_request_limit: N}``), затем из конфига провайдера
+    (``llm.providers.<name>`` / ``llm.<name>``).
+    """
+    try:
+        llm_section = dict(settings.llm or {}) if settings is not None else {}
+    except Exception:  # pragma: no cover - нестандартные Settings
+        llm_section = {}
+    limits = llm_section.get("provider_limits") or {}
+    value: Any = limits.get(provider) if isinstance(limits, dict) else None
+    if isinstance(value, dict):
+        value = value.get("daily_request_limit")
+    if value is None:
+        providers = llm_section.get("providers") or {}
+        config = providers.get(provider) if isinstance(providers, dict) else None
+        if not isinstance(config, dict):
+            config = llm_section.get(provider)
+        if isinstance(config, dict):
+            value = config.get("daily_request_limit")
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _with_provider_limit(client: LLMClient, settings: Any) -> LLMClient:
+    """Обернуть провайдера его суточным лимитом.
+
+    Когда лимит исчерпан, ``available`` становится False, и ``FallbackLLMClient``
+    автоматически берёт следующего провайдера — вплоть до платного DeepSeek.
+    """
+    limit = _provider_request_limit(settings, client.name)
+    if limit <= 0 or not client.available or client.name == "extractive":
+        return client
+    try:
+        budget = DailyBudget(
+            settings.data_dir / "llm_usage_{}.json".format(client.name), limit
+        )
+        wrapped = LimitedLLMClient(client, budget)
+        LOGGER.info("LLM %s: суточный лимит %s запросов (UTC)", client.name, limit)
+        return wrapped
+    except Exception as exc:  # pragma: no cover - лимит не должен ломать LLM
+        LOGGER.warning("LLM %s: не удалось включить суточный лимит: %s", client.name, exc)
+        return client
+
+
+def get_llm(settings: Any = None, stage: Optional[str] = None) -> LLMClient:
     """Фабрика LLM-клиента по ``settings.llm.provider`` + цепочка fallback.
 
-    Никогда не бросает исключений. Если задан ``llm.daily_request_limit``,
-    клиент оборачивается суточным бюджетом. Порядок: основной провайдер →
-    ``llm.fallback`` → extractive (бесплатно).
+    ``stage`` (``analysis``/``generation``) выбирает маршрут из
+    ``llm.stage_routes``: у анализа и генерации могут быть разные провайдеры и
+    fallback-цепочки. Никогда не бросает исключений.
+
+    Суточные лимиты ``llm.provider_limits`` применяются к каждому провайдеру
+    отдельно: исчерпали free-лимит → автоматически пошли к следующему, вплоть
+    до платного. ``llm.daily_request_limit`` (общий потолок на весь запуск,
+    0 = выключен) сохраняется как жёсткий стоп, если задан.
     """
     provider = _DEFAULT_PROVIDER
     fallback_names: List[str] = []
@@ -998,13 +1082,26 @@ def get_llm(settings: Any) -> LLMClient:
     except Exception:
         provider = _DEFAULT_PROVIDER
 
+    route = _stage_route(settings, stage)
+    if route:
+        route_provider, route_fallback = route
+        provider = route_provider or provider
+        # Маршрут этапа задаёт и fallback-цепочку (пустой список = без fallback).
+        fallback_names = route_fallback
+        LOGGER.info(
+            "LLM этап %r: %s (fallback: %s)",
+            stage,
+            provider,
+            ", ".join(fallback_names) or "—",
+        )
+
     clients: List[LLMClient] = []
     try:
         primary = _build_llm(provider, settings)
     except Exception as exc:  # конфигурация не должна ронять конвейер
         LOGGER.warning("Не удалось создать LLM-клиент %r: %s", provider, exc)
         primary = ExtractiveLLM({"provider": "extractive"})
-    clients.append(primary)
+    clients.append(_with_provider_limit(primary, settings))
 
     for name in fallback_names:
         if name == provider:
@@ -1014,7 +1111,7 @@ def get_llm(settings: Any) -> LLMClient:
         except Exception as exc:  # pragma: no cover - защита от плохого конфига
             LOGGER.warning("LLM fallback %r: не удалось создать клиент: %s", name, exc)
             continue
-        clients.append(client)
+        clients.append(_with_provider_limit(client, settings))
 
     available = [client for client in clients if client.available]
     if not available:

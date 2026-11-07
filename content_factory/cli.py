@@ -313,8 +313,10 @@ def cmd_demo(args: argparse.Namespace, settings: Settings) -> int:
 def cmd_llm_test(args: argparse.Namespace, settings: Settings) -> int:
     from .nlp.llm import get_llm
 
-    llm = get_llm(settings)
-    print(f"Провайдер: {settings.llm.get('provider')} | клиент: {llm.name}")
+    stage = getattr(args, "stage", None)
+    llm = get_llm(settings, stage=stage)
+    stage_note = f" | этап: {stage}" if stage else ""
+    print(f"Провайдер: {settings.llm.get('provider')} | клиент: {llm.name}{stage_note}")
     describe = getattr(llm, "describe", None)
     if callable(describe):
         try:
@@ -501,6 +503,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_demo.set_defaults(func=cmd_demo)
 
     p_llm = sub.add_parser("llm-test", help="Проверить выбранную LLM")
+    p_llm.add_argument(
+        "--stage",
+        choices=["analysis", "generation"],
+        default=None,
+        help="Проверить маршрут этапа из llm.stage_routes (analysis/generation)",
+    )
     p_llm.set_defaults(func=cmd_llm_test)
 
     p_apps = sub.add_parser(
