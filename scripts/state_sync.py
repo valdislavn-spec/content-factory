@@ -51,7 +51,10 @@ def api(method: str, path: str, payload=None):
     )
     try:
         with urllib.request.urlopen(req, timeout=25) as resp:
-            return resp.status, json.load(resp)
+            raw = resp.read()
+        if not raw:
+            return resp.status, {}
+        return resp.status, json.loads(raw.decode("utf-8"))
     except urllib.error.HTTPError as exc:
         return exc.code, exc.read().decode("utf-8", "replace")[:200]
     except Exception as exc:  # noqa: BLE001
