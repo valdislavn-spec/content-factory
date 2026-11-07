@@ -71,13 +71,15 @@ llm:
   # gigachat        — GigaChat API (Сбер): есть бесплатный лимит, нужен аккаунт РФ
   # yandexgpt       — YandexGPT API: пробный грант, нужен аккаунт Yandex Cloud
   # dify            — приложение Dify (cloud.dify.ai или свой сервер) как LLM через Service API
+  # cohere          — Cohere API (Trial: 1000 запросов/мес, 20/мин; OpenAI-совместимый
+  #                   Compatibility API; из РФ api.cohere.ai отдаёт 403 — нужен GitHub Actions/VPN)
   # Основной провайдер + fallback-цепочка.
   # provider: ollama_cloud — открытые модели Ollama Cloud (gemma4:31b) сейчас
   #   идут без оплаты за счёт остатка usage credits; «pro»-модели требуют
   #   Pro/оплату (402). Когда остаток кончится — авто-переход на бесплатный
   #   Cloudflare Workers AI (10 000 neurons/день), затем на локальную Ollama.
   provider: ollama_cloud
-  fallback: [cloudflare, ollama, gigachat, yandexgpt, dify, openrouter, sambanova, huggingface, openai, deepseek]
+  fallback: [cloudflare, ollama, gigachat, yandexgpt, dify, cohere, openrouter, sambanova, huggingface, openai, deepseek]
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3
@@ -150,6 +152,15 @@ llm:
       base_url: https://api.openai.com/v1
       api_key_env: OPENAI_API_KEY
       model: gpt-4o-mini
+    cohere:
+      # Cohere (Trial-/Production-ключ): OpenAI-совместимый Compatibility API.
+      # Trial: 1 000 запросов/мес и 20 запросов/мин на чат-модель.
+      # Из РФ api.cohere.ai отдаёт 403 (гео-блок) — работает из GitHub Actions/VPN.
+      # Модели: command-a-plus-05-2026 (новее), command-a-03-2025 (256k контекст),
+      # command-r-plus-08-2024, command-r7b-12-2024 (дешевле/быстрее).
+      base_url: https://api.cohere.ai/compatibility/v1
+      api_key_env: COHERE_API_KEY
+      model: command-a-03-2025
   # Бесплатные лимиты LLM (Dify Sandbox = 200 message credits).
   # При 0 ограничения нет; после исчерпания дневного бюджета
   # завод продолжает публиковать посты в бесплатном extractive-режиме.
@@ -234,6 +245,17 @@ publishers:
     access_token_env: VK_ACCESS_TOKEN
     group_id_env: VK_GROUP_ID
     api_version: "5.199"
+  # Бесплатные соцсети (только живые EN/ES-каналы; RU-каналы их не используют).
+  # Публикатор опционален: если креды не заданы, конвейер пропускает его без ошибки.
+  # Для каждого канала можно задать свой аккаунт суффиксом CHANNEL_ID:
+  #   BLUESKY_HANDLE_AI_NEWS / BLUESKY_APP_PASSWORD_AI_NEWS
+  bluesky:
+    base_url_env: BLUESKY_BASE_URL   # по умолчанию https://bsky.social
+  mastodon:
+    base_url_env: MASTODON_BASE_URL
+    token_env: MASTODON_TOKEN
+  discord:
+    webhook_env: DISCORD_WEBHOOK_URL
   dryrun:
     enabled: true
 
@@ -241,4 +263,6 @@ analytics:
   enabled: true
   report_title: "Контент-завод: аналитика"
   collect_subscribers: true     # подписчики через Telegram Bot API
+  collect_post_metrics: true    # просмотры/реакции/репосты через Telethon
+  telegram_posts_limit: 30      # сколько последних постов анализировать
   retention_days: 180

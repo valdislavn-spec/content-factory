@@ -9,7 +9,7 @@
 > Главное: **платить не обязательно.** Режим по умолчанию `extractive` не
 > требует ни моделей, ни интернета, ни токенов.
 
-## 1. Семь режимов (`llm.provider`)
+## 1. Восемь режимов (`llm.provider`)
 
 | Режим | Что использует | Интернет | Стоимость | Кому подходит |
 |---|---|---|---|---|
@@ -20,12 +20,13 @@
 | `yandexgpt` | YandexGPT API | да | пробный грант | аккаунт Yandex Cloud |
 | `dify` | приложение Dify (Cloud или self-hosted) через Service API | да | бесплатный лимит Dify Cloud, дальше по тарифу | нужен аккаунт Dify; хочется менять промпты и модели без кода |
 | `cloudflare` | Cloudflare Workers AI (OpenAI-совместимый REST API) | да | free: 10 000 neurons/день, дальше $0.011 за 1 000 | аккаунт Cloudflare; нужен быстрый облачный LLM |
+| `cohere` | Cohere API (OpenAI-совместимый Compatibility API) | да | trial: 1 000 запросов/мес; production — по тарифу | ключ Cohere; из РФ только через GitHub Actions/VPN |
 
 Переключается в `config/settings.yaml`:
 
 ```yaml
 llm:
-  provider: cloudflare   # extractive | ollama | openai_compatible | gigachat | yandexgpt | dify | cloudflare
+  provider: cloudflare   # extractive | ollama | openai_compatible | gigachat | yandexgpt | dify | cloudflare | cohere
 ```
 
 После изменения перезапустите процесс (`Ctrl+C` и снова `daemon`/`run`).
@@ -300,6 +301,59 @@ Cloudflare. Free-план — **10 000 neurons/день** (сброс в 00:00 U
 - **Безопасность.** Нужен только scoped API Token (`cfut_`/`cfat_`), не
   Global API Key (`cfk_`). Токен храните в `.env`, а не в конфиге/git.
 
+### 1.8. `cohere` — Cohere API (Compatibility API)
+
+Cohere отдаёт OpenAI-совместимый endpoint, поэтому фабрика подключает его как
+`openai_compatible`-провайдер — отдельный код не нужен.
+
+Актуальные чат-модели (2026-11): `command-a-plus-05-2026` (новее),
+`command-a-03-2025` (контекст 256k), `command-r-plus-08-2024`,
+`command-r-08-2024`, `command-r7b-12-2024` (быстрее и дешевле). Все
+мультиязычные, русский поддерживают.
+
+Настройка:
+
+1. Ключ — [dashboard.cohere.com/api-keys](https://dashboard.cohere.com/api-keys)
+   (Trial или Production), в `.env`:
+
+   ```bash
+   COHERE_API_KEY=cohere_...
+   ```
+
+2. Провайдер уже прописан в `config/settings.yaml` и добавлен в `llm.fallback`
+   после `dify`:
+
+   ```yaml
+   llm:
+     providers:
+       cohere:
+         base_url: https://api.cohere.ai/compatibility/v1
+         api_key_env: COHERE_API_KEY
+         model: command-a-03-2025
+   ```
+
+3. Проверка. Из РФ `api.cohere.ai` отдаёт HTTP 403 (гео-блок), поэтому
+   локальный `scripts/cohere_check.py` может не пройти — проверяйте из
+   GitHub Actions: **Actions → cohere-check → Run workflow** (ключ берётся из
+   `COHERE_API_KEY` в Secrets).
+
+Что важно знать:
+
+- **Trial-ключ:** 1 000 запросов/мес и 20 запросов/мин на чат-модель
+  ([rate limits](https://docs.cohere.com/docs/rate-limits)). При 2–3 вызовах
+  на пост это ~330–500 постов/мес (~11–16/сутки) — Cohere разумно держать
+  резервным провайдером, а не основным для 90 постов/сутки.
+- **Production-ключ:** платный, лимиты выше (500 запросов/мин на Command A/R;
+  для новых моделей — по договору с Cohere). Цена —
+  [pricing](https://docs.cohere.com/docs/how-does-cohere-pricing-work).
+- **Compatibility API** поддерживает `messages`, `temperature`, `max_tokens`,
+  `response_format` (JSON Schema), `tools`; недоступны `n`, `logit_bias`,
+  `service_tier` и Cohere-специфичные поля вроде `documents`.
+- **JSON-режим.** Фабрика просит JSON промптом, `response_format` не
+  требуется, поэтому structured outputs можно не настраивать.
+- **Ключ.** Храните в `.env` и GitHub Secrets, не коммитьте. Если ключ
+  засветился в чате/логах — перевыпустите его в кабинете Cohere.
+
 ## 2. Как выбрать модель под железо
 
 Ориентируйтесь на объём RAM (для CPU) или VRAM (для видеокарты). Актуальные
@@ -400,10 +454,16 @@ extractive-режиме. В `runs.errors` будет запись, в отчёт
 - `dify` — бесплатный тариф Dify Cloud ограничен (сообщения/кредиты),
   дальше по тарифу Dify. Стоимость моделей внутри приложения зависит от
   того, чей ключ провайдера подключён в Dify.
+- `cohere` — Trial-ключ бесплатный (1 000 запросов/мес, 20/мин), этого хватает
+  на ~330–500 постов/мес (11–16/сутки); production-ключ — по тарифу Cohere.
+- `cloudflare` — 10 000 neurons/день бесплатно (~100–150 вызовов), дальше
+  $0.011 за 1 000 neurons.
 
-Ориентир по трафику: один пост — один запрос к модели. 6 каналов × 3 поста в
-день = 18 запросов/день, несколько тысяч токенов. Это немного, но лимиты
-GigaChat/YandexGPT/Dify всё равно стоит проверять.
+Ориентир по трафику (2026-11): один пост — **2–3 запроса** в
+оптимизированном режиме, ~3 100 токенов. 6 каналов × 15 постов = **90 постов
+в сутки** → ~180–270 запросов и ~0,3 млн токенов в сутки. Это укладывается в
+`daily_request_limit: 300`, а всё сверх лимита публикуется в бесплатном
+`extractive`-режиме.
 
 ## 7. Экономия токенов (с 2026-11)
 

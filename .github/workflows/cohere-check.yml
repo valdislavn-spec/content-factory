@@ -1,0 +1,33 @@
+name: cohere-check
+
+# Ручная проверка ключа Cohere и доступных чат-моделей из облака: api.cohere.ai
+# из РФ отдаёт 403, а с раннеров GitHub Actions доступен.
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: "Модели через запятую (пусто = список кандидатов)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      COHERE_MODELS: ${{ inputs.models }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Check Cohere
+        run: python scripts/cohere_check.py
