@@ -57,6 +57,16 @@ crypto-news → AI News и US Sports News, со ссылкой в каждом �
 - Промо-материалы со ссылками: `docs/promo/catalog-package.md`,
   `docs/promo/promo-texts-2026-11.md`, `docs/promo/vp-outreach.md`.
 
+### GitHub — профиль и публичные страницы
+
+- **Профиль:** https://github.com/valdislavn-spec — README профиля с таблицей
+  всех 6 каналов (репозиторий `valdislavn-spec/valdislavn-spec`).
+- **Публичный репозиторий:** https://github.com/valdislavn-spec/content-factory —
+  блок «Каналы сети» в README, `homepage` = хаб, 10 topics для поиска.
+- **Индексация хаба:** `docs/robots.txt`, `docs/sitemap.xml`, JSON-LD
+  `ItemList` в `docs/index.html`; заявка в IndexNow (Bing/Yandex) отправлена
+  08.11.2026, ключ — `docs/<key>.txt`.
+
 ### Проверка
 
 ```bash
@@ -78,7 +88,8 @@ python scripts/edit_pinned.py --language es --dry-run
 | Личный Telegram | био + закреп в личном канале | @-упоминания каналов | ☐ |
 | Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☐ (6 каталогов) |
 | Email / подпись | подпись писем | хаб-ссылка | ☐ |
-| GitHub profile | README профиля | хаб + 6 ссылок | ☐ (опционально) |
+| GitHub profile | README профиля | хаб + 6 ссылок | ☑ сделано 08.11.2026 |
+| GitHub (поле website профиля) | ссылка в профиле | хаб | ☐ токен не может менять профиль — вручную 1 минута |
 
 ### Готовые тексты
 
@@ -125,6 +136,9 @@ All → https://valdislavn-spec.github.io/content-factory/
 - [x] кросс-промо crypto → AI/Sports
 - [x] публичный хаб-лендинг (GitHub Pages)
 - [x] CHANNELS.md в публичном репозитории
+- [x] блок «Каналы сети» в README публичного репозитория + topics
+- [x] README профиля GitHub (github.com/valdislavn-spec)
+- [x] robots.txt + sitemap.xml + JSON-LD на хабе; заявка IndexNow (Bing/Yandex)
 - [ ] TikTok bio
 - [ ] YouTube ссылки
 - [ ] X bio + закреп-твит
@@ -133,7 +147,7 @@ All → https://valdislavn-spec.github.io/content-factory/
 - [ ] каталоги: TGStat, Telemetr, Tlgrm.eu, GramPedia, TelegramChannels.me,
       GruposTelegramLatAm
 - [ ] личный профиль Telegram
-- [ ] GitHub profile README (опционально)
+- [x] GitHub profile README (публичный профиль, хаб + все 6 ссылок)
 
 ## 5. Поддержание
 

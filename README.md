@@ -15,6 +15,21 @@
 > По умолчанию включён безопасный режим `dry_run`: посты не публикуются, а
 > сохраняются в `data/outbox/`.
 
+## Каналы сети
+
+Шесть публичных каналов проекта — 3 на английском и 3 на испанском. Единая
+страница со всеми ссылками (хаб для био внешних площадок):
+**<https://valdislavn-spec.github.io/content-factory/>**
+
+| Язык | Канал | Ссылка |
+|---|---|---|
+| EN | Crypto & Blockchain — Bitcoin, Ethereum, markets, regulation | <https://t.me/HOOPY0007> |
+| EN | AI News — models, products, policy, companies | <https://t.me/AINEWS0007> |
+| EN | US Sports News — NFL, NBA, MLB, NHL, college football | <https://t.me/SPORTNews0007> |
+| ES | ES Crypto & Blockchain — Bitcoin, Ethereum, mercados y regulación | <https://t.me/TechnologiesNews01> |
+| ES | ES AI News — IA: modelos, productos, empresas y políticas | <https://t.me/WORLDNews0007> |
+| ES | ES Sports News — fútbol: LaLiga, Liga MX, Argentina, MLS | <https://t.me/SPORTSAnalytics007> |
+
 ## Что умеет
 
 - **Сбор** — RSS/Atom-ленты, веб-страницы, Telegram-каналы (последнее —

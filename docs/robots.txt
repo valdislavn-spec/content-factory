@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://valdislavn-spec.github.io/content-factory/sitemap.xml
