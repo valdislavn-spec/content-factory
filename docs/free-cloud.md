@@ -1,9 +1,10 @@
 # Бесплатное облако для контент-завода: сбор новостей, генерация и автопостинг
 
 > Проверено 26 октября 2026 года. Бесплатные тарифы меняются: цифры ниже —
-> ориентиры, а не гарантия. Перед запуском сверяйтесь с официальными
-> страницами (ссылки в конце). Документ дополняет [operations.md](operations.md)
-> (автозапуск, бэкапы, мониторинг) и [llm.md](llm.md) (режимы LLM).
+> ориентиры, а не гарантия. Перед запуском сверяйтесь с официальными страницами
+> (ссылки расставлены по тексту и собраны в конце). Документ дополняет
+> [operations.md](operations.md) (автозапуск, бэкапы, мониторинг) и
+> [llm.md](llm.md) (режимы LLM).
 >
 > Рецепты собраны по документации и тарифным страницам провайдеров; они не
 > тестировались на вашем аккаунте — шаги проверяйте по консоли провайдера.
@@ -17,10 +18,10 @@
 
 | Стек | Из чего | Плюсы | Минусы | Кому |
 |---|---|---|---|---|
-| **A. Без сервера** | Google Apps Script + Google News RSS + Telegram Bot API (+ GigaChat по желанию) | 0 ₽, не нужна карта, запуск за вечер | лимит 6 минут на исполнение, нет SQLite, слабая аналитика | 1–2 канала, MVP |
-| **B. Свой сервер 24/7** | Oracle Cloud Always Free (ARM 4 OCPU / 24 ГБ) + этот проект + Ollama + systemd | 0 ₽, полный контроль, SQLite, 6 каналов, локальная LLM | нужна карта для регистрации, Oracle может отказать, администрирование | **профессиональный запуск** |
-| **C. No-code** | n8n Community Edition на том же бесплатном сервере + Telegram/VK | 0 ₽, визуальные сценарии, много интеграций | меньше контроля, обновления, память | если не хочется кода |
-| **D. CI-cron** | GitHub Actions (публичный репозиторий) + этот проект | 0 ₽, без карты, без сервера | состояние между запусками эфемерное, задержки расписания | если сервер не хочется |
+| **A. Без сервера** | [Google Apps Script](https://script.google.com) + [Google News RSS](https://news.google.com/rss) + [Telegram Bot API](https://core.telegram.org/bots/api) (+ [GigaChat](https://developers.sber.ru/portal/products/gigachat-api) по желанию) | 0 ₽, не нужна карта, запуск за вечер | лимит 6 минут на исполнение, нет SQLite, слабая аналитика | 1–2 канала, MVP |
+| **B. Свой сервер 24/7** | [Oracle Cloud Always Free](https://www.oracle.com/cloud/free/) (ARM 4 OCPU / 24 ГБ) + этот проект + [Ollama](https://ollama.com/) + systemd | 0 ₽, полный контроль, SQLite, 6 каналов, локальная LLM | нужна карта для регистрации, Oracle может отказать, администрирование | **профессиональный запуск** |
+| **C. No-code** | [n8n Community Edition](https://n8n.io/) на том же бесплатном сервере + Telegram/VK | 0 ₽, визуальные сценарии, много интеграций | меньше контроля, обновления, память | если не хочется кода |
+| **D. CI-cron** | [GitHub Actions](https://github.com/features/actions) (публичный репозиторий) + этот проект | 0 ₽, без карты, без сервера | состояние между запусками эфемерное, задержки расписания | если сервер не хочется |
 
 **Рекомендация по умолчанию:** стек **B**. Oracle Always Free — практически
 единственный «бесплатный навсегда» вариант, где можно круглосуточно держать
@@ -75,15 +76,15 @@ flowchart LR
 
 | Слой | Бесплатные варианты | Где ограничение |
 |---|---|---|
-| Сбор | RSS/Atom, Google News RSS, Yandex News RSS, Telegram через RSSHub/Telethon, NewsAPI/GNews/Mediastack (free), VK API, Reddit API | free-тарифы API — для разработки; Telegram-парсинг — риск бана |
-| Хранение | SQLite (файл), Supabase/Neon (free), Cloudflare D1/R2, Google Sheets | Supabase засыпает, D1 — только JS-воркеры |
+| Сбор | RSS/Atom, [Google News RSS](https://news.google.com/rss), [Yandex News RSS](https://news.yandex.ru/), Telegram через [RSSHub](https://docs.rsshub.app/)/[Telethon](https://docs.telethon.dev/), [NewsAPI](https://newsapi.org/pricing)/GNews/Mediastack (free), [VK API](https://dev.vk.com/ru/api/overview), [Reddit API](https://www.reddit.com/dev/api/) | free-тарифы API — для разработки; Telegram-парсинг — риск бана |
+| Хранение | SQLite (файл), [Supabase](https://supabase.com/pricing)/[Neon](https://neon.tech/) (free), [Cloudflare D1](https://developers.cloudflare.com/d1/)/[R2](https://developers.cloudflare.com/r2/pricing/), Google Sheets | Supabase засыпает, D1 — только JS-воркеры |
 | Очистка/дедуп | Python: feedparser, trafilatura, simhash, rapidfuzz, scikit-learn | — |
-| LLM | Ollama (локально), GigaChat (free-лимит), YandexGPT (грант), Gemini free, Groq/OpenRouter/Mistral free | геодоступ, лимиты, обучение на данных |
-| Хостинг | Oracle Always Free, GCP e2-micro, GitHub Actions, Apps Script, Cloudflare Workers, HF Spaces | карта, сон, квоты, эфемерность |
-| Публикация | Telegram Bot API, VK API, OK API, X free, Meta Graph, LinkedIn, Mastodon/Bluesky | лимиты, ревью приложений, запрет спама |
-| Планировщик | systemd/cron, GitHub Actions cron, Apps Script триггеры, Cloudflare cron, n8n/Make | задержки, лимиты запусков |
-| Аналитика | Bot API (подписчики), отчёт проекта, TGStat/Telemetr free, Метрика | просмотры канала Bot API не отдаёт |
-| Мониторинг | healthchecks.io, UptimeRobot, Better Stack, ntfy, Telegram-алерты | бесплатные лимиты проверок |
+| LLM | [Ollama](https://ollama.com/) (локально), [GigaChat](https://developers.sber.ru/portal/products/gigachat-api) (free-лимит), [YandexGPT](https://yandex.cloud/ru/services/yandexgpt) (грант), [Gemini free](https://ai.google.dev/gemini-api/docs/pricing), [Groq](https://groq.com/)/[OpenRouter](https://openrouter.ai/)/[Mistral](https://mistral.ai/) free | геодоступ, лимиты, обучение на данных |
+| Хостинг | [Oracle Always Free](https://www.oracle.com/cloud/free/), [GCP e2-micro](https://cloud.google.com/free), [GitHub Actions](https://github.com/features/actions), [Apps Script](https://script.google.com), [Cloudflare Workers](https://workers.cloudflare.com/), [HF Spaces](https://huggingface.co/spaces) | карта, сон, квоты, эфемерность |
+| Публикация | [Telegram Bot API](https://core.telegram.org/bots/api), [VK API](https://dev.vk.com/ru/api/overview), [OK API](https://apiok.ru/), [X](https://developer.x.com/), [Meta Graph](https://developers.facebook.com/docs/graph-api/), [LinkedIn](https://learn.microsoft.com/en-us/linkedin/), [Mastodon](https://docs.joinmastodon.org/api/)/[Bluesky](https://docs.bsky.app/) | лимиты, ревью приложений, запрет спама |
+| Планировщик | systemd/cron, GitHub Actions cron, Apps Script триггеры, Cloudflare cron, [n8n](https://n8n.io/)/[Make](https://www.make.com/) | задержки, лимиты запусков |
+| Аналитика | Bot API (подписчики), отчёт проекта, [TGStat](https://tgstat.com/)/[Telemetr](https://telemetr.io/) free, [Метрика](https://metrika.yandex.ru/) | просмотры канала Bot API не отдаёт |
+| Мониторинг | [healthchecks.io](https://healthchecks.io/), [UptimeRobot](https://uptimerobot.com/), [Better Stack](https://betterstack.com/), [ntfy](https://ntfy.sh/), Telegram-алерты | бесплатные лимиты проверок |
 
 ---
 
@@ -99,19 +100,22 @@ RSS — единственный канал, который бесплатен, 
 
 - **RSS изданий** — Хабр, CNews, 3DNews, РБК, Коммерсантъ, ТАСС, N+1,
   InterMedia и т. д. (примеры уже в проекте).
-- **Google News RSS** — `https://news.google.com/rss/search?q=...&hl=ru&gl=RU&ceid=RU:ru`.
-  Бесплатно, без ключа, отлично работает как «широкий» слой. Это не
-  официальный API: Google может менять формат и блокировать частые запросы.
-- **Яндекс.Новости RSS** — `https://news.yandex.ru/index.rss` (и тематические
-  ленты). Неофициально, но бесплатно.
-- **Press-release ленты** — EurekAlert, PR Newswire, пресс-центры компаний и
-  ведомств. Это первоисточники, самый высокий уровень доверия.
+- **[Google News RSS](https://news.google.com/rss)** —
+  `https://news.google.com/rss/search?q=...&hl=ru&gl=RU&ceid=RU:ru`. Бесплатно,
+  без ключа, отлично работает как «широкий» слой. Это не официальный API: Google
+  может менять формат и блокировать частые запросы.
+- **[Яндекс.Новости RSS](https://news.yandex.ru/)** —
+  `https://news.yandex.ru/index.rss` (и тематические ленты). Неофициально, но
+  бесплатно.
+- **Press-release ленты** — [EurekAlert](https://www.eurekalert.org/),
+  [PR Newswire](https://www.prnewswire.com/), пресс-центры компаний и ведомств.
+  Это первоисточники, самый высокий уровень доверия.
 - **Telegram-каналы → RSS** — через [RSSHub](https://docs.rsshub.app/)
   (self-hosted бесплатно) или публичные инстансы. Публичные часто
   перегружены; для стабильности RSSHub лучше поднять рядом с заводом.
-- **Google Alerts** — бесплатные письма по ключевым словам; их можно
-  разбирать скриптом (Apps Script имеет доступ к Gmail) или пересылать в RSS
-  через сторонние мосты.
+- **[Google Alerts](https://www.google.com/alerts)** — бесплатные письма по
+  ключевым словам; их можно разбирать скриптом (Apps Script имеет доступ к
+  Gmail) или пересылать в RSS через сторонние мосты.
 - **Сайты без RSS** — [changedetection.io](https://changedetection.io/) или
   [Huginn](https://github.com/huginn/huginn) (self-hosted, бесплатно) следят
   за изменениями страниц.
@@ -141,8 +145,8 @@ RSS — единственный канал, который бесплатен, 
 | [The Guardian Open Platform](https://open-platform.theguardian.com/) | бесплатный ключ, щедрый лимит | только Guardian |
 | [NewsData.io](https://newsdata.io/) | ~200 кредитов/день | кредиты тратятся на запросы |
 | [Reddit API](https://www.reddit.com/dev/api/) | ~100 запросов/мин | нужны OAuth, правила сабреддитов |
-| Hacker News (Algolia) | бесплатно, без ключа | только HN |
-| arXiv / PubMed / Crossref | бесплатно | наука, не «новости» |
+| [Hacker News (Algolia)](https://hn.algolia.com/api) | бесплатно, без ключа | только HN |
+| [arXiv](https://info.arxiv.org/help/api/index.html) / [PubMed](https://www.ncbi.nlm.nih.gov/pmc/tools/developers/) / [Crossref](https://api.crossref.org/) | бесплатно | наука, не «новости» |
 
 Вывод: **новостные API — дополнение, а не замена RSS**. Для 6 каналов
 бесплатных лимитов NewsAPI/GNews хватит только на узкий мониторинг; основной
@@ -151,17 +155,22 @@ RSS — единственный канал, который бесплатен, 
 
 ### 3.3. Telegram, VK и соцсети
 
-- **Свои каналы** — Bot API, бесплатно (см. раздел 7).
+- **Свои каналы** — [Bot API](https://core.telegram.org/bots/api), бесплатно
+  (см. раздел 7).
 - **Чтение чужих каналов** — только через официальный Bot API нельзя. Варианты:
-  Telethon/юзербот (бесплатно, но риск бана аккаунта), RSSHub, публичные
-  Telegram-мосты. В проекте Telethon опционален (`requirements-optional.txt`) —
-  используйте осторожно и на отдельном аккаунте.
-- **VK** — API бесплатен: `newsfeed.search`, `wall.get` для сообществ, токен
-  пользователя/сообщества. Нужно приложение VK ID.
-- **OK** — API для групп, бесплатно, нужен токен приложения.
-- **X/Twitter** — free-тариф даёт около 500 постов в месяц на запись и очень
-  мало чтения; для мониторинга почти бесполезен.
-- **Reddit** — бесплатный API с OAuth, но у сабреддитов свои правила.
+  [Telethon](https://docs.telethon.dev/)/юзербот (бесплатно, но риск бана
+  аккаунта), [RSSHub](https://docs.rsshub.app/), публичные Telegram-мосты. В
+  проекте Telethon опционален (`requirements-optional.txt`) — используйте
+  осторожно и на отдельном аккаунте.
+- **[VK](https://dev.vk.com/ru/api/overview)** — API бесплатен:
+  `newsfeed.search`, `wall.get` для сообществ, токен пользователя/сообщества.
+  Нужно приложение VK ID.
+- **[OK](https://apiok.ru/)** — API для групп, бесплатно, нужен токен
+  приложения.
+- **[X/Twitter](https://developer.x.com/)** — free-тариф даёт около 500 постов в
+  месяц на запись и очень мало чтения; для мониторинга почти бесполезен.
+- **[Reddit](https://www.reddit.com/dev/api/)** — бесплатный API с OAuth, но у
+  сабреддитов свои правила.
 
 ### 3.4. Слой агрегаторов для человека
 
@@ -187,14 +196,14 @@ RSS — единственный канал, который бесплатен, 
 
 | Задача | Инструмент |
 |---|---|
-| Парсинг RSS/Atom | `feedparser` |
-| Извлечение текста из HTML | `trafilatura`, `readability-lxml` |
-| Язык | `langdetect`, `lingua` |
+| Парсинг RSS/Atom | [`feedparser`](https://feedparser.readthedocs.io/) |
+| Извлечение текста из HTML | [`trafilatura`](https://trafilatura.readthedocs.io/en/latest/), [`readability-lxml`](https://github.com/buriy/python-readability) |
+| Язык | [`langdetect`](https://pypi.org/project/langdetect/), [`lingua`](https://github.com/pemistahl/lingua-py) |
 | Дедуп по URL | канонизация URL (уже в проекте) |
-| Похожесть заголовков | `simhash`, `rapidfuzz` |
-| Кластеризация сюжетов | TF-IDF + косинус (`scikit-learn`) |
-| Полнотекстовый поиск | SQLite FTS5 |
-| Эмбеддинги (опционально) | `sentence-transformers` локально |
+| Похожесть заголовков | [`simhash`](https://pypi.org/project/simhash/), [`rapidfuzz`](https://rapidfuzz.github.io/RapidFuzz/) |
+| Кластеризация сюжетов | TF-IDF + косинус ([`scikit-learn`](https://scikit-learn.org/stable/)) |
+| Полнотекстовый поиск | [SQLite FTS5](https://www.sqlite.org/fts5.html) |
+| Эмбеддинги (опционально) | [`sentence-transformers`](https://www.sbert.net/) локально |
 
 Проект уже делает дедуп и кластеризацию эвристиками — этого достаточно для
 6 каналов. Не тащите векторную БД, пока не упрётесь в качество.
@@ -207,17 +216,17 @@ RSS — единственный канал, который бесплатен, 
 
 | Провайдер | Бесплатно | Доступ из РФ | Данные | Комментарий |
 |---|---|---|---|---|
-| **Ollama локально** | полностью | да | никуда не уходят | нужен сервер с RAM; проект ставит Ollama в `data/ollama/` (16 ГБ RAM хватает на 9B) |
-| **GigaChat API** (Сбер) | бесплатный лимит для физлиц | да | по условиям Сбера | проект поддерживает; лимиты — в кабинете |
-| **YandexGPT** | пробный грант Yandex Cloud | да | по условиям Yandex | после гранта платно |
-| **Gemini API** | free-tier с лимитами | официально нет | **на free-тарифе используются для улучшения продуктов** | нужен зарубежный аккаунт/VPN; риск нарушения ToS |
-| **Groq** | free-tier с лимитами RPM/RPD | проверяйте | по условиям | быстрый, открытые модели |
-| **OpenRouter** | модели с суффиксом `:free` | проверяйте | по условиям модели | удобно для экспериментов |
-| **Mistral** | free-tier для экспериментов | проверяйте | по условиям | европейский провайдер |
-| **Cloudflare Workers AI** | ~10 000 neurons/день | проверяйте | по условиям | только из Worker |
-| **GitHub Models** | бесплатный доступ с лимитами | проверяйте | по условиям | удобно для прототипа |
-| **Cohere** | trial-ключ с ограничениями | проверяйте | по условиям | не для потока |
-| **Hugging Face** | **бесплатных кредитов Inference больше нет** (free = 0, PRO = $2/мес) | проверяйте | по условиям | как LLM-API — платный; бесплатно — только как источник локальных моделей и датасетов (см. [huggingface.md](huggingface.md)) |
+| **[Ollama](https://ollama.com/) локально** | полностью | да | никуда не уходят | нужен сервер с RAM; проект ставит Ollama в `data/ollama/` (16 ГБ RAM хватает на 9B) |
+| **[GigaChat API](https://developers.sber.ru/portal/products/gigachat-api)** (Сбер) | бесплатный лимит для физлиц | да | по условиям Сбера | проект поддерживает; лимиты — в кабинете |
+| **[YandexGPT](https://yandex.cloud/ru/services/yandexgpt)** | пробный грант Yandex Cloud | да | по условиям Yandex | после гранта платно |
+| **[Gemini API](https://ai.google.dev/gemini-api/docs/pricing)** | free-tier с лимитами | официально нет | **на free-тарифе используются для улучшения продуктов** | нужен зарубежный аккаунт/VPN; риск нарушения ToS |
+| **[Groq](https://groq.com/)** | free-tier с лимитами RPM/RPD | проверяйте | по условиям | быстрый, открытые модели |
+| **[OpenRouter](https://openrouter.ai/)** | модели с суффиксом `:free` | проверяйте | по условиям модели | удобно для экспериментов |
+| **[Mistral](https://mistral.ai/)** | free-tier для экспериментов | проверяйте | по условиям | европейский провайдер |
+| **[Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/)** | ~10 000 neurons/день | проверяйте | по условиям | только из Worker |
+| **[GitHub Models](https://docs.github.com/en/github-models)** | бесплатный доступ с лимитами | проверяйте | по условиям | удобно для прототипа |
+| **[Cohere](https://cohere.com/)** | trial-ключ с ограничениями | проверяйте | по условиям | не для потока |
+| **[Hugging Face](https://huggingface.co/pricing)** | **бесплатных кредитов Inference больше нет** (free = 0, PRO = $2/мес) | проверяйте | по условиям | как LLM-API — платный; бесплатно — только как источник локальных моделей и датасетов (см. [huggingface.md](huggingface.md)) |
 
 **Что выбрать:**
 
@@ -240,18 +249,22 @@ RSS — единственный канал, который бесплатен, 
 
 - [Pollinations](https://pollinations.ai/) — генерация изображений по URL, без
   ключа; проверяйте лицензию и условия.
-- [Pexels](https://www.pexels.com/api/), [Unsplash](https://unsplash.com/developers),
+- [Pexels](https://www.pexels.com/api/),
+  [Unsplash](https://unsplash.com/developers),
   [Pixabay](https://pixabay.com/api/docs/) — бесплатные API при соблюдении
   лицензий и атрибуции.
 - [Openverse](https://openverse.org/) — поиск изображений с CC-лицензиями.
-- Cloudflare Workers AI / HF — генерация в пределах бесплатных квот.
+- [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) /
+  [HF](https://huggingface.co/pricing) — генерация в пределах бесплатных квот.
 
 Не берите фотографии из новостей без лицензии — это самая частая претензия.
 
 ### 5.3. Озвучка и видео (если нужно)
 
-- **TTS**: Piper, Silero (локально, бесплатно), Edge TTS (неофициально,
-  бесплатно, но без гарантий).
+- **TTS**: [Piper](https://github.com/rhasspy/piper),
+  [Silero](https://github.com/snakers4/silero-models) (локально, бесплатно),
+  [Edge TTS](https://github.com/rany2/edge-tts) (неофициально, бесплатно, но без
+  гарантий).
 - **Видео**: бесплатные тарифы слабые и с водяными знаками; для новостного
   канала видео лучше делать вручную или отложить.
 
@@ -286,7 +299,7 @@ Always Free — это не trial, а бессрочные ресурсы в п�
 
 Пошаговый рецепт — в разделе 8.1.
 
-### 6.2. Google Cloud Free Tier
+### 6.2. [Google Cloud Free Tier](https://cloud.google.com/free)
 
 - **e2-micro**: 1 ГБ RAM (2 разделяемых vCPU), 30 ГБ диска, 1 ГБ исходящего
   трафика в месяц, только в нескольких регионах США.
@@ -294,7 +307,7 @@ Always Free — это не trial, а бессрочные ресурсы в п�
 - Хватит на `extractive`-режим с swap, но не на Ollama. Для 6 каналов —
   впритык по RAM; ставьте swap и не запускайте тяжёлые модели.
 
-### 6.3. GitHub Actions — бесплатный cron без сервера
+### 6.3. [GitHub Actions](https://github.com/features/actions) — бесплатный cron без сервера
 
 - **Публичный репозиторий** — минуты не ограничены (стандартные runners).
 - **Приватный** — около 2 000 минут Linux в месяц на Free-плане.
@@ -308,9 +321,10 @@ Always Free — это не trial, а бессрочные ресурсы в п�
 не нужен сервер и карта; минус — состояние и задержки. Полный workflow — в
 разделе 8.2.
 
-### 6.4. Google Apps Script — без сервера и без карты
+### 6.4. [Google Apps Script](https://script.google.com) — без сервера и без карты
 
-Бесплатные квоты личного аккаунта (ориентировочно):
+Бесплатные квоты личного аккаунта (ориентировочно; официально —
+[квоты Apps Script](https://developers.google.com/apps-script/guides/services/quotas)):
 
 - 20 000 вызовов `UrlFetch` в день;
 - 90 минут суммарного времени триггеров в день;
@@ -321,48 +335,57 @@ Always Free — это не trial, а бессрочные ресурсы в п�
 Нет SQLite, нет тяжёлой аналитики, но для 1–2 каналов и дайджестов — отлично.
 Пример кода — в разделе 8.4.
 
-### 6.5. Cloudflare Workers — если нравится JS
+### 6.5. [Cloudflare Workers](https://workers.cloudflare.com/) — если нравится JS
 
-Бесплатно (ориентиры): ~100 000 запросов в день, 10 мс CPU на запрос,
-cron-триггеры, D1 (5 ГБ), R2 (10 ГБ), KV (100 000 чтений/день).
+Бесплатно (ориентиры; точные —
+[лимиты Workers](https://developers.cloudflare.com/workers/platform/limits/)):
+~100 000 запросов в день, 10 мс CPU на запрос, cron-триггеры, D1 (5 ГБ), R2 (10
+ГБ), KV (100 000 чтений/день).
 
 Подходит для лёгкого «RSS → Telegram» на JavaScript или для приёма вебхуков.
 Python-завод туда не переносится, а 10 мс CPU мало для тяжёлой обработки.
 
 ### 6.6. Hugging Face Spaces, Render, Vercel, Fly.io
 
-- **HF Spaces**: бесплатный CPU (2 vCPU, 16 ГБ RAM), публичное пространство
-  засыпает после ~48 часов без запросов; cron нет. Годится для демо/UI, не для
-  круглосуточного завода.
-- **Render**: free web service засыпает через ~15 минут, бесплатный Postgres
-  удаляется через 30 дней. Не для демона.
-- **Vercel**: Hobby, cron сильно ограничен (раз в сутки и меньше). Не для
-  расписания 3 раза в день.
-- **Fly.io**: бесплатного тарифа для новых аккаунтов нет — не рассчитывайте.
+- **[HF Spaces](https://huggingface.co/spaces)**: бесплатный CPU (2 vCPU, 16 ГБ
+  RAM), публичное пространство засыпает после ~48 часов без запросов; cron нет.
+  Годится для демо/UI, не для круглосуточного завода.
+- **[Render](https://render.com/)**: free web service засыпает через ~15 минут,
+  бесплатный Postgres удаляется через 30 дней. Не для демона.
+- **[Vercel](https://vercel.com/)**: Hobby, cron сильно ограничен (раз в сутки и
+  меньше). Не для расписания 3 раза в день.
+- **[Fly.io](https://fly.io/)**: бесплатного тарифа для новых аккаунтов нет — не
+  рассчитывайте.
 
 ### 6.7. Российские облака
 
 Если Oracle/Google не дают аккаунт или нужна оплата в рублях:
 
-- **Yandex Cloud** — стартовый грант для новых аккаунтов (порядка нескольких
-  тысяч рублей на 1–2 месяца), затем платно; удобно рядом с YandexGPT.
-- **VK Cloud** — стартовый грант, затем платно.
-- **Selectel, Timeweb Cloud** — пробные периоды/акции, дальше от 200–600 ₽/мес
-  за минимальный VPS.
+- **[Yandex Cloud](https://yandex.cloud/ru/)** — стартовый грант для новых
+  аккаунтов (порядка нескольких тысяч рублей на 1–2 месяца), затем платно;
+  удобно рядом с YandexGPT.
+- **[VK Cloud](https://cloud.vk.com/)** — стартовый грант, затем платно.
+- **[Selectel](https://selectel.ru/), [Timeweb Cloud](https://timeweb.cloud/)**
+  — пробные периоды/акции, дальше от 200–600 ₽/мес за минимальный VPS.
 
 Это уже не «бесплатно навсегда», но дешевле, чем зарубежный VPS, и оплата
 российской картой. Ставьте budget alerts, чтобы грант не превратился в счёт.
 
 ### 6.8. No-code автоматизация
 
-- **n8n Community Edition** — self-hosted бесплатно (Sustainable Use License:
-  можно использовать внутри компании, нельзя перепродавать как сервис). Облако
-  n8n — только trial, потом от €20/мес за 2 500 запусков.
-- **Make** — free: около 1 000 операций/мес, 2 активных сценария, минимум
-  15 минут между запусками. Для 6 каналов не хватит (см. расчёт в 8.5).
-- **Zapier** — free: ~100 задач/мес, двухшаговые Zaps. Только для мелочей.
-- **IFTTT** — free: 2 апплета, простые связки RSS → Telegram/соцсети.
-- **Activepieces** — self-hosted бесплатно, облако с ограничениями.
+- **[n8n Community Edition](https://n8n.io/)** — self-hosted бесплатно
+  (Sustainable Use License: можно использовать внутри компании, нельзя
+  перепродавать как сервис). Облако n8n — только trial, потом от €20/мес за 2
+  500 запусков.
+- **[Make](https://www.make.com/)** — free: около 1 000 операций/мес, 2 активных
+  сценария, минимум 15 минут между запусками. Для 6 каналов не хватит (см.
+  расчёт в 8.5).
+- **[Zapier](https://zapier.com/)** — free: ~100 задач/мес, двухшаговые Zaps.
+  Только для мелочей.
+- **[IFTTT](https://ifttt.com/)** — free: 2 апплета, простые связки RSS →
+  Telegram/соцсети.
+- **[Activepieces](https://www.activepieces.com/)** — self-hosted бесплатно,
+  облако с ограничениями.
 - **Huginn** — self-hosted, бесплатно, для мониторинга страниц.
 
 ---
@@ -373,30 +396,33 @@ Python-завод туда не переносится, а 10 мс CPU мало 
 
 | Платформа | Бесплатный способ | Лимиты и нюансы |
 |---|---|---|
-| **Telegram** | Bot API, бот-админ канала | ~30 сообщений/с суммарно, ~20/мин в один канал, 4096 символов; просмотры Bot API не отдаёт |
-| **VK** | API `wall.post`, токен с `wall`+`manage` | нужен токен сообщества/пользователя, flood control, длина 16 000 символов |
-| **OK** | API для групп | нужен токен приложения, лимиты методов |
-| **Дзен** | официального API публикации нет | импорт по RSS в кабинете (если доступен) или полуавтомат; неофициальные API — риск |
-| **X/Twitter** | free-тариф API | ~500 постов/мес на запись, чтение почти отсутствует |
-| **Facebook/Instagram** | Graph API | нужен бизнес-аккаунт, приложение и ревью; у IG лимит на API-публикации (~25/24 ч) |
-| **LinkedIn** | API с правами `w_member_social` | нужно приложение и ревью |
-| **Mastodon** | открытый API | лимиты инстанса, но бесплатно |
-| **Bluesky** | AT Protocol API | бесплатно, лимиты |
-| **Reddit** | API с OAuth | правила сабреддитов, антиспам |
-| **Medium** | API фактически закрыт | только вручную |
-| **dev.to / Hashnode** | бесплатные API | хороши для дублей статей |
-| **WordPress** | REST API + application password | self-hosted бесплатно; WordPress.com free ограничен |
+| **[Telegram](https://core.telegram.org/bots/api)** | Bot API, бот-админ канала | ~30 сообщений/с суммарно, ~20/мин в один канал, 4096 символов; просмотры Bot API не отдаёт |
+| **[VK](https://dev.vk.com/ru/api/overview)** | API `wall.post`, токен с `wall`+`manage` | нужен токен сообщества/пользователя, flood control, длина 16 000 символов |
+| **[OK](https://apiok.ru/)** | API для групп | нужен токен приложения, лимиты методов |
+| **[Дзен](https://dzen.ru/)** | официального API публикации нет | импорт по RSS в кабинете (если доступен) или полуавтомат; неофициальные API — риск |
+| **[X/Twitter](https://developer.x.com/)** | free-тариф API | ~500 постов/мес на запись, чтение почти отсутствует |
+| **[Facebook/Instagram](https://developers.facebook.com/docs/graph-api/)** | Graph API | нужен бизнес-аккаунт, приложение и ревью; у IG лимит на API-публикации (~25/24 ч) |
+| **[LinkedIn](https://learn.microsoft.com/en-us/linkedin/)** | API с правами `w_member_social` | нужно приложение и ревью |
+| **[Mastodon](https://docs.joinmastodon.org/api/)** | открытый API | лимиты инстанса, но бесплатно |
+| **[Bluesky](https://docs.bsky.app/)** | AT Protocol API | бесплатно, лимиты |
+| **[Reddit](https://www.reddit.com/dev/api/)** | API с OAuth | правила сабреддитов, антиспам |
+| **[Medium](https://medium.com/)** | API фактически закрыт | только вручную |
+| **[dev.to](https://developers.forem.com/api) / [Hashnode](https://hashnode.com/)** | бесплатные API | хороши для дублей статей |
+| **[WordPress](https://developer.wordpress.org/rest-api/)** | REST API + application password | self-hosted бесплатно; WordPress.com free ограничен |
 
 ### 7.2. Планировщики-хабы
 
-- **Postiz** — open-source, self-hosted бесплатно; поддерживает много платформ.
-  Требует Docker Compose, Postgres и Redis — это отдельный сервис, не «за 5
-  минут». В РФ Docker Hub ограничен, поэтому ставьте на тот же Oracle-сервер
-  аккуратно или используйте npm-варианты.
-- **Mixpost** — self-hosted, есть бесплатная версия; Pro платный.
-- **Buffer** — free-тариф ограничен (ориентир: ~3 канала и 10 отложенных
-  постов на канал); проверяйте актуальные условия.
-- **Publer** — free-тариф с ограничениями, альтернатива Buffer.
+- **[Postiz](https://github.com/gitroomhq/postiz-app)** — open-source,
+  self-hosted бесплатно; поддерживает много платформ. Требует Docker Compose,
+  Postgres и Redis — это отдельный сервис, не «за 5 минут». В РФ Docker Hub
+  ограничен, поэтому ставьте на тот же Oracle-сервер аккуратно или используйте
+  npm-варианты.
+- **[Mixpost](https://mixpost.app/)** — self-hosted, есть бесплатная версия; Pro
+  платный.
+- **[Buffer](https://buffer.com/pricing)** — free-тариф ограничен (ориентир: ~3
+  канала и 10 отложенных постов на канал); проверяйте актуальные условия.
+- **[Publer](https://publer.com/pricing)** — free-тариф с ограничениями,
+  альтернатива Buffer.
 
 Для Telegram/VK проще публиковать напрямую из проекта: меньше сервисов —
 меньше точек отказа. Планировщик-хаб нужен, если каналов много и они на разных
@@ -423,8 +449,9 @@ Python-завод туда не переносится, а 10 мс CPU мало 
 
 **Шаг 1. Аккаунт и инстанс**
 
-1. Зарегистрируйтесь на [oracle.com/cloud/free](https://www.oracle.com/cloud/free/),
-   подтвердите карту.
+1. Зарегистрируйтесь на
+   [oracle.com/cloud/free](https://www.oracle.com/cloud/free/), подтвердите
+   карту.
 2. Compute → Instances → Create instance:
    - shape **VM.Standard.A1.Flex**, 4 OCPU, 24 ГБ RAM;
    - образ **Ubuntu 24.04** (ARM64);
@@ -528,8 +555,9 @@ journalctl -u content-factory -f
 
 **Шаг 6. Бэкапы и мониторинг**
 
-Ежедневный бэкап SQLite и `.env` в Cloudflare R2 (10 ГБ бесплатно) или
-Яндекс.Диск через rclone:
+Ежедневный бэкап SQLite и `.env` в
+[Cloudflare R2](https://developers.cloudflare.com/r2/pricing/) (10 ГБ бесплатно)
+или [Яндекс.Диск](https://disk.yandex.ru/) через [rclone](https://rclone.org/):
 
 ```bash
 rclone config     # создайте remote, например r2
@@ -839,19 +867,24 @@ function tick() {
 
 ## 11. Мониторинг, бэкапы, надёжность
 
-- **healthchecks.io** — бесплатно до 20 проверок; heartbeat из cron/systemd;
-  алерты в Telegram/email.
-- **UptimeRobot** — 50 мониторов с интервалом 5 минут; если отдаёте отчёт по
-  HTTP.
-- **Better Stack** — бесплатный тариф с мониторами и логами (лимиты небольшие).
-- **ntfy.sh** — бесплатные push-уведомления.
-- **Sentry** — бесплатный тариф на ошибки (если появится веб-часть).
-- **Бэкапы** — `sqlite3 .backup` + rclone в R2/B2/Яндекс.Диск; `.env` — как
-  пароль.
-- **Отчёты** — `report.html` можно публиковать через GitHub Pages (публичный
-  репозиторий) или просто скачивать.
-- **Аналитика** — подписчики через Bot API; просмотры — только Telethon или
-  ручной экспорт; TGStat/Telemetr free — как внешний срез.
+- **[healthchecks.io](https://healthchecks.io/)** — бесплатно до 20 проверок;
+  heartbeat из cron/systemd; алерты в Telegram/email.
+- **[UptimeRobot](https://uptimerobot.com/)** — 50 мониторов с интервалом 5
+  минут; если отдаёте отчёт по HTTP.
+- **[Better Stack](https://betterstack.com/)** — бесплатный тариф с мониторами и
+  логами (лимиты небольшие).
+- **[ntfy.sh](https://ntfy.sh/)** — бесплатные push-уведомления.
+- **[Sentry](https://sentry.io/)** — бесплатный тариф на ошибки (если появится
+  веб-часть).
+- **Бэкапы** — `sqlite3 .backup` + [rclone](https://rclone.org/) в
+  [R2](https://developers.cloudflare.com/r2/pricing/)/[B2](https://www.backblaze.com/cloud-storage)/[Яндекс.Диск](https://disk.yandex.ru/);
+  `.env` — как пароль.
+- **Отчёты** — `report.html` можно публиковать через
+  [GitHub Pages](https://pages.github.com/) (публичный репозиторий) или просто
+  скачивать.
+- **Аналитика** — подписчики через Bot API; просмотры — только
+  [Telethon](https://docs.telethon.dev/) или ручной экспорт; TGStat/Telemetr
+  free — как внешний срез.
 
 Минимальный набор алертов:
 
@@ -881,7 +914,7 @@ function tick() {
 
 1. **Профессионально и за 0 ₽** → Oracle Always Free (ARM 4/24) + этот проект
    + Ollama `qwen3.5:9b` или GigaChat + Telegram/VK + systemd + healthchecks +
-   бэкап в R2. Это лучший баланс качества, контроля и цены.
+     бэкап в R2. Это лучший баланс качества, контроля и цены.
 2. **Oracle не даёт аккаунт/карту** → GCP e2-micro с `extractive` (0 ₽) либо
    GitHub Actions на публичном репозитории (0 ₽), либо Apps Script для 1–2
    каналов.
@@ -900,14 +933,18 @@ function tick() {
 
 - Oracle Cloud Free Tier — <https://www.oracle.com/cloud/free/>
 - Google Cloud Free — <https://cloud.google.com/free>
-- n8n pricing — <https://n8n.io/pricing/>; self-hosting — <https://docs.n8n.io/hosting/>
+- n8n pricing — <https://n8n.io/pricing/>; self-hosting —
+  <https://docs.n8n.io/hosting/>
 - Gemini API pricing — <https://ai.google.dev/gemini-api/docs/pricing>;
   rate limits — <https://ai.google.dev/gemini-api/docs/rate-limits>
 - NewsAPI pricing — <https://newsapi.org/pricing>
 - Supabase pricing — <https://supabase.com/pricing>
-- GitHub Actions billing — <https://docs.github.com/en/billing/concepts/product-billing/github-actions>
-- Apps Script quotas — <https://developers.google.com/apps-script/guides/services/quotas>
-- Cloudflare Workers limits — <https://developers.cloudflare.com/workers/platform/limits/>
+- GitHub Actions billing —
+  <https://docs.github.com/en/billing/concepts/product-billing/github-actions>
+- Apps Script quotas —
+  <https://developers.google.com/apps-script/guides/services/quotas>
+- Cloudflare Workers limits —
+  <https://developers.cloudflare.com/workers/platform/limits/>
 - Hugging Face pricing — <https://huggingface.co/pricing>
 - Telegram Bot API — <https://core.telegram.org/bots/api>
 - VK API — <https://dev.vk.com/ru/api/overview>
@@ -921,6 +958,6 @@ function tick() {
 - Cloudflare R2 — <https://developers.cloudflare.com/r2/pricing/>
 - rclone — <https://rclone.org/>
 
-Внутренние документы проекта: [setup.md](setup.md), [operations.md](operations.md),
-[llm.md](llm.md), [channels.md](channels.md), [legal.md](legal.md),
-[plan.md](plan.md).
+Внутренние документы проекта: [setup.md](setup.md),
+[operations.md](operations.md), [llm.md](llm.md), [channels.md](channels.md),
+[legal.md](legal.md), [plan.md](plan.md).
