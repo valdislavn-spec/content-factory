@@ -155,6 +155,7 @@ jobs:
           path: |
             data/factory.sqlite3
             data/schedule_state.json
+            data/schedule_state_es.json
             data/llm_cache.sqlite3
             data/llm_tokens.json
             data/llm_usage.json
@@ -187,6 +188,7 @@ jobs:
         if: always()
         env:
           CONTENT_FACTORY_CHANNELS: config/channels.es.yaml
+          CONTENT_FACTORY_STATE_PATH: data/schedule_state_es.json
         run: |
           python -m content_factory channels
           python -m content_factory daemon --once

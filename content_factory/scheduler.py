@@ -15,6 +15,7 @@ data/schedule_state.json и пишется атомарно, поэтому по
 from __future__ import annotations
 
 import logging
+import os
 import time
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -78,9 +79,16 @@ class Scheduler:
 
     def __init__(self, settings: Settings, state_path: Optional[Any] = None) -> None:
         self.settings = settings
-        self.state_path = (
-            Path(state_path) if state_path else Path(settings.data_dir) / "schedule_state.json"
-        )
+        # Отдельный файл состояния для второго набора каналов (EN/ES) нужен,
+        # когда два тика идут подряд в одном запуске: иначе первый тик
+        # сдвигает last_check и второй видит пустое окно слотов.
+        env_state = os.environ.get("CONTENT_FACTORY_STATE_PATH", "").strip()
+        if state_path:
+            self.state_path = Path(state_path)
+        elif env_state:
+            self.state_path = Path(env_state)
+        else:
+            self.state_path = Path(settings.data_dir) / "schedule_state.json"
 
     # ------------------------------------------------------------------
     # состояние
