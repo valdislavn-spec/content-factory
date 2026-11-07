@@ -1,15 +1,26 @@
 # Посты-закрепы для испанских каналов (HTML для Telegram).
+# В каждом закрепе — блок «Nuestra red» со ссылками на все каналы сети (ES).
 tech-ai-es: |
   🤖 <b>ES AI News</b>
   Inteligencia artificial en español: modelos, productos, empresas y políticas. Cada día, de Hipertextual, ABC Tecnología, FayerWayer, La Nación y El Financiero.
   Comparte el canal con quien sigue la IA.
-  También de nuestra red: <b>ES Crypto &amp; Blockchain</b> → https://t.me/TechnologiesNews01
+
+  🌐 <b>Nuestra red</b>
+  • ES Crypto &amp; Blockchain → https://t.me/TechnologiesNews01
+  • ES Sports News → https://t.me/SPORTSAnalytics007
 crypto-es: |
   ₿ <b>ES Crypto &amp; Blockchain</b>
   Bitcoin, Ethereum, mercados y regulación en español. CriptoNoticias, BeInCrypto, CriptoTendencia y Observatorio Blockchain.
   Síguenos para no perderte el mercado.
-  También de nuestra red: <b>ES AI News</b> → https://t.me/WORLDNews0007
+
+  🌐 <b>Nuestra red</b>
+  • ES AI News → https://t.me/WORLDNews0007
+  • ES Sports News → https://t.me/SPORTSAnalytics007
 futbol-es: |
   ⚽ <b>ES Sports News</b>
   Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS y Champions. Resultados, fichajes y análisis todos los días.
   Comparte el canal con un hincha.
+
+  🌐 <b>Nuestra red</b>
+  • ES AI News → https://t.me/WORLDNews0007
+  • ES Crypto &amp; Blockchain → https://t.me/TechnologiesNews01

@@ -17,6 +17,14 @@ from content_factory.config import Settings, load_channels  # noqa: E402
 from content_factory.utils import env, load_dotenv  # noqa: E402
 
 
+# Cloudflare/бот-защита на релее может банить UA «Python-urllib» (ошибка 1010),
+# поэтому для всех запросов Bot API используем обычный браузерный UA.
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; ContentFactory/1.0; +https://t.me/) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0"
+)
+
+
 def api(method: str, payload: dict) -> dict:
     token = env("TELEGRAM_BOT_TOKEN", "")
     base = (env("TELEGRAM_API_BASE", "") or "https://api.telegram.org").rstrip("/")
@@ -24,7 +32,10 @@ def api(method: str, payload: dict) -> dict:
     request = urllib.request.Request(
         f"{base}/bot{token}/{method}",
         data=body,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": USER_AGENT,
+        },
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=25) as response:

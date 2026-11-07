@@ -1,9 +1,8 @@
-# message_id уже опубликованных закреплённых постов (бот может редактировать свои сообщения).
 en:
   sport-news: 19
   ai-news: 20
   crypto-news: 6001
 es:
-  tech-ai-es: 17
-  crypto-es: 22
-  futbol-es: 13
+  tech-ai-es: 22
+  crypto-es: 26
+  futbol-es: 17

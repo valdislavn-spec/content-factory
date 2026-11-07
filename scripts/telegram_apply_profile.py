@@ -24,13 +24,24 @@ from content_factory.config import Settings, load_channels
 from content_factory.utils import env, load_dotenv
 
 
+# Cloudflare/бот-защита на релее может банить UA «Python-urllib» (ошибка 1010),
+# поэтому для всех запросов Bot API используем обычный браузерный UA.
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; ContentFactory/1.0; +https://t.me/) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0"
+)
+
+
 def call(token: str, method: str, payload: dict) -> dict:
     base = (env("TELEGRAM_API_BASE", "") or "https://api.telegram.org").rstrip("/")
     body = urllib.parse.urlencode({k: v for k, v in payload.items() if v is not None}).encode()
     request = urllib.request.Request(
         f"{base}/bot{token}/{method}",
         data=body,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": USER_AGENT,
+        },
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=25) as response:

@@ -15,8 +15,7 @@
 channels:
 - id: tech-ai-es
   title: ES AI News
-  description: 'Inteligencia artificial en español: modelos, productos, empresas y
-    políticas de IA.'
+  description: "Inteligencia artificial en español: modelos, productos, empresas y políticas de IA.\n🌐 Nuestra red: ES Crypto & Blockchain @TechnologiesNews01 · ES Sports News @SPORTSAnalytics007"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_TECH_AI_ES (GitHub Secret)
   language: es
   topics:
@@ -145,8 +144,7 @@ channels:
     interactive: 40
 - id: crypto-es
   title: ES Crypto & Blockchain
-  description: 'Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados
-    y tecnología blockchain.'
+  description: "Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados y tecnología blockchain.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Sports News @SPORTSAnalytics007"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_CRYPTO_ES (GitHub Secret)
   language: es
   topics:
@@ -263,8 +261,7 @@ channels:
     interactive: 40
 - id: futbol-es
   title: ES Sports Analytics
-  description: 'Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina,
-    MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.'
+  description: "Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina, MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Crypto & Blockchain @TechnologiesNews01"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_FUTBOL_ES (GitHub Secret)
   language: es
   topics:
