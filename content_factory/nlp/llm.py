@@ -905,6 +905,11 @@ _NAMED_PROVIDERS: Dict[str, Dict[str, str]] = {
         "api_key_env": "HUGGINGFACE_API_KEY",
         "model": "meta-llama/Llama-3.3-70B-Instruct",
     },
+    "deepseek": {
+        "base_url": "https://api.deepseek.com/v1",
+        "api_key_env": "DEEPSEEK_API_KEY",
+        "model": "deepseek-flash",
+    },
     "openai": {
         "base_url": "https://api.openai.com/v1",
         "api_key_env": "OPENAI_API_KEY",

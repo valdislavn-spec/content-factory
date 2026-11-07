@@ -73,7 +73,7 @@ llm:
   #   Pro/оплату (402). Когда остаток кончится — авто-переход на бесплатный
   #   Cloudflare Workers AI (10 000 neurons/день), затем на локальную Ollama.
   provider: ollama_cloud
-  fallback: [cloudflare, ollama, gigachat, yandexgpt, dify, openrouter, sambanova, huggingface, openai]
+  fallback: [cloudflare, ollama, gigachat, yandexgpt, dify, openrouter, sambanova, huggingface, openai, deepseek]
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3
@@ -134,6 +134,13 @@ llm:
       # ВАЖНО (2026-11): у free-аккаунта 0 бесплатных кредитов, PRO = $2/мес кредитов.
       # Это ПЛАТНЫЙ провайдер-резерв, а не бесплатный. Для русского лучше Qwen:
       model: Qwen/Qwen2.5-72B-Instruct
+    deepseek:
+      # Из РФ доступен (проверено 06.11.2026). Запасной провайдер на случай,
+      # когда ollama_cloud/cloudflare недоступны. Модели: deepseek-flash,
+      # deepseek-v4-pro (дороже); ключ — DEEPSEEK_API_KEY.
+      base_url: https://api.deepseek.com/v1
+      api_key_env: DEEPSEEK_API_KEY
+      model: deepseek-flash
     openai:
       # Из РФ недоступен (403 unsupported_country_region_territory).
       base_url: https://api.openai.com/v1
