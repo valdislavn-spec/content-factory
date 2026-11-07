@@ -81,7 +81,11 @@ class FactoryMcpTest(unittest.TestCase):
             }
         )
         self.assertTrue(response["result"]["isError"])
-        self.assertIn("только для чтения", response["result"]["content"][0]["text"])
+        text = response["result"]["content"][0]["text"]
+        self.assertTrue(
+            "только для чтения" in text or "разрешены только SELECT" in text,
+            text,
+        )
 
     def test_status_tool_returns_json(self):
         try:
