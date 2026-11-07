@@ -258,7 +258,12 @@ def build_post_generator(settings: Any) -> Optional[DifyPostGenerator]:
         pipeline = dict(settings.raw.get("pipeline") or {})
     except Exception:
         return None
-    if str(pipeline.get("post_generator") or "internal").strip().lower() != "dify_app":
+    generator_name = str(pipeline.get("post_generator") or "internal").strip().lower()
+    if generator_name == "brain":
+        from .brain_posts import build_brain_generator
+
+        return build_brain_generator(settings)
+    if generator_name != "dify_app":
         return None
     purpose = str(pipeline.get("dify_post_app") or "posts").strip() or "posts"
     apps = ((settings.raw.get("integrations") or {}).get("dify_apps") or {})

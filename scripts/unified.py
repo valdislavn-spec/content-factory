@@ -377,6 +377,47 @@ def build_doctor_sections(
             ),
         )
     )
+    # Мост «мозга» в автопост (content-factory → mcp-content-factory).
+    pipeline_cfg = settings.raw.get("pipeline") or {}
+    bridge_cfg = settings.raw.get("brain") or {}
+    bridge_active = (
+        str(pipeline_cfg.get("post_generator") or "").strip().lower() == "brain"
+        and bool(bridge_cfg.get("enabled"))
+    )
+    bridge_channels = [
+        str(item) for item in (bridge_cfg.get("channels") or []) if str(item).strip()
+    ]
+    checks.append(
+        _check(
+            PASS if bridge_active else WARN,
+            "мост мозга в автопост: {}".format("включён" if bridge_active else "выключен"),
+            "каналы: {}; бесплатная цепочка cloudflare → cohere → ollama_cloud, "
+            "fallback internal".format(", ".join(bridge_channels) or "—"),
+        )
+    )
+    if brain_dir.is_dir():
+        bridge_config = (
+            ROOT / str(brain.get("config") or "../mcp-content-factory/config/brain.json")
+        ).resolve()
+        checks.append(
+            _check(
+                PASS if bridge_config.is_file() else WARN,
+                "конфиг мозга для моста",
+                str(bridge_config) if bridge_config.is_file() else "нет {}".format(bridge_config),
+            )
+        )
+        checks.append(
+            _check(
+                PASS,
+                "kill switch моста",
+                str(
+                    ((unified.get("brain") or {}).get("bridge") or {}).get(
+                        "kill_switch_env"
+                    )
+                    or "CONTENT_FACTORY_BRAIN"
+                ),
+            )
+        )
     sections.append({"title": "5. Мозг: LangGraph + RAG + трейсинг", "checks": checks})
 
     # 6. Публикация
@@ -453,6 +494,14 @@ def cmd_status(args: argparse.Namespace) -> int:
     total = sum(int(getattr(ch, "posts_per_day", 0) or 0) for ch in channels)
     print("Каналов: {} | постов/сутки по расписанию: {}".format(len(channels), total))
     print("Режим: {}".format("dry-run" if settings.dry_run else "LIVE"))
+    raw_brain = settings.raw.get("brain") or {}
+    pipeline_cfg = settings.raw.get("pipeline") or {}
+    print(
+        "Мост мозга: {} | каналы: {}".format(
+            str(pipeline_cfg.get("post_generator") or "internal"),
+            ", ".join(str(item) for item in (raw_brain.get("channels") or [])) or "—",
+        )
+    )
     preview = int((unified.get("pipeline") or {}).get("next_slots_preview") or 5)
     print("\nБлижайшие слоты (UTC):")
     for when, channel_id, slot in next_slots(channels, limit=preview):

@@ -26,11 +26,19 @@ brain:
   enabled: true
   path: ../mcp-content-factory
   python: .venv/bin/python
+  config: ../mcp-content-factory/config/brain.json
   engine: langgraph
   grounding: true
-  revision_rounds: 2
+  revision_rounds: 1
   # preview-команда, которую запускает `unified.py brain`
   preview_out: data/brain-preview
+  # Мост в автопост: content-factory отдаёт топ-сюжеты «мозгу» до публикации.
+  bridge:
+    post_generator: brain
+    channels: [crypto-news, ai-news]
+    free_providers: [cloudflare, cohere, ollama_cloud]
+    fallback_without_mcp: internal
+    kill_switch_env: CONTENT_FACTORY_BRAIN
 
 trends:
   enabled: true

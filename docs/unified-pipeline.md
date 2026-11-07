@@ -129,28 +129,68 @@ CoinGecko (крипто), GitHub Trending и Hacker News (AI/tech), Google Trend
 - **Аналитика роста:** `scripts/growth_report.py` (подписчики, просмотры/ER,
   дельты, лучший пост), отчёт в Telegram по флагу `--send`.
 
-## «Мозг»: когда использовать
+## Мост «мозга» в автопост (LangGraph + RAG)
 
-Production-автопостинг сейчас генерирует посты в `content-factory`
-(быстро и дёшево). LangGraph-мозг (`mcp-content-factory`) — премиум-слой:
+Мост **включён**: content-factory отдаёт уже собранные топ-сюжеты (RSS +
+кластеры) «мозгу» mcp-content-factory, тот генерирует пост пайплайном
+LangGraph:
 
-- многорайонный граф: классификатор ∥ исследователь → автор → критик ∥
-  проверки ∥ RAG-фактчек → редактура;
-- RAG-фактчек цифр по пассажам источников;
-- LangSmith-трейсинг каждого узла;
-- авто-переключение моделей по лимитам (Cloudflare → Cohere → Ollama Cloud →
-  DeepSeek).
-
-Превью и генерация черновиков:
-
-```bash
-./.venv/bin/python scripts/unified.py brain
-# черновики: data/brain-preview/drafts/, run-логи: data/brain-preview/runs/
+```
+classify ∥ research → write → critique ∥ checks ∥ ground(RAG) → edit
 ```
 
-Дальнейший шаг (если нужен полный мост): брать топ-N сюжетов из
-`content-factory` и генерировать их «мозгом» перед публикацией — структура
-для этого уже готова (общий env-ключи LLM, единые каналы).
+Затем content-factory проверяет язык (EN/ES), добавляет хештеги, CTA и
+источники и публикует пост по обычному расписанию. Для каждого поста «мозг»
+делает 5 модельных вызовов; результат попадает в трейс LangSmith.
+
+Включается в `config/settings.yaml`:
+
+```yaml
+pipeline:
+  post_generator: brain        # internal | dify_app | brain
+brain:
+  enabled: true
+  channels: [crypto-news, ai-news]   # топ-каналы; остальные — internal
+  path: ../mcp-content-factory
+  python: ../mcp-content-factory/.venv/bin/python
+  config: ../mcp-content-factory/config/brain.json
+  engine: langgraph
+  grounding: true
+  revision_rounds: 1
+  timeout: 300
+```
+
+**Бесплатно.** В `mcp-content-factory/config/brain.json` цепочка моделей:
+Cloudflare Workers AI → Cohere trial → Ollama Cloud; платный DeepSeek не
+используется. Чтобы не выходить за бесплатные лимиты, по умолчанию включены
+только 2 канала (30 постов/сутки × 5 ролей ≈ 150 вызовов); остальные каналы
+генерятся встроенно. Добавить/убрать канал — `brain.channels`.
+
+Выключить мост:
+
+```bash
+export CONTENT_FACTORY_BRAIN=off        # или post_generator: internal
+# либо channels: []
+```
+
+**Fallback.** Если рядом нет mcp-content-factory (например, GitHub Actions
+чекаутит только репозиторий content-factory), мост возвращает `None` —
+конвейер автоматически переходит на внутреннюю генерацию, публикация не
+падает. Для production в Actions нужно положить mcp рядом (submodule/vendor)
+или запускать завод на сервере; локально мост работает сразу.
+
+Проверка и превью:
+
+```bash
+./.venv/bin/python scripts/unified.py doctor   # пункт 5: «мост включён»
+./.venv/bin/python scripts/unified.py status   # строка «Мост мозга»
+./.venv/bin/python scripts/unified.py brain    # превью без публикации
+```
+
+Пример результата моста (EN-канал, реальные бесплатные модели): заголовок
+`Bitcoin Surpasses $100,000 Milestone Amid Record ETF Inflows`, лид по
+источникам, хештеги и CTA добавляет content-factory, пост уходит в обычную
+очередь публикации.
 
 ## Ежедневный сценарий оператора
 

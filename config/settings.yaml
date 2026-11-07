@@ -41,7 +41,9 @@ pipeline:
   # 144 поста/сутки: бесплатного Dify Sandbox не хватит, поэтому основной
   # генератор — LLM-цепочка (Groq/OpenRouter/…), а не Dify-приложение.
   # dify_app можно включить как эксперимент (там daily_limit 20 запусков).
-  post_generator: internal
+  # internal — встроенная генерация; dify_app — готовый пост из Dify;
+  # brain — мост в mcp-content-factory (LangGraph + RAG) для каналов из brain.channels.
+  post_generator: brain
   dify_post_app: posts
   min_relevance: 0.22           # общий порог релевантности темы канала
   min_cluster_chars: 200        # если в сюжете меньше текста — не публикуем (нет фактов)
@@ -258,6 +260,26 @@ integrations:
     seo:
       api_key_env: DIFY_SEO_API_KEY
       timeout: 120
+
+# --- Мост «мозга»: mcp-content-factory для топ-сюжетов -------------------
+# Пока mcp-content-factory (его venv и config/brain.json) лежит рядом с
+# content-factory, топ-сюжеты из listed channels генерируются LangGraph-пайплайном:
+# 5 ролей + критик + редактура + RAG-фактчек. Модели — бесплатные
+# (Cloudflare → Cohere trial → Ollama Cloud); платный DeepSeek не подключается.
+# Если моста нет (например, GitHub Actions без mcp), автопостинг откатывается
+# на internal-генерацию, ничего не падает.
+brain:
+  enabled: true
+  # Каналы, для которых включён мозг. Остальные — internal.
+  # Больше каналов = больше бесплатных вызовов; 1–2 канала — безопасный старт.
+  channels: [crypto-news, ai-news]
+  path: ../mcp-content-factory
+  python: ../mcp-content-factory/.venv/bin/python
+  config: ../mcp-content-factory/config/brain.json
+  engine: langgraph
+  grounding: true
+  revision_rounds: 1
+  timeout: 300
 
 publishers:
   telegram:
