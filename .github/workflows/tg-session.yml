@@ -1,0 +1,89 @@
+name: tg-session
+
+# Создание TG_SESSION (Telethon user-session) на раннере GitHub — обход блокировки
+# Telegram в локальной сети: раннеру api.telegram.org доступен.
+#
+# Порядок:
+#   1) Добавьте секреты TG_API_ID и TG_API_HASH (TG_PASSWORD — если включён 2FA).
+#   2) Run workflow: mode=start, phone=+7... → придёт код в Telegram,
+#      в этом запуске появится артефакт tg-session-partial.
+#   3) Run workflow: mode=finish, code=12345, start_run_id=<номер запуска из п.2>
+#      → артефакт tg-session-final со строкой сессии.
+#   4) Скачайте tg-session-final, вставьте строку в секрет TG_SESSION,
+#      удалите артефакты (они дают доступ к аккаунту).
+#
+# В логах секреты не печатаются.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "start = запросить код, finish = завершить вход"
+        required: true
+        default: "start"
+        type: choice
+        options: ["start", "finish"]
+      phone:
+        description: "Телефон для mode=start (например +79991234567)"
+        required: false
+        default: ""
+      code:
+        description: "Код из Telegram для mode=finish"
+        required: false
+        default: ""
+      start_run_id:
+        description: "Номер запуска mode=start (для mode=finish)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  session:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Telethon
+        run: pip install "Telethon>=1.34"
+      - name: Download partial session (finish only)
+        if: ${{ inputs.mode == 'finish' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: tg-session-partial
+          run-id: ${{ inputs.start_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Request login code (start)
+        if: ${{ inputs.mode == 'start' }}
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          PHONE: ${{ inputs.phone }}
+        run: python scripts/tg_session_start.py
+      - name: Finish login (finish)
+        if: ${{ inputs.mode == 'finish' }}
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_PASSWORD: ${{ secrets.TG_PASSWORD }}
+          CODE: ${{ inputs.code }}
+        run: python scripts/tg_session_finish.py
+      - name: Upload partial session
+        if: ${{ inputs.mode == 'start' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tg-session-partial
+          path: tg_session_partial.json
+          retention-days: 1
+      - name: Upload final session
+        if: ${{ inputs.mode == 'finish' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tg-session-final
+          path: tg_session_final.txt
+          retention-days: 1

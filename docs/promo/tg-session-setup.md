@@ -30,6 +30,35 @@ cd ~/Documents/deepseek-harness/default-workspace/content-factory
 > и повтори, либо выполни шаг с телефона/другого устройства. Скрипт только
 > логинится и печатает сессию; посты он не публикует.
 
+
+## Вариант без VPN: собрать сессию на GitHub-раннере
+
+Если локальная сеть блокирует Telegram (api.telegram.org недоступен), сессию
+можно создать **в облаке GitHub Actions** — там Telegram доступен.
+
+1. Добавьте секреты `TG_API_ID` и `TG_API_HASH` (плюс `TG_PASSWORD`, если 2FA).
+2. Actions → **tg-session** → Run workflow: `mode=start`, `phone=+7...`.
+   В течение минуты в Telegram придёт код; в этом запуске появится артефакт
+   `tg-session-partial` (хранится 1 день).
+3. Скопируйте **номер запуска** (из URL `.../actions/runs/<номер>`).
+4. Снова Run workflow: `mode=finish`, `code=<код>`, `start_run_id=<номер>`.
+5. Скачайте артефакт `tg-session-final`, откройте `tg_session_final.txt`,
+   вставьте строку в секрет `TG_SESSION`.
+6. Удалите оба артефакта (они дают доступ к аккаунту) и, если добавляли,
+   удалите секрет `TG_PASSWORD`.
+
+Проверить: Actions → **vp-outreach** → `region=en`, `limit=3`, `dry_run=true`,
+затем повторить с `dry_run=false`.
+
+### Что уже есть из прокси/обходов
+
+- **Cloudflare Worker `telegram-proxy`** уже проксирует Bot API
+  (`TELEGRAM_API_BASE` в `.env`) — но это HTTP Bot API, он не помогает с
+  user-session (MTProto) и не позволяет боту писать первым чужим админам.
+- **Pipedream-релей** (`docs/pipedream-relay.md`) — тоже только Bot API.
+- **VPN/прокси** нужен только если хочется создать сессию локально. Telethon
+  поддерживает прокси: `TG_PROXY=socks5://host:port` для `make_tg_session.py`.
+
 ## Шаг 3. Добавить 3 секрета в GitHub
 
 GitHub → репозиторий `content-factory` → **Settings → Secrets and variables →

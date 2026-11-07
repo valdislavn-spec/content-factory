@@ -38,7 +38,21 @@ async def main() -> int:
         print("Нужны числовой TG_API_ID и TG_API_HASH из my.telegram.org", file=sys.stderr)
         return 2
 
-    client = TelegramClient(StringSession(), int(api_id), api_hash)
+    proxy = os.environ.get("TG_PROXY", "").strip()
+    proxy_arg = None
+    if proxy:
+        # socks5://user:pass@host:port или socks5://host:port
+        from urllib.parse import urlparse
+        parsed = urlparse(proxy if "://" in proxy else "socks5://" + proxy)
+        proxy_arg = (
+            parsed.scheme or "socks5",
+            parsed.hostname,
+            parsed.port or 1080,
+            True,
+            parsed.username,
+            parsed.password,
+        )
+    client = TelegramClient(StringSession(), int(api_id), api_hash, proxy=proxy_arg)
     await client.connect()
     try:
         if not await client.is_user_authorized():
