@@ -25,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 STATE = ROOT / "data" / "vp_bot_state.json"
 LEADS = ROOT / "data" / "vp_leads.jsonl"
+ACTIVE = ROOT / "data" / "vp_active_users.jsonl"
 
 TRIGGERS = (
     "/start",
@@ -120,7 +121,8 @@ def main() -> int:
     if not updates.get("ok"):
         print("getUpdates error:", updates, file=sys.stderr)
         return 1
-    leads = []
+    leads: list = []
+    active: list = []
     for update in updates.get("result") or []:
         state["offset"] = max(state.get("offset", 0), update["update_id"] + 1)
         message = update.get("message") or update.get("edited_message") or {}
@@ -132,14 +134,31 @@ def main() -> int:
         if not any(trigger in lowered for trigger in TRIGGERS):
             continue
         lang = detect_lang(text)
+        sender = message.get("from") or {}
         lead = {
             "time": datetime.now(timezone.utc).isoformat(),
-            "user_id": (message.get("from") or {}).get("id"),
-            "username": (message.get("from") or {}).get("username"),
+            "user_id": sender.get("id"),
+            "username": sender.get("username"),
+            "first_name": sender.get("first_name"),
+            "last_name": sender.get("last_name"),
             "chat_id": chat.get("id"),
+            "chat_type": chat.get("type"),
+            "chat_title": chat.get("title"),
             "text": text[:500],
             "lang": lang,
         }
+        # Активные пользователи в привязанной группе (комментаторы) — даже без
+        # ключевых слов: это публичная активность, не «список подписчиков».
+        if chat.get("type") in ("group", "supergroup") and sender.get("id"):
+            active.append({
+                "time": datetime.now(timezone.utc).isoformat(),
+                "user_id": sender.get("id"),
+                "username": sender.get("username"),
+                "first_name": sender.get("first_name"),
+                "last_name": sender.get("last_name"),
+                "chat_id": chat.get("id"),
+                "chat_title": chat.get("title"),
+            })
         leads.append(lead)
         reply = REPLIES[lang]
         print(f"[{lang}] from @{lead['username']} ({lead['user_id']}): {text[:80]}")
@@ -151,11 +170,16 @@ def main() -> int:
             print("  → ответ отправлен")
         except Exception as exc:  # noqa: BLE001
             print("  → ошибка отправки:", exc, file=sys.stderr)
+    LEADS.parent.mkdir(parents=True, exist_ok=True)
     if leads:
-        LEADS.parent.mkdir(parents=True, exist_ok=True)
         with LEADS.open("a", encoding="utf-8") as fh:
             for lead in leads:
                 fh.write(json.dumps(lead, ensure_ascii=False) + "\n")
+    if active:
+        with ACTIVE.open("a", encoding="utf-8") as fh:
+            for user in active:
+                fh.write(json.dumps(user, ensure_ascii=False) + "\n")
+    print(f"активных пользователей из групп: {len(active)}")
     save_state(state)
     print(f"обработано новых заявок: {len(leads)}; offset={state['offset']}")
     return 0

@@ -37,6 +37,7 @@ jobs:
           path: |
             data/vp_bot_state.json
             data/vp_leads.jsonl
+            data/vp_active_users.jsonl
           key: vp-bot-inbox-${{ github.run_id }}
           restore-keys: |
             vp-bot-inbox-
@@ -52,12 +53,15 @@ jobs:
           path: |
             data/vp_bot_state.json
             data/vp_leads.jsonl
+            data/vp_active_users.jsonl
           key: vp-bot-inbox-${{ github.run_id }}
       - name: Upload leads
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vp-leads
-          path: data/vp_leads.jsonl
+          path: |
+            data/vp_leads.jsonl
+            data/vp_active_users.jsonl
           if-no-files-found: ignore
           retention-days: 90
