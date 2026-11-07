@@ -1,15 +1,22 @@
-# Каналы-кандидаты для ВП/партнёрств: по одному @username в строке.
-#
-# Где искать (бесплатно):
-#   1. TGStat/Telemetr — блок «похожие каналы» у каналов своей тематики;
-#   2. Telegram → «Similar channels» в профиле канала;
-#   3. комментарии/упоминания у крупных крипто/AI-каналов;
-#   4. подборки в Reddit (r/cryptocurrency, r/artificial) и Twitter/X.
-#
-# Критерии отбора (vp-outreach.md): тематика пересекается на 50%+, просмотры
-# 100–800, живой (посты за 3 дня), ER 1–10% (выше 30% — подозрение на накрутку).
-# После добавления запустить workflow partner-scan (Actions → partner-scan → Run).
-#
-# Примеры (замените на реальные каналы):
-# @cointelegraph
-# @WatcherGuru
+# Каналы-кандидаты для ВП/партнёрств (по одному @username в строке).
+# Источник: каталог CoinGape 130+ Crypto Telegram Channels (2026), отобраны
+# англоязычные Crypto News / Market Insights 2k–52k подписчиков — сопоставимый
+# масштаб для канала на 3,7k. Проверка: workflow partner-scan (Actions → Run).
+# Критерии ВП: просмотры 100–800, живой, ER 1–10%, без накрутки.
+
+@Crypomarkettrends  # Crypto market trends · ~2300 подп. · Crypto Market Insights
+@CryptoFlake  # CryptoFlake · ~4000 подп. · Crypto News
+@utoday_en  # U°Today · ~4700 подп. · Crypto News
+@cryptodotnews  # crypto.news · ~6000 подп. · Crypto News
+@tradingnews  # Trading | News · ~8200 подп. · Crypto Market Insights
+@holder_of_altcoins  # Altcoin Holder · ~10300 подп. · Crypto News
+@coingeckonews  # CoinGecko News · ~10900 подп. · Crypto News
+@web3newsfeed  # Web3 News · ~12100 подп. · Crypto News
+@NFT_Era_News  # NFT ERA · ~15700 подп. · Crypto News
+@bitcoinnews  # Bitcoin | BTC | News · ~17600 подп. · Crypto Market Insights
+@Coin_Quest  # CoinQuest · ~19100 подп. · Crypto News
+@coingape  # CoinGape News · ~26400 подп. · Crypto News
+@the_block_crypto  # The Block News Feed · ~26900 подп. · Crypto News
+@ProCryptoNews  # Pro Crypto News · ~26500 подп. · Crypto Trading Signals
+@cryptosignalsandmarketanalyse  # First Crypto News · ~29000 подп. · Crypto Trading Signals
+@cryptomaxch  # Crypto Max · ~51900 подп. · Crypto Market Insights
