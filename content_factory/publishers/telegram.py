@@ -282,7 +282,7 @@ class TelegramPublisher(Publisher):
                         channel.id,
                         message_id or "-",
                     )
-                except TelegramAPIError as exc:
+                except Exception as exc:  # noqa: BLE001 - карточка не должна срывать пост
                     logger.warning(
                         "Telegram: карточка поста %s не загрузилась (%s) — отправляю текст",
                         post.id,
