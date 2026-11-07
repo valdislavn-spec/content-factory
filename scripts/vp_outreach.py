@@ -80,6 +80,13 @@ def load_rows(region: str, limit: int) -> list[dict]:
             partner = "@" + partner
         row["_target"] = partner
         selected.append(row)
+    def _views(row: dict) -> float:
+        try:
+            return float(row.get("avg_views") or 0)
+        except ValueError:
+            return 0.0
+
+    selected.sort(key=_views, reverse=True)
     return selected[:limit]
 
 
