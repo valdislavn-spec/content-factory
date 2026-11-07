@@ -61,6 +61,12 @@ class ChannelConfig:
     max_post_chars: int = 3500
     min_relevance: float = 0.25
     formats: List[str] = field(default_factory=lambda: ["digest", "story", "analysis"])
+    # Пиковое время: ночью — только короткий дайджест, днём — микс форматов.
+    content_mix: Dict[str, int] = field(
+        default_factory=lambda: {"story": 30, "analysis": 40, "interactive": 30}
+    )
+    night_max_chars: int = 900
+    night_window: str = "23:00-07:00"
     hashtags: List[str] = field(default_factory=list)
     cta: str = ""
     telegram_chat_id: str = ""
@@ -82,6 +88,15 @@ class ChannelConfig:
         self.publisher_ids = [str(p).strip().lower() for p in self.publisher_ids] or ["telegram"]
         self.posts_per_day = max(1, int(self.posts_per_day))
         self.max_post_chars = max(400, int(self.max_post_chars))
+        mix: Dict[str, int] = {}
+        for key, value in (self.content_mix or {}).items():
+            try:
+                mix[str(key).strip().lower()] = max(0, int(value))
+            except (TypeError, ValueError):
+                continue
+        self.content_mix = mix or {"story": 30, "analysis": 40, "interactive": 30}
+        self.night_max_chars = max(300, int(self.night_max_chars))
+        self.night_window = str(self.night_window or "23:00-07:00").strip()
         self.min_relevance = float(self.min_relevance)
         self.timezone_offset = int(self.timezone_offset)
 

@@ -156,6 +156,9 @@ CHANNEL_DEFAULTS: Dict[str, Any] = {
     "max_post_chars": 3500,
     "min_relevance": 0.25,
     "formats": ["digest", "story", "analysis"],
+    "content_mix": {"story": 30, "analysis": 40, "interactive": 30},
+    "night_max_chars": 900,
+    "night_window": "23:00-07:00",
     "hashtags": [],
     "cta": "",
     "telegram_chat_id": "",
@@ -409,7 +412,7 @@ def _parse_channel(raw: Any, index: int, settings: Settings) -> ChannelConfig:
         parse_hhmm(str(slot))
 
     formats = [str(f).lower() for f in (data.get("formats") or ["story"])]
-    allowed_formats = {"digest", "story", "analysis"}
+    allowed_formats = {"digest", "story", "analysis", "interactive"}
     bad_formats = set(formats) - allowed_formats
     if bad_formats:
         raise ConfigError(f"неизвестные форматы постов: {', '.join(sorted(bad_formats))}")
@@ -467,6 +470,9 @@ def _parse_channel(raw: Any, index: int, settings: Settings) -> ChannelConfig:
         max_post_chars=int(data.get("max_post_chars", 3500)),
         min_relevance=float(data.get("min_relevance", settings.pipeline.get("min_relevance", 0.25))),
         formats=formats,
+        content_mix=data.get("content_mix") or {"story": 30, "analysis": 40, "interactive": 30},
+        night_max_chars=int(data.get("night_max_chars", 900)),
+        night_window=str(data.get("night_window") or "23:00-07:00"),
         hashtags=[str(t) for t in (data.get("hashtags") or [])],
         cta=str(data.get("cta") or ""),
         telegram_chat_id=chat_id,

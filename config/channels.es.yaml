@@ -15,7 +15,8 @@
 channels:
 - id: tech-ai-es
   title: ES AI News
-  description: 'Inteligencia artificial en español: modelos, productos, empresas y políticas de IA.'
+  description: 'Inteligencia artificial en español: modelos, productos, empresas y
+    políticas de IA.'
   telegram_chat_id: '-1004355563628'
   language: es
   topics:
@@ -57,20 +58,31 @@ channels:
   - IA
   - Innovación
   formats:
-  - digest
   - story
   - analysis
+  - interactive
+  - digest
   schedule:
-  - '07:00'
-  - '10:00'
-  - '13:00'
-  - '16:00'
-  - '19:00'
-  - '22:00'
-  posts_per_day: 6
+  - "00:00"
+  - "02:20"
+  - "04:40"
+  - "07:00"
+  - "08:00"
+  - "09:00"
+  - "10:40"
+  - "12:20"
+  - "13:20"
+  - "14:20"
+  - "16:00"
+  - "17:40"
+  - "19:20"
+  - "20:20"
+  - "21:20"
+  - "23:00"
+  posts_per_day: 16
   min_relevance: 0.18
-  timezone_offset: -5
-  max_post_chars: 3200
+  timezone_offset: -6
+  max_post_chars: 1800
   cta: Síguenos para más tecnología en español.
   sources:
   - id: hipertextual
@@ -99,7 +111,8 @@ channels:
       max_items: 15
   - id: lanacion-tecnologia
     type: rss
-    url: https://www.lanacion.com.ar/arc/outboundfeeds/rss/category/tecnologia/?outputType=xml
+    url: 
+      https://www.lanacion.com.ar/arc/outboundfeeds/rss/category/tecnologia/?outputType=xml
     name: La Nación / Tecnología
     weight: 1.0
     options:
@@ -112,9 +125,16 @@ channels:
     weight: 0.9
     options:
       max_items: 12
+  night_max_chars: 900
+  night_window: 23:00-07:00
+  content_mix:
+    story: 30
+    analysis: 40
+    interactive: 30
 - id: crypto-es
   title: ES Crypto & Blockchain
-  description: 'Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados y tecnología blockchain.'
+  description: 'Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados
+    y tecnología blockchain.'
   telegram_chat_id: '-1004304574421'
   language: es
   topics:
@@ -152,19 +172,30 @@ channels:
   - Blockchain
   formats:
   - story
-  - digest
   - analysis
+  - interactive
+  - digest
   schedule:
-  - '08:00'
-  - '11:00'
-  - '14:00'
-  - '17:00'
-  - '20:00'
-  - '23:00'
-  posts_per_day: 6
+  - "00:15"
+  - "02:35"
+  - "04:55"
+  - "07:15"
+  - "08:15"
+  - "09:15"
+  - "10:55"
+  - "12:35"
+  - "13:35"
+  - "14:35"
+  - "16:15"
+  - "17:55"
+  - "19:35"
+  - "20:35"
+  - "21:35"
+  - "23:15"
+  posts_per_day: 16
   min_relevance: 0.18
-  timezone_offset: -5
-  max_post_chars: 3200
+  timezone_offset: -6
+  max_post_chars: 1800
   cta: ''
   sources:
   - id: criptonoticias
@@ -199,9 +230,16 @@ channels:
     options:
       trust: true
       max_items: 10
+  night_max_chars: 900
+  night_window: 23:00-07:00
+  content_mix:
+    story: 30
+    analysis: 40
+    interactive: 30
 - id: futbol-es
   title: ES Sports News
-  description: 'Deporte en español: fútbol, LaLiga, Liga MX, Argentina, MLS, Champions, tenis, baloncesto y más.'
+  description: 'Deporte en español: fútbol, LaLiga, Liga MX, Argentina, MLS, Champions,
+    tenis, baloncesto y más.'
   telegram_chat_id: '-1004391544104'
   language: es
   topics:
@@ -257,19 +295,30 @@ channels:
   - LigaMX
   formats:
   - story
-  - digest
   - analysis
+  - interactive
+  - digest
   schedule:
-  - '07:00'
-  - '10:00'
-  - '13:00'
-  - '16:00'
-  - '19:00'
-  - '22:00'
-  posts_per_day: 6
+  - "00:30"
+  - "02:50"
+  - "05:10"
+  - "07:30"
+  - "08:30"
+  - "09:30"
+  - "11:10"
+  - "12:50"
+  - "13:50"
+  - "14:50"
+  - "16:30"
+  - "18:10"
+  - "19:50"
+  - "20:50"
+  - "21:50"
+  - "23:30"
+  posts_per_day: 16
   min_relevance: 0.18
-  timezone_offset: -5
-  max_post_chars: 3200
+  timezone_offset: -6
+  max_post_chars: 1800
   cta: ¿Qué te pareció? Comparte tu opinión.
   sources:
   - id: espn-laliga
@@ -314,7 +363,8 @@ channels:
       trust: true
   - id: espn-champions
     type: espn
-    url: https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news
+    url: 
+      https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news
     name: ESPN / Champions
     weight: 1.1
     options:
@@ -340,14 +390,16 @@ channels:
       max_items: 10
   - id: lanacion-deportes
     type: rss
-    url: https://www.lanacion.com.ar/arc/outboundfeeds/rss/category/deportes/?outputType=xml
+    url: 
+      https://www.lanacion.com.ar/arc/outboundfeeds/rss/category/deportes/?outputType=xml
     name: La Nación / Deportes
     weight: 1.1
     options:
       max_items: 12
   - id: universal-deportes
     type: rss
-    url: https://www.eluniversal.com.mx/arc/outboundfeeds/rss/category/deportes/?outputType=xml
+    url: 
+      https://www.eluniversal.com.mx/arc/outboundfeeds/rss/category/deportes/?outputType=xml
     name: El Universal / Deportes
     weight: 1.0
     options:
@@ -360,3 +412,9 @@ channels:
     options:
       max_items: 10
       full_text: true
+  night_max_chars: 900
+  night_window: 23:00-07:00
+  content_mix:
+    story: 30
+    analysis: 40
+    interactive: 30

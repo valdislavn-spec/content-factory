@@ -41,7 +41,7 @@ from .llm import LLMClient, clean_llm_output
 
 LOGGER = logging.getLogger(__name__)
 
-_ALLOWED_FORMATS = ("story", "digest", "analysis")
+_ALLOWED_FORMATS = ("story", "digest", "analysis", "interactive")
 _ALLOWED_TAGS = frozenset({"b", "i", "a", "code"})
 _TAG_SPLIT_RE = re.compile(r"(<[^>]+>)")
 _NUM_RE = re.compile(r"\d+")
@@ -144,16 +144,55 @@ _SYSTEM_WRITER = (
     "события, цифры, имена, цитаты и ссылки. Без markdown и без пояснений."
 )
 _SYSTEM_WRITER_EN = (
-    "You are an editor of a news Telegram channel. Write in English: lively but "
-    "precise and neutral. Use only the facts from the provided text: never invent "
-    "events, numbers, names, quotes or links. No markdown and no explanations."
+    "You are the editor of a US news Telegram channel. Write in direct, concise, "
+    "high-impact American English: professional, sharp and engaging, no filler. "
+    "Use only the facts from the provided text: never invent events, numbers, "
+    "names, quotes or links. No markdown and no explanations."
 )
 _SYSTEM_WRITER_ES = (
-    "Eres el editor de un canal de noticias de Telegram. Escribe en español "
-    "neutro: con viveza, pero de forma precisa y neutral. Usa solo los hechos del "
-    "texto proporcionado: no inventes acontecimientos, cifras, nombres, citas ni "
-    "enlaces. Sin markdown y sin explicaciones."
+    "Eres el editor de un canal de noticias para América Latina. Escribe en "
+    "español neutro latinoamericano: usa siempre «ustedes», evita «vosotros» y "
+    "los regionalismos; tono autoritativo, cercano y confiable. Usa solo los "
+    "hechos del texto proporcionado: no inventes acontecimientos, cifras, "
+    "nombres, citas ni enlaces. Sin markdown y sin explicaciones."
 )
+
+# Тренды и интерактив: подписи по языкам.
+_TREND_LABELS = {"ru": "В тренде", "en": "Trending now", "es": "En tendencia"}
+_QUESTION_LABELS = {"ru": "Вопрос", "en": "Question", "es": "Pregunta"}
+_INTERACTIVE_QUESTIONS = {
+    "en": [
+        "What's your take — does this change the outlook?",
+        "Would you act on this now, or wait for more data?",
+        "How does this shift your view of the market?",
+        "Which side of this story matters most to you?",
+        "Does this look like a one-off, or the start of a trend?",
+    ],
+    "es": [
+        "¿Cuál es su opinión: esto cambia el panorama?",
+        "¿Actuarían ya o esperarían más datos?",
+        "¿Cómo cambia esto su visión del mercado?",
+        "¿Qué parte de esta historia les parece más importante?",
+        "¿Es un caso aislado o el inicio de una tendencia?",
+    ],
+    "ru": [
+        "А как вы считаете — это меняет картину?",
+        "Стоит ли действовать сейчас или подождать данных?",
+        "Как это влияет на ваш взгляд на рынок?",
+        "Какая часть этой истории для вас важнее?",
+        "Это разовый случай или начало тренда?",
+    ],
+}
+
+
+def _trends_block(trends: Sequence[str], lang: str = "ru") -> str:
+    """Строка трендов для начала поста (в пиковые часы — первым блоком)."""
+    terms = [normalize_space(str(term)) for term in (trends or []) if str(term).strip()][:3]
+    if not terms:
+        return ""
+    label = _TREND_LABELS.get(language_code(lang), _TREND_LABELS["ru"])
+    return f"<b>{label}:</b> {_escape(', '.join(terms))}"
+
 
 # Подписи и маркеры для разных тональностей канала.
 _TONE_STYLES: Dict[str, Dict[str, str]] = {
@@ -1219,6 +1258,7 @@ def _build_story(
     hashtags: Sequence[str],
     source_text: str,
     lang: str = "ru",
+    trends: Sequence[str] = (),
 ) -> Tuple[List[Dict[str, Any]], bool]:
     llm_used = False
     compact_headline = bool(_setting(settings, "llm.optimize.compact_headline", False))
@@ -1235,6 +1275,9 @@ def _build_story(
         title = _headline(cluster, analysis, lang)
 
     blocks: List[Dict[str, Any]] = [{"text": f"<b>{_escape(title)}</b>"}]
+    trend_line = _trends_block(trends, lang)
+    if trend_line:
+        blocks.append({"text": trend_line})
     bullets = _story_bullets(analysis, title, lang)
     if bullets:
         lines = "\n".join(f"{style.get('bullet', '•')} {_escape(bullet)}" for bullet in bullets)
@@ -1284,6 +1327,7 @@ def _build_analysis(
     hashtags: Sequence[str],
     source_text: str,
     lang: str = "ru",
+    trends: Sequence[str] = (),
 ) -> Tuple[List[Dict[str, Any]], bool]:
     llm_used = False
     compact_headline = bool(_setting(settings, "llm.optimize.compact_headline", False))
@@ -1302,6 +1346,9 @@ def _build_analysis(
     blocks: List[Dict[str, Any]] = [
         {"text": f"<b>{style.get('analysis', 'Разбор')}: {_escape(title)}</b>"}
     ]
+    trend_line = _trends_block(trends, lang)
+    if trend_line:
+        blocks.append({"text": trend_line})
 
     context_sentences = [
         sentence
@@ -1355,12 +1402,19 @@ def _build_single_digest(
     sources: Sequence[Dict[str, str]],
     hashtags: Sequence[str],
     lang: str = "ru",
+    trends: Sequence[str] = (),
 ) -> Tuple[List[Dict[str, Any]], bool]:
     date = _format_date(
         channel, lang, cluster.last_published or utcnow(), with_time=False
     )
     header = f"<b>{style.get('digest', 'Дайджест')} · {_escape(date)}</b>"
     blocks: List[Dict[str, Any]] = [{"text": header}]
+    trend_line = _trends_block(trends, lang)
+    if trend_line:
+        blocks.append({"text": trend_line})
+    trend_line = _trends_block(trends, lang)
+    if trend_line:
+        blocks.append({"text": trend_line})
     title = _headline(cluster, analysis, lang)
     blocks.append({"text": f"<b>{_escape(title)}</b>"})
 
@@ -1390,6 +1444,71 @@ def _build_single_digest(
     if tags_text:
         blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
     return blocks, False
+
+
+def _build_interactive(
+    cluster: StoryCluster,
+    analysis: Analysis,
+    channel: ChannelConfig,
+    settings: Any,
+    llm: Optional[LLMClient],
+    style: Dict[str, str],
+    sources: Sequence[Dict[str, str]],
+    hashtags: Sequence[str],
+    source_text: str,
+    lang: str = "ru",
+    trends: Sequence[str] = (),
+) -> Tuple[List[Dict[str, Any]], bool]:
+    """Пост-вовлечение: факт/контекст + вопрос к аудитории (30% днём)."""
+    llm_used = False
+    compact_headline = bool(_setting(settings, "llm.optimize.compact_headline", False))
+    title = (
+        _llm_headline(cluster, analysis, source_text, llm, lang, compact=compact_headline)
+        if _llm_available(llm)
+        else ""
+    )
+    if title:
+        llm_used = True
+    else:
+        title = _headline(cluster, analysis, lang)
+
+    blocks: List[Dict[str, Any]] = [{"text": f"<b>{_escape(title)}</b>"}]
+    trend_line = _trends_block(trends, lang)
+    if trend_line:
+        blocks.append({"text": trend_line})
+
+    context_sentences = [
+        sentence
+        for sentence in split_sentences(analysis.summary)[:2]
+        if _fits_language(sentence, lang)
+    ]
+    if context_sentences:
+        context = " ".join(_shorten(sentence, 300) for sentence in context_sentences)
+        blocks.append({"text": f"{_section(style, 'context')}\n{_escape(context)}"})
+
+    bullets = _story_bullets(analysis, title, lang)[:3]
+    context_plain = " ".join(context_sentences)
+    bullets = [bullet for bullet in bullets if not _similar(bullet, context_plain, 0.6)]
+    if bullets:
+        lines = "\n".join(f"{style.get('bullet', '•')} {_escape(bullet)}" for bullet in bullets)
+        blocks.append({"text": lines})
+
+    questions = _INTERACTIVE_QUESTIONS.get(language_code(lang), _INTERACTIVE_QUESTIONS["ru"])
+    if questions:
+        index = sum(ord(char) for char in title) % len(questions)
+        label = _QUESTION_LABELS.get(language_code(lang), _QUESTION_LABELS["ru"])
+        blocks.append({"text": f"<b>{label}:</b> {_escape(questions[index])}"})
+
+    sources_text = _sources_block(sources, style)
+    if sources_text:
+        blocks.append({"text": sources_text, "optional": True, "drop_priority": 70})
+    tags_text = _hashtags_block(hashtags)
+    if tags_text:
+        blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
+    cta_text = _cta_block(channel, settings, lang)
+    if cta_text:
+        blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
+    return blocks, llm_used
 
 
 # ---------------------------------------------------------------------------
@@ -1453,8 +1572,9 @@ def _make_post(
     llm: Optional[LLMClient],
     score: float,
     extra_meta: Optional[Dict[str, Any]] = None,
+    max_chars: Optional[int] = None,
 ) -> GeneratedPost:
-    text = _fit_blocks(blocks, int(channel.max_post_chars))
+    text = _fit_blocks(blocks, int(max_chars or channel.max_post_chars))
     quality = _quality_issues(text, channel, settings, sources)
     meta: Dict[str, Any] = {
         "format": fmt,
@@ -1465,6 +1585,7 @@ def _make_post(
         "quality_issues": quality,
         "language": channel.language,
         "llm_provider": getattr(llm, "name", "extractive") if llm_used else "extractive",
+        "max_chars_target": int(max_chars or channel.max_post_chars),
     }
     if extra_meta:
         meta.update(extra_meta)
@@ -1493,8 +1614,10 @@ def generate_post(
     settings: Any,
     fmt: Optional[str] = None,
     llm: Optional[LLMClient] = None,
+    max_chars: Optional[int] = None,
+    trends: Sequence[str] = (),
 ) -> GeneratedPost:
-    """Генерирует один пост (story / analysis / digest) по кластеру."""
+    """Генерирует один пост (story / analysis / digest / interactive)."""
     if cluster is None:
         raise ValueError("generate_post: cluster обязателен")
     if channel is None:
@@ -1510,16 +1633,23 @@ def generate_post(
 
     if fmt == "analysis":
         blocks, llm_used = _build_analysis(
-            cluster, analysis, channel, settings, llm, style, sources, hashtags, source_text, lang
+            cluster, analysis, channel, settings, llm, style, sources, hashtags, source_text, lang,
+            trends=trends,
+        )
+    elif fmt == "interactive":
+        blocks, llm_used = _build_interactive(
+            cluster, analysis, channel, settings, llm, style, sources, hashtags, source_text, lang,
+            trends=trends,
         )
     elif fmt == "digest":
         blocks, llm_used = _build_single_digest(
-            cluster, analysis, channel, settings, style, sources, hashtags, lang
+            cluster, analysis, channel, settings, style, sources, hashtags, lang, trends=trends,
         )
     else:
         fmt = "story"
         blocks, llm_used = _build_story(
-            cluster, analysis, channel, settings, llm, style, sources, hashtags, source_text, lang
+            cluster, analysis, channel, settings, llm, style, sources, hashtags, source_text, lang,
+            trends=trends,
         )
 
     return _make_post(
@@ -1534,7 +1664,8 @@ def generate_post(
         llm_used=llm_used,
         llm=llm,
         score=cluster.score,
-        extra_meta={"source_count": len(cluster.source_names)},
+        extra_meta={"source_count": len(cluster.source_names), "trends": list(trends)},
+        max_chars=max_chars,
     )
 
 
@@ -1543,6 +1674,8 @@ def generate_digest(
     channel: ChannelConfig,
     settings: Any,
     llm: Optional[LLMClient] = None,
+    max_chars: Optional[int] = None,
+    trends: Sequence[str] = (),
 ) -> GeneratedPost:
     """Генерирует дайджест из 3–5 коротких новостей со ссылками на источники."""
     if channel is None:
@@ -1602,6 +1735,7 @@ def generate_digest(
             llm=llm,
             score=0.0,
             extra_meta={"items_count": 0, "quality_issues_extra": ["нет новостей для дайджеста"]},
+            max_chars=max_chars,
         )
         post.meta["quality_issues"].append("нет новостей для дайджеста")
         return post
@@ -1626,6 +1760,9 @@ def generate_digest(
     else:
         header = f"<b>{digest_label} «{_escape(channel.title)}»: {_escape(date)}</b>"
     blocks: List[Dict[str, Any]] = [{"text": header}]
+    trend_line = _trends_block(trends, lang)
+    if trend_line:
+        blocks.append({"text": trend_line})
     for index, (cluster, analysis) in enumerate(normalized):
         title = _headline(cluster, analysis, lang)
         one_line = (
@@ -1672,7 +1809,8 @@ def generate_digest(
         llm_used=llm_used,
         llm=llm,
         score=score,
-        extra_meta={"items_count": len(normalized)},
+        extra_meta={"items_count": len(normalized), "trends": list(trends)},
+        max_chars=max_chars,
     )
 
 

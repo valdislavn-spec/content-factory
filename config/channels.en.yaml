@@ -19,7 +19,8 @@
 channels:
 - id: sport-news
   title: US Sports News
-  description: 'NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis.'
+  description: 'NFL, NBA, MLB, NHL and college football: scores, trades, injuries
+    and analysis.'
   telegram_chat_id: '-1003802742871'
   language: en
   topics:
@@ -91,7 +92,8 @@ channels:
       trust: true
   - id: espn-cfb
     type: espn
-    url: https://site.api.espn.com/apis/site/v2/sports/football/college-football/news
+    url: 
+      https://site.api.espn.com/apis/site/v2/sports/football/college-football/news
     name: ESPN / College Football
     weight: 1.1
     options:
@@ -178,34 +180,42 @@ channels:
   enabled: true
   emoji: true
   formats:
-  - digest
   - story
   - analysis
+  - interactive
+  - digest
   schedule:
-  - 00:00
-  - 01:30
-  - 03:00
-  - 04:30
-  - 06:00
-  - 07:30
-  - 09:00
-  - '10:30'
-  - '12:00'
-  - '13:30'
-  - '15:00'
-  - '16:30'
-  - '18:00'
-  - '19:30'
-  - '21:00'
-  - '22:30'
+  - "00:00"
+  - "02:20"
+  - "04:40"
+  - "07:00"
+  - "08:00"
+  - "09:00"
+  - "10:40"
+  - "12:20"
+  - "13:20"
+  - "15:00"
+  - "16:40"
+  - "18:20"
+  - "19:20"
+  - "20:20"
+  - "22:00"
+  - "23:40"
   posts_per_day: 16
   min_relevance: 0.18
-  timezone_offset: 0
-  max_post_chars: 3200
+  timezone_offset: -5
+  max_post_chars: 1800
   cta: ''
+  night_max_chars: 900
+  night_window: 23:00-07:00
+  content_mix:
+    story: 30
+    analysis: 40
+    interactive: 30
 - id: ai-news
   title: AI News
-  description: 'AI for a US audience: models, products, policy and the companies building them.'
+  description: 'AI for a US audience: models, products, policy and the companies building
+    them.'
   telegram_chat_id: '-1004351191643'
   language: en
   topics:
@@ -271,7 +281,8 @@ channels:
       max_items: 15
   - id: cnbc-tech
     type: rss
-    url: https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910
+    url: 
+      https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910
     name: CNBC / Tech
     weight: 1.0
     options:
@@ -341,31 +352,38 @@ channels:
   enabled: true
   emoji: true
   formats:
-  - digest
   - story
   - analysis
+  - interactive
+  - digest
   schedule:
-  - 00:00
-  - 01:30
-  - 03:00
-  - 04:30
-  - 06:00
-  - 07:30
-  - 09:00
-  - '10:30'
-  - '12:00'
-  - '13:30'
-  - '15:00'
-  - '16:30'
-  - '18:00'
-  - '19:30'
-  - '21:00'
-  - '22:30'
+  - "00:10"
+  - "02:30"
+  - "04:50"
+  - "07:10"
+  - "08:10"
+  - "09:10"
+  - "10:50"
+  - "12:30"
+  - "13:30"
+  - "15:10"
+  - "16:50"
+  - "18:30"
+  - "19:30"
+  - "20:30"
+  - "22:10"
+  - "23:50"
   posts_per_day: 16
   min_relevance: 0.18
-  timezone_offset: 0
-  max_post_chars: 3200
+  timezone_offset: -5
+  max_post_chars: 1800
   cta: ''
+  night_max_chars: 900
+  night_window: 23:00-07:00
+  content_mix:
+    story: 30
+    analysis: 40
+    interactive: 30
 - id: crypto-news
   title: Crypto & Blockchain
   description: 'US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain.'
@@ -501,28 +519,35 @@ channels:
   enabled: true
   emoji: true
   formats:
-  - digest
   - story
   - analysis
+  - interactive
+  - digest
   schedule:
-  - 00:00
-  - 01:30
-  - 03:00
-  - 04:30
-  - 06:00
-  - 07:30
-  - 09:00
-  - '10:30'
-  - '12:00'
-  - '13:30'
-  - '15:00'
-  - '16:30'
-  - '18:00'
-  - '19:30'
-  - '21:00'
-  - '22:30'
+  - "00:20"
+  - "02:40"
+  - "05:00"
+  - "07:20"
+  - "08:20"
+  - "09:20"
+  - "11:00"
+  - "12:40"
+  - "13:40"
+  - "15:20"
+  - "17:00"
+  - "18:40"
+  - "19:40"
+  - "20:40"
+  - "22:20"
+  - "23:00"
   posts_per_day: 16
   min_relevance: 0.18
-  timezone_offset: 0
-  max_post_chars: 3200
+  timezone_offset: -5
+  max_post_chars: 1800
   cta: ''
+  night_max_chars: 900
+  night_window: 23:00-07:00
+  content_mix:
+    story: 30
+    analysis: 40
+    interactive: 30

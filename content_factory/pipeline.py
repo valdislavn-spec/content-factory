@@ -21,6 +21,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .config import Settings, load_channels
 from .dedup import cluster_articles, is_duplicate_title
+from .trends import collect_trends
 from .models import (
     Article,
     Analysis,
@@ -39,6 +40,7 @@ from .publishers import get_publisher
 from .sources import get_adapter
 from .storage import Storage
 from .utils import (
+    tokenize,
     normalize_space,
     stable_id,
     strip_html,
@@ -354,6 +356,95 @@ def _attach_card(
         log.debug("Не удалось нарисовать карточку для %s", channel.id, exc_info=True)
 
 
+# ---------------------------------------------------------------------------
+# Пиковое время: ночной/дневной режим, микс форматов, тренды
+# ---------------------------------------------------------------------------
+def _parse_hhmm(value: str) -> Optional[Tuple[int, int]]:
+    try:
+        hour, minute = str(value).strip().split(":")
+        hour, minute = int(hour), int(minute)
+    except (TypeError, ValueError):
+        return None
+    if 0 <= hour < 24 and 0 <= minute < 60:
+        return hour, minute
+    return None
+
+
+def slot_is_night(channel: ChannelConfig, slot: str) -> bool:
+    """Ночной ли слот по локальному времени канала (окно night_window)."""
+    parsed = _parse_hhmm(slot)
+    if parsed is None:
+        return False
+    window = str(getattr(channel, "night_window", "23:00-07:00") or "23:00-07:00")
+    if "-" not in window:
+        return False
+    start_s, end_s = window.split("-", 1)
+    start, end = _parse_hhmm(start_s), _parse_hhmm(end_s)
+    if start is None or end is None:
+        return False
+    current = parsed[0] * 60 + parsed[1]
+    start_min = start[0] * 60 + start[1]
+    end_min = end[0] * 60 + end[1]
+    if start_min == end_min:
+        return False
+    if start_min < end_min:
+        return start_min <= current < end_min
+    return current >= start_min or current < end_min
+
+
+def day_formats(channel: ChannelConfig) -> List[str]:
+    """Взвешенный микс дневных форматов (по умолчанию 30/40/30)."""
+    mix = getattr(channel, "content_mix", None) or {}
+    order = ("story", "analysis", "interactive")
+    weights = {name: max(0, int(mix.get(name, 0) or 0)) for name in order}
+    formats: List[str] = []
+    if any(weights.values()):
+        # чередуем форматы, сохраняя пропорции 30/40/30
+        for index in range(max(weights.values())):
+            for name in order:
+                if index < weights[name]:
+                    formats.append(name)
+    if not formats:
+        formats = [
+            str(item).lower()
+            for item in (getattr(channel, "formats", None) or [])
+            if str(item).lower() != "digest"
+        ] or ["story"]
+    return formats
+
+
+def _detect_trends(articles: Sequence[Any], channel: ChannelConfig, limit: int = 3) -> List[str]:
+    """Простые тренды: частые слова/фразы в заголовках свежих статей канала."""
+    counts: Dict[str, int] = {}
+    for article in articles or []:
+        title = str(getattr(article, "title", "") or "")
+        if not title:
+            continue
+        for token in tokenize(title.lower(), language=str(getattr(channel, "language", "ru"))):
+            token = str(token).strip()
+            if len(token) < 4 or token.isdigit():
+                continue
+            counts[token] = counts.get(token, 0) + 1
+    if not counts:
+        return []
+    trending = [term for term, count in sorted(counts.items(), key=lambda item: -item[1]) if count >= 2]
+    if not trending:
+        return []
+    # только термины, связанные с тематикой канала (или самые частые)
+    lowered_topics = [str(topic).lower() for topic in (channel.topics or [])]
+    related = [term for term in trending if any(term in topic or topic in term for topic in lowered_topics)]
+    return (related or trending)[:limit]
+
+
+def _tag_slot_meta(post: GeneratedPost, slot: str, night: bool, max_chars: int) -> None:
+    if not isinstance(post.meta, dict):
+        post.meta = {}
+    post.meta["slot_local"] = slot
+    post.meta["slot_mode"] = "night" if night else "day"
+    post.meta["max_chars_target"] = int(max_chars)
+    post.meta.setdefault("content_type", str(post.format or "story"))
+
+
 def generate_posts(
     channel: ChannelConfig,
     clusters: Sequence[StoryCluster],
@@ -361,8 +452,14 @@ def generate_posts(
     storage: Storage,
     llm: Any,
     max_posts: int,
+    slot: str = "",
 ) -> Tuple[List[GeneratedPost], List[str]]:
-    """Генерирует посты по лучшим сюжетам с ротацией форматов."""
+    """Генерирует посты по лучшим сюжетам с ротацией форматов.
+
+    Ночью — только короткий дайджест (night_max_chars), днём — взвешенный
+    микс форматов (story/analysis/interactive). В пиковые часы в начало поста
+    ставится блок трендов, а сюжеты с трендами идут первыми.
+    """
     errors: List[str] = []
     posts: List[GeneratedPost] = []
     if not clusters:
@@ -370,10 +467,16 @@ def generate_posts(
     # Готовые посты из Dify workflow-приложения (research + SEO внутри).
     dify_generator = build_post_generator(settings)
 
-    formats = list(channel.formats) or ["story"]
+    night_mode = slot_is_night(channel, slot)
+    max_chars = int(getattr(channel, "night_max_chars", 900) or 900) if night_mode else int(channel.max_post_chars)
+    if night_mode:
+        formats = ["digest"]
+    else:
+        formats = day_formats(channel)
     rotation = _today_posts(storage, channel.id) % len(formats)
     fmt = formats[rotation]
     min_chars = int(settings.pipeline.get("min_cluster_chars", 200))
+    trends = [] if night_mode else collect_trends(channel, settings, clusters)
 
     # Дайджест — один пост сразу по нескольким сюжетам.
     digest_clusters = [
@@ -386,16 +489,26 @@ def generate_posts(
                 (cluster, analyze_cluster(cluster, settings, llm, language=channel.language))
                 for cluster in digest_clusters[: min(5, len(digest_clusters))]
             ]
-            digest = generate_digest(digest_items, channel, settings, llm=llm)
+            digest = generate_digest(digest_items, channel, settings, llm=llm, max_chars=max_chars, trends=trends)
             if digest_items:
                 _attach_image(digest, digest_items[0][0])
                 # у дайджеста заголовок — его собственная шапка, а не 1-й сюжет
                 _attach_card(digest, channel, settings, None)
+            _tag_slot_meta(digest, slot, night_mode, max_chars)
             posts.append(digest)
             return posts, errors
         except Exception as exc:
             errors.append(f"дайджест: {exc}")
             log.exception("Не удалось собрать дайджест для %s", channel.id)
+
+    if trends:
+        trend_terms = [term.lower() for term in trends]
+
+        def _trend_rank(cluster: StoryCluster) -> int:
+            haystack = (str(cluster.title or "") + " " + str(cluster.combined_text or ""))[:1500].lower()
+            return 0 if any(term in haystack for term in trend_terms) else 1
+
+        clusters = sorted(list(clusters), key=_trend_rank)
 
     duplicate_window = float(settings.pipeline.get("post_duplicate_window_hours", 72))
     recent_titles = storage.recent_post_titles(channel.id, hours=duplicate_window)
@@ -428,7 +541,10 @@ def generate_posts(
             analysis = analyze_cluster(
                 cluster, settings, llm, language=channel.language
             )
-            post = generate_post(cluster, analysis, channel, settings, fmt=current_fmt, llm=llm)
+            post = generate_post(
+                cluster, analysis, channel, settings, fmt=current_fmt, llm=llm,
+                max_chars=max_chars, trends=trends,
+            )
             _attach_image(post, cluster)
             issues = quality_issues(post, channel, settings)
             if issues:
@@ -439,6 +555,7 @@ def generate_posts(
                 log.warning("Пост отклонён проверками: %s", issues)
                 continue
             _attach_card(post, channel, settings, cluster)
+            _tag_slot_meta(post, slot, night_mode, max_chars)
             posts.append(post)
         except Exception as exc:
             errors.append(f"сюжет «{cluster.title[:60]}»: {exc}")
@@ -503,7 +620,7 @@ def run_channel(
         configured = int(settings.pipeline.get("max_posts_per_run", 2))
         limit = int(max_posts or min(configured, per_run_cap))
         posts, generate_errors = generate_posts(
-            channel, clusters, settings, storage, llm, limit
+            channel, clusters, settings, storage, llm, limit, slot=slot
         )
         result.errors.extend(generate_errors)
         result.posts_generated = len(posts)
