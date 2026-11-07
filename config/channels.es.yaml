@@ -1,28 +1,22 @@
 # =====================================================================
-#  3 испаноязычных Telegram-канала для ЛатАм и Испании (language: es).
+#  3 испаноязычных Telegram-канала (ЛатАм + Испания), language: es.
 #
-#  tech-ai-es   — технологии и ИИ;
-#  crypto-es    — крипто и блокчейн;
-#  futbol-es    — футбол: LaLiga, Liga MX, Аргентина, MLS, Champions.
+#  Каналы переведены с английских и привязаны по числовым ID:
+#    -1004355563628  ES AI News          (tech-ai-es)
+#    -1004304574421  ES Crypto & Blockchain (crypto-es)
+#    -1004391544104  ES Sports News      (futbol-es)
 #
-#  Язык постов — нейтральный испанский (es-419). Источники проверены
-#  06.11.2026: рабочие RSS + ESPN JSON API с lang=es (футбол).
+#  Источники проверены 06.11.2026: испанские RSS + ESPN JSON API с lang=es.
+#  Расписание — местное UTC-5 (ЛатАм); у каналов 6 постов/сутки.
 #
-#  Расписание — по местному времени UTC-5 (Богота/Лима/Кито; Мексика
-#  увидит посты на час раньше, Аргентина — на два позже). 6 постов/сутки.
-#
-#  ID каналов в Telegram — в .env:
-#    TELEGRAM_CHAT_ID_TECH_AI_ES=@my_channel
-#    TELEGRAM_CHAT_ID_CRYPTO_ES=@my_channel
-#    TELEGRAM_CHAT_ID_FUTBOL_ES=@my_channel
-#  Пока chat_id не задан, работает dry_run и посты падают в data/outbox.
+#  Отдельные TELEGRAM_CHAT_ID_* не нужны — ID прописаны здесь.
 # =====================================================================
 
 channels:
 - id: tech-ai-es
-  title: Tecnología e IA
-  description: 'Lo último en tecnología e inteligencia artificial en español: productos, empresas y tendencias.'
-  telegram_chat_id: ''
+  title: ES AI News
+  description: 'Inteligencia artificial en español: modelos, productos, empresas y políticas de IA.'
+  telegram_chat_id: '-1004355563628'
   language: es
   topics:
   - inteligencia artificial
@@ -119,9 +113,9 @@ channels:
     options:
       max_items: 12
 - id: crypto-es
-  title: Cripto y Blockchain
+  title: ES Crypto & Blockchain
   description: 'Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados y tecnología blockchain.'
-  telegram_chat_id: ''
+  telegram_chat_id: '-1004304574421'
   language: es
   topics:
   - bitcoin
@@ -206,9 +200,9 @@ channels:
       trust: true
       max_items: 10
 - id: futbol-es
-  title: Fútbol en Español
-  description: 'LaLiga, Liga MX, Argentina, MLS y Champions en español: resultados, fichajes y análisis.'
-  telegram_chat_id: ''
+  title: ES Sports News
+  description: 'Deporte en español: fútbol, LaLiga, Liga MX, Argentina, MLS, Champions, tenis, baloncesto y más.'
+  telegram_chat_id: '-1004391544104'
   language: es
   topics:
   - fútbol
@@ -242,6 +236,13 @@ channels:
   - tigres
   - libertadores
   - eliminatorias
+  - tenis
+  - baloncesto
+  - fórmula 1
+  - nfl
+  - boxeo
+  - atletismo
+  - deporte
   exclude_keywords:
   - apuestas
   - casino

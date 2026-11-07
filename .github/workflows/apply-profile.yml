@@ -1,10 +1,16 @@
 name: apply-profile
 
-# Ручное применение названий и описаний каналов из config/channels.en.yaml.
-# Запуск: Actions → apply-profile → Run workflow.
+# Ручное применение названий и описаний каналов из config/channels.<lang>.yaml.
+# Запуск: Actions → apply-profile → Run workflow (language: en или es).
 on:
   workflow_dispatch:
     inputs:
+      language:
+        description: "Набор каналов: en или es"
+        required: true
+        default: "en"
+        type: choice
+        options: ["en", "es"]
       dry_run:
         description: "true = только показать, false = применить в Telegram"
         required: true
@@ -20,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      CONTENT_FACTORY_CHANNELS: config/channels.${{ inputs.language }}.yaml
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
     steps:
