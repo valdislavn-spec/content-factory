@@ -92,15 +92,16 @@ llm:
     yandexgpt: 60
     dify: 20
     openrouter: 50      # free-лимит OpenRouter (~50/день)
-  # Гибрид по этапам: анализ — бесплатные/дешёвые модели, генерация — DeepSeek
-  # (deepseek-chat, без reasoning). У каждого этапа своя fallback-цепочка.
+  # Гибрид по этапам: анализ и генерация — на бесплатных моделях (Ollama Cloud),
+  # а DeepSeek (deepseek-chat) подключается автоматически, когда кредиты/лимиты
+  # кончаются. У каждого этапа своя fallback-цепочка.
   stage_routes:
     analysis:
       provider: cloudflare
       fallback: [cohere, ollama_cloud, deepseek_chat, deepseek]
     generation:
-      provider: deepseek_chat
-      fallback: [ollama_cloud, cloudflare, cohere, deepseek]
+      provider: ollama_cloud       # бесплатные кредиты Ollama Cloud
+      fallback: [deepseek_chat, cloudflare, cohere, deepseek]  # дальше — платный DeepSeek
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3

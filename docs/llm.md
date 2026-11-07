@@ -539,9 +539,10 @@ llm:
 - **Ошибки провайдера** (429/403/таймаут/пустой ответ) тоже помечают его
   недоступным до конца процесса — следующий вызов идёт к другому провайдеру,
   а не долбит исчерпанный.
-- **Гибрид по этапам** (`llm.stage_routes`): анализ (резюме/тезисы) — на
-  бесплатных моделях, генерация (заголовок/пост) — на качественном
-  `deepseek-chat`. У каждого этапа своя fallback-цепочка.
+- **Гибрид по этапам** (`llm.stage_routes`): и анализ, и генерация — на
+  бесплатных моделях (Ollama Cloud и др.); платный `deepseek-chat` —
+  автоматический резерв, когда кредиты/лимиты кончаются. У каждого этапа
+  своя fallback-цепочка.
 - **Страховки:** `daily_token_limit: 700000` — общий суточный потолок токенов
   (после него extractive, чтобы платный API не разорил); `daily_request_limit`
   (общий жёсткий стоп на все запросы) по умолчанию `0` — выключен.
@@ -551,10 +552,10 @@ llm:
   daily_request_limit: 0          # жёсткий стоп на всё, 0 = выкл
   daily_token_limit: 700000       # страховка от перерасхода платных API
   provider_limits:
-    cloudflare: 150               # free ≈10 000 neurons/день
+    cloudflare: 100               # free ≈10 000 neurons/день (с запасом)
     cohere: 30                    # trial 1 000 запросов/мес
     ollama_cloud: 250             # кредиты Ollama Cloud
-    deepseek_chat: 120            # платная генерация + запас
+    deepseek_chat: 120            # DeepSeek: резерв генерации (платный)
     gigachat: 60
     yandexgpt: 60
     dify: 20
@@ -564,19 +565,21 @@ llm:
       provider: cloudflare
       fallback: [cohere, ollama_cloud, deepseek_chat, deepseek]
     generation:
-      provider: deepseek_chat
-      fallback: [ollama_cloud, cloudflare, cohere, deepseek]
+      provider: ollama_cloud      # бесплатные кредиты
+      fallback: [deepseek_chat, cloudflare, cohere, deepseek]  # платный резерв
 ```
 
 ### Порядок и стоимость
 
 Типовой день (90 постов): анализ (~180 вызовов) уходит в бесплатные
-Cloudflare → Cohere → Ollama Cloud; генерация (90 вызовов) идёт в
-`deepseek-chat` — это порядка 100–200 тыс. токенов в сутки, то есть примерно
-**$1–3 в месяц** по текущим ценам DeepSeek (цены меняются, проверяйте
-[api-docs.deepseek.com](https://api-docs.deepseek.com/quick_start/pricing)).
-Если дневной лимит DeepSeek исчерпан или API упал — работа продолжается на
-Ollama Cloud/Cloudflare, затем на `extractive`.
+Cloudflare → Cohere → Ollama Cloud; генерация (90 вызовов) — сначала в
+**Ollama Cloud** (кредиты, 0 ₽). Когда кредиты Ollama Cloud или лимит 250
+запросов в сутки кончаются, генерация автоматически переключается на
+`deepseek-chat` — это уже порядка 100–200 тыс. токенов в сутки, то есть
+примерно **$1–3 в месяц** по текущим ценам DeepSeek (цены меняются,
+проверяйте [api-docs.deepseek.com](https://api-docs.deepseek.com/quick_start/pricing)).
+Если DeepSeek недоступен — работа продолжается на Cloudflare/Cohere, затем
+на `extractive`.
 
 ### Как проверить
 
@@ -589,7 +592,7 @@ Ollama Cloud/Cloudflare, затем на `extractive`.
 ```
 
 В логах канала видно выбранные клиенты:
-`Сюжетов: N; LLM анализ: cloudflare (доступна), генерация: deepseek_chat (доступна)`.
+`Сюжетов: N; LLM анализ: cloudflare (доступна), генерация: ollama_cloud (доступна)`.
 Счётчики лимитов кэшируются в GitHub Actions (`data/llm_usage_*.json`), поэтому
 переживают перезапуски и не сбрасываются каждые 15 минут.
 
@@ -599,13 +602,15 @@ Ollama Cloud/Cloudflare, затем на `extractive`.
 
 ```
 LLM этап 'analysis': cloudflare (fallback: cohere, ollama_cloud, deepseek_chat, deepseek)
-LLM этап 'generation': deepseek_chat (fallback: ollama_cloud, cloudflare, cohere, deepseek)
+LLM этап 'generation': ollama_cloud (fallback: deepseek_chat, cloudflare, cohere, deepseek)
 WARNING LLM cloudflare недоступна: HTTP 429 ... used up your daily free allocation of 10,000 neurons
 WARNING LLM cohere недоступна: HTTP 403 ... Forbidden (гео-блок из РФ)
-Итог «AI News»: статей 3, сюжетов 3, постов 1, опубликовано 1, ошибок 0 (26.7 c)
+Итог «AI News»: статей 3, сюжетов 3, постов 1, опубликован 1 (dryrun), ошибок 0 (30.8 c)
 ```
 
 То есть бесплатный Cloudflare упёрся в дневной лимит, Cohere из РФ отдал 403,
-и завод автоматически сгенерировал пост через следующего провайдера
-(`ollama_cloud`), не потеряв слот. Посты, как и раньше, уходят в dry-run
-outbox/канал в зависимости от режима.
+анализ автоматически ушёл в `ollama_cloud`, генерация сразу шла через
+`ollama_cloud` — пост собран, слот не потерян. Платный DeepSeek при этом
+не вызывался: по счётчику токенов за прогон `deepseek_chat` +0 вызовов,
+`ollama_cloud` +7. Когда кредиты Ollama Cloud закончатся, генерация
+переключится на `deepseek_chat` автоматически.
