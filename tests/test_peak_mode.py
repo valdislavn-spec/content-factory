@@ -13,7 +13,7 @@ def test_night_and_day_slots():
     channel = _channel("ai-news")
     assert slot_is_night(channel, "23:40") is True
     assert slot_is_night(channel, "02:20") is True
-    assert slot_is_night(channel, "06:00") is True
+    assert slot_is_night(channel, "06:00") is True  # окно ночи (слот удалён как мёртвая зона)
     assert slot_is_night(channel, "07:00") is False
     assert slot_is_night(channel, "09:00") is False
     assert slot_is_night(channel, "22:00") is False
@@ -45,7 +45,7 @@ def test_night_max_chars_and_timezone():
     channel = _channel("ai-news")
     assert channel.timezone_offset == -5
     assert channel.night_max_chars == 900
-    assert len(channel.schedule) == 16
+    assert len(channel.schedule) == 15
     es_channel = _channel("futbol-es", "config/channels.es.yaml")
     assert es_channel.timezone_offset == -6
 

@@ -187,7 +187,6 @@ channels:
   schedule:
   - "01:20"
   - "03:40"
-  - "06:00"
   - "07:00"
   - "08:00"
   - "09:00"
@@ -201,7 +200,7 @@ channels:
   - "21:00"
   - "22:00"
   - "23:00"
-  posts_per_day: 16
+  posts_per_day: 15
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
@@ -367,7 +366,6 @@ channels:
   schedule:
   - "01:30"
   - "03:50"
-  - "06:10"
   - "07:10"
   - "08:10"
   - "09:10"
@@ -381,7 +379,7 @@ channels:
   - "21:10"
   - "22:10"
   - "23:10"
-  posts_per_day: 16
+  posts_per_day: 15
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
@@ -542,7 +540,6 @@ channels:
   schedule:
   - "01:40"
   - "04:00"
-  - "06:20"
   - "07:20"
   - "08:20"
   - "09:20"
@@ -556,7 +553,7 @@ channels:
   - "21:20"
   - "22:20"
   - "23:20"
-  posts_per_day: 16
+  posts_per_day: 15
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
