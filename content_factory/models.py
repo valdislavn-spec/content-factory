@@ -60,6 +60,9 @@ class ChannelConfig:
     tone: str = "expert"
     max_post_chars: int = 3500
     min_relevance: float = 0.25
+    # Даже источники с options.trust проверять по темам канала: общие ленты
+    # (Guardian/CBS и т.п.) иначе протаскивают чужие темы (крикет в US Sports).
+    strict_topics: bool = False
     formats: List[str] = field(default_factory=lambda: ["digest", "story", "analysis"])
     # Пиковое время: ночью — только короткий дайджест, днём — микс форматов.
     content_mix: Dict[str, int] = field(

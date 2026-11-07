@@ -51,6 +51,10 @@ channels:
   - casino
   - horóscopo
   - apuestas
+  - spelling
+  - quiz
+  - quordle
+  - juegos
   tone: expert
   emoji: true
   hashtags:
@@ -79,6 +83,7 @@ channels:
   - "22:00"
   - "23:00"
   posts_per_day: 15
+  strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
@@ -171,6 +176,11 @@ channels:
   - apuestas
   - ganancias garantizadas
   - señal de trading
+  - quordle
+  - quiz
+  - spelling
+  - juegos
+  - horóscopo
   tone: expert
   emoji: true
   hashtags:
@@ -199,6 +209,7 @@ channels:
   - "22:15"
   - "23:15"
   posts_per_day: 15
+  strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
@@ -251,9 +262,9 @@ channels:
     analysis: 40
     interactive: 40
 - id: futbol-es
-  title: ES Sports News
-  description: 'Deporte en español: fútbol, LaLiga, Liga MX, Argentina, MLS, Champions,
-    tenis, baloncesto y más.'
+  title: ES Sports Analytics
+  description: 'Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina,
+    MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.'
   telegram_chat_id: '-1004391544104'
   language: es
   topics:
@@ -295,18 +306,44 @@ channels:
   - boxeo
   - atletismo
   - deporte
-  exclude_keywords:
+  - apuestas deportivas
   - apuestas
+  - cuotas
+  - cuota
+  - probabilidad
+  - hándicap
+  - handicap
+  - valor esperado
+  - análisis de datos
+  - análisis deportivo
+  - pronóstico
+  - mercado de apuestas
+  - bankroll
+  - modelo estadístico
+  exclude_keywords:
   - casino
   - publicidad
   - patrocinado
   - horóscopo
-  tone: friendly
+  - cricket
+  - tennis
+  - tenis
+  - golf
+  - quiz
+  - apuesta segura
+  - partido arreglado
+  - ganancia garantizada
+  - pronóstico garantizado
+  - código promocional casino
+  - bono casino
+  tone: science
   emoji: true
   hashtags:
   - Deportes
   - Fútbol
   - LaLiga
+  - Apuestas
+  - Analisis
   formats:
   - story
   - analysis
@@ -329,10 +366,11 @@ channels:
   - "22:30"
   - "23:30"
   posts_per_day: 15
+  strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
   max_post_chars: 1800
-  cta: "Comparte este post con un hincha."
+  cta: "18+ | Juega con responsabilidad. Comparte este post con un hincha."
   sources:
   - id: espn-laliga
     type: espn
@@ -425,6 +463,16 @@ channels:
     options:
       max_items: 10
       full_text: true
+  - id: newsdata-apuestas
+    type: newsdata
+    url: https://newsdata.io/api/1/latest
+    name: newsdata.io / Apuestas
+    weight: 1.2
+    options:
+      query: apuestas deportivas cuotas análisis
+      language: es
+      max_items: 10
+      daily_limit: 100
   night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:
