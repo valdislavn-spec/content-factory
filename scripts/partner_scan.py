@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 import sys
 from datetime import datetime, timezone
@@ -99,7 +100,28 @@ def scan(username: str, timeout: float) -> Dict[str, Any]:
         "er": round(er, 3) if er is not None else None,
         "single_emoji_share": round(single / len(sample), 2) if sample else None,
         "last_post_age_hours": round(last_hours, 1) if last_hours is not None else None,
+        "description": (preview.description or "")[:400],
+        "contacts": extract_contacts(preview.description or "", preview.username or username),
     }
+
+
+_CONTACT_RE = re.compile(r"@([A-Za-z][A-Za-z0-9_]{4,31})")
+_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z]{2,}")
+
+
+def extract_contacts(description: str, own_username: str = "") -> List[str]:
+    """Контакты владельца из описания канала: @username и e-mail."""
+    text = description or ""
+    found: List[str] = []
+    for match in _CONTACT_RE.findall(text):
+        if match.lower() == own_username.lower():
+            continue
+        if not any(match.lower() == item.lstrip("@").lower() for item in found):
+            found.append("@" + match)
+    for email in _EMAIL_RE.findall(text):
+        if email.lower() not in [item.lower() for item in found]:
+            found.append(email)
+    return found[:3]
 
 
 def verdict(row: Dict[str, Any], args: argparse.Namespace) -> Tuple[bool, str]:
@@ -126,13 +148,13 @@ def render_markdown(
         "Критерии: просмотры/пост %d–%d, ≥%d постов/24ч, последний пост не старше %d ч."
         % (args.min_views, args.max_views, args.min_posts_24h, int(args.max_age_hours)),
         "",
-        "| Канал | @ | Подписчики | Просм/пост | ER | Постов/24ч | Пост, ч назад |",
-        "|---|---|---:|---:|---:|---:|---:|",
+        "| Канал | @ | Подписчики | Просм/пост | ER | Постов/24ч | Пост, ч назад | Контакт |",
+        "|---|---|---:|---:|---:|---:|---:|---|",
     ]
     for row in passed:
         er = "%d%%" % round((row["er"] or 0) * 100)
         lines.append(
-            "| %s | @%s | %s | %s | %s | %s | %s |"
+            "| %s | @%s | %s | %s | %s | %s | %s | %s |"
             % (
                 row.get("title") or "—",
                 row["username"],
@@ -141,13 +163,16 @@ def render_markdown(
                 er,
                 row["posts_24h"],
                 row.get("last_post_age_hours"),
+                ", ".join(row.get("contacts") or []) or "—",
             )
         )
     lines.append("")
     if rejected:
         lines.append("## Отсеяны")
         for item in rejected:
-            lines.append("- @%s — %s" % (item["username"], item["reason"]))
+            contacts = ", ".join(item.get("contacts") or [])
+            suffix = (" (контакт: %s)" % contacts) if contacts else ""
+            lines.append("- @%s — %s%s" % (item["username"], item["reason"], suffix))
     return "\n".join(lines) + "\n"
 
 

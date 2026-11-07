@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - "docs/promo/partner-candidates-es.txt"
+      - "scripts/partner_scan.py"
   workflow_dispatch:
 
 permissions:
