@@ -1,0 +1,63 @@
+name: vp-bot-inbox
+
+# Inbound-воронка ВП: ловит сообщения боту от владельцев каналов и отвечает
+# условиями обмена. Бот не может писать первым — это работает только для тех,
+# кто написал сам (контакт бота ставим в описания каналов/каталоги).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true = только показать ответы, не отправлять"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: read
+
+jobs:
+  inbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore inbox state
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/vp_bot_state.json
+            data/vp_leads.jsonl
+          key: vp-bot-inbox-${{ github.run_id }}
+          restore-keys: |
+            vp-bot-inbox-
+      - name: Poll bot updates
+        run: |
+          flags=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then flags="--dry-run"; fi
+          python scripts/vp_bot_inbox.py $flags
+      - name: Save inbox state
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            data/vp_bot_state.json
+            data/vp_leads.jsonl
+          key: vp-bot-inbox-${{ github.run_id }}
+      - name: Upload leads
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vp-leads
+          path: data/vp_leads.jsonl
+          if-no-files-found: ignore
+          retention-days: 90
