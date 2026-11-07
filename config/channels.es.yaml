@@ -2,9 +2,9 @@
 #  3 испаноязычных Telegram-канала (ЛатАм + Испания), language: es.
 #
 #  Каналы переведены с английских и привязаны по числовым ID:
-#    -1004355563628  ES AI News          (tech-ai-es)
-#    -1004304574421  ES Crypto & Blockchain (crypto-es)
-#    -1004391544104  ES Sports News      (futbol-es)
+#    ES AI News          (tech-ai-es)          id → Secret TELEGRAM_CHAT_ID_TECH_AI_ES
+#    ES Crypto & Blockchain (crypto-es)        id → Secret TELEGRAM_CHAT_ID_CRYPTO_ES
+#    ES Sports News      (futbol-es)          id → Secret TELEGRAM_CHAT_ID_FUTBOL_ES
 #
 #  Источники проверены 06.11.2026: испанские RSS + ESPN JSON API с lang=es.
 #  Расписание — местное UTC-5 (ЛатАм); у каналов 6 постов/сутки.
@@ -17,7 +17,7 @@ channels:
   title: ES AI News
   description: 'Inteligencia artificial en español: modelos, productos, empresas y
     políticas de IA.'
-  telegram_chat_id: '-1004355563628'
+  telegram_chat_id: ''   # TELEGRAM_CHAT_ID_TECH_AI_ES (GitHub Secret)
   language: es
   topics:
   - inteligencia artificial
@@ -147,7 +147,7 @@ channels:
   title: ES Crypto & Blockchain
   description: 'Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados
     y tecnología blockchain.'
-  telegram_chat_id: '-1004304574421'
+  telegram_chat_id: ''   # TELEGRAM_CHAT_ID_CRYPTO_ES (GitHub Secret)
   language: es
   topics:
   - bitcoin
@@ -265,7 +265,7 @@ channels:
   title: ES Sports Analytics
   description: 'Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina,
     MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.'
-  telegram_chat_id: '-1004391544104'
+  telegram_chat_id: ''   # TELEGRAM_CHAT_ID_FUTBOL_ES (GitHub Secret)
   language: es
   topics:
   - fútbol

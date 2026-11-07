@@ -21,14 +21,12 @@ name: content-factory-cloud-en-es
 
 on:
   schedule:
-    # ОСНОВНОЙ планировщик — Cloudflare Worker tg-cron (cron */22): он дёргает
-    # workflow_dispatch каждые 22 минуты. Встроенный GitHub cron у этого репо
-    # ненадёжен (пропускает слоты), поэтому здесь только 4 редких резервных
-    # запуска — чтобы не жечь Actions-минуты.
-    - cron: "8 0 * * *"
-    - cron: "19 6 * * *"
-    - cron: "43 12 * * *"
-    - cron: "12 18 * * *"
+    # ОСНОВНОЙ планировщик — Cloudflare Worker tg-cron (каждые 15 минут
+    # дёргает workflow_dispatch). GitHub cron ненадёжен и запускается
+    # нерегулярно, поэтому здесь — РОВНО ОДИН резервный запуск раз в час
+    # (:17 UTC). Перед публикацией шаг-guard проверяет, был ли свежий
+    # запуск за последние 30 минут, и при наличии свежего — пропускает слот.
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       publish:
@@ -46,6 +44,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read   # guard читает список последних запусков
 
 jobs:
   tick:
@@ -62,7 +61,7 @@ jobs:
 
       # --- Публикация в Telegram / ВКонтакте ----------------------------
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      # ES-каналы: ID прописаны в config/channels.es.yaml (секреты не нужны).
+      # ES-каналы: id берутся из GitHub Secrets (см. config/channels.es.yaml).
       TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
       TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
       TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
@@ -161,6 +160,46 @@ jobs:
         run: python scripts/state_sync.py pull
         continue-on-error: true
 
+      - name: Backup cron guard (skip if a run was recent)
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import datetime
+          import json
+          import os
+          import urllib.request
+
+          token = os.environ["GH_TOKEN"]
+          repo = os.environ["GH_REPO"]
+          url = "https://api.github.com/repos/{}/actions/runs?per_page=1".format(repo)
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": "Bearer " + token,
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "content-factory-backup-cron",
+              },
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  run = json.load(response)["workflow_runs"][0]
+              created = datetime.datetime.fromisoformat(
+                  run["created_at"].replace("Z", "+00:00")
+              )
+              age = (datetime.datetime.now(datetime.timezone.utc) - created).total_seconds() / 60
+              print("Последний запуск #{}: {} ({:.0f} мин назад)".format(
+                  run.get("run_number"), run["created_at"], age))
+              if age < 30:
+                  print("Свежий запуск есть — backup-крон пропускает слот")
+                  with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+                      handle.write("BACKUP_SKIP=1\n")
+          except Exception as exc:  # noqa: BLE001
+              print("guard: проверка не удалась ({}), работаем как резерв".format(exc))
+          PY
+
       - name: Init project (idempotent)
         run: python -m content_factory init
 
@@ -178,11 +217,12 @@ jobs:
           PY
 
       - name: EN tick (config/channels.en.yaml)
+        if: env.BACKUP_SKIP != '1'
         run: python -m content_factory daemon --once
 
       # ES-тик: испанские каналы (config/channels.es.yaml, ID в конфиге).
       - name: ES tick (config/channels.es.yaml)
-        if: always()
+        if: always() && env.BACKUP_SKIP != '1' 
         env:
           CONTENT_FACTORY_CHANNELS: config/channels.es.yaml
           CONTENT_FACTORY_STATE_PATH: data/schedule_state_es.json

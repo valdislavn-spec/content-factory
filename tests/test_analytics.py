@@ -450,7 +450,9 @@ class CollectorTests(AnalyticsTestCase):
         settings = self.make_settings(dry_run=False)
         channel = self.make_channel()
         self.seed_all([channel])
-        with mock.patch(
+        with mock.patch.dict(
+            os.environ, {"CONTENT_FACTORY_SKIP_SUBSCRIBERS": "0"}
+        ), mock.patch(
             "content_factory.analytics.collector.fetch_subscribers", return_value=777
         ) as mocked, mock.patch(
             "content_factory.analytics.collector.collect_post_views", return_value={}

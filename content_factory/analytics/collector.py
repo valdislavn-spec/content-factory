@@ -44,7 +44,8 @@ def fetch_subscribers(chat_id: str, token: str, timeout: float = 20.0) -> Option
     if not chat_id or not token:
         return None
     query = urllib.parse.urlencode({"chat_id": chat_id})
-    url = "https://api.telegram.org/bot{}/getChatMemberCount?{}".format(token, query)
+    base = (env("TELEGRAM_API_BASE", "") or "https://api.telegram.org").rstrip("/")
+    url = "{}/bot{}/getChatMemberCount?{}".format(base, token, query)
     request = urllib.request.Request(
         url,
         headers={"User-Agent": "ContentFactory/1.0", "Accept": "application/json"},
@@ -204,7 +205,10 @@ def collect_channel_metrics(
         settings.channel_env_chat_id(channel.id) or ""
     ).strip()
     token = _telegram_token(settings)
-    if settings.analytics.get("collect_subscribers", True) and not settings.dry_run:
+    skip_subscribers = str(env("CONTENT_FACTORY_SKIP_SUBSCRIBERS", "") or "").strip().lower()
+    if skip_subscribers in {"1", "true", "yes", "on"}:
+        logger.debug("Канал %s: подписчики отключены CONTENT_FACTORY_SKIP_SUBSCRIBERS", channel.id)
+    elif settings.analytics.get("collect_subscribers", True) and not settings.dry_run:
         snapshot.subscribers = fetch_subscribers(chat_id, token, settings.request_timeout)
     else:
         logger.debug(
