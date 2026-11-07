@@ -143,33 +143,10 @@ channels:
       trust: true
       max_items: 8
       full_text: true
-  - id: worldnews
-    type: worldnews
-    url: https://api.worldnewsapi.com/search-news
-    name: World News API
-    weight: 1.1
-    options:
-      trust: true
-      query: NFL NBA MLB NHL college football sport
-      language: en
-      max_items: 10
-      sort: publish-time
-      daily_limit: 30
   - id: newsdata
     type: newsdata
     url: https://newsdata.io/api/1/latest
     name: newsdata.io
-    weight: 1.0
-    options:
-      trust: true
-      query: NFL NBA MLB NHL college football sport
-      language: en
-      max_items: 10
-      daily_limit: 100
-  - id: currents
-    type: currents
-    url: https://api.currentsapi.services/v1/latest-news
-    name: Currents API
     weight: 1.0
     options:
       trust: true
@@ -322,33 +299,10 @@ channels:
       trust: true
       max_items: 8
       full_text: true
-  - id: worldnews
-    type: worldnews
-    url: https://api.worldnewsapi.com/search-news
-    name: World News API
-    weight: 1.1
-    options:
-      trust: true
-      query: artificial intelligence OpenAI Anthropic Nvidia AI policy
-      language: en
-      max_items: 10
-      sort: publish-time
-      daily_limit: 30
   - id: newsdata
     type: newsdata
     url: https://newsdata.io/api/1/latest
     name: newsdata.io
-    weight: 1.0
-    options:
-      trust: true
-      query: artificial intelligence OpenAI Anthropic Nvidia AI policy
-      language: en
-      max_items: 10
-      daily_limit: 100
-  - id: currents
-    type: currents
-    url: https://api.currentsapi.services/v1/latest-news
-    name: Currents API
     weight: 1.0
     options:
       trust: true
@@ -499,33 +453,10 @@ channels:
     weight: 0.9
     options:
       max_items: 8
-  - id: worldnews
-    type: worldnews
-    url: https://api.worldnewsapi.com/search-news
-    name: World News API
-    weight: 1.1
-    options:
-      trust: true
-      query: bitcoin cryptocurrency regulation SEC ETF
-      language: en
-      max_items: 10
-      sort: publish-time
-      daily_limit: 30
   - id: newsdata
     type: newsdata
     url: https://newsdata.io/api/1/latest
     name: newsdata.io
-    weight: 1.0
-    options:
-      trust: true
-      query: bitcoin cryptocurrency regulation SEC ETF
-      language: en
-      max_items: 10
-      daily_limit: 100
-  - id: currents
-    type: currents
-    url: https://api.currentsapi.services/v1/latest-news
-    name: Currents API
     weight: 1.0
     options:
       trust: true

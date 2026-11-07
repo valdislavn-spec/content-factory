@@ -24,6 +24,44 @@ def gh_runs(token: str):
         return json.load(resp).get("workflow_runs", [])
 
 
+
+
+def subscribers_line() -> str:
+    """Подписчики по каналам (Bot API getChatMemberCount)."""
+    import os
+    import urllib.parse
+    import urllib.request
+
+    try:
+        import yaml
+    except Exception:
+        return "Подписчики: нет pyyaml"
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token:
+        return "Подписчики: нет токена"
+    parts = []
+    for lang in ("en", "es"):
+        path = f"config/channels.{lang}.yaml"
+        try:
+            data = yaml.safe_load(open(path, encoding="utf-8")) or {}
+        except Exception:
+            continue
+        for channel in data.get("channels") or []:
+            chat_id = str(channel.get("telegram_chat_id") or "").strip()
+            if not chat_id:
+                continue
+            try:
+                url = f"https://api.telegram.org/bot{token}/getChatMemberCount?chat_id={urllib.parse.quote(chat_id)}"
+                with urllib.request.urlopen(url, timeout=20) as resp:
+                    data2 = json.load(resp)
+                count = data2.get("result")
+                label = str(channel.get("title") or channel.get("id"))
+                parts.append(f"{label}: {count}")
+            except Exception as exc:  # noqa: BLE001
+                parts.append(f"{channel.get('id')}: err {type(exc).__name__}")
+    return "Подписчики: " + (" · ".join(parts) if parts else "нет данных")
+
+
 def main() -> int:
     token = os.environ.get("ALERT_GITHUB_TOKEN", "").strip()
     now = datetime.now(timezone.utc)
@@ -46,6 +84,7 @@ def main() -> int:
             lines.append(f"❌ {r.get('created_at','?')[:16]} · {r.get('html_url','')}")
     else:
         lines.append("ALERT_GITHUB_TOKEN не задан — статус без деталей")
+    lines.append(subscribers_line())
     text = "\n".join(lines)
     print(text)
     script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "notify_telegram.py")

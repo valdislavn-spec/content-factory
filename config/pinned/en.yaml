@@ -1,0 +1,13 @@
+# Закреплённые вводные посты для EN-каналов (HTML для Telegram).
+sport-news: |
+  🏈 <b>US Sports News</b>
+  NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis — 16 updates a day, no fluff.
+  Share the channel with a sports fan.
+ai-news: |
+  🤖 <b>AI News</b>
+  Model releases, products, policy and the companies building them. Daily updates from TechCrunch, The Verge, MIT Technology Review, Wired, OpenAI, NVIDIA and more.
+  Follow for the AI stories that matter.
+crypto-news: |
+  ₿ <b>Crypto &amp; Blockchain</b>
+  Bitcoin, Ethereum, markets, regulation and blockchain. US-focused coverage: CoinDesk, The Block, Decrypt, SEC and CFTC filings.
+  Follow for daily crypto news.

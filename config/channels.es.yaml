@@ -56,7 +56,7 @@ channels:
   hashtags:
   - Tecnología
   - IA
-  - Innovación
+  - InteligenciaArtificial
   formats:
   - story
   - analysis
@@ -304,9 +304,9 @@ channels:
   tone: friendly
   emoji: true
   hashtags:
+  - Deportes
   - Fútbol
   - LaLiga
-  - LigaMX
   formats:
   - story
   - analysis

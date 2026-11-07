@@ -1648,6 +1648,26 @@ def _normalize_format(fmt: Optional[str], channel: ChannelConfig) -> str:
     return "story"
 
 
+
+_HASHTAG_TOKEN_RE = re.compile(r"(?<!\w)#[^\s#<]+")
+
+
+def _dedupe_body_hashtags(text: str) -> str:
+    """Убирает повторные хэштеги в тексте поста (оставляет первое вхождение)."""
+    seen = set()
+
+    def repl(match: re.Match) -> str:
+        raw = match.group(0)
+        core = raw.rstrip(".,;:!?)»\"")
+        key = core.lower()
+        if key in seen:
+            return ""
+        seen.add(key)
+        return raw
+
+    text = _HASHTAG_TOKEN_RE.sub(repl, str(text or ""))
+    return re.sub(r"[ \t]{2,}", " ", text)
+
 def _make_post(
     *,
     post_id: str,
@@ -1666,6 +1686,7 @@ def _make_post(
 ) -> GeneratedPost:
     limit = int(max_chars or channel.max_post_chars)
     text = _fit_blocks(blocks, limit)
+    text = _dedupe_body_hashtags(text)
     if len(text) > limit or not html_is_balanced(text):
         # страховка: лимит и валидность важнее форматирования
         text = strip_html(text)[:limit].rstrip()
