@@ -289,6 +289,16 @@ class Storage:
         row = self.conn.execute("SELECT 1 FROM posts WHERE post_id = ?", (post_id,)).fetchone()
         return row is not None
 
+    def last_post_time(self, channel_id: str) -> Optional[datetime]:
+        """Время последнего поста канала (для окна «сводка за период»)."""
+        row = self.conn.execute(
+            "SELECT created_at FROM posts WHERE channel_id = ? ORDER BY created_at DESC LIMIT 1",
+            (channel_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return parse_datetime(row["created_at"])
+
     def get_posts(
         self, channel_id: Optional[str] = None, days: float = 7, limit: int = 500
     ) -> List[Dict[str, Any]]:

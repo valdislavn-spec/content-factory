@@ -44,6 +44,7 @@ class FakeStorage:
 class SlotStarvationTest(unittest.TestCase):
     def test_skips_short_cluster_and_posts_from_next(self):
         settings = Settings.load(load_env=False)
+        settings.raw["pipeline"]["post_mode"] = ""  # тест обычного (не digest) режима
         channel = ChannelConfig(
             id="tech-news",
             title="Technology News",

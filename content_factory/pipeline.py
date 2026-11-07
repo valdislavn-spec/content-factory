@@ -248,6 +248,12 @@ def quality_issues(post: GeneratedPost, channel: ChannelConfig, settings: Settin
     issues: List[str] = []
     plain = post.plain_text
     min_chars = int(settings.pipeline.get("min_post_chars", 300))
+    # Сводка за период может состоять из 1–2 новостей: заголовок + строка +
+    # ссылка. Для неё минимальная длина ниже, иначе слот будет теряться.
+    if str(post.format or "").lower() == "digest" and str(
+        settings.pipeline.get("post_mode") or ""
+    ).lower() == "digest":
+        min_chars = min(min_chars, 140)
     if len(plain) < min_chars:
         issues.append(f"слишком короткий текст ({len(plain)} < {min_chars} символов)")
     if len(post.text) > channel.max_post_chars * 1.35:
@@ -498,6 +504,120 @@ def _tag_slot_meta(post: GeneratedPost, slot: str, night: bool, max_chars: int, 
     post.meta.setdefault("content_type", str(post.format or "story"))
 
 
+def digest_window_clusters(
+    clusters: Sequence[StoryCluster],
+    last_post: Optional[datetime],
+    overlap_minutes: float = 15.0,
+) -> List[StoryCluster]:
+    """Сюжеты, появившиеся после последнего поста канала (для сводки за период).
+
+    ``last_post=None`` — первый запуск: берём все сюжеты (их ограничит лимит).
+    Перекрытие компенсирует расхождение часов источника и времени публикации.
+    """
+    if last_post is None:
+        return list(clusters)
+    cutoff = last_post - timedelta(minutes=max(0.0, overlap_minutes))
+    result: List[StoryCluster] = []
+    for cluster in clusters:
+        last_published = getattr(cluster, "last_published", None)
+        if last_published is None:
+            dates = [a.published_at for a in cluster.articles if a.published_at is not None]
+            last_published = max(dates) if dates else None
+        if last_published is None:
+            continue
+        if last_published.tzinfo is None:
+            last_published = last_published.replace(tzinfo=timezone.utc)
+        if last_published >= cutoff:
+            result.append(cluster)
+    return result
+
+
+def _build_window_digest(
+    channel: ChannelConfig,
+    clusters: Sequence[StoryCluster],
+    settings: Settings,
+    storage: Storage,
+    llm: Any,
+    slot: str,
+    max_chars: int,
+) -> Tuple[Optional[GeneratedPost], List[str]]:
+    """Один пост = сводка новостей за период с предыдущего поста канала."""
+    errors: List[str] = []
+    if not clusters:
+        return None, errors
+    overlap = float(settings.pipeline.get("digest_window_overlap_minutes", 15) or 15)
+    last_post = None
+    try:
+        last_post = storage.last_post_time(channel.id)
+    except Exception:  # noqa: BLE001 - не роняем канал из-за истории
+        log.debug("Не удалось получить время последнего поста %s", channel.id, exc_info=True)
+    window = digest_window_clusters(list(clusters), last_post, overlap)
+    if not window:
+        errors.append("дайджест: нет новых сюжетов с прошлого поста")
+        return None, errors
+
+    duplicate_window = float(settings.pipeline.get("post_duplicate_window_hours", 72))
+    try:
+        recent = [strip_html(text) for text in storage.recent_post_titles(channel.id, hours=duplicate_window)]
+    except Exception:  # noqa: BLE001
+        recent = []
+    fresh = [cluster for cluster in window if not is_duplicate_title(cluster.title, recent, threshold=0.55)]
+    window = fresh or window
+
+    min_chars = int(
+        getattr(channel, "min_cluster_chars", 0)
+        or settings.pipeline.get("min_cluster_chars", 200)
+    )
+    long_enough = [
+        cluster for cluster in window
+        if len((cluster.combined_text or "").strip()) >= min_chars
+    ]
+    window = long_enough or window
+    window.sort(key=lambda cluster: getattr(cluster, "last_published", None) or utcnow(), reverse=True)
+
+    cap = int(settings.pipeline.get("digest_max_items", 10) or 10)
+    if max_chars:
+        cap = min(cap, max(2, int(max_chars) // 220))
+    window = window[: max(1, cap)]
+    llm_items = int(settings.pipeline.get("digest_llm_items", 3) or 0)
+
+    items: List[Tuple[StoryCluster, Any]] = []
+    for index, cluster in enumerate(window):
+        try:
+            analysis = analyze_cluster(
+                cluster, settings, llm if index < llm_items else None, language=channel.language
+            )
+            items.append((cluster, analysis))
+        except Exception as exc:  # noqa: BLE001 - один сюжет не должен ронять сводку
+            errors.append(f"сводка, сюжет «{cluster.title[:60]}»: {exc}")
+            log.exception("Ошибка анализа сюжета для сводки: %s", cluster.title)
+    if not items:
+        return None, errors
+
+    try:
+        digest = generate_digest(
+            items, channel, settings, llm=llm,
+            max_chars=max_chars or None, trends=collect_trends(channel, settings, window),
+        )
+        _attach_image(digest, items[0][0])
+        issues = quality_issues(digest, channel, settings)
+        if issues:
+            errors.append(f"сводка отклонена: {'; '.join(issues)}")
+            return None, errors
+        _attach_card(digest, channel, settings, None)
+        night = slot_phase(channel, slot) == "night"
+        _tag_slot_meta(digest, slot, night, max_chars, slot_phase(channel, slot))
+        digest.meta["digest_window"] = {
+            "since": last_post.isoformat() if last_post else None,
+            "items": len(items),
+        }
+        return digest, errors
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"сводка: {exc}")
+        log.exception("Не удалось собрать сводку за период для %s", channel.id)
+        return None, errors
+
+
 def generate_posts(
     channel: ChannelConfig,
     clusters: Sequence[StoryCluster],
@@ -543,6 +663,17 @@ def generate_posts(
     if recap:
         min_chars = min(min_chars, fallback_min)
     trends = [] if night_mode else collect_trends(channel, settings, clusters)
+
+    # Режим «сводка за период»: один пост = все новости с прошлого поста канала.
+    post_mode = str(settings.pipeline.get("post_mode") or "").strip().lower()
+    if post_mode == "digest" and not recap:
+        digest, digest_errors = _build_window_digest(
+            channel, clusters, settings, storage, llm, slot, max_chars
+        )
+        errors.extend(digest_errors)
+        if digest is not None:
+            posts.append(digest)
+            return posts, errors
 
     # Дайджест — один пост сразу по нескольким сюжетам.
     digest_clusters = [

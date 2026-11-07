@@ -1809,7 +1809,14 @@ def generate_digest(
         if cluster is None:
             continue
         normalized.append((cluster, analysis or Analysis()))
-    normalized = normalized[:5]
+    digest_cap = 5
+    pipeline_cfg = getattr(settings, "pipeline", None) if settings is not None else None
+    if isinstance(pipeline_cfg, dict):
+        try:
+            digest_cap = max(1, int(pipeline_cfg.get("digest_max_items", 5) or 5))
+        except (TypeError, ValueError):
+            digest_cap = 5
+    normalized = normalized[:digest_cap]
 
     lang = _channel_language(channel)
     style = _style(channel, lang)
