@@ -1,0 +1,75 @@
+# Единая структура контент-завода: один конфиг на весь конвейер.
+#
+# Этот файл — «карта» системы для оператора и unified.py: где расписание,
+# где тренды, где SEO, где рост аудитории, где «мозг» на LangGraph.
+# Рабочие настройки каналов/LLM по-прежнему в config/settings.yaml и
+# config/channels*.yaml — unified.yaml только связывает этапы вместе.
+
+version: 1
+name: content-factory-unified
+
+pipeline:
+  # Источники правды по каналам и расписанию
+  channels_files:
+    - config/channels.en.yaml
+    - config/channels.es.yaml
+  # 6 каналов × 15 постов/сутки (см. posts_per_day в channels*.yaml)
+  expected_posts_per_day: 90
+  # Кто публикует по расписанию: content_factory daemon --once
+  # (локально/cron) или .github/workflows/content-factory.yml (production).
+  schedule_mode: daemon
+  # Сколько ближайших слотов показывать в doctor/status
+  next_slots_preview: 5
+
+brain:
+  # «Мозг»: mcp-content-factory (LangGraph + RAG-фактчек + LangSmith).
+  enabled: true
+  path: ../mcp-content-factory
+  python: .venv/bin/python
+  engine: langgraph
+  grounding: true
+  revision_rounds: 2
+  # preview-команда, которую запускает `unified.py brain`
+  preview_out: data/brain-preview
+
+trends:
+  enabled: true
+  # Источники подбираются по теме канала в content_factory/trends.py:
+  # coingecko — крипто-каналы, github/hackernews — AI/tech, google_trends — все.
+  sources:
+    - coingecko
+    - github_trending
+    - hackernews
+    - google_trends
+  per_channel_limit: 3
+  save_path: data/trends/latest.json
+
+seo:
+  keyword_first_lines: true      # ключевые слова в первых строках поста (генератор)
+  hashtags: true                 # хештеги канала + SEO-теги по трендам/анализу
+  trends_block: true             # блок трендов в пиковые часы
+  headline_optimization: true    # отдельный шаг улучшения заголовка
+  indexnow: true                 # пинг IndexNow при деплое лендинга
+  landing: docs/index.html       # публичная страница-хаб (GitHub Pages)
+
+growth:
+  cross_promo: config/cross_promo.yaml
+  pinned_links: docs/promo/link-placement.md
+  growth_report: scripts/growth_report.py
+  growth_bot: scripts/telegram-growth-bot.py
+  link_hub: https://valdislavn-spec.github.io/content-factory/
+  # Ритм: кросс-промо Вт/Пт, growth-report ежедневно, закрепы — раз в неделю.
+
+quality:
+  deterministic_checks: true     # quality.py: цифры/длина/банворды
+  rag_grounding: brain           # RAG-фактчек в LangGraph-слое (grounding.py)
+  langsmith_tracing: true        # трейсы LangGraph в LangSmith (если ключ есть)
+  max_revision_rounds: 2         # редактура по замечаниям критика
+
+llm:
+  # Гибрид по этапам и авто-переключение по лимитам — в config/settings.yaml:
+  #   llm.stage_routes, llm.provider_limits, llm.fallback
+  # Ниже — краткая карта для doctor, чтобы не читать settings.yaml глазами.
+  analysis: [cloudflare, cohere, ollama_cloud, deepseek_chat, deepseek]
+  generation: [ollama_cloud, deepseek_chat, cloudflare, cohere, deepseek]
+  max_daily_tokens: 700000
