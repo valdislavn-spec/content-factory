@@ -20,3 +20,5 @@
 @ProCryptoNews  # Pro Crypto News · ~26500 подп. · Crypto Trading Signals
 @cryptosignalsandmarketanalyse  # First Crypto News · ~29000 подп. · Crypto Trading Signals
 @cryptomaxch  # Crypto Max · ~51900 подп. · Crypto Market Insights
+
+# Повторный скан EN для извлечения контактов владельцев (08.11.2026)
