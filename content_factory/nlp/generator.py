@@ -601,14 +601,18 @@ def _prose(
     *,
     limit: int = 3,
     max_len: int = 320,
+    avoid: str = "",
 ) -> str:
     """Собирает плавный абзац из предложений без ярлыков и списков."""
     picked: List[str] = []
+    avoid_text = normalize_space(str(avoid or ""))
     for sentence in sentences:
         if not _fits_language(sentence, lang):
             continue
         text = normalize_space(_shorten(sentence, max_len))
         if not text or any(_similar(text, previous, 0.7) for previous in picked):
+            continue
+        if avoid_text and _similar(text, avoid_text, 0.55):
             continue
         picked.append(text)
         if len(picked) >= limit:
@@ -616,23 +620,37 @@ def _prose(
     return " ".join(picked)
 
 
+_GENERIC_SEO_TERMS = {
+    "data", "news", "report", "update", "market", "story", "daily", "today",
+    "world", "week", "video", "breaking", "sources", "search", "trending",
+}
+
+
 def _seo_tags(trends: Sequence[str], analysis: Analysis) -> List[str]:
-    """SEO-хэштеги из трендов и ключевых терминов."""
-    terms: List[str] = [str(term) for term in (trends or [])][:3]
-    terms += [str(term) for term in (getattr(analysis, "key_terms", None) or [])][:3]
+    """SEO-хэштеги: только осмысленные термины (бренды/темы), максимум 2."""
+    candidates: List[str] = []
+    for term in list(trends or []) + list(getattr(analysis, "key_terms", None) or []):
+        text = str(term).strip()
+        if not text or "/" in text:  # владелец/репозиторий GitHub — не хэштег
+            continue
+        if text.lower() in _GENERIC_SEO_TERMS:
+            continue
+        if text.islower():  # поисковые запросы вроде "openai" — не бренд-тег
+            continue
+        candidates.append(text)
     tags: List[str] = []
-    for term in terms:
+    for term in candidates:
         cleaned = re.sub(r"[^0-9A-Za-zÀ-ÿ]+", " ", term).strip()
         if not cleaned:
             continue
         parts = cleaned.split()
         tag = "".join(part[:1].upper() + part[1:] for part in parts[:2])
-        if len(tag) < 3:
+        if len(tag) < 4:
             continue
         tag = "#" + tag
         if tag.lower() not in {value.lower() for value in tags}:
             tags.append(tag)
-        if len(tags) >= 3:
+        if len(tags) >= 2:
             break
     return tags
 
@@ -1394,7 +1412,7 @@ def _build_story(
     lead = _prose(lead_sentences or bullets, lang, limit=2, max_len=340)
     if lead:
         blocks.append({"text": _escape(lead)})
-    details = _prose(bullets[2:] if lead else bullets, lang, limit=2, max_len=280)
+    details = _prose(bullets[2:] if lead else bullets, lang, limit=2, max_len=280, avoid=lead)
     if details:
         blocks.append({"text": _escape(details)})
     current_len = sum(len(strip_html(block.get("text", ""))) for block in blocks)
@@ -1455,7 +1473,7 @@ def _build_analysis(
     if context:
         blocks.append({"text": context})
     else:
-        extra = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=280)
+        extra = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=280, avoid=lead)
         if extra:
             blocks.append({"text": _escape(extra)})
         numbers_sentence = _numbers_sentence(analysis, lang)
@@ -1514,7 +1532,7 @@ def _build_interactive(
     lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=340)
     if lead:
         blocks.append({"text": _escape(lead)})
-    facts = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=260)
+    facts = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=260, avoid=lead)
     if facts:
         blocks.append({"text": _escape(facts)})
 
@@ -1555,7 +1573,7 @@ def _build_single_digest(
     lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=300)
     if lead:
         blocks.append({"text": _escape(lead)})
-    facts = _prose(_story_bullets(analysis, title, lang)[:3], lang, limit=2, max_len=240)
+    facts = _prose(_story_bullets(analysis, title, lang)[:3], lang, limit=2, max_len=240, avoid=lead)
     if facts:
         blocks.append({"text": _escape(facts)})
     sources_text = _sources_block(sources, style)
