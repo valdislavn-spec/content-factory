@@ -389,6 +389,41 @@ def load_channels(
     return channels
 
 
+# Дополнительные файлы каналов (ES-набор подключается отдельным тиком).
+NETWORK_CHANNEL_FILES = ("config/channels.es.yaml",)
+
+
+def load_network_channels(settings: Optional[Settings] = None) -> List[ChannelConfig]:
+    """Все каналы сети: основной файл настроек + языковые наборы.
+
+    Основной файл берётся из ``settings.channels_path`` (учитывает
+    CONTENT_FACTORY_CHANNELS), затем добавляются NETWORK_CHANNEL_FILES.
+    Дубликаты по ``id`` отбрасываются; битый дополнительный файл пропускается,
+    чтобы один набор не ронял отчёт по всей сети.
+    """
+    settings = settings or Settings.load()
+    files: List[Path] = [settings.channels_path]
+    for extra in NETWORK_CHANNEL_FILES:
+        candidate = Path(extra)
+        candidate = candidate if candidate.is_absolute() else settings.root / candidate
+        if candidate.is_file() and candidate not in files:
+            files.append(candidate)
+
+    channels: List[ChannelConfig] = []
+    seen = set()
+    for path in files:
+        try:
+            loaded = load_channels(settings, path=path)
+        except ConfigError:
+            continue
+        for channel in loaded:
+            if channel.id in seen:
+                continue
+            seen.add(channel.id)
+            channels.append(channel)
+    return channels
+
+
 def _parse_channel(raw: Any, index: int, settings: Settings) -> ChannelConfig:
     if not isinstance(raw, dict):
         raise ConfigError("ожидался объект с полями id/title/...")

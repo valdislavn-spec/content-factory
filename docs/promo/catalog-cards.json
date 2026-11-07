@@ -1,0 +1,181 @@
+{
+  "generated_at": "2026-11-07T17:34:37.182658+00:00",
+  "channels": [
+    {
+      "id": "sport-news",
+      "title": "US Sports News",
+      "username": "SPORTNews0007",
+      "url": "https://t.me/SPORTNews0007",
+      "language": "en",
+      "category": "Sports / Спорт",
+      "description": "NFL, NBA, MLB, NHL and college football: scores, trades, injuries and sharp analysis for US sports fans. Daily updates from trusted sources.",
+      "keywords": [
+        "NFL",
+        "NBA",
+        "MLB",
+        "NHL",
+        "college football",
+        "US sports"
+      ],
+      "hashtags": [
+        "#Sports",
+        "#NFL",
+        "#NBA"
+      ],
+      "contact": "@<ваш_контакт>"
+    },
+    {
+      "id": "ai-news",
+      "title": "AI News",
+      "username": "AINEWS0007",
+      "url": "https://t.me/AINEWS0007",
+      "language": "en",
+      "category": "Technology / AI / Технологии",
+      "description": "AI for a US audience: model releases, products, policy and the companies building them. Clear, sourced updates — no hype.",
+      "keywords": [
+        "AI",
+        "OpenAI",
+        "Anthropic",
+        "LLM",
+        "Nvidia",
+        "AI policy"
+      ],
+      "hashtags": [
+        "#AI",
+        "#ArtificialIntelligence",
+        "#TechNews"
+      ],
+      "contact": "@<ваш_контакт>"
+    },
+    {
+      "id": "crypto-news",
+      "title": "Crypto & Blockchain",
+      "username": "HOOPY0007",
+      "url": "https://t.me/HOOPY0007",
+      "language": "en",
+      "category": "Crypto / Blockchain / Криптовалюты",
+      "description": "US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain. Daily coverage from CoinDesk, The Block, Decrypt, SEC and CFTC.",
+      "keywords": [
+        "Bitcoin",
+        "Ethereum",
+        "crypto",
+        "blockchain",
+        "ETF",
+        "regulation"
+      ],
+      "hashtags": [
+        "#Bitcoin",
+        "#Crypto",
+        "#Blockchain"
+      ],
+      "contact": "@<ваш_контакт>"
+    },
+    {
+      "id": "tech-ai-es",
+      "title": "ES AI News",
+      "username": "WORLDNews0007",
+      "url": "https://t.me/WORLDNews0007",
+      "language": "es",
+      "category": "Tecnología / IA",
+      "description": "Inteligencia artificial en español: modelos, productos, empresas y políticas de IA. Resúmenes diarios de Hipertextual, La Nación y FayerWayer.",
+      "keywords": [
+        "inteligencia artificial",
+        "IA",
+        "tecnología",
+        "innovación",
+        "modelos",
+        "empresas"
+      ],
+      "hashtags": [
+        "#Tecnología",
+        "#IA",
+        "#InteligenciaArtificial"
+      ],
+      "contact": "@<ваш_контакт>"
+    },
+    {
+      "id": "crypto-es",
+      "title": "ES Crypto & Blockchain",
+      "username": "TechnologiesNews01",
+      "url": "https://t.me/TechnologiesNews01",
+      "language": "es",
+      "category": "Criptomonedas / Blockchain",
+      "description": "Cripto y blockchain en español: Bitcoin, Ethereum, mercados y regulación. Noticias diarias de CriptoNoticias, BeInCrypto y CriptoTendencia.",
+      "keywords": [
+        "criptomonedas",
+        "Bitcoin",
+        "Ethereum",
+        "blockchain",
+        "regulación",
+        "DeFi"
+      ],
+      "hashtags": [
+        "#Bitcoin",
+        "#Cripto",
+        "#Blockchain"
+      ],
+      "contact": "@<ваш_контакт>"
+    },
+    {
+      "id": "futbol-es",
+      "title": "ES Sports News",
+      "username": "SPORTSAnalytics007",
+      "url": "https://t.me/SPORTSAnalytics007",
+      "language": "es",
+      "category": "Deportes / Fútbol",
+      "description": "Deporte en español: fútbol, LaLiga, Liga MX, Argentina, MLS y Champions. Resultados, fichajes y análisis para aficionados.",
+      "keywords": [
+        "fútbol",
+        "LaLiga",
+        "Liga MX",
+        "Champions",
+        "fichajes",
+        "deportes"
+      ],
+      "hashtags": [
+        "#Deportes",
+        "#Fútbol",
+        "#LaLiga"
+      ],
+      "contact": "@<ваш_контакт>"
+    }
+  ],
+  "catalogs": [
+    {
+      "name": "TGStat",
+      "url": "https://tgstat.com/",
+      "action": "Кабинет → «Добавить канал» → ссылка t.me → категория и описание",
+      "note": "бесплатная карточка, модерация; самая крупная база в RU/СНГ"
+    },
+    {
+      "name": "Telemetr",
+      "url": "https://telemetr.io/",
+      "action": "Кабинет → «Добавить канал» → ссылка t.me → подтвердить владение",
+      "note": "подтверждение через бота-верификатора; англоязычная аудитория тоже"
+    },
+    {
+      "name": "Tlgrm.eu",
+      "url": "https://tlgrm.eu/channels",
+      "action": "«Add channel» → ссылка t.me → описание и категория",
+      "note": "EN-каталог, хорошо индексируется поиском"
+    },
+    {
+      "name": "GramPedia",
+      "url": "https://t.me/Grampedia_bot",
+      "action": "Запустить бота → /add → ссылка на канал",
+      "note": "бесплатный бот-каталог, добавление за минуту"
+    },
+    {
+      "name": "TelegramChannels.me",
+      "url": "https://telegramchannels.me/",
+      "action": "«Add channel» → ссылка t.me → описание",
+      "note": "EN-каталог для US-аудитории"
+    },
+    {
+      "name": "GruposTelegramLatAm",
+      "url": "https://grupostelegramlatam.com/",
+      "action": "Форма добавления канала → ссылка t.me",
+      "note": "ES-каталог для ЛатАм — профильный для испанской ветки"
+    }
+  ]
+}

@@ -53,107 +53,9 @@ from content_factory.analytics.preview import (
     fetch_preview,
     normalize_username,
 )
-from content_factory.config import ConfigError, Settings, load_channels
+from content_factory.config import ConfigError, Settings, load_network_channels
 from content_factory.models import ChannelConfig
 from content_factory.utils import env
-
-EXTRA_CHANNEL_FILES = ("config/channels.es.yaml",)
-
-
-# ---------------------------------------------------------------------------
-# Bot API (подписчики + username)
-# ---------------------------------------------------------------------------
-
-
-def bot_token(settings: Settings) -> str:
-    config = settings.publishers.get("telegram") or {}
-    env_name = str(config.get("bot_token_env") or "TELEGRAM_BOT_TOKEN")
-    return env(env_name, "") or ""
-
-
-def bot_base() -> str:
-    return (env("TELEGRAM_API_BASE", "") or "https://api.telegram.org").rstrip("/")
-
-
-def bot_call(settings: Settings, method: str, params: Dict[str, Any], timeout: float = 20.0) -> Optional[Any]:
-    token = bot_token(settings)
-    if not token:
-        return None
-    url = bot_base() + "/bot" + token + "/" + method + "?" + urllib.parse.urlencode(params)
-    request = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": BROWSER_USER_AGENT,
-            "Accept": "application/json",
-        },
-        method="GET",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            data = json.load(response)
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError, ValueError):
-        return None
-    if not isinstance(data, dict) or not data.get("ok"):
-        return None
-    return data.get("result")
-
-
-def resolve_username(
-    settings: Settings, channel: ChannelConfig, cache: Dict[str, str], timeout: float
-) -> str:
-    chat_id = str(channel.telegram_chat_id or "").strip()
-    if not chat_id:
-        return ""
-    if chat_id.startswith("@"):
-        return normalize_username(chat_id)
-    if chat_id in cache:
-        return cache[chat_id]
-    result = bot_call(settings, "getChat", {"chat_id": chat_id}, timeout)
-    username = normalize_username(str((result or {}).get("username") or ""))
-    if username:
-        cache[chat_id] = username
-    return username
-
-
-def fetch_subscribers(settings: Settings, channel: ChannelConfig, timeout: float) -> Optional[int]:
-    chat_id = str(channel.telegram_chat_id or "").strip()
-    if not chat_id:
-        return None
-    result = bot_call(settings, "getChatMemberCount", {"chat_id": chat_id}, timeout)
-    if isinstance(result, bool) or not isinstance(result, int):
-        return None
-    return int(result)
-
-
-# ---------------------------------------------------------------------------
-# Каналы
-# ---------------------------------------------------------------------------
-
-
-def load_all_channels(settings: Settings) -> List[ChannelConfig]:
-    """Каналы из основного файла настроек + ES-набора, без дублей по id."""
-    files: List[Path] = [settings.channels_path]
-    for extra in EXTRA_CHANNEL_FILES:
-        candidate = Path(extra)
-        candidate = candidate if candidate.is_absolute() else settings.root / candidate
-        if candidate.is_file() and candidate != settings.channels_path:
-            files.append(candidate)
-
-    channels: List[ChannelConfig] = []
-    seen: set = set()
-    for path in files:
-        try:
-            loaded = load_channels(settings, path=path)
-        except ConfigError as exc:
-            print("⚠ не загрузились каналы %s: %s" % (path.name, exc), file=sys.stderr)
-            continue
-        for channel in loaded:
-            if channel.id in seen:
-                continue
-            seen.add(channel.id)
-            channels.append(channel)
-    return channels
-
 
 # ---------------------------------------------------------------------------
 # Main
@@ -177,7 +79,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("Ошибка конфигурации: %s" % exc, file=sys.stderr)
         return 2
 
-    channels = [channel for channel in load_all_channels(settings) if channel.enabled]
+    channels = [channel for channel in load_network_channels(settings) if channel.enabled]
     if not channels:
         print("Нет включённых каналов — отчёт не построен", file=sys.stderr)
         return 1

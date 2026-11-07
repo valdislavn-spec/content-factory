@@ -1,5 +1,10 @@
-# Нативные кросс-промо-посты в каналах сети (публикует workflow cross-promo.yml).
-# Ротация детерминированная: день UTC → запись, вариант текста чередуется.
+# Нативные кросс-промо-посты в каналах сети (публикует workflow cross-promo.yml,
+# Вт/Пт 15:00 UTC). Ротация детерминированная: день UTC → запись, вариант текста
+# чередуется.
+#
+# Сейчас аудитория есть только у crypto-news (3.7k), поэтому включены кросс-посты
+# ИЗ него в AI News и US Sports News. Остальные связки — когда у каналов будет
+# 500+ подписчиков: кросс-промо из канала на 3 подписчика ничего не даёт.
 entries:
   - source: crypto-news
     enabled: true
@@ -13,6 +18,18 @@ entries:
       - |
         The AI and crypto markets are converging: new models, compute deals, policy and money flows. If you want the AI side of the story, our sister channel covers it daily:
         → https://t.me/AINEWS0007
+  - source: crypto-news
+    enabled: true
+    target: sport-news
+    url: https://t.me/SPORTNews0007
+    weight: 1
+    texts:
+      - |
+        Beyond crypto: US markets move sports too — NFL, NBA and MLB scores, trades and injuries. Our sister channel covers it daily:
+        → https://t.me/SPORTNews0007
+      - |
+        If you follow US sports — scores, trades, injuries and sharp analysis — our sister channel has you covered daily:
+        → https://t.me/SPORTNews0007
   - source: ai-news
     enabled: false
     target: crypto-news
