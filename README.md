@@ -301,6 +301,15 @@ python -m content_factory report --days 7
 - подписчики каналов;
 - история запусков и последние ошибки.
 
+Ежедневный отчёт роста (подписчики, просмотры/ER, дельты за сутки, лучший пост)
+строится без Telethon — из публичного превью `t.me/s`:
+
+```bash
+python scripts/growth_report.py --send
+```
+
+Подробности: [docs/growth-analytics.md](docs/growth-analytics.md).
+
 **Ограничения:** Telegram Bot API отдаёт число подписчиков
 (`getChatMemberCount`), но **не отдаёт просмотры и реакции постов канала**.
 Просмотры можно собирать опционально через Telethon (нужны `TG_API_ID` и
@@ -314,6 +323,25 @@ python -m content_factory report --days 7
   темы, источники, расписание и `TELEGRAM_CHAT_ID_*`. Код менять не нужно.
 - **Новый источник** — RSS/HTML подключается записью в `sources`; для нового
   типа нужен адаптер (`SourceAdapter` в `content_factory/sources/`).
+- **Документы как источник** — PDF/Word/PowerPoint/Excel/HTML можно
+  использовать наравне с RSS и веб-страницами. Положите файлы в `data/inbox`
+  и подключите источник `type: docs` (конвертация в Markdown через markitdown
+  выполняется автоматически и кэшируется в `data/inbox/.markdown/`):
+
+  ```yaml
+  sources:
+    - id: docs-inbox
+      type: docs
+      name: Документы
+      options:
+        dir: data/inbox
+        max_items: 10
+  ```
+
+  Разовая конвертация вручную: `content-factory ingest --dir data/inbox`
+  (или `content-factory ingest file1.pdf file2.docx --out data/inbox --json`).
+  Конвертер — исполняемый `markitdown` из `tools/markitdown-venv/bin/markitdown`
+  (переопределяется переменной `CONTENT_FACTORY_MARKITDOWN_BIN`).
 - **Новая соцсеть** — публикатор (`Publisher` в
   `content_factory/publishers/`); VK уже реализован, по аналогии добавляются
   OK, Дзен, сайт, email.
@@ -430,6 +458,7 @@ content-factory/
 | [extending.md](docs/extending.md) | новый источник, соцсеть, формат, LLM |
 | [operations.md](docs/operations.md) | автозапуск, логи, бэкапы, мониторинг, лимиты, VPS |
 | [cloud-actions.md](docs/cloud-actions.md) | запуск без ПК и без Oracle: GitHub Actions, кэш состояния, dry-run, лимиты |
+| [growth-analytics.md](docs/growth-analytics.md) | ежедневный отчёт роста: подписчики, просмотры, ER, дельты, сводка в Telegram |
 | [plan.md](docs/plan.md) | чек-лист запуска на 7 дней и дорожная карта |
 | [free-cloud.md](docs/free-cloud.md) | бесплатные облачные варианты: сбор новостей, LLM, хостинг, автопостинг, рецепты Oracle/GitHub Actions/Apps Script/n8n |
 | [legal.md](docs/legal.md) | авторские права, ToS, дисклеймеры, ответственность |

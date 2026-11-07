@@ -1,0 +1,52 @@
+name: growth-report
+
+# Ежедневный отчёт роста сети: подписчики (Bot API), просмотры/реакции/ER
+# из публичного t.me/s. t.me доступен с раннеров GitHub; из РФ — обычно нет,
+# поэтому основной запуск здесь. Ничего не публикует — только читает и шлёт
+# сводку в Telegram.
+on:
+  schedule:
+    - cron: "10 9 * * *"   # через 10 минут после heartbeat (09:00 UTC)
+  workflow_dispatch:
+
+concurrency:
+  group: growth-report
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  growth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      # История снимков нужна для дельт «+N за сутки»: кэш между запусками.
+      - name: Ensure analytics dir
+        run: mkdir -p data/analytics/growth
+      - name: Restore growth history
+        uses: actions/cache@v4
+        with:
+          path: data/analytics/growth
+          key: growth-history-${{ github.run_id }}
+          restore-keys: growth-history-
+      - name: Build growth report
+        run: python scripts/growth_report.py --send --limit 30
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: growth-report
+          path: data/reports/growth-*.md
+          if-no-files-found: ignore
