@@ -68,6 +68,15 @@ crypto-news → AI News и US Sports News, со ссылкой в каждом �
   (Bing — 200, Яндекс — 202, `api.indexnow.org` — 202); ключ —
   `docs/40b6ae40a1da513993ba194f8f2048c5.txt`.
 
+### Гео-лендинги и бесплатные каталоги (08.11.2026)
+
+- **6 гео-лендингов каналов** — https://valdislavn-spec.github.io/content-factory/channels/
+  (EN → США, ES → LatAm/Испания). Генератор `scripts/build_geo_landing.py`,
+  страницы в `docs/channels/`, все URL в sitemap и IndexNow.
+- **besttelegramchannels.com** — бесплатная подача всех 6 каналов (EN + ES)
+  принята: «successful! … live shortly after approval». Каталог в модерации.
+- Тексты, гео-матрица и план на неделю — `docs/promo/free-ads-geo-2026-11.md`.
+
 ### Проверено, но не удалось автоматически
 
 - **GruposTelegramLatAm:** форма `/anadir-grupo` отправляет данные на
@@ -79,6 +88,11 @@ crypto-news → AI News и US Sports News, со ссылкой в каждом �
 - **telegramchannels.me, tlgrm.eu, TGStat, Telemetr:** добавление каналов
   требует входа через Telegram-аккаунт владельца (или бота-верификатора);
   сессии пользователя в окружении нет.
+- **besttelegramchannels.com:** форма `/add-telegram-channels-groups` работает
+  без логина (multipart + PNG-аватар); все 6 заявок приняты 08.11.2026.
+- **tgdr.io / tdirectory.me:** подача через Telegram-бота каталога (`/add`);
+  **search-t.me** — нужен вход; **tgram.me** — капча; **tlgrm.eu** — форма
+  недоступна из этой сети (таймаут), подавать из браузера.
 
 ### Проверка
 
@@ -99,7 +113,7 @@ python scripts/edit_pinned.py --language es --dry-run
 | VK | описание сообщества, ссылки, закреп | все 6 ссылок | ☐ (VK-токен пуст) |
 | Reddit | профиль + закреп в профиле | хаб; в сабах — только по правилам | ☐ |
 | Личный Telegram | био + закреп в личном канале | @-упоминания каналов | ☐ (нужна сессия аккаунта) |
-| Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☐ (нужен Telegram-вход; GruposLatAm — форма 404) |
+| Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☑ besttelegramchannels — 6 каналов поданы; ☐ остальные (нужен Telegram-вход; GruposLatAm — форма 404) |
 | Email / подпись | подпись писем | хаб-ссылка | ☐ |
 | GitHub profile | README профиля | хаб + 6 ссылок | ☑ сделано 08.11.2026 |
 | GitHub (поле website профиля) | ссылка в профиле | хаб | ☐ токен не может менять профиль — вручную 1 минута |
@@ -152,6 +166,8 @@ All → https://valdislavn-spec.github.io/content-factory/
 - [x] блок «Каналы сети» в README публичного репозитория + topics
 - [x] README профиля GitHub (github.com/valdislavn-spec)
 - [x] robots.txt + sitemap.xml + JSON-LD на хабе; заявка IndexNow (Bing/Yandex)
+- [x] 6 гео-лендингов каналов (US/LatAm/Испания) + sitemap + IndexNow
+- [x] бесплатный каталог besttelegramchannels.com — все 6 каналов поданы (модерация)
 - [ ] TikTok bio
 - [ ] YouTube ссылки
 - [ ] X bio + закреп-твит
