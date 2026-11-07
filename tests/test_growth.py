@@ -122,6 +122,23 @@ class PreviewParseTests(unittest.TestCase):
         channel = parse_preview(stripped)
         self.assertEqual([post.message_id for post in channel.posts], [5981, 5983])
 
+    def test_service_messages_are_skipped(self) -> None:
+        service = (
+            '<html><body><div class="tgme_widget_message_wrap js-widget_message_wrap">'
+            '<div class="tgme_widget_message_service" data-post="HOOPY0007/5998">'
+            '<div class="tgme_widget_message_service_text">Channel photo updated</div>'
+            "</div></div></body></html>"
+        )
+        self.assertEqual(parse_preview(service).posts, [])
+        # закреплённый пост-уведомление («… pinned «…»») тоже не пост
+        pinned = (
+            '<html><body><div class="tgme_widget_message_wrap js-widget_message_wrap">'
+            '<div class="tgme_widget_message" data-post="HOOPY0007/5999">'
+            '<div class="tgme_widget_message_text">Crypto & Blockchain pinned «intro»</div>'
+            "</div></div></body></html>"
+        )
+        self.assertEqual(parse_preview(pinned).posts, [])
+
     def test_parse_count(self) -> None:
         cases = {
             "3.67K": 3670,

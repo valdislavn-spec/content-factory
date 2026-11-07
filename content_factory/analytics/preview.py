@@ -57,6 +57,12 @@ _TEXT_RE = re.compile(
 _REACTION_RE = re.compile(r'<span class="tgme_reaction">(.*?)</span>', re.DOTALL)
 _REACTION_COUNT_RE = re.compile(r"([0-9][0-9,\s.]*)\s*$")
 _SPONSORED_RE = re.compile(r"(?i)^[^\w]*sponsored\b")
+# Служебные сообщения канала (смена названия/фото, удаление, «pinned «…»», даты).
+_SERVICE_RE = re.compile(r"tgme_widget_message_service(?![_\w])")
+_SERVICE_TEXT_RE = re.compile(
+    r"(?i)^(?:Channel (?:name|photo|username) (?:was )?changed|Channel created|"
+    r"Channel deleted|Channel photo (?:updated|removed)|.+ pinned «)"
+)
 
 _MULTIPLIERS = {"k": 1_000, "m": 1_000_000, "b": 1_000_000_000}
 
@@ -177,6 +183,10 @@ def parse_preview(html_text: str, *, username: str = "", limit: int = 20) -> Pre
 
 
 def _parse_post(part: str) -> Optional[PreviewPost]:
+    # Служебные сообщения (смена названия/фото, закрепление) не являются
+    # постами: у них нет содержания, но бывает data-post и даже счётчик.
+    if _SERVICE_RE.search(part):
+        return None
     data_post = _DATAPOST_RE.search(part)
     if not data_post:
         return None  # служебные сообщения (смена названия/закрепа) без data-post
@@ -205,6 +215,9 @@ def _parse_post(part: str) -> Optional[PreviewPost]:
         emoji = reaction_text[: count_match.start()].strip()
         if count:
             reactions[emoji or "?"] = reactions.get(emoji or "?", 0) + count
+
+    if views is None and _SERVICE_TEXT_RE.match(text):
+        return None
 
     return PreviewPost(
         message_id=message_id,
