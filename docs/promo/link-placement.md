@@ -64,8 +64,21 @@ crypto-news → AI News и US Sports News, со ссылкой в каждом �
 - **Публичный репозиторий:** https://github.com/valdislavn-spec/content-factory —
   блок «Каналы сети» в README, `homepage` = хаб, 10 topics для поиска.
 - **Индексация хаба:** `docs/robots.txt`, `docs/sitemap.xml`, JSON-LD
-  `ItemList` в `docs/index.html`; заявка в IndexNow (Bing/Yandex) отправлена
-  08.11.2026, ключ — `docs/<key>.txt`.
+  `ItemList` в `docs/index.html`. Заявка в IndexNow отправлена 08.11.2026
+  (Bing — 200, Яндекс — 202, `api.indexnow.org` — 202); ключ —
+  `docs/40b6ae40a1da513993ba194f8f2048c5.txt`.
+
+### Проверено, но не удалось автоматически
+
+- **GruposTelegramLatAm:** форма `/anadir-grupo` отправляет данные на
+  `/api/submit-grupo`, который сейчас отвечает 404 — приём заявок на их стороне
+  сломан. Повторить позже или написать через `/contacto`.
+- **Профиль бота @Novyi0007Bot:** `setMyDescription` / `setMyShortDescription`
+  через локальный прокси вернули Cloudflare 1010 (ограничение локальной сети).
+  Из GitHub Actions должно работать — можно добавить в `apply-profile`.
+- **telegramchannels.me, tlgrm.eu, TGStat, Telemetr:** добавление каналов
+  требует входа через Telegram-аккаунт владельца (или бота-верификатора);
+  сессии пользователя в окружении нет.
 
 ### Проверка
 
@@ -83,10 +96,10 @@ python scripts/edit_pinned.py --language es --dry-run
 | YouTube | описание канала + описание видео | хаб + 6 ссылок в описании канала | ☐ |
 | X/Twitter | bio + website + закреп-твит | website = хаб; ссылки — в закрепе | ☐ |
 | Instagram | био (1 ссылка) | хаб-ссылка | ☐ |
-| VK | описание сообщества, ссылки, закреп | все 6 ссылок | ☐ (нет токена VK) |
+| VK | описание сообщества, ссылки, закреп | все 6 ссылок | ☐ (VK-токен пуст) |
 | Reddit | профиль + закреп в профиле | хаб; в сабах — только по правилам | ☐ |
-| Личный Telegram | био + закреп в личном канале | @-упоминания каналов | ☐ |
-| Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☐ (6 каталогов) |
+| Личный Telegram | био + закреп в личном канале | @-упоминания каналов | ☐ (нужна сессия аккаунта) |
+| Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☐ (нужен Telegram-вход; GruposLatAm — форма 404) |
 | Email / подпись | подпись писем | хаб-ссылка | ☐ |
 | GitHub profile | README профиля | хаб + 6 ссылок | ☑ сделано 08.11.2026 |
 | GitHub (поле website профиля) | ссылка в профиле | хаб | ☐ токен не может менять профиль — вручную 1 минута |
