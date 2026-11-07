@@ -1,0 +1,35 @@
+name: set-title
+
+# Ручная смена названия (title) канала через Bot API setChatTitle.
+# Запуск: Actions → set-title → Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      chat_id:
+        description: "ID канала, например -1003891468537"
+        required: true
+      title:
+        description: "Новое название канала"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Set channel title
+        run: python scripts/telegram_set_title.py --chat-id "${{ inputs.chat_id }}" --title "${{ inputs.title }}"
