@@ -63,6 +63,9 @@ def main(argv=None) -> int:
     parser.add_argument("--live", action="store_true", help="create posts (default: dry-run)")
     parser.add_argument("--date", default="", help="override day (YYYY-MM-DD) for rotation/log")
     parser.add_argument("--report", default=str(ROOT / "data" / "reports"))
+    parser.add_argument("--require-affiliate", dest="require_affiliate", action="store_true", default=True,
+                        help="block live publishing for pins without a Travelpayouts redirect")
+    parser.add_argument("--allow-no-affiliate", dest="require_affiliate", action="store_false")
     args = parser.parse_args(argv)
 
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8")) or {}
@@ -78,6 +81,21 @@ def main(argv=None) -> int:
     now = datetime.now(timezone.utc)
     day = args.date or now.strftime("%Y-%m-%d")
     index = now.timetuple().tm_yday % len(pin_files)
+
+    # Affiliate guard: never publish without a Travelpayouts redirect page.
+    tp_config_path = ROOT / "config" / "travelpayouts.yaml"
+    affiliate_slugs = set()
+    if tp_config_path.exists():
+        tp_config = yaml.safe_load(tp_config_path.read_text(encoding="utf-8")) or {}
+        for slug in (tp_config.get("pins") or {}):
+            if (ROOT / "docs" / "go" / (str(slug) + ".html")).exists():
+                affiliate_slugs.add(str(slug))
+    slug = pin_files[index].stem
+    pin_is_affiliate = slug in affiliate_slugs
+    if args.live and args.require_affiliate and not pin_is_affiliate:
+        print("skip: pin %s has no Travelpayouts affiliate link (docs/go/%s.html) — publishing blocked" % (slug, slug))
+        return 0
+
     sidecar = json.loads(pin_files[index].read_text(encoding="utf-8"))
     pin_payload = sidecar.get("pin") or {}
     pin = {

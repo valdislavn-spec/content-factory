@@ -93,6 +93,22 @@ mutation CreatePost($input: CreatePostInput!) {
 }
 """
 
+    DELETE_POST = """
+mutation DeletePost($input: DeletePostInput!) {
+  deletePost(input: $input) {
+    ... on DeletePostSuccess { __typename }
+    ... on VoidMutationError { message }
+  }
+}
+"""
+
+    def delete_post(self, post_id: str) -> None:
+        """Remove a scheduled or sent post. Raises BufferError on failure."""
+        data = self.gql(self.DELETE_POST, {"input": {"id": post_id}})
+        result = data.get("deletePost") or {}
+        if "message" in result:
+            raise BufferError(str(result.get("message") or "deletePost failed"))
+
     def create_post(
         self,
         channel_id: str,
