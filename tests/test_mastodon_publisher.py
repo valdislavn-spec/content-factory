@@ -43,7 +43,7 @@ class MastodonPublisherTests(unittest.TestCase):
             os.environ.pop(key, None)
 
     def _publish(self, text: str):
-        publisher = MastodonPublisher()
+        publisher = MastodonPublisher(mock.Mock())
         with mock.patch(
             "content_factory.publishers.mastodon.http_json",
             return_value={"id": "42", "url": "https://mastodon.social/@cf/42"},
@@ -54,7 +54,7 @@ class MastodonPublisherTests(unittest.TestCase):
     def test_requires_credentials(self):
         for key in ("MASTODON_BASE_URL", "MASTODON_TOKEN"):
             os.environ.pop(key)
-        self.assertFalse(MastodonPublisher().check(make_channel())[0])
+        self.assertFalse(MastodonPublisher(mock.Mock()).check(make_channel())[0])
 
     def test_publishes_and_returns_url(self):
         result, mocked = self._publish("<b>Hello</b> world")
