@@ -255,7 +255,12 @@ def build_clusters(
         relevance = max(float(a.meta.get("relevance", 0.0)) for a in cluster.articles)
         cluster.relevance = relevance
         # Свежесть: 1.0 для только что вышедших, 0.0 к концу окна.
+        # Источники иногда отдают naive datetime — приводим к UTC.
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=timezone.utc)
         last = cluster.last_published or now
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
         age_hours = max(0.0, (now - last).total_seconds() / 3600.0)
         freshness = max(0.0, 1.0 - age_hours / max(6.0, float(settings.pipeline.get("lookback_hours", 30))))
         coverage = 0.3 if cluster.coverage <= 1 else min(1.0, 0.5 + 0.25 * (cluster.coverage - 2))
