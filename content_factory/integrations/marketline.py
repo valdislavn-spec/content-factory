@@ -165,15 +165,16 @@ def _kalshi_label(market: Dict[str, Any]) -> str:
     title = str(market.get("title") or "").strip()
     subtitle = str(market.get("yes_sub_title") or "").strip()
     haystack = title + " " + subtitle
-    target = ""
-    match = re.search(r"\$[\d,.]+\s*[kKmM]?", haystack)
-    if match:
-        target = match.group(0).replace(" ", "")
     asset = "BTC" if re.search(r"bitcoin|btc", haystack, re.IGNORECASE) else ""
-    label = " ".join(part for part in (asset, target) if part).strip()
-    if label and subtitle:
-        return "%s · %s" % (label, subtitle)
-    return label or subtitle or title
+    match = re.search(r"\$[\d,.]+\s*[kKmM]?", haystack)
+    target = match.group(0).replace(" ", "") if match else ""
+    normalized_target = target.replace(",", "")
+    target_in_subtitle = bool(target) and normalized_target in subtitle.replace(" ", "").replace(",", "")
+    parts = [part for part in (asset, "" if target_in_subtitle else target) if part]
+    label = " ".join(parts).strip()
+    if subtitle:
+        return "%s · %s" % (label, subtitle) if label else subtitle
+    return label or title
 
 
 def format_market_line(

@@ -97,7 +97,7 @@ def test_build_market_line_with_cache(tmp_path: Path):
     config = {"enabled": True, "coins": ["bitcoin", "ethereum"], "kalshi_series": ["KXBTC"]}
     line = build_market_line(config, price_fetcher=price_fetcher, markets_fetcher=markets_fetcher, cache_path=cache)
     assert "BTC $75,861" in line
-    assert "Kalshi: $75,800 to 75,899.99 — 73¢" in line
+    assert "Kalshi: BTC · $75,800 to 75,899.99 — 73¢" in line
     # second call is served from cache
     line2 = build_market_line(config, price_fetcher=price_fetcher, markets_fetcher=markets_fetcher, cache_path=cache)
     assert line2 == line
