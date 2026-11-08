@@ -1,6 +1,6 @@
 {
-  "image_url": "https://valdislavn-spec.github.io/content-factory/01-bitcoin-at-100k.png",
-  "file": "docs/assets/pins/01-bitcoin-at-100k.png",
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/05-bitcoin-at-100k.png",
+  "file": "/tmp/cf-kalshi/docs/assets/pins/05-bitcoin-at-100k.png",
   "niche": "crypto",
   "affiliate": false,
   "disclosure": "Save this guide",
@@ -11,7 +11,7 @@
     "alt_text": "Bitcoin $100k odds on prediction markets",
     "media_source": {
       "source_type": "image_url",
-      "url": "https://valdislavn-spec.github.io/content-factory/01-bitcoin-at-100k.png"
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/05-bitcoin-at-100k.png"
     }
   }
 }

@@ -1,0 +1,17 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-bali-on-a-budget.png",
+  "file": "/tmp/cf-kalshi/docs/assets/pins/02-bali-on-a-budget.png",
+  "niche": "travel",
+  "affiliate": false,
+  "disclosure": "Save this guide",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Bali budget guide: 7 days on a budget",
+    "description": "What 7 days in Bali actually cost, where to save, and when to go to avoid peak season prices.",
+    "alt_text": "Bali budget guide: 7 days on a budget",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-bali-on-a-budget.png"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-europe-for-under-300.png",
+  "file": "/tmp/cf-kalshi/docs/assets/pins/01-europe-for-under-300.png",
+  "niche": "travel",
+  "affiliate": false,
+  "disclosure": "Save this guide",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Cheap Europe city breaks under $300",
+    "description": "Budget city breaks in Europe: cheapest months, carry-on tips and booking windows. Hand-picked flight and hotel deals.",
+    "alt_text": "Cheap Europe city breaks under $300",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-europe-for-under-300.png"
+    }
+  }
+}

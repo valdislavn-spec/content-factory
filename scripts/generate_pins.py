@@ -89,7 +89,10 @@ def main(argv=None) -> int:
         image_path = out_dir / filename
         image.save(image_path, "PNG", optimize=True)
 
-        relative = image_path.relative_to(ROOT / "docs").as_posix() if str(image_path).startswith(str(ROOT / "docs")) else image_path.name
+        try:
+            relative = image_path.resolve().relative_to((ROOT / "docs").resolve()).as_posix()
+        except ValueError:
+            relative = image_path.name
         image_url = "%s/%s" % (public_base, relative)
         payload = spec.pinterest_payload(board_id or "<BOARD_ID>", image_url)
         if not spec.link.strip():
