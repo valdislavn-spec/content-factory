@@ -14,10 +14,13 @@ from __future__ import annotations
 from typing import Tuple
 
 from ..config import Settings
+from ..utils import env
 from ..models import ChannelConfig, GeneratedPost, PublishResult
 from .social import SocialAPIError, SocialPublisher, http_json, post_text
 
-API_URL = "https://api.pinterest.com/v5/pins"
+API_BASE = "https://api.pinterest.com/v5"
+SANDBOX_BASE = "https://api-sandbox.pinterest.com/v5"
+API_URL = API_BASE + "/pins"
 MAX_DESCRIPTION = 500
 
 
@@ -69,8 +72,9 @@ class PinterestPublisher(SocialPublisher):
         if link:
             payload["link"] = link
         try:
+            base = (env("PINTEREST_API_BASE", API_BASE) or API_BASE).rstrip("/")
             data = http_json(
-                API_URL,
+                base + "/pins",
                 payload=payload,
                 headers={"Authorization": "Bearer {}".format(token)},
             )

@@ -1,0 +1,72 @@
+name: pins-generate
+
+# Фабрика пинов: 2 новых пина в день (ротация по конфигу), фон — Hugging Face
+# FLUX.1-schnell (если есть HUGGINGFACE_API_KEY), иначе брендовый градиент.
+# PNG+JSON коммитятся в docs/assets/pins/ и публикуются на GitHub Pages —
+# оттуда их можно постить через Pinterest API (workflow pins-post).
+on:
+  schedule:
+    - cron: "40 12 * * *"
+  workflow_dispatch:
+    inputs:
+      no_ai:
+        description: "true = без AI-фонов (только градиент)"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      date:
+        description: "папка даты (YYYY-MM-DD), пусто = сегодня"
+        required: false
+        default: ""
+      post:
+        description: "true = сразу попробовать опубликовать пины в Pinterest"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: write
+
+jobs:
+  pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate pins
+        run: |
+          FLAGS="--rotate 2"
+          if [ "${{ inputs.no_ai }}" = "true" ]; then FLAGS="$FLAGS --no-ai"; fi
+          if [ -n "${{ inputs.date }}" ]; then FLAGS="$FLAGS --date ${{ inputs.date }}"; fi
+          python scripts/generate_pins.py --out docs/assets/pins $FLAGS
+
+      - name: Commit pins to Pages
+        run: |
+          git config user.name "content-factory-bot"
+          git config user.email "content-factory-bot@users.noreply.github.com"
+          git add docs/assets/pins
+          git diff --cached --quiet && echo "no changes" || git commit -m "pins: $(date -u +%F)"
+          git push origin HEAD:main || true
+
+      - name: Post to Pinterest (optional)
+        if: ${{ inputs.post == 'true' }}
+        run: |
+          python scripts/post_pins.py --dir docs/assets/pins --live --only-affiliate || true

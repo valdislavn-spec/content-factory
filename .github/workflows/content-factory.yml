@@ -83,6 +83,7 @@ jobs:
       # Pinterest — API v5, публичный URL обложки из docs/assets/pinterest/
       PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
       PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
       PINTEREST_LINK: ${{ vars.PINTEREST_LINK }}
       PINTEREST_IMAGE_URL_CRYPTO_NEWS: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_NEWS }}
       PINTEREST_IMAGE_URL_AI_NEWS: ${{ vars.PINTEREST_IMAGE_URL_AI_NEWS }}

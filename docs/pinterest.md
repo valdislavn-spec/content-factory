@@ -85,3 +85,27 @@ Actions → **pinterest-check** → Run workflow:
 GitHub Pages вместе с хабом. Ссылка на пин по умолчанию — хаб
 (`PINTEREST_LINK`), при желании для канала можно поставить ссылку на его
 Telegram-канал.
+
+## Ошибки Pinterest API и режимы
+
+| Ответ API | Значение | Что делать |
+|---|---|---|
+| `401 code 3 "Your application consumer type is not supported"` | приложение **не одобрено для Trial** или используется Production-limited токен без доступа | дождаться аппрува Trial access; после одобрения сгенерировать Production token |
+| `401 code 2 "Authentication failed"` на `api-sandbox.pinterest.com` | токен **не sandbox** | сгенерировать Sandbox-токен |
+| `401` на `api.pinterest.com` с sandbox-токеном | токен не от того окружения | использовать `PINTEREST_API_BASE` под окружение |
+
+### Sandbox vs Production
+
+- **Sandbox** (`https://api-sandbox.pinterest.com/v5`) — тестовые пины/доски,
+  не видны публично, работают сразу после создания приложения (если выдан
+  Sandbox token). Удобно проверить пайплайн до аппрува.
+- **Production** (`https://api.pinterest.com/v5`) — реальные публичные пины;
+  нужен одобренный Trial/Standard доступ.
+
+В приложении (Configure / Access tokens) при генерации токена выберите
+окружение: **Sandbox** или **Production limited**. Токен `pina_…` —
+production-limited, поэтому против sandbox он даёт `code 2`, а против
+production — `code 3` до одобрения.
+
+`PINTEREST_API_BASE` (Repository variable) переключает базу API в паблишере и
+скриптах.

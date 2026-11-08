@@ -9,7 +9,9 @@ import os
 import urllib.request
 import urllib.error
 
-API = "https://api.pinterest.com/v5"
+PROD = "https://api.pinterest.com/v5"
+SANDBOX = "https://api-sandbox.pinterest.com/v5"
+API = (os.environ.get("PINTEREST_API_BASE") or PROD).rstrip("/")
 
 
 def env(name: str, default: str = "") -> str:
@@ -49,6 +51,7 @@ def main() -> int:
     board = env("PINTEREST_BOARD_ID")
     image = env("PINTEREST_IMAGE_URL")
     print("PINTEREST_ACCESS_TOKEN len:", len(token), "| BOARD_ID:", board or "—", "| IMAGE_URL:", image or "—")
+    print("API base:", API, "| mode:", "sandbox" if "sandbox" in API else "production")
     if not token:
         print("FAIL: PINTEREST_ACCESS_TOKEN не задан — нужен OAuth2-токен со scope pins:write, boards:read")
         return 1

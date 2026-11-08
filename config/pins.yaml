@@ -1,0 +1,119 @@
+# Конфигурация фабрики пинов (Pinterest). Один пин = 1000x1500 PNG + JSON
+# с готовым payload для POST /v5/pins.
+#
+# Ссылки: вставьте свою партнёрскую/реферальную ссылку в поле link.
+# Пока link пуст — генератор подставит hub_url и пометку "Guide" (без Ad),
+# чтобы не публиковать фейковую рекламу.
+#
+# Программы для travel (нужен свой аккаунт):
+#   Travelpayouts (Booking, Kiwi, GetYourGuide, Viator, Hotels) — агрегатор
+#   Expedia Group (Impact), GetYourGuide (Partnerize), Viator (Impact)
+# Pinterest требует пометку Ad/affiliate для партнёрских ссылок.
+
+hub_url: https://valdislavn-spec.github.io/content-factory/
+public_base: https://valdislavn-spec.github.io/content-factory
+
+defaults:
+  disclosure_affiliate: "Ad · affiliate link"
+  disclosure_guide: "Save this guide"
+
+pins:
+  # ---------- TRAVEL ----------
+  - niche: travel
+    headline: "Europe for under $300"
+    subtitle: "Real cheap city breaks: flights + 3 nights, no tourist traps"
+    bullets:
+      - "Cheapest months: March–May"
+      - "Carry-on only, book 6–8 weeks ahead"
+      - "Mon–Wed departures are cheaper"
+    cta: "See the deals"
+    image_prompt: "Aerial view of a charming European old town at golden hour, travel photography, bright colors, space for text at the top"
+    accent: "#FF7A45"
+    title: "Cheap Europe city breaks under $300"
+    description: "Budget city breaks in Europe: cheapest months, carry-on tips and booking windows. Hand-picked flight and hotel deals."
+    link: ""
+
+  - niche: travel
+    headline: "Bali on a budget"
+    subtitle: "7 days, beaches, rice terraces — and what it really costs"
+    bullets:
+      - "$35–60/day mid-range"
+      - "Avoid July–August peak prices"
+      - "Scooter + local warungs save most"
+    cta: "Read the guide"
+    image_prompt: "Tropical Bali rice terraces with palm trees at sunrise, soft light, travel blogger aesthetic, copy space in sky"
+    accent: "#2ECC71"
+    title: "Bali budget guide: 7 days on a budget"
+    description: "What 7 days in Bali actually cost, where to save, and when to go to avoid peak season prices."
+    link: ""
+
+  - niche: travel
+    headline: "48 hours in Rome"
+    subtitle: "A first-timer route that skips the queues"
+    bullets:
+      - "Colosseum at 8:30, not noon"
+      - "Trastevere for dinner"
+      - "Book Vatican before you fly"
+    cta: "Get the itinerary"
+    image_prompt: "Rome skyline with Colosseum at sunrise, warm cinematic travel photo, empty streets, space for headline"
+    accent: "#F0B90B"
+    title: "48 hours in Rome: first-timer itinerary"
+    description: "Two-day Rome itinerary: how to skip queues at the Colosseum and Vatican, where to eat in Trastevere, and a realistic walking route."
+    link: ""
+
+  - niche: travel
+    headline: "Travel insurance mistakes"
+    subtitle: "5 things that void your policy abroad"
+    bullets:
+      - "Alcohol-related claims are excluded"
+      - "Check rental excess cover"
+      - "Adventure sports need a rider"
+    cta: "Check your policy"
+    image_prompt: "Passport, boarding pass and travel insurance document flat lay on a desk, warm light, clean minimal composition"
+    accent: "#4C9AFF"
+    title: "Travel insurance mistakes that void cover"
+    description: "Five common travel insurance mistakes that can void your policy abroad, and how to check your cover before you fly."
+    link: ""
+
+  # ---------- CRYPTO / AI / SPORTS (test other niches) ----------
+  - niche: crypto
+    headline: "Bitcoin at $100k?"
+    subtitle: "Prediction market odds move faster than headlines"
+    bullets:
+      - "Live YES price on Kalshi"
+      - "Volume shows conviction"
+      - "Not investment advice"
+    cta: "See the odds"
+    image_prompt: "Abstract dark finance background with glowing golden Bitcoin symbol and candlestick chart, futuristic, copy space"
+    accent: "#F0B90B"
+    title: "Bitcoin $100k odds on prediction markets"
+    description: "What prediction markets price for Bitcoin crossing $100k, with live YES odds and volume. Not investment advice."
+    link: ""
+
+  - niche: ai
+    headline: "AI tools that save time"
+    subtitle: "5 workflows worth automating this week"
+    bullets:
+      - "Summaries → Telegram digests"
+      - "Repurposing with one click"
+      - "Self-hosted alternatives"
+    cta: "See the list"
+    image_prompt: "Sleek dark tech desk with floating holographic AI interface panels, cyan glow, modern minimal, space for headline"
+    accent: "#4C9AFF"
+    title: "5 AI workflows that save hours every week"
+    description: "Five practical AI workflows for content creators: summarisation, repurposing, research, scheduling and self-hosted alternatives."
+    link: ""
+
+  - niche: sports
+    headline: "NFL picks by the numbers"
+    subtitle: "What the market says about this week's games"
+    bullets:
+      - "Injury reports first"
+      - "Line moves tell the story"
+      - "18+ only"
+    cta: "See the numbers"
+    image_prompt: "American football stadium at night under floodlights, dramatic sports photography, green field, copy space in sky"
+    accent: "#2ECC71"
+    title: "NFL picks by the numbers"
+    description: "Weekly NFL numbers: injury impact, line movement and what prediction markets price for each game. 18+."
+    link: ""

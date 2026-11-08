@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 10
     env:
       PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
       PINTEREST_BOARD_ID: ${{ inputs.board_id || secrets.PINTEREST_BOARD_ID }}
       PINTEREST_IMAGE_URL: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_NEWS }}
       PINTEREST_LINK: ${{ vars.PINTEREST_LINK }}
