@@ -129,6 +129,13 @@ CoinGecko (крипто), GitHub Trending и Hacker News (AI/tech), Google Trend
 - **Аналитика роста:** `scripts/growth_report.py` (подписчики, просмотры/ER,
   дельты, лучший пост), отчёт в Telegram по флагу `--send`.
 
+## Добровольная поддержка (donate, не paywall)
+
+В посты можно добавить необязательную donate-ссылку — только по желанию
+читателя, контент остаётся бесплатным. Настройка и UTM-атрибуция:
+[voluntary-support.md](voluntary-support.md), конфиг `config/support.yaml`.
+По умолчанию URL пуст — блок выключен.
+
 ## Мост «мозга» в автопост (LangGraph + RAG)
 
 Мост **включён**: content-factory отдаёт уже собранные топ-сюжеты (RSS +

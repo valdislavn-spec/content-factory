@@ -39,6 +39,8 @@ from .extractive import split_sentences
 from .lang import language_code
 from .llm import LLMClient, clean_llm_output
 
+logger = logging.getLogger(__name__)
+
 LOGGER = logging.getLogger(__name__)
 
 _ALLOWED_FORMATS = ("story", "digest", "analysis", "interactive")
@@ -855,17 +857,32 @@ def _hashtags_block(hashtags: Sequence[str]) -> str:
     return " ".join(_escape(tag) for tag in hashtags)
 
 
-def _cta_block(channel: ChannelConfig, settings: Any, lang: Optional[str] = None) -> str:
+def _cta_block(
+    channel: ChannelConfig,
+    settings: Any,
+    lang: Optional[str] = None,
+    seed: str = "",
+) -> str:
+    """CTA канала + необязательный блок добровольной поддержки (donate)."""
+    target = _channel_language(channel, lang)
+    blocks: List[str] = []
     cta = str(getattr(channel, "cta", "") or "").strip()
     if not cta:
         cta = str(_setting(settings, "pipeline.cta", "") or "").strip()
-    if not cta:
-        return ""
     # Призыв к действию на чужом языке в en/es-посте не показываем.
-    target = _channel_language(channel, lang)
-    if (_is_en(target) or _is_es(target)) and _has_cyrillic(cta):
-        return ""
-    return f"<i>{_escape(cta)}</i>"
+    if cta and not ((_is_en(target) or _is_es(target)) and _has_cyrillic(cta)):
+        blocks.append(f"<i>{_escape(cta)}</i>")
+    # Только добровольная поддержка: контент бесплатный, paywall не включаем.
+    try:
+        from ..support import voluntary_support_block
+
+        support = voluntary_support_block(channel, settings, target, seed=seed)
+    except Exception as exc:  # noqa: BLE001 — донат не должен ломать пост
+        logger.debug("Блок поддержки недоступен: %s", exc)
+        support = ""
+    if support:
+        blocks.append(support)
+    return "\n\n".join(blocks)
 
 
 def _shorten(text: str, limit: int) -> str:
@@ -1445,7 +1462,7 @@ def _build_story(
     sources_text = _sources_block(sources, style)
     if sources_text:
         blocks.append({"text": sources_text, "optional": True, "drop_priority": 70})
-    cta_text = _cta_block(channel, settings, lang)
+    cta_text = _cta_block(channel, settings, lang, seed=title)
     if cta_text:
         blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
     tags_text = _hashtags_block(hashtags)
@@ -1512,7 +1529,7 @@ def _build_analysis(
     sources_text = _sources_block(sources, style)
     if sources_text:
         blocks.append({"text": sources_text, "optional": True, "drop_priority": 70})
-    cta_text = _cta_block(channel, settings, lang)
+    cta_text = _cta_block(channel, settings, lang, seed=title)
     if cta_text:
         blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
     tags_text = _hashtags_block(hashtags)
@@ -1569,7 +1586,7 @@ def _build_interactive(
     tags_text = _hashtags_block(hashtags)
     if tags_text:
         blocks.append({"text": tags_text, "optional": True, "drop_priority": 80})
-    cta_text = _cta_block(channel, settings, lang)
+    cta_text = _cta_block(channel, settings, lang, seed=title)
     if cta_text:
         blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
     return blocks, llm_used
@@ -1909,7 +1926,7 @@ def generate_digest(
             {"text": f"{prefix}<b>{_escape(title)}</b> — {_escape(one_line)}{link}"}
         )
 
-    cta_text = _cta_block(channel, settings, lang)
+    cta_text = _cta_block(channel, settings, lang, seed=title)
     if cta_text:
         blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
     tags_text = _hashtags_block(hashtags)

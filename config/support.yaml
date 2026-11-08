@@ -1,0 +1,21 @@
+# Добровольная поддержка проекта (НЕ платный доступ и НЕ paywall).
+#
+# Посты остаются бесплатными: этот блок — просто необязательная строка с
+# donate/tip-ссылкой (Tribute-донат, Boosty-донат, DonationAlerts и т.п.).
+# Вставь ссылку в url ниже (или задай SUPPORT_URL в .env/секретах CI) — и блок
+# появится в постах. Пустой url = блок выключен.
+enabled: true
+mode: voluntary
+url: ""                     # например: https://tribute.tg/.../donate
+channels: []                # пусто = все каналы; ["crypto-news"] — выборочно
+frequency: 1                # 1 = каждый пост; 2/3 = детерминированно реже
+text_ru: "❤️ Поддержать проект добровольно: {link}"
+text_en: "❤️ Support the project voluntarily: {link}"
+text_es: "❤️ Apoya el proyecto de forma voluntaria: {link}"
+link_label_ru: "по ссылке"
+link_label_en: "here"
+link_label_es: "aquí"
+utm:
+  source: telegram
+  medium: post
+  campaign: voluntary_support

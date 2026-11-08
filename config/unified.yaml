@@ -63,6 +63,13 @@ seo:
   indexnow: true                 # пинг IndexNow при деплое лендинга
   landing: docs/index.html       # публичная страница-хаб (GitHub Pages)
 
+support:
+  # Только добровольные донаты (не paywall): config/support.yaml + SUPPORT_URL.
+  config: config/support.yaml
+  mode: voluntary
+  enabled: true
+  url_env: SUPPORT_URL
+
 growth:
   cross_promo: config/cross_promo.yaml
   pinned_links: docs/promo/link-placement.md

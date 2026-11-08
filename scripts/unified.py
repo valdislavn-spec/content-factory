@@ -314,6 +314,21 @@ def build_doctor_sections(
             "TELEGRAM_GROWTH_BOT_USERNAME не задан",
         )
     )
+    support_path = ROOT / "config" / "support.yaml"
+    support_cfg = {}
+    try:
+        support_cfg = yaml.safe_load(support_path.read_text(encoding="utf-8")) or {}
+    except (OSError, ValueError) as exc:
+        checks.append(_check(WARN, "добровольная поддержка", str(exc)))
+    support_url = str(support_cfg.get("url") or env("SUPPORT_URL", "")).strip()
+    support_enabled = bool(support_cfg.get("enabled", True))
+    checks.append(
+        _check(
+            PASS if (support_enabled and support_url) else WARN,
+            "добровольная поддержка (donate, не paywall)",
+            "ссылка задана" if support_url else "url не задан — блок выключен",
+        )
+    )
     sections.append({"title": "4. Привлечение аудитории", "checks": checks})
 
     # 5. «Мозг» mcp-content-factory (LangGraph/LangChain/трейсинг)

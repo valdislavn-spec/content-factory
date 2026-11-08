@@ -77,6 +77,19 @@ jobs:
       VK_ACCESS_TOKEN: ${{ secrets.VK_ACCESS_TOKEN }}
       VK_GROUP_ID: ${{ secrets.VK_GROUP_ID }}
 
+      # --- Бесплатные соцсети (кросспостинг) ----------------------------
+      # Bluesky/Mastodon/Discord/Tumblr: пустые значения = публикатор пропускается.
+      BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+      BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+      MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
+      MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      TUMBLR_CONSUMER_KEY: ${{ secrets.TUMBLR_CONSUMER_KEY }}
+      TUMBLR_CONSUMER_SECRET: ${{ secrets.TUMBLR_CONSUMER_SECRET }}
+      TUMBLR_OAUTH_TOKEN: ${{ secrets.TUMBLR_OAUTH_TOKEN }}
+      TUMBLR_OAUTH_TOKEN_SECRET: ${{ secrets.TUMBLR_OAUTH_TOKEN_SECRET }}
+      TUMBLR_BLOG: ${{ secrets.TUMBLR_BLOG }}
+
       # Telegram-каналы как источники (Telethon, опционально).
       TG_API_ID: ${{ secrets.TG_API_ID }}
       TG_API_HASH: ${{ secrets.TG_API_HASH }}
@@ -104,6 +117,9 @@ jobs:
       LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
       LANGSMITH_PROJECT: content-factory-actions
       LANGSMITH_TRACING: "true"
+      # Добровольная поддержка (не paywall): ссылка на donate-страницу.
+      # Задаётся как Repository variable SUPPORT_URL; если пусто — блок выключен.
+      SUPPORT_URL: ${{ vars.SUPPORT_URL || secrets.SUPPORT_URL }}
       HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
