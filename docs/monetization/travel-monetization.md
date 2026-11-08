@@ -32,3 +32,25 @@
 2. Серия постов: «зимние направления» по 2–3 места с аффилиатными ссылками (Бали, Дубай, Лиссабон, Тбилиси, Стамбул).
 3. Ставить subID по каналам (bsky/x/fb) в инструменте Links → трекинг по соцсетям.
 4. Настроить payout method, иначе выплаты не пройдут.
+
+
+## Однословные ссылки (08.11.2026)
+
+Правило: короткие ссылки — **одно слово** после домена.
+
+| Слово | Ссылка | Ведёт на |
+|---|---|---|
+| Flights | `https://is.gd/Flights` | Aviasales (общая) |
+| BaliTrip | `https://is.gd/BaliTrip` | Aviasales Бали |
+| DubaiTrip | `https://is.gd/DubaiTrip` | Aviasales Дубай |
+| CryptoDigest | `https://is.gd/CryptoDigest` | t.me/HOOPY0007 |
+| AINews | `https://is.gd/AINews` | t.me/AINEWS0007 |
+| SportsNews | `https://is.gd/SportsNews` | t.me/SPORTNews0007 |
+| ESCrypto | `https://is.gd/ESCrypto` | t.me/TechnologiesNews01 |
+| ESNews | `https://is.gd/ESNews` | t.me/WORLDNews0007 |
+| ESport | `https://is.gd/ESport` | t.me/SPORTSAnalytics007 |
+
+Запланированные посты 19:16 и 21:16 обновлены на однословные ссылки (6 постов,
+status: scheduled). Уже **отправленные** посты (17:16 и travel) редактировать
+нельзя — API возвращает «Account is not allowed to perform this action on post»;
+там остались прежние алиасы (FlightsDeals/BaliFlights/DubaiFlights/CryptoBlockchain).
