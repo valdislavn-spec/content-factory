@@ -181,10 +181,10 @@ def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
     return clip(hook, max(20, room)) + "\n\n" + footer
 
 
-def _link_lines(article: str, channel: str, partner: str = "", label: str = "") -> str:
+def _link_lines(article: str, channel: str, partner: str = "", label: str = "", article_label: str = "Guide:") -> str:
     lines = []
     if article:
-        lines.append("Guide: " + article)
+        lines.append((article_label or "Guide:") + " " + article)
     if channel:
         lines.append("Telegram: " + channel)
     if partner:
@@ -195,8 +195,9 @@ def _link_lines(article: str, channel: str, partner: str = "", label: str = "") 
 def build_x(pin: dict, link: str, style: dict, limit: int = 280, channel: str = "", partner: str = "", partner_label: str = "") -> str:
     """X: хук в первой строке, 0 хэштегов, короткие ссылки (статья + канал)."""
     disclosure = " Ad" if pin.get("affiliate") else ""
+    cta = str(style.get("cta") or "").strip()
     hook = _hook(pin.get("title") or "", 120)
-    footer = (_link_lines(link, channel, partner, partner_label) + disclosure).strip()
+    footer = _link_lines(link, channel, partner, partner_label, cta).strip() + disclosure
     benefit = _first_sentence(pin.get("description") or "", 120)
     return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
 
@@ -206,8 +207,9 @@ def build_bluesky(pin: dict, link: str, style: dict, limit: int = 300, channel: 
     disclosure = " Ad" if pin.get("affiliate") else ""
     emoji = str(style.get("emoji") or "").strip()
     tags = _tags(style, 3)
+    cta = str(style.get("cta") or "").strip()
     hook = (emoji + " " + _hook(pin.get("title") or "", 120)).strip()
-    footer = (_link_lines(link, channel, partner, partner_label) + disclosure + (" " + tags if tags else "")).strip()
+    footer = (_link_lines(link, channel, partner, partner_label, cta) + disclosure + (" " + tags if tags else "")).strip()
     benefit = _first_sentence(pin.get("description") or "", 120)
     return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
 
@@ -220,12 +222,13 @@ def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000, channel
     hook = (emoji + " " + _hook(pin.get("title") or "", 80)).strip()
     bullets = _bullets(pin.get("description") or "")
     question = str(style.get("question") or "").strip()
+    cta = str(style.get("cta") or "").strip()
     parts = [hook]
     if bullets:
         parts.append(bullets)
     if question:
         parts.append(question)
-    parts.append(_link_lines(link, channel, partner, partner_label) + disclosure)
+    parts.append((_link_lines(link, channel, partner, partner_label, cta) + disclosure).strip())
     if tags:
         parts.append(tags)
     return clip("\n\n".join(parts), limit, keep_lines=True)
