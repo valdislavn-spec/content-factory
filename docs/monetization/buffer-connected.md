@@ -193,3 +193,14 @@ Facebook 06:32Z). Pinterest в Buffer на Free-плане не влезает (
 - Facebook `6af092649214322f685f2a60` — 379 зн., scheduled 19:16
 Темы: Bitcoin quantum-resistance, AI chip stocks/bubble, OpenAI $11B, NC State/Rivers.
 Следующий слот — 21:16 UTC (напоминание 21:05).
+
+### Обновление слота 21:16 UTC (21:06)
+Тексты обновлены свежими новостями (editPost):
+- Bluesky `6af0926b51492b796e461909` — 178 зн., scheduled 21:16
+- X `6af0926c562f2e6de9c6f1ba` — 117 зн., scheduled 21:16
+- Facebook `6af0926c562f2e6de9c6f1e8` — 376 зн., scheduled 21:16
+Темы: Nvidia/Дженсен Хуанг и «китайский шпион», Bitcoin quantum-resistance,
+Georgia №1 в AP Top 25, травмы Broncos. Ссылки — однословные.
+
+**Итог 6-часового цикла:** посты в 15:26, 17:16, 19:16, 21:16 UTC — по 3 сети;
+очередь опустеет после 21:16. Следующий цикл — по команде («начинай»/новые слоты).
