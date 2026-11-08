@@ -1,0 +1,17 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/01-bitcoin-at-100k.png",
+  "file": "docs/assets/pins/01-bitcoin-at-100k.png",
+  "niche": "crypto",
+  "affiliate": false,
+  "disclosure": "Save this guide",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Bitcoin $100k odds on prediction markets",
+    "description": "What prediction markets price for Bitcoin crossing $100k, with live YES odds and volume. Not investment advice.",
+    "alt_text": "Bitcoin $100k odds on prediction markets",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/01-bitcoin-at-100k.png"
+    }
+  }
+}
