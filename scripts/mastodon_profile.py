@@ -33,13 +33,12 @@ NOTE = (
     "Sports: https://t.me/SPORTNews0007\n"
     "ES: https://t.me/WORLDNews0007 · https://t.me/TechnologiesNews01"
 )
+# Mastodon разрешает максимум 4 поля в профиле — ES-каналы объединены в одно.
 FIELDS = [
-    ("AI News", '<a href="https://t.me/AINEWS0007">@AINEWS0007</a>'),
-    ("Crypto", '<a href="https://t.me/HOOPY0007">@HOOPY0007</a>'),
-    ("US Sports", '<a href="https://t.me/SPORTNews0007">@SPORTNews0007</a>'),
-    ("ES AI", '<a href="https://t.me/WORLDNews0007">@WORLDNews0007</a>'),
-    ("ES Crypto", '<a href="https://t.me/TechnologiesNews01">@TechnologiesNews01</a>'),
-    ("ES Sports", '<a href="https://t.me/SPORTSAnalytics007">@SPORTSAnalytics007</a>'),
+    ("AI News", "https://t.me/AINEWS0007"),
+    ("Crypto", "https://t.me/HOOPY0007"),
+    ("US Sports", "https://t.me/SPORTNews0007"),
+    ("ES", "https://t.me/WORLDNews0007 · https://t.me/TechnologiesNews01 · https://t.me/SPORTSAnalytics007"),
 ]
 EXTRA_FIELDS = {"bot": "true", "discoverable": "true", "indexable": "true"}
 
