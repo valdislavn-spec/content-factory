@@ -33,7 +33,7 @@ from content_factory.sources import get_adapter  # noqa: E402
 from content_factory.utils import normalize_space, strip_html  # noqa: E402
 
 MAX_PART = 480
-MAX_PARTS = 4
+MAX_PARTS = 5
 STATE_VAR = "MASTODON_LAST_THREAD"
 
 TOPICS: List[Dict[str, str]] = [
@@ -178,7 +178,9 @@ def build_fallback(channel: Any, topic: Dict[str, str], articles: List[Any]) -> 
 def build_with_llm(channel: Any, topic: Dict[str, str], articles: List[Any],
                    settings: Settings) -> List[str]:
     llm = get_llm(settings)
+    print("LLM:", (getattr(llm, "describe", lambda: "")() or "")[:300], flush=True)
     if not getattr(llm, "available", False):
+        print("LLM недоступна — extractive fallback", flush=True)
         return []
     context_lines = []
     for article in articles[:5]:
@@ -195,6 +197,7 @@ def build_with_llm(channel: Any, topic: Dict[str, str], articles: List[Any],
                            handle=_handle(channel) or "@our_channel",
                            hashtags=topic["hashtags"])
     raw = llm.generate(prompt, system=system, max_tokens=1200, temperature=0.4)
+    print(f"LLM raw chars: {len(raw or '')}", flush=True)
     chunks = [clean_part(part) for part in re.split(r"(?m)^\s*---\s*$", raw or "") if part.strip()]
     chunks = [chunk for chunk in chunks if len(chunk) >= 80][:MAX_PARTS]
     if len(chunks) < 2:
@@ -211,7 +214,15 @@ def prepare_thread(channel: Any, topic: Dict[str, str], articles: List[Any],
     parts = build_with_llm(channel, topic, articles, settings)
     if not parts:
         parts = build_fallback(channel, topic, articles)
-    return [part for part in parts if part][:MAX_PARTS]
+    parts = [part for part in parts if part][:MAX_PARTS]
+    handle = _handle(channel)
+    if parts:
+        joined = " ".join(parts)
+        if handle and handle not in joined:
+            parts[-1] = clean_part(f"{parts[-1]} Telegram: {handle}")
+        if "#" not in parts[-1]:
+            parts[-1] = clean_part(f"{parts[-1]} {topic['hashtags']}")
+    return parts
 
 
 def _api_base() -> str:
