@@ -20,12 +20,16 @@ pins:
   "01-europe-for-under-300":
     program: aviasales
     sub_id: pin_europe
+    partner_url: https://aviasales.tpk.ro/b3PI8GVN
   "02-bali-on-a-budget":
-    program: booking
-    sub_id: pin_bali
-  "03-48-hours-in-rome":
-    program: getyourguide
-    sub_id: pin_rome
-  "04-travel-insurance-mistakes":
     program: aviasales
+    sub_id: pin_bali
+    partner_url: https://aviasales.tpk.ro/rYaenwKl
+  "03-48-hours-in-rome":
+    program: tiqets
+    sub_id: pin_rome
+    partner_url: https://tiqets.tpk.ro/ufgJDVmO
+  "04-travel-insurance-mistakes":
+    program: compensair
     sub_id: pin_insurance
+    partner_url: https://compensair.tpk.ro/4klXfGpD

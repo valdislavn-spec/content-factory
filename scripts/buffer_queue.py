@@ -75,6 +75,16 @@ def main(argv=None) -> int:
     channels = config.get("channels") or []
 
     pin_files = [p for p in sorted(Path(args.pins).glob("*.json")) if p.name != "index.json"]
+    affiliate_slugs = set()
+    tp_config_path = ROOT / "config" / "travelpayouts.yaml"
+    if tp_config_path.exists():
+        tp_config = yaml.safe_load(tp_config_path.read_text(encoding="utf-8")) or {}
+        for slug in (tp_config.get("pins") or {}):
+            if (ROOT / "docs" / "go" / (str(slug) + ".html")).exists():
+                affiliate_slugs.add(str(slug))
+    preferred = [p for p in pin_files if p.stem in affiliate_slugs]
+    if preferred:
+        pin_files = preferred
     if not pin_files:
         print("no pins found in", args.pins)
         return 1
@@ -82,14 +92,6 @@ def main(argv=None) -> int:
     day = args.date or now.strftime("%Y-%m-%d")
     index = now.timetuple().tm_yday % len(pin_files)
 
-    # Affiliate guard: never publish without a Travelpayouts redirect page.
-    tp_config_path = ROOT / "config" / "travelpayouts.yaml"
-    affiliate_slugs = set()
-    if tp_config_path.exists():
-        tp_config = yaml.safe_load(tp_config_path.read_text(encoding="utf-8")) or {}
-        for slug in (tp_config.get("pins") or {}):
-            if (ROOT / "docs" / "go" / (str(slug) + ".html")).exists():
-                affiliate_slugs.add(str(slug))
     slug = pin_files[index].stem
     pin_is_affiliate = slug in affiliate_slugs
     if args.live and args.require_affiliate and not pin_is_affiliate:
@@ -107,8 +109,11 @@ def main(argv=None) -> int:
 
     client = BufferClient.from_env() if args.live else BufferClient(token="preview")
     results = []
+    slug_link = hub_url
+    if slug in affiliate_slugs:
+        slug_link = "%s/go/%s.html" % (hub_url.rstrip("/"), slug)
     for channel in channels:
-        text = build_text(pin, channel, hub_url)
+        text = build_text(pin, channel, slug_link)
         record = {
             "date": day,
             "service": channel.get("service"),

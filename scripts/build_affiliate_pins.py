@@ -60,9 +60,6 @@ def main(argv=None) -> int:
     mapping = config.get("pins") or {}
 
     client = TravelpayoutsClient.from_env()
-    if not client.configured():
-        print("Travelpayouts is not configured: set TRAVELPAYOUTS_TOKEN / TRAVELPAYOUTS_MARKER / TRAVELPAYOUTS_TRS")
-        return 2
 
     # collect pins
     pins = {}
@@ -77,16 +74,24 @@ def main(argv=None) -> int:
         if slug not in pins:
             continue
         program = str(rule.get("program") or "").strip()
-        target = str(programs.get(program) or "").strip()
+        target = str(programs.get(program) or rule.get("partner_url") or "").strip()
+        direct = str(rule.get("partner_url") or "").strip()
         if not program or not target:
             continue
+        if direct:
+            continue  # already generated (stored locally in config)
         to_convert.append({"url": target, "sub_id": str(rule.get("sub_id") or slug)})
 
-    try:
-        converted = client.convert(to_convert, shorten=bool(config.get("shorten", True)))
-    except TravelpayoutsError as error:
-        print("Travelpayouts API error:", error)
-        return 1
+    converted = []
+    if to_convert:
+        if not client.configured():
+            print("Travelpayouts is not configured: set TRAVELPAYOUTS_TOKEN / TRAVELPAYOUTS_MARKER / TRAVELPAYOUTS_TRS")
+            return 2
+        try:
+            converted = client.convert(to_convert, shorten=bool(config.get("shorten", True)))
+        except TravelpayoutsError as error:
+            print("Travelpayouts API error:", error)
+            return 1
 
     by_url = {}
     for item in converted:
@@ -102,8 +107,8 @@ def main(argv=None) -> int:
             continue
         program = str(rule.get("program") or "").strip()
         target = str(programs.get(program) or "").strip()
-        item = by_url.get(target)
-        link = partner_url(item or {}, target)
+        direct = str(rule.get("partner_url") or "").strip()
+        link = direct or partner_url(by_url.get(target) or {}, target)
         if not link:
             print("skip (conversion failed):", slug, program)
             continue
