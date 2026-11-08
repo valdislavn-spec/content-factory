@@ -54,3 +54,17 @@
 status: scheduled). Уже **отправленные** посты (17:16 и travel) редактировать
 нельзя — API возвращает «Account is not allowed to perform this action on post»;
 там остались прежние алиасы (FlightsDeals/BaliFlights/DubaiFlights/CryptoBlockchain).
+
+
+## Перевыпуск travel-постов с однословными партнёрскими ссылками (08.11.2026)
+
+- **Bluesky** (211 зн.): Бали → `is.gd/BaliTrip`, Дубай → `is.gd/DubaiTrip`, рейсы → `is.gd/Flights`
+  https://bsky.app/profile/did:plc:p67ksvae6f5gara4vueu7edo/post/3mzsx5t5joz24
+- **X** (143 зн.): Бали + Дубай с партнёрскими ссылками
+  https://twitter.com/NValdislav/status/2119484113899921582
+- **Facebook** (440 зн.): Бали, Дубай, Лиссабон + `is.gd/Flights`
+  https://facebook.com/865322629989875_122148510351054089
+
+Ссылки: `https://is.gd/Flights`, `https://is.gd/BaliTrip`, `https://is.gd/DubaiTrip`
+(Travelpayouts / Aviasales, аккаунт ID 674170). Предыдущие версии постов
+остались в лентах (отправленные посты API не редактирует/не удаляет).
