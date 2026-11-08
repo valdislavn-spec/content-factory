@@ -37,27 +37,42 @@
 
 ## Собранные ссылки
 
+Подробный отчёт: `docs/monetization/links-report-2026-11-08.md`.
+
 | # | Программа | Ссылка | Статус |
 |---|---|---|---|
 | 1 | MyLead | `https://mylead.global/r/dJ67Qo` | ✅ получена |
 | 2 | collaborator.pro | `https://collaborator.pro/ru/signup?code=m9Vidx` | ✅ из письма |
 | 3 | Writesonic | `https://affiliates.writesonic.com/home` | ⏳ pending |
 | 4 | Travelpayouts | `https://app.travelpayouts.com/` | ⏳ нужен вход (пароль сброшен) |
-| 6 | N1 Partners | `https://backoffice.n1.partners/partner/login` | ⏭ пропущен |
-| 7 | MEXC | `https://www.mexc.com/affiliate` | ⏳ (2FA) |
-| 8 | Bybit | `https://partner.bybit.com/` | ⏳ (2FA) |
-| 9 | Bitget | `https://www.bitget.com/affiliates` | ⏳ (2FA) |
-| 10 | Kraken | `https://www.kraken.com/affiliate` | ⏳ (2FA) |
-| 11 | KuCoin | `https://www.kucoin.com/affiliate` | ⏳ (2FA) |
-| 12 | 1xPartners (1xBet) | `https://1xpartners.com/login/` | ⏳ нужен вход |
-| 13 | Hotmart | `https://app.hotmart.com/login` | ⏳ (SSO не грузится) |
-| 14 | Admitad | `https://account.admitad.com/` | ⏳ (503 через прокси) |
-| 15 | UpPromote | `https://app.uppromote.com/login` | ⏳ сброс пароля не делали |
-| 16 | Synthesia | `https://www.synthesia.io/partners/affiliates` | ⏸ нужен доменный e-mail |
-| 17 | ElevenLabs | `https://elevenlabs.io/affiliates` | ⏸ блок IP |
+| 5 | N1 Partners | `https://backoffice.n1.partners/partner/login` | ⏭ пропущен |
+| 6 | MEXC | `https://www.mexc.com/affiliate` | ⏳ (2FA) |
+| 7 | Bybit | `https://partner.bybit.com/` | ⏳ (2FA) |
+| 8 | Bitget | `https://www.bitget.com/affiliates` | ⏳ (2FA) |
+| 9 | Kraken | `https://www.kraken.com/affiliate` | ⏳ (2FA) |
+| 10 | KuCoin | `https://www.kucoin.com/affiliate` | ⏳ (2FA) |
+| 11 | 1xPartners (1xBet) | `https://1xpartners.com/login/` | ⏳ нужен вход |
+| 12 | Hotmart | `https://app.hotmart.com/login` | ⏳ (SSO не грузится) |
+| 13 | Admitad | `https://account.admitad.com/` | ⏳ (503 через прокси) |
+| 14 | UpPromote | `https://app.uppromote.com/login` | ⏳ сброс пароля не делали |
+| 15 | Synthesia | `https://www.synthesia.io/partners/affiliates` | ⏸ нужен доменный e-mail |
+| 16 | ElevenLabs | `https://elevenlabs.io/affiliates` | ⏸ блок IP |
+
+## Распределение существующих ссылок
+
+| Канал | MyLead (реф.) | collaborator.pro (реф.) |
+|---|---|---|
+| crypto-news (EN) | `mylead.global/r/dJ67Qo?utm_source=tg_crypto_en` | `collaborator.pro/ru/signup?code=m9Vidx&utm_source=tg_crypto_en` |
+| ai-news (EN) | `mylead.global/r/dJ67Qo?utm_source=tg_ai_en` | `collaborator.pro/ru/signup?code=m9Vidx&utm_source=tg_ai_en` |
+| sport-news (EN) | `mylead.global/r/dJ67Qo?utm_source=tg_sport_en` | `collaborator.pro/ru/signup?code=m9Vidx&utm_source=tg_sport_en` |
+| crypto-es | `mylead.global/r/dJ67Qo?utm_source=tg_crypto_es` | `collaborator.pro/ru/signup?code=m9Vidx&utm_source=tg_crypto_es` |
+| tech-ai-es | `mylead.global/r/dJ67Qo?utm_source=tg_ai_es` | `collaborator.pro/ru/signup?code=m9Vidx&utm_source=tg_ai_es` |
+| futbol-es | `mylead.global/r/dJ67Qo?utm_source=tg_sport_es` | `collaborator.pro/ru/signup?code=m9Vidx&utm_source=tg_sport_es` |
 
 ## План
-1. Пользователь входит в Travelpayouts в окне → агент забирает реф-ссылку.
-2. Дальше 1xPartners → UpPromote → Hotmart (сброс паролей + окна).
-3. Биржи — только с 2FA-кодом пользователя.
-4. После сбора ссылок: закрепы «Полезное» в 6 каналах + реф-посты 1 к 5.
+1. Создать в MyLead трекинг-ссылки по офферам (VPN/крипто/гемблинг) — они лучше
+   реферальной для каналов.
+2. Собрать закрепы «Полезное» с реф-ссылками + UTM.
+3. Входы: 1xPartners, UpPromote (окна), Hotmart (с VPN).
+4. Биржи — только с 2FA-кодом пользователя.
+5. После сбора ссылок: реф-посты 1 к 5.
