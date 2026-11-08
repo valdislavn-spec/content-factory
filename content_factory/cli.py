@@ -451,6 +451,36 @@ def _split_channels(value: Optional[str]) -> List[str]:
 # ---------------------------------------------------------------------------
 
 
+def cmd_social_check(args: argparse.Namespace, settings: Settings) -> int:
+    """Проверка соцсетей-публикаторов (Bluesky/Mastodon/Discord/Tumblr/Fediverse)."""
+    from .config import load_network_channels
+    from .publishers import get_publisher
+    from .publishers.social import SocialPublisher
+
+    channels = load_network_channels(settings)
+    names = ["bluesky", "mastodon", "discord", "tumblr",
+             "pleroma", "akkoma", "gotosocial", "friendica", "misskey"]
+    ready_any = False
+    for channel in channels:
+        print(f"== {channel.id} ({channel.language}) ==")
+        for name in names:
+            publisher = get_publisher(name, settings)
+            if not isinstance(publisher, SocialPublisher):
+                continue
+            try:
+                ready, detail = publisher.check(channel)  # type: ignore[call-arg]
+            except TypeError:
+                ready, detail = publisher.check()
+            except Exception as exc:  # noqa: BLE001
+                ready, detail = False, str(exc)
+            ready_any = ready_any or ready
+            print(f"  {name:11} {'✓' if ready else '—'} {detail}")
+    if not ready_any:
+        print("\nНи одна соцсеть не настроена — добавьте креды в .env (docs/fediverse.md).")
+        return 1
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="content-factory",
@@ -497,6 +527,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_metrics = sub.add_parser("metrics", help="Собрать срез метрик каналов")
     p_metrics.set_defaults(func=cmd_metrics)
+
+    p_social = sub.add_parser(
+        "social-check",
+        help="Проверить соцсети-публикаторы (Bluesky/Mastodon/Discord/Fediverse)",
+    )
+    p_social.set_defaults(func=cmd_social_check)
 
     p_demo = sub.add_parser("demo", help="Офлайн-демо: посты и отчёт без сети и токенов")
     p_demo.add_argument("--keep", action="store_true", help="Не очищать прошлые демо-данные")

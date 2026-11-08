@@ -29,6 +29,16 @@ from .medium import MediumPublisher
 from .pinterest import PinterestPublisher
 from .reddit import RedditPublisher
 from .threads import ThreadsPublisher
+from .bluesky import BlueskyPublisher
+from .discord import DiscordPublisher
+from .fediverse import (
+    AkkomaPublisher,
+    FriendicaPublisher,
+    GoToSocialPublisher,
+    MisskeyPublisher,
+    PleromaPublisher,
+)
+from .mastodon import MastodonPublisher
 from .telegram import TelegramPublisher
 from .tumblr import TumblrPublisher
 from .vk import VKPublisher
@@ -38,6 +48,14 @@ __all__ = [
     "Publisher",
     "DryRunPublisher",
     "TelegramPublisher",
+    "BlueskyPublisher",
+    "MastodonPublisher",
+    "DiscordPublisher",
+    "PleromaPublisher",
+    "AkkomaPublisher",
+    "GoToSocialPublisher",
+    "FriendicaPublisher",
+    "MisskeyPublisher",
     "VKPublisher",
     "XPublisher",
     "FacebookPublisher",
@@ -59,6 +77,14 @@ __all__ = [
 _REGISTRY: Dict[str, Type[Publisher]] = {
     "telegram": TelegramPublisher,
     "vk": VKPublisher,
+    "bluesky": BlueskyPublisher,
+    "mastodon": MastodonPublisher,
+    "discord": DiscordPublisher,
+    "pleroma": PleromaPublisher,
+    "akkoma": AkkomaPublisher,
+    "gotosocial": GoToSocialPublisher,
+    "friendica": FriendicaPublisher,
+    "misskey": MisskeyPublisher,
     "x": XPublisher,
     "facebook": FacebookPublisher,
     "linkedin": LinkedInPublisher,
@@ -77,6 +103,14 @@ _ALIASES = {
     "dry_run": "dryrun",
     "preview": "dryrun",
     "tg": "telegram",
+    "bsky": "bluesky",
+    "toot": "mastodon",
+    "pl": "pleroma",
+    "akk": "akkoma",
+    "gts": "gotosocial",
+    "friend": "friendica",
+    "mk": "misskey",
+    "firefish": "misskey",
     "vkontakte": "vk",
     "twitter": "x",
     "x.com": "x",
