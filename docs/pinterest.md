@@ -72,3 +72,16 @@ Actions → **pinterest-check** → Run workflow:
   выдачи и обновляйте через кабинет или OAuth refresh.
 - Картинка должна быть доступна по HTTPS без авторизации (GitHub Pages подходит).
 - Описание до 500 символов — длинные посты режутся автоматически.
+
+## Ссылки для формы Pinterest (app creation)
+
+| Поле формы | Что вставить |
+|---|---|
+| Website or app link | `https://valdislavn-spec.github.io/content-factory/` |
+| Privacy policy URL | `https://valdislavn-spec.github.io/content-factory/privacy.html` |
+| Terms (если спросят) | `https://valdislavn-spec.github.io/content-factory/terms.html` |
+
+Политика и Terms лежат в `docs/privacy.html` и `docs/terms.html` и публикуются на
+GitHub Pages вместе с хабом. Ссылка на пин по умолчанию — хаб
+(`PINTEREST_LINK`), при желании для канала можно поставить ссылку на его
+Telegram-канал.
