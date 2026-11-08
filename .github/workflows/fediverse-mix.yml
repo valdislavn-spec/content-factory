@@ -37,5 +37,6 @@ jobs:
         env:
           AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
           AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+          TRAVEL_AFFILIATE_URL: ${{ secrets.TRAVEL_AFFILIATE_URL }}
         run: |
           python scripts/fediverse_mix.py --once ${{ github.event.inputs.topic && format('--topic {0}', github.event.inputs.topic) || '' }}

@@ -25,6 +25,8 @@ article_images:
     travel:
       - https://thepointsguy.com/feed/
       - https://www.nomadicmatt.com/feed/
+      - https://www.atlasobscura.com/feeds/latest
+      - https://www.traveldailymedia.com/feed/
       - https://www.travelpayouts.com/blog/feed/
 
 image:

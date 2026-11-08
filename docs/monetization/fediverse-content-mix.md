@@ -48,7 +48,8 @@ state ротации кэшируется между запусками.
   дисклеймером.
 
 Для **travel-поста** отдельный набор фидов: The Points Guy, Nomadic Matt,
-Travelpayouts Blog (`article_images.feeds.travel`); заголовок статьи становится
+Atlas Obscura, Travel Daily Media, Travelpayouts Blog
+(`article_images.feeds.travel`); заголовок статьи становится
 заголовком travel-поста, картинка прикрепляется с кредитом, ниже — партнёрская
 ссылка и дисклеймер.
 
@@ -71,7 +72,9 @@ python scripts/fediverse_mix.py --topic ai       # внеочередной AI-�
 ## Travel-реклама — когда появится партнёрка
 
 Сейчас `travel_link` ведёт на Booking.com через трекер (клики считаются, но
-комиссии нет). После входа в Travelpayouts и одобрения бренда:
+комиссии нет). Для быстрого переключения без коммита добавлен env-override:
+если задан `TRAVEL_AFFILIATE_URL` (локально или GitHub Secret), travel-пост
+берёт его вместо ссылки из конфига. После входа в Travelpayouts и одобрения бренда:
 1. получить партнёрскую ссылку (или через [links API](https://support.travelpayouts.com/hc/en-us/articles/25289759198226-API-for-Travelpayouts-partner-links));
 2. обновить target у `travel-default`:
    `python scripts/links_admin.py create --code travel-default --target "<affiliate>" ...`;
