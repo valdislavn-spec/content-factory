@@ -93,11 +93,20 @@ def main(argv=None) -> int:
     parser.add_argument("--config", default=str(ROOT / "config" / "kalshi.yaml"))
     parser.add_argument("--live", action="store_true", help="publish (default: dry-run)")
     parser.add_argument("--channel", default="", help="only this channel id")
+    parser.add_argument("--discover", default="", help="print series for a category and exit")
     args = parser.parse_args(argv)
 
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8")) or {}
     base_url = env("KALSHI_API_BASE", str(config.get("base_url") or PUBLIC_BASE))
     client = KalshiClient(base_url=base_url)
+
+    if args.discover:
+        series = client.series_list(category=args.discover if args.discover != "all" else "")
+        print("series found: %d" % len(series))
+        for entry in series[:120]:
+            print("%-30s | %-45s | %s" % (
+                entry.get("ticker"), str(entry.get("title") or "")[:45], entry.get("category")))
+        return 0
     token = env("TELEGRAM_BOT_TOKEN")
     api_base = env("TELEGRAM_API_BASE")
     channel_ids = load_channel_ids()

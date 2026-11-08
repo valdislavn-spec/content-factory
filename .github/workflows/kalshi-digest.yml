@@ -17,6 +17,10 @@ on:
         options:
           - "true"
           - "false"
+      discover:
+        description: "категория серий для просмотра (пусто = обычный дайджест)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -46,7 +50,9 @@ jobs:
 
       - name: Run Kalshi digest
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.dry_run }}" = "false" ]; then
+          if [ -n "${{ inputs.discover }}" ]; then
+            python scripts/kalshi_digest.py --discover "${{ inputs.discover }}"
+          elif [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.dry_run }}" = "false" ]; then
             python scripts/kalshi_digest.py --live
           else
             python scripts/kalshi_digest.py

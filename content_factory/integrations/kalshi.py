@@ -243,6 +243,15 @@ class KalshiClient:
     def series(self, ticker: str) -> Dict[str, Any]:
         return (self.request("GET", TRADE_API + "/series/" + ticker) or {}).get("series") or {}
 
+    def series_list(self, category: str = "", limit: int = 200) -> List[Dict[str, Any]]:
+        """Browse series templates, optionally filtered by category."""
+        data = self.request(
+            "GET",
+            TRADE_API + "/series",
+            {"category": category or None, "limit": limit},
+        )
+        return list(data.get("series") or data.get("series_list") or [])
+
     def event(self, ticker: str) -> Dict[str, Any]:
         return (self.request("GET", TRADE_API + "/events/" + ticker) or {}).get("event") or {}
 
