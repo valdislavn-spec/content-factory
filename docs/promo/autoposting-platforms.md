@@ -23,7 +23,7 @@
 | **Discord** | Webhook | `DISCORD_WEBHOOK_URL` | текст | ✅ реализован, нужен webhook |
 | **Instagram** | Graph API | `IG_USER_ID`, `IG_ACCESS_TOKEN` + публичный URL фото | фото+подпись | 🔲 нужен хостинг картинок |
 | **Threads** | Graph API | `THREADS_USER_ID`, `THREADS_ACCESS_TOKEN` | текст | 🔲 могу добавить (30 мин) |
-| **Reddit** | OAuth2 script app | `REDDIT_CLIENT_ID/SECRET/USER/PASSWORD/SUBREDDIT` | текст | 🔲 могу добавить |
+| **Reddit** | OAuth2 script app | `REDDIT_CLIENT_ID/SECRET/USERNAME/PASSWORD/SUBREDDIT` | self-пост | ✅ реализован, нужны ключи |
 | **YouTube** | Data API v3 | OAuth2 Google (`YOUTUBE_CLIENT_ID/SECRET/REFRESH_TOKEN`) | видео | 🔲 только видео, нужен OAuth |
 | **TikTok** | Content Posting API | app + токен (после ревью) | видео | 🔲 нужен ревью приложения |
 | **Pinterest** | API v5 | `PINTEREST_TOKEN` + URL картинки | пины | 🔲 нужен хостинг картинок |

@@ -25,6 +25,7 @@ from .dryrun import DryRunPublisher
 from .facebook import FacebookPublisher
 from .linkedin import LinkedInPublisher
 from .medium import MediumPublisher
+from .reddit import RedditPublisher
 from .telegram import TelegramPublisher
 from .tumblr import TumblrPublisher
 from .vk import VKPublisher
@@ -39,6 +40,7 @@ __all__ = [
     "FacebookPublisher",
     "LinkedInPublisher",
     "MediumPublisher",
+    "RedditPublisher",
     "TumblrPublisher",
     "TELEGRAM_MESSAGE_LIMIT",
     "VK_MESSAGE_LIMIT",
@@ -55,6 +57,7 @@ _REGISTRY: Dict[str, Type[Publisher]] = {
     "facebook": FacebookPublisher,
     "linkedin": LinkedInPublisher,
     "medium": MediumPublisher,
+    "reddit": RedditPublisher,
     "tumblr": TumblrPublisher,
     "dryrun": DryRunPublisher,
 }
@@ -71,6 +74,8 @@ _ALIASES = {
     "fb": "facebook",
     "li": "linkedin",
     "tumblr.com": "tumblr",
+    "r": "reddit",
+    "reddit.com": "reddit",
 }
 
 
