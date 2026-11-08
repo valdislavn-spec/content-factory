@@ -106,6 +106,87 @@ class DailyTests(unittest.TestCase):
         for part in parts:
             self.assertLessEqual(len(part), daily.MAX_PART + 1)
 
+    def test_configured_networks_from_env(self):
+        env = {
+            "MASTODON_BASE_URL": "https://mastodon.social", "MASTODON_TOKEN": "t1",
+            "MISSKEY_HOST": "https://misskey.example", "MISSKEY_TOKEN": "t2",
+        }
+        with mock.patch.dict(os.environ, env, clear=False):
+            networks = daily.configured_networks()
+        names = [network["name"] for network in networks]
+        self.assertIn("mastodon", names)
+        self.assertIn("misskey", names)
+        misskey = next(n for n in networks if n["name"] == "misskey")
+        self.assertEqual(misskey["base"], "misskey.example")
+
+    def test_publish_all_dry_run_no_calls(self):
+        networks = [
+            {"name": "mastodon", "kind": "mastodon", "base": "https://m", "token": "t"},
+            {"name": "misskey", "kind": "misskey", "base": "mk.example", "token": "t"},
+        ]
+        with mock.patch.object(daily, "configured_networks", return_value=networks), \
+             mock.patch.object(daily, "post_status") as masto, \
+             mock.patch.object(daily, "post_misskey") as misskey:
+            result = daily.publish_all_networks(["one", "two"], apply=False)
+        masto.assert_not_called()
+        misskey.assert_not_called()
+        self.assertTrue(result["dry_run"])
+
+    def test_publish_all_applies_thread_per_network(self):
+        networks = [
+            {"name": "mastodon", "kind": "mastodon", "base": "https://m", "token": "t"},
+            {"name": "misskey", "kind": "misskey", "base": "mk.example", "token": "t"},
+        ]
+        masto_calls, mk_calls = [], []
+
+        def fake_masto(text, reply_to="", base="", token=""):
+            masto_calls.append(reply_to)
+            return {"id": f"m{len(masto_calls)}", "url": f"https://m/{len(masto_calls)}"}
+
+        def fake_misskey(text, reply_to="", host="", token=""):
+            mk_calls.append(reply_to)
+            return {"id": f"k{len(mk_calls)}", "url": f"https://mk.example/notes/{len(mk_calls)}"}
+
+        with mock.patch.object(daily, "configured_networks", return_value=networks), \
+             mock.patch.object(daily, "post_status", side_effect=fake_masto), \
+             mock.patch.object(daily, "post_misskey", side_effect=fake_misskey):
+            result = daily.publish_all_networks(["one", "two", "three"], apply=True)
+        self.assertEqual(masto_calls, ["", "m1", "m2"])
+        self.assertEqual(mk_calls, ["", "k1", "k2"])
+        self.assertTrue(result["networks"]["mastodon"]["ok"])
+        self.assertTrue(result["networks"]["misskey"]["ok"])
+
+    def test_publish_all_isolates_network_failure(self):
+        networks = [
+            {"name": "pleroma", "kind": "mastodon", "base": "https://p", "token": "t"},
+            {"name": "misskey", "kind": "misskey", "base": "mk.example", "token": "t"},
+        ]
+
+        def failing(text, reply_to="", base="", token=""):
+            raise RuntimeError("boom")
+
+        with mock.patch.object(daily, "configured_networks", return_value=networks), \
+             mock.patch.object(daily, "post_status", side_effect=failing), \
+             mock.patch.object(daily, "post_misskey",
+                               side_effect=lambda *a, **k: {"id": "k1", "url": "u"}):
+            result = daily.publish_all_networks(["one"], apply=True)
+        self.assertFalse(result["networks"]["pleroma"]["ok"])
+        self.assertTrue(result["networks"]["misskey"]["ok"])
+
+    def test_publish_all_only_filter(self):
+        networks = [
+            {"name": "mastodon", "kind": "mastodon", "base": "https://m", "token": "t"},
+            {"name": "misskey", "kind": "misskey", "base": "mk", "token": "t"},
+        ]
+        with mock.patch.object(daily, "configured_networks", return_value=networks), \
+             mock.patch.object(daily, "post_status",
+                               side_effect=lambda *a, **k: {"id": "1", "url": "u"}), \
+             mock.patch.object(daily, "post_misskey") as misskey:
+            result = daily.publish_all_networks(["one"], apply=True, only="mastodon")
+        misskey.assert_not_called()
+        self.assertIn("mastodon", result["networks"])
+        self.assertNotIn("misskey", result["networks"])
+
     def test_state_skip_logic(self):
         with mock.patch.object(daily, "_state_get", return_value={"value": "2026-11-08:0"}):
             self.assertTrue(daily._already_done(date(2026, 11, 8), 0))

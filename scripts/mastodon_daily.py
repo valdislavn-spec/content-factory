@@ -36,6 +36,15 @@ MAX_PART = 480
 MAX_PARTS = 4
 STATE_VAR = "MASTODON_LAST_THREAD"
 
+# Mastodon-совместимые сети: (имя, env базы, env токена)
+MASTODON_COMPAT_NETWORKS = [
+    ("mastodon", "MASTODON_BASE_URL", "MASTODON_TOKEN"),
+    ("pleroma", "PLEROMA_BASE_URL", "PLEROMA_TOKEN"),
+    ("akkoma", "AKKOMA_BASE_URL", "AKKOMA_TOKEN"),
+    ("gotosocial", "GOTOSOCIAL_BASE_URL", "GOTOSOCIAL_TOKEN"),
+    ("friendica", "FRIENDICA_BASE_URL", "FRIENDICA_TOKEN"),
+]
+
 TOPICS: List[Dict[str, str]] = [
     {"channel_id": "ai-news", "title": "AI", "emoji": "🤖",
      "hashtags": "#AI #OpenAI #MachineLearning"},
@@ -248,7 +257,15 @@ def prepare_thread(channel: Any, topic: Dict[str, str], articles: List[Any],
     parts = build_with_llm(channel, topic, articles, settings)
     if not parts:
         parts = build_fallback(channel, topic, articles)
-    return [part for part in parts if part][:MAX_PARTS]
+    parts = [part for part in parts if part][:MAX_PARTS]
+    if parts:
+        handle = _handle(channel)
+        joined = " ".join(parts)
+        if handle and handle not in joined:
+            parts[-1] = clean_part(f"{parts[-1]} Telegram: {handle}")
+        if "#" not in parts[-1]:
+            parts[-1] = clean_part(f"{parts[-1]} {topic['hashtags']}")
+    return parts
 
 
 def _api_base() -> str:
@@ -259,39 +276,114 @@ def _api_token() -> str:
     return os.environ.get("MASTODON_TOKEN", "").strip()
 
 
-def post_status(text: str, reply_to: str = "") -> Dict[str, Any]:
-    token = _api_token()
-    if not token:
-        raise RuntimeError("MASTODON_TOKEN не задан")
-    payload = {"status": text, "visibility": "public", "language": "en"}
-    if reply_to:
-        payload["in_reply_to_id"] = reply_to
-    body = urllib.parse.urlencode(payload).encode("utf-8")
+def _env(name: str) -> str:
+    return (os.environ.get(name, "") or "").strip()
+
+
+def configured_networks() -> List[Dict[str, str]]:
+    """Все настроенные сети: Mastodon-совместимые + Misskey."""
+    result: List[Dict[str, str]] = []
+    for name, base_env, token_env in MASTODON_COMPAT_NETWORKS:
+        base, token = _env(base_env).rstrip("/"), _env(token_env)
+        if base and token:
+            result.append({"name": name, "kind": "mastodon", "base": base, "token": token})
+    host, token = _env("MISSKEY_HOST").rstrip("/"), _env("MISSKEY_TOKEN")
+    if host and token:
+        host = re.sub(r"^https?://", "", host)
+        result.append({"name": "misskey", "kind": "misskey", "base": host, "token": token})
+    return result
+
+
+def _http_json(url: str, payload: Dict[str, Any], headers: Optional[Dict[str, str]] = None,
+               form: bool = False, timeout: int = 45) -> Dict[str, Any]:
+    if form:
+        body = urllib.parse.urlencode(payload).encode("utf-8")
+        content_type = "application/x-www-form-urlencoded"
+    else:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        content_type = "application/json"
     request = urllib.request.Request(
-        _api_base() + "/api/v1/statuses", data=body, method="POST",
-        headers={"Authorization": "Bearer " + token,
-                 "Content-Type": "application/x-www-form-urlencoded",
+        url, data=body, method="POST",
+        headers={**(headers or {}), "Content-Type": content_type,
                  "Accept": "application/json", "User-Agent": "factory-mastodon-daily/1.0"},
     )
     try:
-        with urllib.request.urlopen(request, timeout=45) as response:
-            return json.loads(response.read().decode("utf-8"))
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            raw = response.read()
+        return json.loads(raw.decode("utf-8")) if raw else {}
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:300]
-        raise RuntimeError(f"Mastodon HTTP {exc.code}: {detail}") from exc
+        raise RuntimeError(f"HTTP {exc.code} {url.split('/')[2]}: {detail}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"сеть недоступна {url.split('/')[2]}: {exc}") from exc
 
 
-def publish_thread(parts: List[str], apply: bool) -> List[Dict[str, Any]]:
+def post_status(text: str, reply_to: str = "", base: str = "", token: str = "") -> Dict[str, Any]:
+    """Пост/ответ в Mastodon-совместимую сеть."""
+    base = (base or _api_base()).rstrip("/")
+    token = token or _api_token()
+    if not token:
+        raise RuntimeError("MASTODON_TOKEN не задан")
+    payload: Dict[str, Any] = {"status": text, "visibility": "public", "language": "en"}
+    if reply_to:
+        payload["in_reply_to_id"] = reply_to
+    return _http_json(f"{base}/api/v1/statuses", payload,
+                      headers={"Authorization": f"Bearer {token}"}, form=True)
+
+
+def post_misskey(text: str, reply_to: str = "", host: str = "", token: str = "") -> Dict[str, Any]:
+    """Пост/ответ в Misskey (replyId продолжает thread)."""
+    host = re.sub(r"^https?://", "", (host or _env("MISSKEY_HOST")).rstrip("/"))
+    token = token or _env("MISSKEY_TOKEN")
+    if not host or not token:
+        raise RuntimeError("MISSKEY_HOST/MISSKEY_TOKEN не заданы")
+    payload: Dict[str, Any] = {"i": token, "text": text, "visibility": "public"}
+    if reply_to:
+        payload["replyId"] = reply_to
+    data = _http_json(f"https://{host}/api/notes/create", payload)
+    note = data.get("createdNote") or {}
+    return {"id": note.get("id"), "url": note.get("url") or f"https://{host}/notes/{note.get('id')}"}
+
+
+def publish_thread(parts: List[str], apply: bool,
+                   network: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
     reply_to = ""
     for text in parts:
         if not apply:
             results.append({"dry_run": True, "chars": len(text), "text": text})
             continue
-        data = post_status(text, reply_to)
+        if network and network.get("kind") == "misskey":
+            data = post_misskey(text, reply_to, network["base"], network["token"])
+        elif network:
+            data = post_status(text, reply_to, network["base"], network["token"])
+        else:
+            data = post_status(text, reply_to)
         reply_to = str(data.get("id") or "")
         results.append({"id": data.get("id"), "url": data.get("url"), "chars": len(text)})
     return results
+
+
+def publish_all_networks(parts: List[str], apply: bool, only: str = "") -> Dict[str, Any]:
+    """Публикует thread во все настроенные сети (или только в `only`)."""
+    networks = configured_networks()
+    if only:
+        networks = [n for n in networks if n["name"] == only]
+    if not networks:
+        return {"networks": {}, "dry_run": not apply,
+                "results": publish_thread(parts, False)}
+    out: Dict[str, Any] = {"networks": {}, "dry_run": not apply}
+    for network in networks:
+        try:
+            result = publish_thread(parts, apply, network)
+            out["networks"][network["name"]] = {
+                "ok": True,
+                "url": next((r.get("url") for r in result if r.get("url")), ""),
+                "results": result,
+            }
+        except Exception as exc:  # noqa: BLE001
+            out["networks"][network["name"]] = {"ok": False, "error": str(exc)}
+    return out
 
 
 # --- state (repo variable) ---------------------------------------------------
@@ -354,6 +446,8 @@ def main() -> int:
     parser.add_argument("--slot", type=int, default=0, help="0 = первый пост дня, 1 = второй")
     parser.add_argument("--date", default="", help="YYYY-MM-DD (по умолчанию сегодня UTC)")
     parser.add_argument("--force", action="store_true", help="игнорировать проверку дубля")
+    parser.add_argument("--network", default="",
+                        help="только одна сеть: mastodon|pleroma|akkoma|gotosocial|friendica|misskey")
     args = parser.parse_args()
     settings = Settings.load()
     day = date.fromisoformat(args.date) if args.date else datetime.now(timezone.utc).date()
@@ -375,11 +469,15 @@ def main() -> int:
     print(f"Постов в thread: {len(parts)}")
     for index, part in enumerate(parts, start=1):
         print(f"--- part {index} ({len(part)} симв.) ---\n{part}")
-    results = publish_thread(parts, apply)
-    print(json.dumps(results, ensure_ascii=False, indent=2))
-    if apply and results and all(r.get("url") for r in results):
+    result = publish_all_networks(parts, apply, args.network)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    networks_ok = {
+        name: data for name, data in (result.get("networks") or {}).items() if data.get("ok")
+    }
+    if apply and networks_ok:
         _state_set(f"{day.isoformat()}:{args.slot}")
-        print("Опубликовано:", results[0].get("url"))
+        for name, data in networks_ok.items():
+            print(f"Опубликовано [{name}]: {data.get('url')}")
     return 0
 
 

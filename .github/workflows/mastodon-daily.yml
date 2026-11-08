@@ -32,6 +32,18 @@ jobs:
       MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
       MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
       MASTODON_NO_LINKS: ${{ vars.MASTODON_NO_LINKS || '0' }}
+      # Fediverse-сети (опционально, добавляются по мере подключения)
+      PLEROMA_BASE_URL: ${{ secrets.PLEROMA_BASE_URL }}
+      PLEROMA_TOKEN: ${{ secrets.PLEROMA_TOKEN }}
+      AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
+      AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+      GOTOSOCIAL_BASE_URL: ${{ secrets.GOTOSOCIAL_BASE_URL }}
+      GOTOSOCIAL_TOKEN: ${{ secrets.GOTOSOCIAL_TOKEN }}
+      FRIENDICA_BASE_URL: ${{ secrets.FRIENDICA_BASE_URL }}
+      FRIENDICA_TOKEN: ${{ secrets.FRIENDICA_TOKEN }}
+      MISSKEY_HOST: ${{ secrets.MISSKEY_HOST }}
+      MISSKEY_TOKEN: ${{ secrets.MISSKEY_TOKEN }}
+
       ALERT_GITHUB_TOKEN: ${{ secrets.ALERT_GITHUB_TOKEN }}
       # LLM-провайдеры
       OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}

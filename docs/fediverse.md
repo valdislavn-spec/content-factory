@@ -97,3 +97,24 @@ URL вырезаются из текста (остаются упоминани�
 - **Lemmy** — посты в сообщества (нужен JWT-login, другой формат: link/text post);
 - **Nostr** — децентрализованные релеи (подпись событий ключом, NIP-01);
 - **Pixelfed** — фото-сеть (нужны картинки, сейчас пайплайн текстовый).
+
+## Рекомендованные инстансы (проверено)
+
+| Сеть | Инстанс | Регистрация | Примечание |
+|---|---|---|---|
+| Akkoma (Pleroma-совместимый) | `pleroma.envs.net` | открыта, с одобрением | стабильный envs.net, EN |
+| GoToSocial | `problematisch.jetzt` | открыта, с одобрением | de/en, небольшой |
+| Misskey | `misskey.design` (38k) | открыта, email | дизайн-сообщество, JP |
+| Misskey | `tickler.cc` | открыта, email | США, смешанная аудитория |
+
+Официальный `gts.superseriousbusiness.org` и `misskey.io` регистрацию закрыли.
+
+### Порядок подключения
+
+1. Зарегистрироваться на выбранном инстансе (email + подтверждение);
+2. Получить токен: GoToSocial/Pleroma/Akkoma — Settings → Applications;
+   Misskey — Settings → API → Access Tokens (`write:notes`, `read:account`);
+3. Прислать боту/в чат: сеть, адрес инстанса, токен — они попадут в GitHub
+   Secrets (`*_BASE_URL`, `*_TOKEN`, `MISSKEY_HOST`, `MISSKEY_TOKEN`);
+4. Проверка: `python -m content_factory social-check` → ✓ по сети;
+5. Ежедневный thread автоматически начнёт уходить и в эту сеть.

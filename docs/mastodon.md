@@ -153,6 +153,8 @@ python scripts/mastodon_profile.py             # применить
 лонгрид по теме дня с акцентом на Telegram-канал.
 
 - темы чередуются по дате: **AI → Crypto → Sports**;
+- thread уходит во **все настроенные fediverse-сети** (Mastodon, Pleroma, Akkoma,
+  GoToSocial, Friendica, Misskey) — что задано в env/Secrets;
 - в конце — приглашение в канал (`Telegram: @AINEWS0007` и т.п.);
 - при `MASTODON_NO_LINKS=1` ссылки вырезаются, хэштеги остаются;
 - защита от дублей: repository variable `MASTODON_LAST_THREAD` (дата:слот).
