@@ -137,8 +137,11 @@ def build_digest(
         volume = market_volume(market)
         close = close_date(market)
         question = str(market.get("title") or market.get("yes_sub_title") or "").strip()
-        if len(question) > 140:
-            question = question[:137].rstrip() + "…"
+        subtitle = str(market.get("yes_sub_title") or "").strip()
+        if subtitle and subtitle.lower() not in question.lower():
+            question = "%s — %s" % (question, subtitle)
+        if len(question) > 160:
+            question = question[:157].rstrip() + "…"
         parts = []
         if price is not None:
             parts.append("YES %d¢" % price)
