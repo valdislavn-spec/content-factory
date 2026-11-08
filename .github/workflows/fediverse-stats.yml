@@ -1,0 +1,31 @@
+name: Fediverse stats report
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"      # каждый понедельник 09:00 UTC
+  workflow_dispatch:
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Build report
+        env:
+          MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
+          MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
+          AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
+          AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+          LINK_TRACKER_BASE: ${{ secrets.LINK_TRACKER_BASE }}
+          LINK_TRACKER_STATS_TOKEN: ${{ secrets.LINK_TRACKER_STATS_TOKEN }}
+        run: python scripts/fediverse_stats.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fediverse-stats
+          path: data/reports/fediverse-stats-*.md
