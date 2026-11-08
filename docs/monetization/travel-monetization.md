@@ -106,3 +106,15 @@ status: scheduled). Уже **отправленные** посты (17:16 и tra
 
 Важно: маркер работает на aviasales.ru (RU-аудитория). Для EN-каналов
 (US/global) нужен отдельный маркер под aviasales.com или другой travel-бренд.
+
+## Серия «Winter sun» (08.11.2026, опубликовано)
+
+- **Bluesky** (189 зн.): Лиссабон / Дубай / Бали → `https://is.gd/Flights`
+  https://bsky.app/profile/did:plc:p67ksvae6f5gara4vueu7edo/post/3mztdxg7lah2o
+- **X** (154 зн.): шортлист зимнего солнца → `https://is.gd/Flights`
+  https://twitter.com/NValdislav/status/2119541759562731646
+- **Facebook** (428 зн.): 3 направления с описанием + `https://is.gd/Flights`
+  https://facebook.com/865322629989875_122148528393054089
+
+Формат: короткий список направлений, температура/чем заняться, одна словесная
+партнёрская ссылка. Подходит для серии (менять города и сезон).
