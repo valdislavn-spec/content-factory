@@ -1,0 +1,44 @@
+name: reddit-check
+
+# Проверка Reddit Data API без публикации: токен, аккаунт, сабреддит, правила.
+# Нужны секреты: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USERNAME,
+# REDDIT_PASSWORD, REDDIT_SUBREDDIT (см. docs/promo/reddit-api-setup.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      subreddit:
+        description: "Сабреддит для проверки (пусто = REDDIT_SUBREDDIT)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+      REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+      REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
+      REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
+      REDDIT_SUBREDDIT: ${{ secrets.REDDIT_SUBREDDIT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check Reddit API access
+        run: |
+          python scripts/reddit_check.py \
+            --subreddit "${{ github.event.inputs.subreddit || '' }}" | tee reddit-check.log
+          {
+            echo "### Reddit API check"
+            echo '```'
+            cat reddit-check.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
