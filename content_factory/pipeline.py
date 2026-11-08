@@ -194,10 +194,13 @@ def filter_articles(
         article.meta["matched_topics"] = matched
         article.meta.setdefault("url_hash", url_key)
         result.append(article)
-    result.sort(
-        key=lambda a: (float(a.meta.get("relevance", 0.0)), a.published_at or now),
-        reverse=True,
-    )
+    def _sort_key(article: Article) -> Tuple[float, datetime]:
+        published = article.published_at or now
+        if published.tzinfo is None:
+            published = published.replace(tzinfo=timezone.utc)
+        return (float(article.meta.get("relevance", 0.0)), published)
+
+    result.sort(key=_sort_key, reverse=True)
     limit = int(settings.pipeline.get("max_articles_per_channel", 150))
     return result[:limit]
 
