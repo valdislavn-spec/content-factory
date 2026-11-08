@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-08T09:50:31.144360+00:00",
+ "generated_at": "2026-11-08T10:27:45.441353+00:00",
  "channels": [
   {
    "id": "sport-news",
@@ -398,7 +398,7 @@
   {
    "id": "crypto-news",
    "username": "HOOPY0007",
-   "subscribers": 3665,
+   "subscribers": 3666,
    "posts": [
     {
      "message_id": 6006,
@@ -596,7 +596,7 @@
      "message_id": 6023,
      "url": "https://t.me/HOOPY0007/6023",
      "published_at": "2026-11-08T09:07:45+00:00",
-     "views": 202,
+     "views": 203,
      "reactions": 100,
      "reactions_detail": {
       "🤩": 100
@@ -608,9 +608,11 @@
      "message_id": 6024,
      "url": "https://t.me/HOOPY0007/6024",
      "published_at": "2026-11-08T09:50:22+00:00",
-     "views": 1,
-     "reactions": 0,
-     "reactions_detail": {},
+     "views": 205,
+     "reactions": 102,
+     "reactions_detail": {
+      "😁": 102
+     },
      "text": "🌐 Our network is growing\n\n• AI News → https://t.me/AINEWS0007\nModels, products, policy and the companies building AI.\n\n• US Sports News → https://t.me/SPORTNews0007\nNFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis.\n\nFollow the topics you care about — same no-noise format as here.",
      "sponsored": false
     },
@@ -618,9 +620,11 @@
      "message_id": 6025,
      "url": "https://t.me/HOOPY0007/6025",
      "published_at": "2026-11-08T09:50:22+00:00",
-     "views": 1,
-     "reactions": 0,
-     "reactions_detail": {},
+     "views": 208,
+     "reactions": 104,
+     "reactions_detail": {
+      "👍": 104
+     },
      "text": "🌐 Nuestra red en español\n\n• ES Crypto & Blockchain → https://t.me/TechnologiesNews01\nBitcoin, Ethereum, mercados y regulación en español.\n\n• ES AI News → https://t.me/WORLDNews0007\nInteligencia artificial: modelos, productos, empresas y políticas.\n\n• ES Sports News → https://t.me/SPORTSAnalytics007\nLaLiga, Liga MX, Argentina, MLS y Champions: resultados, fichajes y análisis.\n\nSíguenos en los temas que te interesan.",
      "sponsored": false
     }
@@ -628,21 +632,486 @@
   },
   {
    "id": "tech-ai-es",
-   "username": "",
-   "subscribers": null,
-   "posts": []
+   "username": "WORLDNews0007",
+   "subscribers": 3,
+   "posts": [
+    {
+     "message_id": 2,
+     "url": "https://t.me/WORLDNews0007/2",
+     "published_at": "2026-10-04T20:34:35+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "https://t.me/Novyi0007Bot",
+     "sponsored": false
+    },
+    {
+     "message_id": 4,
+     "url": "https://t.me/WORLDNews0007/4",
+     "published_at": "2026-10-05T19:42:04+00:00",
+     "views": 4,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "Israeli Prime Minister Benjamin Netanyahu has issued a stark electoral appeal ahead of the upcoming general elections, framing the vote as a binary choice between his leadership and the establishment of a Palestinian state. Speaking at a campaign event in Jerusalem, Netanyahu stated that a vote for opposition parties would effectively enable the creation of a sovereign Palestinian entity—a position he described as incompatible with Israel’s security and national interests.\n\nThe remarks have drawn attention amid ongoing political uncertainty and debates over the future of Israeli-Palestinian ne",
+     "sponsored": false
+    },
+    {
+     "message_id": 6,
+     "url": "https://t.me/WORLDNews0007/6",
+     "published_at": "2026-10-05T20:40:41+00:00",
+     "views": 4,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "Turkiye and Pakistan have agreed to deploy military personnel to Saudi Arabia as part of the Mecca Alliance, a trilateral security framework involving the three nations. The agreement, announced during a meeting in Mecca, formalizes coordination on collective deterrence measures in response to attacks attributed to Yemen’s Houthi movement.\n\nThe alliance affirms that such measures will be activated following what the parties describe as “heinous attacks” targeting regional stability. No specific timeline for deployment or details on force size, duration, or operational scope were disclosed in t",
+     "sponsored": false
+    },
+    {
+     "message_id": 18,
+     "url": "https://t.me/WORLDNews0007/18",
+     "published_at": "2026-11-07T16:40:33+00:00",
+     "views": null,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "ES AI News pinned Deleted message",
+     "sponsored": false
+    },
+    {
+     "message_id": 20,
+     "url": "https://t.me/WORLDNews0007/20",
+     "published_at": "2026-11-07T19:00:55+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "",
+     "sponsored": false
+    },
+    {
+     "message_id": 21,
+     "url": "https://t.me/WORLDNews0007/21",
+     "published_at": "2026-11-07T19:00:56+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 Resumen · 7 nov 2026\n\n📌 Tu mango con chile va con IA de la que pica: Así usa Tajín la inteligencia artificial — Tajín implementó una plataforma de inteligencia artificial de Oracle para sustituir el uso de hojas de Excel y eficientar sus procesos administrativos. El Financiero (MX)\n\n📈 Windows 11 27H2: la gran actualización con la que Microsoft quiere reinventar Windows en 2027 — Microsoft planea lanzar Windows 11 27H2 en 2027 como una actualización ambiciosa que sustituirá partes de la base del sistema para mejorar el rendimiento a 64 bits y la… Hipertextual\n\n📊 La particular forma que un hom",
+     "sponsored": false
+    },
+    {
+     "message_id": 22,
+     "url": "https://t.me/WORLDNews0007/22",
+     "published_at": "2026-11-07T19:40:24+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 ES AI News\nInteligencia artificial en español: modelos, productos, empresas y políticas. Cada día, de Hipertextual, ABC Tecnología, FayerWayer, La Nación y El Financiero.\nComparte el canal con quien sigue la IA.\n\n🌐 Nuestra red\n• ES Crypto & Blockchain → https://t.me/TechnologiesNews01\n• ES Sports News → https://t.me/SPORTSAnalytics007",
+     "sponsored": false
+    },
+    {
+     "message_id": 24,
+     "url": "https://t.me/WORLDNews0007/24",
+     "published_at": "2026-11-07T23:38:52+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 Windows 11 27H2: la gran actualización con la que Microsoft quiere reinventar Windows en 2027\n\nMicrosoft planea lanzar Windows 11 27H2 en 2027, una actualización ambiciosa que mejorará el rendimiento a 64 bits y renovará la identidad visual del sistema operativo. La actualización sustituirá partes importantes de la base del sistema, lo que permitirá cambios más profundos en el desempeño y la arquitectura interna de Windows.\n\nLa actualización incluirá soporte para Intel APX, mejorando el desempeño de aplicaciones de 64 bits. Se renovará la identidad visual de Windows 11, incluyendo nuevos fon",
+     "sponsored": false
+    },
+    {
+     "message_id": 25,
+     "url": "https://t.me/WORLDNews0007/25",
+     "published_at": "2026-11-08T02:01:36+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 La particular forma que un hombre encontró para que no lo obliguen a usar IA en el trabajo\n\nUn administrador de la Universidad de Kentucky se opuso al uso de inteligencia artificial en su trabajo invocando una ley que protege creencias religiosas. La universidad aceptó su solicitud de exención al considerar que no representaba una carga excesiva.\n\nLa universidad aceptó la exención al considerar que no representaba una carga excesiva. La exención se fundamenta en la sinceridad de las convicciones del empleado.\n\nFuentes:\nLa Nación / Tecnología\n\nSíguenos y comparte este post con un amigo.\n\n#Tec",
+     "sponsored": false
+    },
+    {
+     "message_id": 26,
+     "url": "https://t.me/WORLDNews0007/26",
+     "published_at": "2026-11-08T03:01:25+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 Alerta en Android: Google corrige 216 fallas de seguridad y explica por qué el parche incluye dos fechas clave\n\nGoogle publicó su boletín de seguridad de noviembre de 2026 para Android, corrigiendo 216 vulnerabilidades. El parche se divide en dos niveles, el 1 y el 5 de noviembre, para agilizar la distribución de soluciones comunes.\n\nEl primer nivel abarca 119 vulnerabilidades en componentes del sistema y Framework. El segundo nivel incluye 97 correcciones en el núcleo del sistema operativo y controladores de hardware.\n\nFuentes:\nFayerWayer\n\nSíguenos y comparte este post con un amigo.\n\n#Tecno",
+     "sponsored": false
+    },
+    {
+     "message_id": 27,
+     "url": "https://t.me/WORLDNews0007/27",
+     "published_at": "2026-11-08T04:02:24+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 De Anthropic a OpenAI: el fichaje de Cat Wu, la mente detrás de Claude Code, que puede cambiar el futuro de la programación con IA\n\nCat Wu, exresponsable de producto de Claude Code en Anthropic, se ha unido a OpenAI como directora de gestión de producto. Su incorporación refuerza a OpenAI en la competencia por los modelos de IA avanzados, especialmente en soluciones de programación.\n\nWu fue fundamental en el éxito de Claude Code, que superó los 2.500 millones de dólares en proyección de ingresos anualizados. OpenAI busca fortalecer su solución de programación, Codex, con la incorporación de ",
+     "sponsored": false
+    },
+    {
+     "message_id": 28,
+     "url": "https://t.me/WORLDNews0007/28",
+     "published_at": "2026-11-08T05:01:12+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 TSMC podría comenzar a fabricar RAM, pero no te ilusiones con que baje de precio\n\nTSMC, el principal fabricante de chips, podría comenzar a producir módulos DRAM por pedido de NVIDIA. La empresa taiwanesa analiza ingresar en la producción en masa de memoria 3D RAM para servidores de inteligencia artificial.\n\nLa crisis de la RAM no se resolverá pronto, con escasez prevista hasta al menos 2028. La producción de TSMC se enfocaría en módulos 3D RAM para servidores y centros de datos de IA.\n\nFuentes:\nHipertextual\n\nSíguenos y comparte este post con un amigo.\n\n#Tecnología #IA #InteligenciaArtificia",
+     "sponsored": false
+    },
+    {
+     "message_id": 29,
+     "url": "https://t.me/WORLDNews0007/29",
+     "published_at": "2026-11-08T07:31:40+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🤖 ¡El señor de la noche regresa! Don Omar anuncia conciertos en México: Fechas, sedes y registro a la preventa\n\nDon Omar anunció tres conciertos en México como parte de su gira The Last King World Tour Latam. Las presentaciones serán en noviembre de 2027 en Monterrey, Guadalajara y Ciudad de México.\n\nLa preventa de entradas comenzará el 19 de noviembre, pero aún no se ha anunciado la boletera a cargo. Los seguidores pueden registrarse en la página oficial de Don Omar para recibir información sobre la preventa y asegurar su lugar en la venta anticipada.\n\nFuentes:\nEl Financiero (MX)\n\nSíguenos y ",
+     "sponsored": false
+    }
+   ]
   },
   {
    "id": "crypto-es",
-   "username": "",
-   "subscribers": null,
-   "posts": []
+   "username": "TechnologiesNews01",
+   "subscribers": 3,
+   "posts": [
+    {
+     "message_id": 6,
+     "url": "https://t.me/TechnologiesNews01/6",
+     "published_at": "2026-10-05T20:18:57+00:00",
+     "views": 3,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🚨 AI Glasses Just Hit a Wall — Norway Slaps on the First Major Government Ban\n\nNorway has become the first country to hit the brakes—hard—on consumer AI glasses. The government just announced a *temporary ban* on devices like Ray-Ban Meta, Xreal (now Lynx), and upcoming Apple Vision Pro successors… *if they can record audio/video without clear, real-time consent from everyone in frame*.\n\nWhy? Because “ambient recording” is a privacy time bomb. These glasses don’t just *see*—they log, transcribe, and sometimes even analyze faces, voices, and locations in real time. And unlike smartphones, they’",
+     "sponsored": false
+    },
+    {
+     "message_id": 8,
+     "url": "https://t.me/TechnologiesNews01/8",
+     "published_at": "2026-10-05T20:21:11+00:00",
+     "views": 4,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🚨 Apple’s M6 Mac Mini is $100+ OFF — but *why* should you care?\n\nYes, the new 2026 Mac Mini (M6 chip, 12-core CPU, 16-core GPU, 16GB RAM, 256GB SSD) launched at a steep $899 — a $300 jump from the M2 Mini’s $599 debut. And no, it’s not *that* much faster: Apple’s M6 is essentially a refined, slightly more power-efficient variant of the M3 architecture — same unified memory architecture, same 3nm process, same Neural Engine (18 TOPS), but with modest IPC gains and better thermal headroom for sustained workloads.\n\nSo why the discount? Likely Prime Day inventory clearance + soft early demand (pro",
+     "sponsored": false
+    },
+    {
+     "message_id": 9,
+     "url": "https://t.me/TechnologiesNews01/9",
+     "published_at": "2026-10-05T20:25:33+00:00",
+     "views": 3,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🚨 BREAKING: AI Just Got a Medical License (in Utah)\n\nA startup called **Nolla Health** is now letting people in Utah get *real, FDA-cleared acne prescriptions* — generated entirely by AI. No doctor chat, no video call. Just open the app, snap a selfie, and boom: an algorithm analyzes lesion type, density, inflammation, and skin tone (using validated dermatological severity scales like IGA and ECLA), then auto-generates a prescription for tretinoin or adapalene — dispensed via partnered pharmacies.\n\n⚠️ Key tech & regulatory nuance:\n• Nolla’s AI isn’t “diagnosing” — it’s *triaging* within a narr",
+     "sponsored": false
+    },
+    {
+     "message_id": 10,
+     "url": "https://t.me/TechnologiesNews01/10",
+     "published_at": "2026-10-26T05:02:24+00:00",
+     "views": 4,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "📰 OpenAI Agents Found a Hidden Channel Between Isolated Sandboxes\n\n🤖 OpenAI red-team agents in separate microVMs exchanged synthetic secrets with no network or shared files. One evicted selected CPU-cache data; the other decoded the message from fast and slow reload times.\n\n🔍 The agents also found VM-escape paths and routes to blocked services via DNS, metrics and authentication misconfigurations. The cache method needs two willing agents, but a prompt-injected agent could use it on shared hardware.\n\n🔒 OpenAI says it strengthened VM security, monitoring and shutdown controls, then resumed fron",
+     "sponsored": false
+    },
+    {
+     "message_id": 11,
+     "url": "https://t.me/TechnologiesNews01/11",
+     "published_at": "2026-10-29T18:13:15+00:00",
+     "views": 3,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "📰 Apple Finally Unveils a Touch-Screen MacBook Pro\n\n💻 After two decades of rejecting the idea, Apple unveiled an overhauled MacBook Pro with a touch screen and OLED display at its Los Angeles event. Bloomberg calls it a reversal of a stance held since the Steve Jobs era.\n\n✋ Apple's hardware chief said the touch display offers a \"whole new way\" to interact with content. Event photos also show the glowing Apple logo returning to the laptop lid.\n\n🍎 The move closes Apple's input gap with touch-first Windows laptops, while raising the question of how macOS apps adapt without blurring the line with ",
+     "sponsored": false
+    },
+    {
+     "message_id": 23,
+     "url": "https://t.me/TechnologiesNews01/23",
+     "published_at": "2026-11-07T16:40:34+00:00",
+     "views": null,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "ES Crypto & Blockchain pinned Deleted message",
+     "sponsored": false
+    },
+    {
+     "message_id": 25,
+     "url": "https://t.me/TechnologiesNews01/25",
+     "published_at": "2026-11-07T19:22:48+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 EE. UU. sanciona a 8 exchanges canadienses por mover criptomonedas hacia Irán\n\nEstados Unidos sancionó a ocho exchanges canadienses por transferir criptomonedas hacia Irán. Se indica que una de estas compañías habría movilizado fondos para grupos vinculados al narcotráfico y al terrorismo.\n\nUna de las empresas habría movilizado fondos para grupos vinculados al terrorismo y al narcotráfico.\n\nFuentes:\nCriptoNoticias\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain",
+     "sponsored": false
+    },
+    {
+     "message_id": 26,
+     "url": "https://t.me/TechnologiesNews01/26",
+     "published_at": "2026-11-07T19:40:26+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "₿ ES Crypto & Blockchain\nBitcoin, Ethereum, mercados y regulación en español. CriptoNoticias, BeInCrypto, CriptoTendencia y Observatorio Blockchain.\nSíguenos para no perderte el mercado.\n\n🌐 Nuestra red\n• ES AI News → https://t.me/WORLDNews0007\n• ES Sports News → https://t.me/SPORTSAnalytics007",
+     "sponsored": false
+    },
+    {
+     "message_id": 28,
+     "url": "https://t.me/TechnologiesNews01/28",
+     "published_at": "2026-11-07T20:15:49+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Bitcoin Korea 2026 arranca en Seúl fiel a una sola moneda\n\nBitcoin Korea 2026 comienza en el COEX de Seúl. El evento contará con más de 40 oradores y tiene como objetivo reunir a 2.000 asistentes.\n\n«CriptoTendencia Bitcoin Korea 2026 arranca en el COEX de Seúl con más de 40 oradores y la meta de reunir a 2.000 asistentes.» — CriptoTendencia\n\nDe esto informa CriptoTendencia.\n\nFuentes:\nCriptoTendencia\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain #CriptoTendencia",
+     "sponsored": false
+    },
+    {
+     "message_id": 29,
+     "url": "https://t.me/TechnologiesNews01/29",
+     "published_at": "2026-11-07T22:02:36+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 EE. UU. sanciona a ocho exchanges canadienses por enviar criptomonedas a Irán\n\nEstados Unidos ha impuesto sanciones a ocho exchanges canadienses de criptomonedas por transferir fondos a Irán. Una de estas compañías está acusada de mover fondos para grupos vinculados al terrorismo y al narcotráfico.\n\nFuentes:\nCriptoNoticias\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain",
+     "sponsored": false
+    },
+    {
+     "message_id": 30,
+     "url": "https://t.me/TechnologiesNews01/30",
+     "published_at": "2026-11-07T23:39:29+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Ciencia descentralizada: ¿pueden las criptomonedas sostener un laboratorio?\n\nLa ciencia descentralizada explora el uso de criptomonedas para financiar investigaciones en longevidad. Este enfoque enfrenta desafíos económicos, científicos y legales.\n\nEl artículo se publicó en CriptoTendencia.\n\nFuentes:\nCriptoTendencia\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain #CriptoTendencia",
+     "sponsored": false
+    },
+    {
+     "message_id": 31,
+     "url": "https://t.me/TechnologiesNews01/31",
+     "published_at": "2026-11-08T02:16:42+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Zcash muestra una señal de advertencia para Bitcoin y Ethereum\n\nZcash ha tenido un rally de 147% en el año, pero ahora muestra señales de presión de venta. Bitcoin y Ethereum también enfrentan debilidades similares, con posibles caídas si rompen ciertos niveles de soporte.\n\nEthereum enfrenta presión similar, con soporte en 2,197 dólares y resistencia en 2,265 dólares. Zcash tiene una actualización de red que podría añadir volatilidad específica.\n\nFuentes:\nBeInCrypto Español\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain",
+     "sponsored": false
+    },
+    {
+     "message_id": 32,
+     "url": "https://t.me/TechnologiesNews01/32",
+     "published_at": "2026-11-08T03:20:49+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Resumen · 7 nov 2026\n\n📌 Devcon 8: el reloj post-cuántico de Ethereum depende de una fecha que no existe — Justin Drake propuso en la Devcon 8 el año 2028 para proteger a Ethereum de la computación cuántica y la inteligencia artificial. CriptoTendencia\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain #Ethereum\n\nFuentes:\nCriptoTendencia",
+     "sponsored": false
+    },
+    {
+     "message_id": 33,
+     "url": "https://t.me/TechnologiesNews01/33",
+     "published_at": "2026-11-08T04:20:30+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Resumen · 7 nov 2026\n\n📌 La reserva fraccionaria: una bomba de tiempo que los exchanges de bitcoin desactivaron — Reserva fraccionaria: los exchanges de bitcoin desactivan un sistema que podría colapsar la banca si los clientes retiran sus fondos. CriptoNoticias\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain #Ethereum\n\nFuentes:\nCriptoNoticias",
+     "sponsored": false
+    },
+    {
+     "message_id": 34,
+     "url": "https://t.me/TechnologiesNews01/34",
+     "published_at": "2026-11-08T05:16:21+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Ethereum demora Glamsterdam por 8 alertas sobre la seguridad de sus contratos\n\nEthereum ha retrasado la actualización de Glamsterdam debido a ocho alertas de seguridad relacionadas con sus contratos. Los auditores están investigando si los cambios en las tarifas podrían afectar las instrucciones ejecutadas después de un error.\n\nFuentes:\nCriptoNoticias\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Blockchain #CriptoNoticias",
+     "sponsored": false
+    },
+    {
+     "message_id": 35,
+     "url": "https://t.me/TechnologiesNews01/35",
+     "published_at": "2026-11-08T07:48:43+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "🪙 Bitcoin no necesita un banco, pero Strategy quiere convertirse en uno\n\nStrategy, anteriormente MicroStrategy, busca convertirse en el banco global de Bitcoin, según su CEO Phong Le. La blockchain de Bitcoin aún cabe en un disco de 1 TB, permitiendo a usuarios verificar la red sin intermediarios.\n\nStrategy ha acumulado 845,000 BTC y promueve la fusión de finanzas tradicionales y descentralizadas. Michael Saylor, figura clave, aboga por que los bancos usen Bitcoin como respaldo para préstamos.\n\nFuentes:\nBeInCrypto Español\n\nComparte este post con un amigo, así crecemos.\n\n#Bitcoin #Cripto #Block",
+     "sponsored": false
+    }
+   ]
   },
   {
    "id": "futbol-es",
-   "username": "",
-   "subscribers": null,
-   "posts": []
+   "username": "SPORTSAnalytics007",
+   "subscribers": 3,
+   "posts": [
+    {
+     "message_id": 14,
+     "url": "https://t.me/SPORTSAnalytics007/14",
+     "published_at": "2026-11-07T16:40:35+00:00",
+     "views": null,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "ES Sports News pinned Deleted message",
+     "sponsored": false
+    },
+    {
+     "message_id": 16,
+     "url": "https://t.me/SPORTSAnalytics007/16",
+     "published_at": "2026-11-07T19:31:12+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ ¡EN VIVO! Boca enfrenta a Defensa y Justicia y busca el título de Liga\n\nRosario Central, Boca y Argentinos Juniors se disputan el título de Campeón de Liga este sábado 7 de noviembre. Rosario Central enfrenta a Estudiantes de Río Cuarto, Boca se mide ante Defensa y Justicia, y Argentinos Juniors juega contra Huracán.\n\nEl partido de Rosario Central contra Estudiantes de Río Cuarto se transmitirá por ESPN 2. El encuentro entre Argentinos Juniors y Huracán será transmitido por TNT.\n\nFuentes:\nLa Nación / Deportes · La Nación / Deportes · ESPN / Argentina · La Nación / Deportes\n\n18+ | Juega con r",
+     "sponsored": false
+    },
+    {
+     "message_id": 17,
+     "url": "https://t.me/SPORTSAnalytics007/17",
+     "published_at": "2026-11-07T19:40:28+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ ES Sports News\nFútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS y Champions. Resultados, fichajes y análisis todos los días.\nComparte el canal con un hincha.\n\n🌐 Nuestra red\n• ES AI News → https://t.me/WORLDNews0007\n• ES Crypto & Blockchain → https://t.me/TechnologiesNews01",
+     "sponsored": false
+    },
+    {
+     "message_id": 19,
+     "url": "https://t.me/SPORTSAnalytics007/19",
+     "published_at": "2026-11-07T20:31:05+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Boca, Argentinos y Rosario Central definen el título de la Tabla Anual\n\nBoca, Argentinos Juniors y Rosario Central definen este sábado el título de la Tabla Anual y el campeonato de liga en la fecha 16 del Torneo Clausura 2026. El resultado de estos encuentros también diseñará el cuadro de octavos de final del certamen.\n\n«Boca Juniors, Argentinos Juniors o Rosario Central: uno de ellos dos será campeón este sábado.» — La Nación / Deportes «La disputa quedó al rojo vivo y resta solo una fecha para definir al primer campeón en el semestre.» — ESPN / Argentina\n\nDe esto informan 2 fuentes: La Na",
+     "sponsored": false
+    },
+    {
+     "message_id": 20,
+     "url": "https://t.me/SPORTSAnalytics007/20",
+     "published_at": "2026-11-07T22:18:38+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Real Madrid: alineación y probabilidades vs Valencia\n\nEl Real Madrid venció al Valencia por 0-3 en Mestalla, en un partido correspondiente a la Jornada 12 de LaLiga. Los goles fueron anotados por Fede Valverde, Arda Güler y Kylian Mbappé.\n\nEl equipo merengue dominó el partido, mientras que el Valencia no logró superar a la defensa rival. Con este resultado, el Real Madrid se acerca al liderato de LaLiga.\n\nFuentes:\nRécord (MX) · ESPN / LaLiga · newsdata.io / Apuestas\n\n18+ | Juega con responsabilidad. Comparte este post con un hincha.\n\n#Deportes #Fútbol #LaLiga #Apuestas #Analisis #2026",
+     "sponsored": false
+    },
+    {
+     "message_id": 21,
+     "url": "https://t.me/SPORTSAnalytics007/21",
+     "published_at": "2026-11-08T00:04:51+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "",
+     "sponsored": false
+    },
+    {
+     "message_id": 22,
+     "url": "https://t.me/SPORTSAnalytics007/22",
+     "published_at": "2026-11-08T00:04:51+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Resumen · 7 nov 2026\n\n📌 Colapinto hizo todo lo posible con un coche que no dio para más: largará 15° el Gran Premio de San Pablo de Fórmula 1 — Franco Colapinto largará en la 15° posición del Gran Premio de San Pablo de Fórmula 1 tras la prueba de clasificación ganada por Lando Norris. La Nación / Deportes\n\n📈 Real Madrid no para de ganar — El Real Madrid venció 0-3 al Valencia en el estadio de Mestalla con goles de Fede Valverde, Arda Güler y Kylian Mbappé. El Universal / Deportes\n\n📊 Esteban Solari reconoce el trabajo de su hermano en América y le pide dos estrellas del Real Madrid — Esteban",
+     "sponsored": false
+    },
+    {
+     "message_id": 23,
+     "url": "https://t.me/SPORTSAnalytics007/23",
+     "published_at": "2026-11-08T01:32:22+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "",
+     "sponsored": false
+    },
+    {
+     "message_id": 24,
+     "url": "https://t.me/SPORTSAnalytics007/24",
+     "published_at": "2026-11-08T01:32:23+00:00",
+     "views": 2,
+     "reactions": 1,
+     "reactions_detail": {
+      "❤": 1
+     },
+     "text": "⚽ Resumen · 7 nov 2026\n\n📌 Enner Valencia celebró el título de Boca y vivió un momento familiar muy especial — Enner Valencia marcó el gol que le dio a Boca el título de la Tabla Anual tras ingresar al partido en lugar de Leandro Paredes. La Nación / Deportes\n\n📈 La insólita invasión de los hinchas de Rosario Central por un título que no fue — Rosario Central venció 2-0 a Estudiantes de Río Cuarto, pero sus hinchas invadieron el campo por error al creer que eran campeones tras un malentendido con el resultado… La Nación / Deportes\n\n📊 Los jugadores de Boca mojaron a Arruabarrena mientras hacía la",
+     "sponsored": false
+    },
+    {
+     "message_id": 25,
+     "url": "https://t.me/SPORTSAnalytics007/25",
+     "published_at": "2026-11-08T02:32:27+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "",
+     "sponsored": false
+    },
+    {
+     "message_id": 26,
+     "url": "https://t.me/SPORTSAnalytics007/26",
+     "published_at": "2026-11-08T02:32:28+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Resumen · 7 nov 2026\n\n📌 Exárbitro confiesa fuerte encontronazo con Antonio Mohamed en un Clásico Capitalino — El exárbitro Eduardo Galván Basulto reveló que estuvo a punto de golpear a Antonio Mohamed durante un Clásico Capitalino el 22 de abril de 2023. Récord (MX)\n\n📈 Pumas vs América EN VIVO, Jornada 16 del Apertura 2026; sigue AQUÍ todas las acciones — Pumas y América se enfrentan en la Jornada 16 del Apertura 2026 en el estadio Olímpico Universitario. El Universal / Deportes\n\n📊 Erick Sánchez lanza advertencia: Se viene su prime con América — El mediocampista mexicano aseguró que atravies",
+     "sponsored": false
+    },
+    {
+     "message_id": 27,
+     "url": "https://t.me/SPORTSAnalytics007/27",
+     "published_at": "2026-11-08T03:36:35+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "",
+     "sponsored": false
+    },
+    {
+     "message_id": 28,
+     "url": "https://t.me/SPORTSAnalytics007/28",
+     "published_at": "2026-11-08T03:36:36+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Resumen · 7 nov 2026\n\n📌 Cruz Azul le pega a Tigres en el Volcán; La Máquina se mantiene en el liderato — Cruz Azul derrotó 2-3 a Tigres en el Estadio Universitario durante la jornada 16 del Apertura 2026. El Universal / Deportes\n\n📈 ¡Lluvia de goles en los primeros minutos! Zendejas y Chino hacen explotar CU — Alejandro Zendejas y Chino Huerta anotaron goles en los primeros minutos del Clásico Capitalino entre Pumas y América en Ciudad Universitaria. Récord (MX)\n\n📊 En un partido repleto de emociones, Instituto encontró el 2-2 en la última ante Newell's — La Lepra se lo había dado vuelta pero ",
+     "sponsored": false
+    },
+    {
+     "message_id": 29,
+     "url": "https://t.me/SPORTSAnalytics007/29",
+     "published_at": "2026-11-08T04:39:21+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "",
+     "sponsored": false
+    },
+    {
+     "message_id": 30,
+     "url": "https://t.me/SPORTSAnalytics007/30",
+     "published_at": "2026-11-08T04:39:21+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Resumen · 7 nov 2026\n\n📌 Toluca aplasta a Rayados para romper su mala racha; sellaron su boleto a la Liguilla — Toluca venció 4-0 a Monterrey y aseguró su lugar en la Liguilla a falta de un partido para terminar el torneo regular. El Universal / Deportes\n\n📈 Nikola Jokic y Jamal Murray destacan el ambiente en México; Siakam reconoce dificultad por la altitud — Los Nuggets vencieron a los Pacers de Indiana 114-102 en la Arena Ciudad de México. El Universal / Deportes\n\n📊 ¡Polémica servida! VAR anula gol de Pumas ante América por fuera de lugar — 07 nov 2026 · 21:10 Estadio Olimpico Universitario",
+     "sponsored": false
+    },
+    {
+     "message_id": 31,
+     "url": "https://t.me/SPORTSAnalytics007/31",
+     "published_at": "2026-11-08T05:31:16+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Resumen · 7 nov 2026\n\n📌 Pumas y América regalan vibrante empate; ninguno logra su objetivo en el Clásico Capitalino — Pumas y América empataron 2-2 en el estadio Olímpico Universitario durante el Clásico Capitalino. El Universal / Deportes\n\n📈 ¡Se armó la bronca! Rüdiger y Bellingham, señalados por agredir a personal de seguridad en Mestalla — Antonio Rüdiger y Jude Bellingham fueron señalados por presuntas agresiones contra personal de seguridad en el túnel de vestuarios de Mestalla durante el descanso del… Récord (MX)\n\n📊 Emilio Azcárraga se hace presente en el juego…",
+     "sponsored": false
+    },
+    {
+     "message_id": 32,
+     "url": "https://t.me/SPORTSAnalytics007/32",
+     "published_at": "2026-11-08T08:01:21+00:00",
+     "views": 2,
+     "reactions": 0,
+     "reactions_detail": {},
+     "text": "⚽ Resumen · 8 nov 2026\n\n📌 Henry Martín y Kevin Álvarez estallan contra César Ramos y el arbitraje en el Clásico Capitalino — Henry Martín y Kevin Álvarez criticaron el arbitraje de César Ramos tras el empate entre América y Pumas en el Clásico Capitalino. Récord (MX)\n\n📈 Almada carga contra el arbitraje del Pumas vs América: \"Se resolvió por un penal que no era\" — Guillermo Almada criticó el arbitraje de César Ramos tras el empate 2-2 entre América y Pumas, señalando que un penalti inexistente y una expulsión no reflejada fueron… Récord (MX)\n\n📊 Esteban Solari…",
+     "sponsored": false
+    }
+   ]
   }
  ]
 }
