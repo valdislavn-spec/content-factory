@@ -1,0 +1,10 @@
+name = "cf-subscribe"
+main = "subscribe.mjs"
+compatibility_date = "2026-11-01"
+
+kv_namespaces = [
+  { binding = "SUBSCRIBERS", id = "422c94623a2a4b88941bd86178429ba8" },
+]
+
+[observability]
+enabled = true

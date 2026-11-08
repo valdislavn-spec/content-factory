@@ -1,0 +1,9 @@
+# Публичные ссылки каналов сети (для лендингов/рассылок/промо).
+# id канала из config/channels.en.yaml / channels.es.yaml -> ссылка t.me
+sport-news: https://t.me/SPORTNews0007
+ai-news: https://t.me/AINEWS0007
+crypto-news: https://t.me/HOOPY0007
+
+tech-ai-es: https://t.me/WORLDNews0007
+crypto-es: https://t.me/TechnologiesNews01
+futbol-es: https://t.me/SPORTSAnalytics007

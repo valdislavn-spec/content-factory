@@ -321,9 +321,16 @@ def build(out: Path, base_url: str) -> Dict[str, List[str]]:
             "share_label": "Compartir:" if is_es else "Share:",
             "share_text": urllib.parse.quote(geo["title"]),
             "footer": (
-                "Canal gratuito · sin publicidad · contenido 18+"
+                ("Canal gratuito · contenido 18+ · "
+                 f'<a href="{base}/subscribe/es/">Resumen semanal por email</a>')
                 if cid == "futbol-es"
-                else ("Canal gratuito · sin publicidad" if is_es else "Free channel · no ads")
+                else (
+                    ("Canal gratuito · sin publicidad · "
+                     f'<a href="{base}/subscribe/es/">Resumen semanal por email</a>')
+                    if is_es
+                    else ("Free channel · no ads · "
+                          f'<a href="{base}/subscribe/">Weekly email digest</a>')
+                )
             ),
         }
         path = out / (geo["slug"] + ".html")

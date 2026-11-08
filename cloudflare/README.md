@@ -31,3 +31,16 @@ KV создаётся так:
 ```bash
 npx wrangler kv namespace create tg-cron-state
 ```
+
+## Email-подписка (cf-subscribe)
+
+Форма на GitHub Pages -> Worker -> Cloudflare KV (и опционально Brevo).
+
+- Код: `cloudflare/subscribe.mjs`; конфиг: `cloudflare/wrangler.subscribe.toml`.
+- KV namespace: `content-factory-subscribers` (`422c94623a2a4b88941bd86178429ba8`).
+- URL: https://cf-subscribe.valdislav-n.workers.dev/
+- Секреты Worker (для синхронизации с Brevo):
+  `BREVO_API_KEY`, `BREVO_LIST_ID_EN`, `BREVO_LIST_ID_ES`.
+- Деплой: `npx wrangler deploy --config wrangler.subscribe.toml`.
+- Инструкция целиком: `docs/promo/email-digest-setup.md`.
+
