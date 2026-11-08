@@ -45,7 +45,7 @@ def test_night_max_chars_and_timezone():
     channel = _channel("ai-news")
     assert channel.timezone_offset == -5
     assert channel.night_max_chars == 900
-    assert len(channel.schedule) == 15
+    assert len(channel.schedule) == 8
     es_channel = _channel("futbol-es", "config/channels.es.yaml")
     assert es_channel.timezone_offset == -6
 
