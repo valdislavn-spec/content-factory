@@ -155,15 +155,16 @@ def channel_link(config: dict, niche: str) -> str:
 
 
 def build_assets(pin: dict, alt_text: bool = False) -> list:
-    """Картинка статьи (пина) для Buffer: assets=[{image:{url[, altText]}}]."""
+    """Картинка статьи (пина) для Buffer: assets=[{image:{url}}].
+
+    Buffer GraphQL (ImageAssetInput) не принимает altText — альтернативный
+    текст задаётся вручную в UI Buffer. Параметр alt_text оставлен для
+    совместимости вызовов, но в API не уходит.
+    """
     image = str(pin.get("image_url") or "").strip()
     if not image.startswith(("http://", "https://")):
         return []
-    payload = {"url": image}
-    alt = str(pin.get("alt_text") or "").strip()
-    if alt_text and alt:
-        payload["altText"] = alt
-    return [{"image": payload}]
+    return [{"image": {"url": image}}]
 
 
 def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
