@@ -19,23 +19,35 @@
 Наш код использует второй вариант: [reddit.py](../../content_factory/publishers/reddit.py)
 (Script App OAuth, password grant) и [reddit_digest.py](../../scripts/reddit_digest.py).
 
-## Где брать ключи (после одобрения)
+## Где находится «create another app» (и почему её может не быть)
 
-1. Войти в Reddit-аккаунт, который будет постить.
-2. Открыть **https://www.reddit.com/prefs/apps** (если редиректит на login — сначала войти).
-3. Кнопка **«create another app…»**:
+Кнопка исторически живёт здесь:
+
+1. Войти в Reddit — **только desktop web** (в мобильном приложении её нет).
+2. Открыть **https://www.reddit.com/prefs/apps** — страница «developed applications».
+   Fallback: **https://old.reddit.com/prefs/apps** (старый интерфейс, кнопка внизу).
+3. Внизу страницы — кнопка **«create another app…»**.
+
+**Важно (2026):** с ноября 2025 self-serve создание приложений закрыто — кнопка
+может отсутствовать или редиректить на Responsible Builder Policy, а не открывать
+форму. Это не баг и не твоя ошибка: доступ к Reddit Data API теперь только через
+**заявку (Data Access Request) с ручным одобрением**. Если форма всё-таки
+открылась — заполняй её по шагам ниже; если нет — сразу к разделу
+«Регистрация и одобрение».
+
+Если форма открылась:
    - **name**: `content-factory-digest` (понятное, не `test`);
    - **type**: **script** (для собственного бота);
    - **description**: что делает приложение (см. готовый текст ниже);
    - **about url**: `https://github.com/valdislavn-spec/content-factory`;
    - **redirect uri**: `http://localhost:8080` (обязательное поле, для password grant не используется).
-4. Создать. На странице приложения:
+
+После создания на странице приложения:
    - **client_id** — короткая строка **под названием приложения** (14–22 символа);
    - **secret** — поле с подписью **«secret»**.
-5. Эти два значения + логин/пароль аккаунта + сабреддит — в секреты (см. ниже).
 
-Важно: ключи появляются у **script-приложения**, но по политике Reddit доступ
-к Data API нужно **зарегистрировать и получить одобрение** — см. следующий раздел.
+Эти два значения + логин/пароль аккаунта + сабреддит — в секреты (см. ниже).
+Если self-serve закрыт, ключи выдаются/включаются после одобрения заявки.
 
 ## Регистрация и одобрение (обязательно в 2026)
 
@@ -49,10 +61,16 @@
    https://support.reddithelp.com/hc/en-us/requests/new?ticket_form_id=14868593862164&tf_42139884615700=api_request_type_developer_clone
 3. Принять [Data API Terms](https://redditinc.com/policies/data-api-terms).
 
+Срок рассмотрения — обычно **2–4 недели**, одобрение не гарантировано (могут
+отказать). Проверяй статус в почте/портале; при отказе — см. раздел
+«Если approval не дают».
+
 ### Готовый текст заявки (скопировать в тикет)
 
 ```
 App: content-factory-digest (script app, OAuth password grant)
+Developer role: external integration not supported by Devvit
+Public product URL: https://valdislavn-spec.github.io/content-factory/
 Use case: non-commercial news digest bot for our own Telegram news channels.
 Access requested: write (submit self-posts), read (own account + subreddit rules).
 Subreddits: only subreddits we own or moderate, e.g. r/<our_subreddit>.
