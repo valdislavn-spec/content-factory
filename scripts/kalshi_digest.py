@@ -114,12 +114,23 @@ def main(argv=None) -> int:
                     status=str(config.get("status") or "open"),
                     limit=int(config.get("limit") or 200),
                 )
+                print("Kalshi: fetched %d open markets" % len(markets))
+                for sample in markets[:5]:
+                    print("  sample: %s | %s | vol=%s" % (
+                        sample.get("ticker"), str(sample.get("title") or sample.get("yes_sub_title"))[:70],
+                        sample.get("volume_fp") or sample.get("volume_24h_fp") or sample.get("volume")))
             selected = select_markets(
                 markets,
                 keywords=entry.get("keywords") or [],
                 min_volume=float(entry.get("min_volume") or 0),
                 max_items=int(entry.get("max_items") or 4),
             )
+            if not selected and entry.get("fallback_top", True) and markets:
+                # Keyword/volume filters may miss everything (Kalshi titles vary);
+                # still publish the most liquid markets.
+                selected = select_markets(markets, keywords=[], min_volume=0,
+                                          max_items=int(entry.get("max_items") or 4))
+                print("%s: keyword filter matched nothing — fallback to top by volume" % channel)
             if not selected:
                 print("%s: no markets match the filter — skip" % channel)
                 continue
