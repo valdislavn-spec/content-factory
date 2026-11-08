@@ -57,3 +57,19 @@ BingX не обслуживает **США, Канаду, Великобрита
 
 `tests/test_affiliate.py` — тексты EN/ES, env-override, частота, отключение,
 невалидная ссылка.
+
+## Статус Affiliate Program (до 50%)
+
+**08.11.2026** заявка в BingX Affiliate Program отправлена через кабинет BingX:
+имя, email, Telegram @HOOPY0007, страна/регион, промо-платформа Telegram,
+~3 700 подписчиков, скриншот канала, план продвижения.
+
+Ответ BingX: «Thank you for your application. Our official team will contact you
+via the contact info you provided within 5 workdays after reviewing it» (Success).
+
+Что дальше:
+- до одобрения в постах остаётся стандартная реферальная ссылка
+  `https://bingxdao.com/invite/WYYEGK/` (10%);
+- после одобрения — заменить `affiliate.link` в `channels.*.yaml` на выданную
+  affiliate-ссылку (или задать `AFFILIATE_LINK_CRYPTO_NEWS`) и проверить в Partner Hub,
+  что ставка 50% и выплаты ежедневные.

@@ -13,7 +13,7 @@
 | Bitget Affiliate | CPA | $20–100/регистрация с депозитом | быстрые выплаты |
 | MEXC Referral | RevShare | до 40% | без KYC для трейдинга (риски) |
 | KuCoin Affiliate | RevShare | до 30% | |
-| **BingX Affiliate** | RevShare | до 50% торговых комиссий, выплата ежедневно | ⚠️ **US/Canada/UK/SG/NL/HK запрещены** (Restricted Jurisdictions) — ставить только в ES/ЛатАм |
+| **BingX Affiliate** | RevShare | до 50% торговых комиссий, выплата ежедневно | ⚠️ **US/Canada/UK/SG/NL/HK запрещены** (Restricted Jurisdictions) — ставить только в ES/ЛатАм; заявка в Affiliate Program отправлена 08.11.2026 (ответ ≤5 раб. дней) |
 | Ledger/Trezor Affiliate | CPA | 10–20% от чека | железные кошельки |
 | CoinTracker Affiliate | CPA | 10–30% | налоговый учёт крипты (US) |
 | Bitso / Ripio / Lemon / Belo | RevShare | 20–50% | **ЛатАм** — для ES-каналов |
