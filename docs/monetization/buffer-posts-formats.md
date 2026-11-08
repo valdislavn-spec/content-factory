@@ -54,7 +54,7 @@ python scripts/buffer_queue.py --date 2026-11-08
 
 ## Что можно улучшить дальше
 
-1. **Alt-текст**: схема Buffer в примере не показывает `altText`; если появится — добавить (важно для Bluesky).
+1. **Alt-текст**: Buffer API (`ImageAssetInput`) **не принимает** `altText` (проверено live: `unknown field altText`). Alt задаётся вручную в UI Buffer; для Bluesky это важно — можно добавить позже через отдельный шаг/другой публикатор.
 2. **A/B**: чередовать CTA («Full guide:» vs «Save this:») и замерять клики по UTM.
 3. **Время**: Buffer сам ставит в очередь; при ручном расписании — X утро, FB 13:00–15:00,
    Bluesky — по активности аудитории.

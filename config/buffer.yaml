@@ -11,7 +11,7 @@ links:
 
 # A/B CTA: варианты чередуются по дню (для замера кликов по UTM/шортлинкам).
 # Партнёрская строка (Ad) для ниш, где уже есть оффер.
-assets_alt_text: true           # передавать altText в Buffer (если API принимает)
+assets_alt_text: false          # Buffer API не принимает altText (ImageAssetInput) — alt только вручную в UI
 partner_label: "Ad:"
 niche_partners:
   crypto: https://links-tracker.valdislav-n.workers.dev/r/bingx-crypto-news
