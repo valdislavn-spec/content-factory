@@ -13,9 +13,16 @@
 | Bitget Affiliate | CPA | $20–100/регистрация с депозитом | быстрые выплаты |
 | MEXC Referral | RevShare | до 40% | без KYC для трейдинга (риски) |
 | KuCoin Affiliate | RevShare | до 30% | |
+| **BingX Affiliate** | RevShare | до 50% торговых комиссий, выплата ежедневно | ⚠️ **US/Canada/UK/SG/NL/HK запрещены** (Restricted Jurisdictions) — ставить только в ES/ЛатАм |
 | Ledger/Trezor Affiliate | CPA | 10–20% от чека | железные кошельки |
 | CoinTracker Affiliate | CPA | 10–30% | налоговый учёт крипты (US) |
 | Bitso / Ripio / Lemon / Belo | RevShare | 20–50% | **ЛатАм** — для ES-каналов |
+
+
+> **BingX:** Restricted Jurisdictions включают **США (все территории), Канаду,
+> Великобританию, Сингапур, Нидерланды, Гонконг** → для EN-канала с US-аудиторией
+> не подходит; имеет смысл только для ES-каналов (ЛатАм). Детали и математика:
+> [`bingx-analysis.md`](bingx-analysis.md).
 
 Реалистичная математика для нашего crypto-канала: 165 просмотров/пост, CTR 1–2%
 → 1–3 перехода; CPA $20–100 → $0,2–3 с поста. Вывод: рефералки — добавка, а не
