@@ -315,6 +315,22 @@ publishers:
   mastodon:
     base_url_env: MASTODON_BASE_URL
     token_env: MASTODON_TOKEN
+  pleroma:
+    base_url_env: PLEROMA_BASE_URL
+    token_env: PLEROMA_TOKEN
+  akkoma:
+    base_url_env: AKKOMA_BASE_URL
+    token_env: AKKOMA_TOKEN
+  gotosocial:
+    base_url_env: GOTOSOCIAL_BASE_URL
+    token_env: GOTOSOCIAL_TOKEN
+  friendica:
+    base_url_env: FRIENDICA_BASE_URL
+    token_env: FRIENDICA_TOKEN
+  misskey:
+    host_env: MISSKEY_HOST
+    token_env: MISSKEY_TOKEN
+    max_chars: 3000
   discord:
     webhook_env: DISCORD_WEBHOOK_URL
   tumblr:
