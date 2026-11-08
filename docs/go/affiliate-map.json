@@ -18,5 +18,15 @@
     "program": "compensair",
     "partner_url": "https://compensair.tpk.ro/4klXfGpD",
     "hub_link": "https://valdislavn-spec.github.io/content-factory/go/04-travel-insurance-mistakes.html"
+  },
+  "klook-tours": {
+    "program": "Klook",
+    "partner_url": "https://klook.tpk.ro/xqUojI5K",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/klook-tours.html"
+  },
+  "saily-esim": {
+    "program": "Saily",
+    "partner_url": "https://saily.tpk.ro/r5oQ96LR",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/saily-esim.html"
   }
 }
