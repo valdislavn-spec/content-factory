@@ -173,3 +173,53 @@ RSS. Картинка статьи сохраняется в `article.meta["imag
 - Telegram-публикатор отправляет **фото с подписью** (`sendPhoto`), если текст
   ≤1000 символов; иначе — обычное сообщение (чтобы не обрезать пост).
 - Ссылка на источник сокращается через TinyURL и добавляется в конец поста.
+
+## Рост и контент: Similarweb + кураторские RSS (Feedly/Substack/Beehiiv)
+
+Из списка «Помогает росту и контенту — держать под рукой» подключены две вещи,
+не требующие платных API-ключей.
+
+### Кураторские RSS-источники
+
+`config/sources.curated.yaml` — отдельный файл с подборкой лент «как в Feedly/
+Feedspot»: Substack-авторы (Import AI, One Useful Thing, Simon Willison,
+The Defiant), дайджесты (TLDR AI) и отраслевые медиа (Blockworks, BeInCrypto).
+Источники подмешиваются к каналам по `id` (`ai-news`, `crypto-news`), ключ `*` —
+ко всем каналам; дубли по `url`/`id` с уже прописанными источниками
+отбрасываются. Аккаунты Feedly/Feedspot для этого не нужны — у всех лент есть
+открытый RSS.
+
+```bash
+# посмотреть количество источников по каналам (с учётом кураторских)
+python -m content_factory channels
+# проверить, что ленты реально отдаются
+python -m content_factory sources check --channel ai-news
+python -m content_factory sources check --channel crypto-news
+```
+
+Свой файл можно положить в другое место и указать путь переменной
+`CONTENT_FACTORY_CURATED_SOURCES` (или `app.curated_sources_file` в settings.yaml).
+
+### Similarweb — конкуренты и их трафик
+
+Бесплатный endpoint из Chrome-расширения Similarweb (ключ не нужен):
+визиты/мес, глобальный и страновой ранг, отказы, глубина, время на сайте,
+категория, доли стран и источники трафика.
+
+```bash
+# отчёт по группам ai / crypto / sports (по умолчанию все)
+python scripts/competitor_traffic.py --group crypto
+# свои домены и отправка сводки в Telegram (TELEGRAM_ALERT_CHAT_ID)
+python scripts/competitor_traffic.py --domains cointelegraph.com,decrypt.co --send
+```
+
+Отчёт пишется в `data/reports/competitors-YYYY-MM-DD.md`, JSON — по `--json-out`.
+В облаке это делает workflow `competitors` (ежедневно, 10:25 МСК).
+
+**Важно:** `data.similarweb.com` отдаёт 403 из РФ (CloudFront geo-block) и,
+как показал запуск на раннере, из GitHub Actions тоже (блок по ASN облачных
+провайдеров). Поэтому отчёт в Actions сейчас заполняется строкой «нет данных».
+Варианты, если данные нужны: запускать с residential/VPN-IP, использовать
+платный Similarweb API или бесплатный keyed-провайдер (например, OpenWeb Ninja)
+— тогда в `content_factory/integrations/similarweb.py` меняется только
+`_http_get_json` + заголовок с ключом.
