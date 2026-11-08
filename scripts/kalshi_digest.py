@@ -69,6 +69,30 @@ def resolve_chat_id(channel: str, entry: dict, channel_ids: dict) -> str:
     return channel_ids.get(channel, "")
 
 
+def affiliate_line(config: dict, language: str, now_utc=None) -> str:
+    """Daily affiliate/referral line (once per day, only in the configured UTC hour)."""
+    from datetime import datetime, timezone
+
+    block = (config or {}).get("affiliate") or {}
+    if not isinstance(block, dict) or not block.get("enabled"):
+        return ""
+    url = str(block.get("url") or "").strip()
+    if not url:
+        return ""
+    now = now_utc or datetime.now(timezone.utc)
+    if block.get("once_per_day", True):
+        try:
+            hour = int(block.get("daily_hour_utc", 12))
+        except (TypeError, ValueError):
+            hour = 12
+        if now.hour != hour:
+            return ""
+    disclosure = str(block.get("disclosure") or "Ad")
+    template = block.get("text_es") if str(language).lower().startswith("es") else block.get("text_en")
+    template = str(template or "🔗 {url} · {disclosure}")
+    return template.format(url=url, disclosure=disclosure)
+
+
 def send_message(token: str, api_base: str, chat_id: str, text: str) -> tuple:
     base = (api_base or "https://api.telegram.org").rstrip("/")
     url = base + "/bot" + token + "/sendMessage"
@@ -164,6 +188,9 @@ def main(argv=None) -> int:
                 max_items=int(entry.get("max_items") or 4),
                 affiliate_url=str(entry.get("affiliate_url") or ""),
             )
+            daily_affiliate = affiliate_line(config, str(entry.get("language") or "en"))
+            if daily_affiliate:
+                text = text.rstrip() + "\n\n" + daily_affiliate
             chat_id = resolve_chat_id(channel, entry, channel_ids)
             if not args.live:
                 print("--- %s (dry-run, chat=%s) ---" % (channel, chat_id or "—"))

@@ -37,3 +37,15 @@ digests:
     max_items: 3
     fallback_top: true
     affiliate_url: ""
+
+# Affiliate / referral link (Kalshi "Refer a friend": app → Explore → menu →
+# Your rewards → Offers). Shown at most once per day, in the 12:15 UTC digest
+# run only. Leave url empty to disable. US referral offers only.
+affiliate:
+  enabled: true
+  url: ""            # paste your Kalshi referral link here, e.g. https://kalshi.com/r/XXXX
+  disclosure: "Ad"
+  once_per_day: true
+  daily_hour_utc: 12
+  text_en: "🔗 Trade prediction markets on Kalshi: {url} · {disclosure}"
+  text_es: "🔗 Opera en mercados de predicción con Kalshi: {url} · {disclosure}"
