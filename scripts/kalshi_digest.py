@@ -125,10 +125,23 @@ def main(argv=None) -> int:
                     mve_filter=str(config.get("mve_filter") or "exclude"),
                 )
                 print("Kalshi: fetched %d open markets" % len(markets))
-                for sample in markets[:5]:
-                    print("  sample: %s | %s | vol=%s" % (
-                        sample.get("ticker"), str(sample.get("title") or sample.get("yes_sub_title"))[:70],
-                        sample.get("volume_fp") or sample.get("volume_24h_fp") or sample.get("volume")))
+            series_tickers = [str(t).strip() for t in (entry.get("series_tickers") or config.get("series_tickers") or []) if str(t).strip()]
+            if series_tickers:
+                series_markets = []
+                for ticker in series_tickers:
+                    try:
+                        series_markets.extend(client.markets(
+                            status=str(config.get("status") or "open"),
+                            limit=100,
+                            series_ticker=ticker,
+                            mve_filter=str(config.get("mve_filter") or "exclude"),
+                        ))
+                    except KalshiError as error:
+                        print("  series %s: %s" % (ticker, error))
+                print("Kalshi: %d markets in configured series (%s)" % (
+                    len(series_markets), ", ".join(series_tickers)))
+                if series_markets:
+                    markets = series_markets
             selected = select_markets(
                 markets,
                 keywords=entry.get("keywords") or [],

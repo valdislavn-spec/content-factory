@@ -12,7 +12,8 @@ digests:
     language: en
     title: "📊 Crypto prediction markets right now"
     keywords: ["bitcoin", "btc", "ethereum", "eth", "solana", "crypto"]
-    min_volume: 5000
+    series_tickers: ["KXBTC", "KXETH", "KXSOL", "KXDOGEMAXM", "KXTOKENLAUNCHAXIOM"]
+    min_volume: 0
     max_items: 4
     fallback_top: true
     affiliate_url: ""
@@ -21,7 +22,8 @@ digests:
     language: en
     title: "🏈 Sports prediction markets"
     keywords: ["nfl", "nba", "mlb", "nhl", "super bowl", "playoff", "championship"]
-    min_volume: 10000
+    series_tickers: ["KXPSL", "KXNCAAFSEED", "KXNBATEAMWINSTREAK", "KXNBACUPGROUPWIN", "KXWCSTAGEOFELIM"]
+    min_volume: 0
     max_items: 3
     fallback_top: true
     affiliate_url: ""
@@ -30,7 +32,8 @@ digests:
     language: en
     title: "🤖 AI & tech prediction markets"
     keywords: ["ai", "openai", "gpt", "nvidia", "apple", "google", "meta"]
-    min_volume: 3000
+    series_tickers: ["KXMETAA", "KXACQUIRECHROME", "KXUSTESTSMATH", "KXUBER"]
+    min_volume: 0
     max_items: 3
     fallback_top: true
     affiliate_url: ""
