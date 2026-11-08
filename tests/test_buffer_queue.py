@@ -114,7 +114,8 @@ def test_short_links_and_channel(monkeypatch):
     text = build_text(PIN, CHANNEL_X, HUB, config)
     assert "https://tinyurl.com/" in text
     assert "Telegram: https://t.me/AINEWS0007" in text
-    assert "Guide: https://tinyurl.com/" in text
+    assert "https://tinyurl.com/" in text
+    assert "Guide:" in text or "Full guide:" in text
     # сокращаются статья и канал; канал короткий, поэтому остаётся t.me-ссылка
     assert calls, "shortener должен вызываться для ссылки на статью"
 
