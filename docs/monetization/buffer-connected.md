@@ -182,3 +182,6 @@ https://facebook.com/865322629989875_122148500589054089
 Первый прогон: 3 поста в очереди на 2026-11-09 (Bluesky 15:15Z, X 05:32Z,
 Facebook 06:32Z). Pinterest в Buffer на Free-плане не влезает (3 канала
 лимит) — пины публикуются отдельно через Business Hub → CSV.
+
+
+Форматы постов под X/Facebook/Bluesky и источники практик: [buffer-posts-formats.md](buffer-posts-formats.md).

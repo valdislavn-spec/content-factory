@@ -2,10 +2,22 @@
 
 from scripts.buffer_queue import build_text, clip, hub_link
 
+CONFIG = {
+    "niches": {
+        "travel": {
+            "emoji": "🧳",
+            "hashtags": ["#travel", "#budgettravel", "#citybreak"],
+            "cta": "Full guide:",
+            "question": "Which city is on your list this year?",
+        }
+    }
+}
+
 PIN = {
     "title": "Cheap Europe city breaks under $300",
     "description": "Budget city breaks in Europe: cheapest months, carry-on tips and booking windows.",
     "affiliate": True,
+    "niche": "travel",
 }
 CHANNEL_X = {"service": "twitter", "max_chars": 280, "utm": {"utm_source": "x"}}
 CHANNEL_BSKY = {"service": "bluesky", "max_chars": 300, "utm": {"utm_source": "bsky"}}
@@ -40,3 +52,41 @@ def test_facebook_keeps_description():
     text = build_text(PIN, CHANNEL_FB, HUB)
     assert "Budget city breaks" in text
     assert "utm_source=facebook" in text
+
+
+def test_x_has_no_hashtags_and_hook_first():
+    text = build_text(PIN, CHANNEL_X, HUB, CONFIG)
+    assert len(text) <= 280
+    assert "#" not in text
+    assert text.splitlines()[0] == "Cheap Europe city breaks under $300"
+
+
+def test_bluesky_emoji_and_tags():
+    text = build_text(PIN, CHANNEL_BSKY, HUB, CONFIG)
+    assert len(text) <= 300
+    assert text.startswith("🧳 ")
+    assert "#travel" in text
+    assert text.count("#") <= 3
+
+
+def test_facebook_bullets_and_question():
+    text = build_text(PIN, CHANNEL_FB, HUB, CONFIG)
+    assert "• " in text
+    assert "Which city is on your list this year?" in text
+    assert "utm_source=facebook" in text
+
+
+def test_facebook_long_description_keeps_two_bullets():
+    pin = dict(PIN)
+    pin["description"] = (
+        "Bali in 7 days: what it really costs, where to save, "
+        "and when to go to avoid peak season prices."
+    )
+    text = build_text(pin, CHANNEL_FB, HUB, CONFIG)
+    assert text.count("• ") >= 2
+
+
+def test_unknown_service_falls_back():
+    channel = {"service": "mastodon", "max_chars": 500, "utm": {"utm_source": "m"}}
+    text = build_text(PIN, channel, HUB, CONFIG)
+    assert len(text) <= 500

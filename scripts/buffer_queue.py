@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import sys
+import re
 import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,29 +30,148 @@ def hub_link(base: str, utm: dict) -> str:
     return base + ("?" + query if query else "")
 
 
-def clip(text: str, limit: int) -> str:
-    text = " ".join(str(text or "").split())
+def clip(text: str, limit: int, keep_lines: bool = False) -> str:
+    """Обрезает текст до limit. keep_lines=True сохраняет переносы строк."""
+    if keep_lines:
+        lines = [" ".join(line.split()) for line in str(text or "").splitlines()]
+        text = "\n".join(line for line in lines if line)
+        text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    else:
+        text = " ".join(str(text or "").split())
     if len(text) <= limit:
         return text
     return text[: max(0, limit - 1)].rsplit(" ", 1)[0] + "…"
 
 
-def build_text(pin: dict, channel: dict, hub_url: str) -> str:
+DEFAULT_STYLE = {
+    "emoji": "",
+    "hashtags": [],
+    "cta": "Read more:",
+    "question": "",
+}
+
+
+def _style(config: dict, niche: str) -> dict:
+    style = dict(DEFAULT_STYLE)
+    styles = (config or {}).get("niches") or {}
+    if niche and isinstance(styles.get(niche), dict):
+        style.update(styles[niche])
+    return style
+
+
+def _hook(title: str, limit: int) -> str:
+    hook = " ".join(str(title or "").strip().split()).rstrip(".")
+    return clip(hook, limit)
+
+
+def _first_sentence(description: str, limit: int) -> str:
+    """Первое предложение описания — короткий и чистый benefit."""
+    text = " ".join(str(description or "").split())
+    sentence = re.split(r"(?<=[.!?])\s", text)[0] if text else ""
+    sentence = sentence.rstrip(".")
+    if len(sentence) > limit:
+        sentence = clip(sentence, limit)
+    return sentence
+
+
+def _bullets(description: str, limit: int = 230) -> str:
+    """2–3 пункта пользы из описания (по ; : •), каждый строкой «• ...»."""
+    text = " ".join(str(description or "").split()).rstrip(".")
+    parts = [part.strip(" -•") for part in re.split(r"[;•]", text) if part.strip()]
+    if len(parts) == 1 and ":" in text:
+        head, tail = text.split(":", 1)
+        parts = [head.strip(), tail.strip()]
+    picked, used = [], 0
+    for part in parts[:3]:
+        if used + len(part) > limit:
+            break
+        picked.append(part)
+        used += len(part) + 2
+    if len(picked) <= 1:
+        return _first_sentence(description, limit)
+    return "\n".join("• " + part for part in picked)
+
+
+def _tags(style: dict, maximum: int) -> str:
+    tags = [str(tag) for tag in (style.get("hashtags") or []) if str(tag).strip()]
+    return " ".join(tags[:max(0, maximum)])
+
+
+def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
+    """Собирает пост и гарантированно укладывается в лимит, не режа по живому."""
+    text = hook + ("\n\n" + benefit if benefit else "") + "\n\n" + footer
+    if len(text) <= limit:
+        return text
+    budget = limit - len(hook) - len(footer) - 4
+    if benefit and budget >= 40:
+        text = hook + "\n\n" + clip(benefit, budget) + "\n\n" + footer
+        if len(text) <= limit:
+            return text
+    # без benefit: обрезаем хук, но ссылку и CTA оставляем целыми
+    room = limit - len(footer) - 2
+    return clip(hook, max(20, room)) + "\n\n" + footer
+
+
+def build_x(pin: dict, link: str, style: dict, limit: int = 280) -> str:
+    """X: хук в первой строке, 0 хэштегов (NLP-алгоритм), ссылка в конце."""
+    disclosure = " Ad" if pin.get("affiliate") else ""
+    cta = str(style.get("cta") or "").strip()
+    hook = _hook(pin.get("title") or "", 120)
+    footer = (cta + " " + link + disclosure).strip()
+    benefit = _first_sentence(pin.get("description") or "", 120)
+    return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
+
+
+def build_bluesky(pin: dict, link: str, style: dict, limit: int = 300) -> str:
+    """Bluesky: хук с эмодзи, 1–3 хэштега, ссылка; альт-текст — отдельно."""
+    disclosure = " Ad" if pin.get("affiliate") else ""
+    emoji = str(style.get("emoji") or "").strip()
+    tags = _tags(style, 3)
+    cta = str(style.get("cta") or "").strip()
+    hook = (emoji + " " + _hook(pin.get("title") or "", 120)).strip()
+    footer = (cta + " " + link + disclosure + (" " + tags if tags else "")).strip()
+    benefit = _first_sentence(pin.get("description") or "", 120)
+    return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
+
+
+def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000) -> str:
+    """Facebook: хук <80 симв., 2–3 пункта, вопрос, ссылка, 0–2 тега."""
+    disclosure = " Ad" if pin.get("affiliate") else ""
+    emoji = str(style.get("emoji") or "").strip()
+    tags = _tags(style, 2)
+    hook = (emoji + " " + _hook(pin.get("title") or "", 80)).strip()
+    bullets = _bullets(pin.get("description") or "")
+    cta = str(style.get("cta") or "").strip()
+    question = str(style.get("question") or "").strip()
+    parts = [hook]
+    if bullets:
+        parts.append(bullets)
+    if question:
+        parts.append(question)
+    parts.append((cta + " " + link + disclosure).strip())
+    if tags:
+        parts.append(tags)
+    return clip("\n\n".join(parts), limit, keep_lines=True)
+
+
+def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None) -> str:
     service = str(channel.get("service") or "")
     limit = int(channel.get("max_chars") or 280)
-    title = str(pin.get("title") or "").strip()
-    description = str(pin.get("description") or "").strip()
+    style = _style(config or {}, str(pin.get("niche") or ""))
     link = hub_link(hub_url, channel.get("utm") or {})
-    disclosure = " Ad" if pin.get("affiliate") else ""
-    title_part = clip(title, 90)
-    suffix = "\n\n" + link + disclosure
-    budget = limit - len(title_part) - len(suffix) - 2
-    description_part = clip(description, max(20, budget))
-    body = title_part + ("\n\n" + description_part if description_part else "")
-    text = body + suffix
-    if len(text) > limit:
-        text = clip(text, limit)
-    return text
+    if service in ("twitter", "x", "bluesky"):
+        # У X/Bluesky жёсткие лимиты — убираем utm_medium/campaign, оставляем source.
+        utm = channel.get("utm") or {}
+        link = hub_link(hub_url, {"utm_source": utm.get("utm_source")} if utm.get("utm_source") else {})
+    if service in ("twitter", "x"):
+        return build_x(pin, link, style, limit)
+    if service == "bluesky":
+        return build_bluesky(pin, link, style, limit)
+    if service == "facebook":
+        return build_facebook(pin, link, style, limit)
+    title_part = clip(pin.get("title") or "", 90)
+    description_part = clip(pin.get("description") or "", max(20, limit - len(title_part) - len(link) - 10))
+    return clip(title_part + "\n\n" + description_part + "\n\n" + link, limit)
 
 
 def main(argv=None) -> int:
@@ -103,6 +223,8 @@ def main(argv=None) -> int:
     pin = {
         "title": pin_payload.get("title") or sidecar.get("title") or "",
         "description": pin_payload.get("description") or sidecar.get("description") or "",
+        "niche": sidecar.get("niche") or pin_payload.get("niche") or "",
+        "alt_text": pin_payload.get("alt_text") or sidecar.get("alt_text") or "",
         "affiliate": bool(sidecar.get("affiliate") or pin_payload.get("link")),
     }
     print("pin:", pin_files[index].name, "| date:", day, "| channels:", len(channels))
@@ -113,7 +235,7 @@ def main(argv=None) -> int:
     if slug in affiliate_slugs:
         slug_link = "%s/go/%s.html" % (hub_url.rstrip("/"), slug)
     for channel in channels:
-        text = build_text(pin, channel, slug_link)
+        text = build_text(pin, channel, slug_link, config)
         record = {
             "date": day,
             "service": channel.get("service"),

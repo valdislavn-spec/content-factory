@@ -3,6 +3,29 @@
 # Ключ: BUFFER_API_KEY (Buffer → Settings → API).
 organization_id: 68d276b0ab330eddbacc2da8
 hub_url: https://valdislavn-spec.github.io/content-factory/
+
+# Стиль под нишу пина: эмодзи, хэштеги, CTA. Подставляется в шаблоны постов.
+niches:
+  travel:
+    emoji: "🧳"
+    hashtags: ["#travel", "#budgettravel"]
+    cta: "Full guide:"
+    question: "Which city is on your list this year?"
+  crypto:
+    emoji: "₿"
+    hashtags: ["#bitcoin", "#crypto"]
+    cta: "Live odds:"
+    question: "Would you take the other side of this trade?"
+  ai:
+    emoji: "🤖"
+    hashtags: ["#AI", "#productivity"]
+    cta: "Full guide:"
+    question: "Which workflow would you automate first?"
+  sports:
+    emoji: "🏈"
+    hashtags: ["#NFL", "#sports"]
+    cta: "The numbers:"
+    question: "Who do you like this week?"
 # один пин в день, дальше — очередь Buffer (addToQueue)
 mode: addToQueue
 
