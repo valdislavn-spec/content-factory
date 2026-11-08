@@ -6,7 +6,7 @@
 # появится в постах. Пустой url = блок выключен.
 enabled: true
 mode: voluntary
-url: ""                     # например: https://tribute.tg/.../donate
+url: "https://www.donationalerts.com/r/vladislavNoname"  # DonationAlerts: добровольные донаты
 channels: []                # пусто = все каналы; ["crypto-news"] — выборочно
 frequency: 1                # 1 = каждый пост; 2/3 = детерминированно реже
 text_ru: "❤️ Поддержать проект добровольно: {link}"
