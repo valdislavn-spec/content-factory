@@ -55,6 +55,17 @@ def main() -> int:
 
     status, data = call(API + "/boards?page_size=100", token)
     print("GET /boards: HTTP", status)
+    if status != 200:
+        print("  body:", str(data)[:400])
+        hint = ""
+        if isinstance(data, str) and "consumer type is not supported" in data:
+            hint = ("  ПОЧЕМУ: приложение Pinterest создано как consumer/не одобрено. "
+                    "Нужен business-аккаунт, приложение с запросом Trial access и одобрение от Pinterest; "
+                    "после одобрения токен надо сгенерировать заново.")
+        elif status == 401:
+            hint = "  ПОЧЕМУ: токен недействителен или истёк — сгенерируйте новый Access token."
+        if hint:
+            print(hint)
     boards = data.get("items") if isinstance(data, dict) else []
     for item in (boards or [])[:30]:
         print("  board:", item.get("id"), "|", item.get("name"))
