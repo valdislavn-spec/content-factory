@@ -327,6 +327,27 @@ def publish_post(
                 post.meta["market_line"] = line
     except Exception:  # noqa: BLE001 - market line не должна мешать публикации
         log.debug("Не удалось добавить строку рынка для %s", channel.id, exc_info=True)
+    # Реферальная строка (например, BingX): 1 раз в N постов, с маркировкой.
+    try:
+        affiliate_config = getattr(channel, "affiliate", None)
+        if isinstance(affiliate_config, dict) and affiliate_config.get("enabled"):
+            from .integrations.affiliate import (
+                build_affiliate_line,
+                insert_line as insert_affiliate_line,
+                should_show,
+            )
+
+            every_n = int(affiliate_config.get("every_n_posts") or 3)
+            index = max(0, _today_posts(storage, channel.id) - 1)
+            if should_show(index, every_n):
+                line = build_affiliate_line(
+                    affiliate_config, language=channel.language, channel_id=channel.id
+                )
+                if line:
+                    post.text = insert_affiliate_line(post.text, line)
+                    post.meta["affiliate"] = line
+    except Exception:  # noqa: BLE001 - рефералка не должна мешать публикации
+        log.debug("Не удалось добавить реферальную строку для %s", channel.id, exc_info=True)
     names = ["dryrun"] if effective_dry_run else list(channel.publisher_ids)
     results: List[PublishResult] = []
     for name in names:

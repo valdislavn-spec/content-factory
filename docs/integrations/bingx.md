@@ -74,3 +74,44 @@ Jurisdictions) → для US-аудитории EN-канала не подхо�
    с отдельным ключом и на тестовом аккаунте.
 3. Рыночный блок в посты: 1 запрос/пост к BingX, ключ не нужен; Twelve Data
    оставить для форекса/акций и индикаторов.
+
+## Анонсы BingX как источник новостей
+
+Адаптер `content_factory/sources/bingx.py` (`type: bingx`) читает notice-center
+BingX (SSR, без ключа): листинги, делистинги, maintenance, product updates.
+Он подключён к `crypto-news` и `crypto-es`:
+
+```yaml
+  sources:
+  - id: bingx-announcements
+    type: bingx
+    url: https://bingx.com/en/support/notice-center
+    weight: 1.2
+    options:
+      sections: [latest, spot-listing, futures-listing]
+      max_items: 6
+      full_text: true     # тянет текст статьи (1 запрос на статью)
+      trust: true         # тематический источник: не режем по ключевым словам
+```
+
+Проверка: `python -m content_factory check-source ...` или
+`fetch_source` в тестах; `tests/test_bingx_source.py`.
+
+## BingX в рыночной строке
+
+`market_line.price_source: bingx` — цены BTC/ETH/SOL берутся из публичного
+API BingX (без ключа), Kalshi-часть остаётся как была:
+
+```yaml
+  market_line:
+    enabled: true
+    price_source: bingx
+    coins: [bitcoin, ethereum, solana]
+    kalshi_series: [KXBTCMAX100, KXBTCABOVE100BY, KXBTCABOVE85BY, KXBTC]
+```
+
+## Реферальная строка
+
+BingX-рефералка (код `WYYEGK`, ссылка `https://bingxdao.com/invite/WYYEGK/`)
+вставляется в посты 1 раз в 3 поста с маркировкой «ad · affiliate link».
+Настройка и дисклеймеры: [`docs/monetization/affiliate-line.md`](../monetization/affiliate-line.md).

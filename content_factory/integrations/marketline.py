@@ -25,6 +25,15 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
 
 COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
 DEFAULT_COINS = ("bitcoin", "ethereum", "solana")
+# CoinGecko id -> BingX USDT-M pair (для price_source: bingx — без ключа)
+BINGX_PAIRS = {
+    "bitcoin": "BTC/USDT",
+    "ethereum": "ETH/USDT",
+    "solana": "SOL/USDT",
+    "binancecoin": "BNB/USDT",
+    "ripple": "XRP/USDT",
+    "dogecoin": "DOGE/USDT",
+}
 COIN_LABELS = {
     "bitcoin": "BTC",
     "ethereum": "ETH",
@@ -90,6 +99,29 @@ def fetch_crypto_prices(
     url = "%s?ids=%s&vs_currencies=usd&include_24hr_change=true" % (COINGECKO_URL, urllib.parse.quote(ids))
     data = (fetcher or _http_json)(url)
     return data if isinstance(data, dict) else {}
+
+
+def fetch_crypto_prices_bingx(
+    coins: Sequence[str] = DEFAULT_COINS,
+    timeout: float = 10.0,
+    fetcher: Optional[Callable[[str], Dict[str, Any]]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """BingX public ticker (без ключа): {coin: {"usd": price, "usd_24h_change": pct}}."""
+    if fetcher is not None:
+        pairs = [BINGX_PAIRS.get(c, str(c).upper() + "/USDT") for c in coins]
+        return fetcher(",".join(pairs)) or {}
+    from .bingx import BingXClient
+
+    client = BingXClient(timeout=timeout)
+    result: Dict[str, Dict[str, Any]] = {}
+    for coin in coins:
+        pair = BINGX_PAIRS.get(coin, str(coin).upper() + "/USDT")
+        try:
+            ticker = client.ticker(pair)
+        except Exception:  # noqa: BLE001 - best effort
+            continue
+        result[coin] = {"usd": ticker.get("price"), "usd_24h_change": ticker.get("percent_change")}
+    return result
 
 
 _INTERESTING_TITLE_WORDS = (
@@ -262,6 +294,7 @@ def build_market_line(
     if not isinstance(config, dict) or not config.get("enabled"):
         return ""
     coins = tuple(str(c).strip() for c in (config.get("coins") or DEFAULT_COINS) if str(c).strip())
+    price_source = str(config.get("price_source") or "coingecko").strip().lower()
     raw_series = config.get("kalshi_series") or ""
     if isinstance(raw_series, str):
         series_list = [raw_series.strip()] if raw_series.strip() else []
@@ -270,13 +303,16 @@ def build_market_line(
     series = ",".join(series_list)
     path = cache_path or _cache_path()
     cache = _read_cache(path, ttl)
-    key = "|".join(coins) + "|" + series
+    key = "|".join(coins) + "|" + series + "|" + price_source
     if cache.get("key") == key and cache.get("line"):
         return str(cache["line"])
 
     prices: Dict[str, Dict[str, Any]] = {}
     try:
-        prices = fetch_crypto_prices(coins, fetcher=price_fetcher)
+        if price_source == "bingx":
+            prices = fetch_crypto_prices_bingx(coins, fetcher=price_fetcher)
+        else:
+            prices = fetch_crypto_prices(coins, fetcher=price_fetcher)
     except Exception:  # noqa: BLE001 - best effort
         prices = {}
     extra = kalshi_btc_line(series_list, markets_fetcher=markets_fetcher) if series_list else ""

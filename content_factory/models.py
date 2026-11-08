@@ -82,6 +82,8 @@ class ChannelConfig:
     cta: str = ""
     # Живая строка рынка в конце поста (BTC/ETH/Kalshi), см. integrations/marketline.py
     market_line: Dict[str, Any] = field(default_factory=dict)
+    # Реферальная строка (BingX и т.п.): link/enabled/every_n_posts/disclaimer
+    affiliate: Dict[str, Any] = field(default_factory=dict)
     telegram_chat_id: str = ""
     publisher_ids: List[str] = field(default_factory=lambda: ["telegram"])
     enabled: bool = True

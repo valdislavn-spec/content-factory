@@ -158,8 +158,15 @@ channels:
   # Живая строка рынка в конце каждого поста
   market_line:
     enabled: true
+    price_source: bingx
     coins: [bitcoin, ethereum, solana]
     kalshi_series: [KXBTCMAX100, KXBTCABOVE100BY, KXBTCABOVE85BY, KXBTC]
+  # Реферальная строка: 1 раз в 3 поста, с маркировкой (см. docs/monetization/affiliate-line.md)
+  affiliate:
+    enabled: true
+    link: "https://bingxdao.com/invite/WYYEGK/"
+    every_n_posts: 3
+    disclaimer: "Anuncio · enlace de afiliado. No disponible en EE. UU., Reino Unido, Canadá, Singapur, Países Bajos y Hong Kong. Las criptomonedas son volátiles — riesgo de pérdida."
   topics:
   - bitcoin
   - ethereum
@@ -226,6 +233,15 @@ channels:
   max_post_chars: 1800
   cta: "Comparte este post con un amigo, así crecemos."
   sources:
+  - id: bingx-announcements
+    type: bingx
+    url: https://bingx.com/en/support/notice-center
+    weight: 1.2
+    options:
+      sections: [latest, spot-listing, futures-listing]
+      max_items: 6
+      full_text: true
+      trust: true
   - id: criptonoticias
     type: rss
     url: https://www.criptonoticias.com/feed/

@@ -13,6 +13,7 @@ from ..models import Article, SourceConfig
 from ..utils import FetchError
 from .base import SourceAdapter
 from .docs import DocsAdapter
+from .bingx import BingXAnnouncementsAdapter
 from .espn import ESPNAdapter
 from .rss import RSSAdapter
 from .telegram import TelegramAdapter
@@ -30,6 +31,7 @@ _ADAPTERS: Dict[str, SourceAdapter] = {
     CurrentsAdapter.type: CurrentsAdapter(),
     ESPNAdapter.type: ESPNAdapter(),
     DocsAdapter.type: DocsAdapter(),
+    BingXAnnouncementsAdapter.type: BingXAnnouncementsAdapter(),
 }
 
 

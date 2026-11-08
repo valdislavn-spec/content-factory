@@ -62,7 +62,7 @@ class RegistryTest(unittest.TestCase):
     def test_available_types(self) -> None:
         self.assertEqual(
             available_types(),
-            ["currents", "docs", "espn", "newsdata", "rss", "telegram", "web", "worldnews"],
+            ["bingx", "currents", "docs", "espn", "newsdata", "rss", "telegram", "web", "worldnews"],
         )
 
     def test_get_adapter_returns_instances(self) -> None:

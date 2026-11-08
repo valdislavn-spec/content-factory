@@ -165,6 +165,7 @@ CHANNEL_DEFAULTS: Dict[str, Any] = {
     "hashtags": [],
     "cta": "",
     "market_line": {},
+    "affiliate": {},
     "telegram_chat_id": "",
     "publisher_ids": ["telegram"],
     "enabled": True,
@@ -465,10 +466,10 @@ def _parse_source_entry(src: Any, index: int) -> SourceConfig:
         raise ConfigError(f"источник #{index} должен быть объектом")
     src_id = str(src.get("id") or f"source-{index}").strip()
     src_type = str(src.get("type") or "rss").strip().lower()
-    if src_type not in ("rss", "web", "telegram", "worldnews", "newsdata", "currents", "espn"):
+    if src_type not in ("rss", "web", "telegram", "worldnews", "newsdata", "currents", "espn", "bingx", "docs"):
         raise ConfigError(
             f"источник {src_id}: неизвестный type={src_type!r} "
-            "(rss/web/telegram/worldnews/newsdata/currents/espn)"
+            "(rss/web/telegram/worldnews/newsdata/currents/espn/bingx/docs)"
         )
     url = str(src.get("url") or "").strip()
     if src_type != "telegram" and not url:
@@ -609,6 +610,7 @@ def _parse_channel(
         hashtags=[str(t) for t in (data.get("hashtags") or [])],
         cta=str(data.get("cta") or ""),
         market_line=data.get("market_line") or {},
+        affiliate=data.get("affiliate") or {},
         telegram_chat_id=chat_id,
         publisher_ids=[str(p) for p in (data.get("publisher_ids") or ["telegram"])],
         enabled=bool(data.get("enabled", True)),
