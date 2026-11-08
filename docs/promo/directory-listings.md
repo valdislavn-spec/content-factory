@@ -95,3 +95,28 @@ TGStat — главный каталог для рекламодателей: е
 - @SPORTSAnalytics007 — ES Sports News; Deporte en español con datos y análisis (18+).
 
 **Приоритет по эффекту:** TGStat (подтвердить 5 каналов) → Telega.io (может дать рекламодателей) → TeleJoiner/TelXplorer (SEO-ссылки) → Metricgram (нужен trial, слабый эффект).
+
+## BuscadorTelegram — buscadortelegram.com (испанский каталог)
+
+Публичная форма/API без логина и капчи, категория **Criptomonedas (34)**,
+Deportes (38), Noticias y Medios (39). Email необязателен, авто-подстановка
+имени/описания/аватара из t.me. Модерация, затем публикация.
+
+- ✅ **Все 6 каналов отправлены** 08.11.2026 (после модерации появятся в каталоге):
+  HOOPY0007, AINEWS0007, SPORTNews0007, WORLDNews0007,
+  TechnologiesNews01, SPORTSAnalytics007.
+- Скрипт: [`scripts/submit_buscador.py`](../scripts/submit_buscador.py)
+  (rate-limit 60 с, категории/страны в коде, `--dry-run`).
+- Проверить через 24–48 ч: `https://buscadortelegram.com/?s=HOOPY0007`
+  (или страница канала в каталоге).
+
+## Остальные из списка (требуют ручного шага)
+
+| Каталог | Статус | Что сделать |
+|---|---|---|
+| **TelegramHub.org** | форма есть, но сайт SPA (нет server-rendered полей) → программно не отправить | вручную: ссылка, описание, категория **Crypto**, язык; email необязателен |
+| **TGBlue** (tgblue.com) | страница `/en/publish` с полями (имя, ссылка, категория, описание, email), но submit — JS/серверный экшен | вручную: https://www.tgblue.com/en/publish — бесплатно |
+| **TGMania** (tgmania.com) | `/submit` — многошаговая SPA, API не найден; заявленное рассмотрение 24–48 ч | вручную: https://tgmania.com/submit → категория **Crypto & Finance** |
+| **TlgramGo** (tlgramgo.com) | нужна регистрация (по FAQ рассмотрение 24–48 ч) | вручную: регистрация → добавление канала |
+| **GroupsGyani** (groupsgyani.com) | нужен вход в аккаунт, редакционная проверка | вручную: регистрация → submit листинга (категория, теги, описание) |
+| **TGSelect** | домен не найден (tgselect.* не отвечает) | пришли точную ссылку — проверю и добавлю |
