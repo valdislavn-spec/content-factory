@@ -1,0 +1,31 @@
+# Авто-алерты по цене крипты → посты в каналы (см. docs/monetization/price-alerts.md)
+# Цены: публичный BingX API (без ключа). Публикация: Telegram Bot API.
+enabled: true
+interval_seconds: 60          # как часто проверять цены (REST)
+state_path: data/price_alerts_state.json
+channels_files:
+  - config/channels.en.yaml
+  - config/channels.es.yaml
+channels:                     # в какие каналы публикуем (id из channels.*.yaml)
+  - crypto-news
+  - crypto-es
+
+# Правила. above/below — пересечение уровня (только в момент пробоя),
+# move_percent — быстрый ход за move_window_minutes. cooldown — не чаще.
+rules:
+  - symbol: BTC/USDT
+    above: 78000
+    below: 73500
+    cooldown_minutes: 360
+  - symbol: ETH/USDT
+    above: 2400
+    below: 2050
+    cooldown_minutes: 360
+  - symbol: BTC/USDT
+    move_percent: 2.5
+    move_window_minutes: 60
+    cooldown_minutes: 120
+  - symbol: ETH/USDT
+    move_percent: 3.0
+    move_window_minutes: 60
+    cooldown_minutes: 120
