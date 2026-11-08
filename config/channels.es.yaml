@@ -81,22 +81,15 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:20"
-  - "03:40"
-  - "07:00"
   - "08:00"
-  - "09:00"
-  - "10:40"
-  - "13:00"
+  - "10:00"
+  - "12:00"
   - "14:00"
-  - "15:40"
-  - "17:20"
+  - "17:00"
   - "19:00"
-  - "20:00"
   - "21:00"
-  - "22:00"
   - "23:00"
-  posts_per_day: 15
+  posts_per_day: 8
   strict_topics: true
   min_relevance: 0.50
   timezone_offset: -6
