@@ -24,6 +24,12 @@ cat > "${PLIST}" <<EOF
     <string>${PY}</string>
     <string>${ROOT}/scripts/backup_onedrive.py</string>
     <string>--verbose</string>
+    <string>--remote</string>
+    <string>onedrive:ContentFactoryBackups</string>
+    <string>--rclone-config</string>
+    <string>${ROOT}/data/rclone.conf</string>
+    <string>--rclone-bin</string>
+    <string>${ROOT}/../tools/rclone/rclone</string>
   </array>
   <key>WorkingDirectory</key>
   <string>${ROOT}</string>

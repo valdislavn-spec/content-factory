@@ -26,7 +26,9 @@ import argparse
 import hashlib
 import logging
 import os
+import shutil
 import sqlite3
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -41,7 +43,9 @@ EXCLUDE_DIRS = {
     # модели Ollama (7+ ГБ) — скачиваются заново, в облако не нужны
     "ollama",
 }
-EXCLUDE_FILES = {".env", "llm_cache.sqlite3", "llm_tokens.json", "llm_usage.json"}
+EXCLUDE_FILES = {
+    ".env", "rclone.conf", "llm_cache.sqlite3", "llm_tokens.json", "llm_usage.json",
+}
 EXCLUDE_SUFFIXES = {".pyc", ".pyo", ".swp", ".tmp", ".pma", ".dmp"}
 
 log = logging.getLogger("backup")
@@ -172,6 +176,47 @@ def build_archive(target_dir: Path, keep: int, dry_run: bool = False) -> Optiona
     return archive
 
 
+def rclone_paths(remote: str, rclone_bin: str, rclone_config: str) -> List[str]:
+    """Базовые аргументы rclone: бинарь + конфиг."""
+    binary = rclone_bin or os.environ.get("RCLONE_BIN", "")
+    if not binary:
+        bundled = ROOT.parent / "tools" / "rclone" / "rclone"
+        binary = str(bundled) if bundled.is_file() else (shutil.which("rclone") or "rclone")
+    config = rclone_config or os.environ.get("RCLONE_CONFIG", "")
+    if not config:
+        candidate = ROOT / "data" / "rclone.conf"
+        config = str(candidate) if candidate.is_file() else ""
+    command = [binary]
+    if config:
+        command += ["--config", config]
+    return command
+
+
+def upload_remote(archive: Path, remote: str, rclone_bin: str, rclone_config: str) -> bool:
+    """Копирует архив и checksum в OneDrive через rclone (Graph API)."""
+    if not remote:
+        return False
+    command = rclone_paths(remote, rclone_bin, rclone_config)
+    target = remote.rstrip("/")
+    ok = True
+    for path in (archive, archive.with_suffix(".sha256")):
+        if not path.is_file():
+            continue
+        result = subprocess.run(
+            command + ["copyto", str(path), "{}/{}".format(target, path.name)],
+            capture_output=True,
+            text=True,
+            timeout=900,
+            check=False,
+        )
+        if result.returncode != 0:
+            ok = False
+            log.warning("rclone не загрузил %s: %s", path.name, (result.stderr or "").strip()[:300])
+    if ok:
+        log.info("Выгружено в облако: %s", target)
+    return ok
+
+
 def prune(target_dir: Path, keep: int) -> None:
     """Удаляет старые архивы, оставляя последние keep штук."""
     archives = sorted(target_dir.glob("content-factory-backup-*.tar.gz"))
@@ -187,6 +232,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--keep", type=int, default=DEFAULT_KEEP, help="сколько архивов хранить")
     parser.add_argument("--dry-run", action="store_true", help="только показать план")
     parser.add_argument("--verbose", action="store_true", help="подробный лог")
+    parser.add_argument(
+        "--remote",
+        default=os.environ.get("BACKUP_RCLONE_REMOTE", ""),
+        help="rclone remote:path для облачной копии, напр. onedrive:ContentFactoryBackups",
+    )
+    parser.add_argument("--rclone-bin", default="", help="путь к rclone")
+    parser.add_argument("--rclone-config", default="", help="путь к rclone.conf")
     return parser.parse_args(argv)
 
 
@@ -197,6 +249,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         format="%(asctime)s %(levelname)s %(message)s",
         datefmt="%H:%M:%S",
     )
+    # Автовыгрузка в OneDrive: если rclone настроен, --remote не обязателен.
+    if not args.remote:
+        rclone_config = args.rclone_config or str(ROOT / "data" / "rclone.conf")
+        if Path(rclone_config).is_file():
+            args.remote = "onedrive:ContentFactoryBackups"
     one_drive = find_onedrive_dir()
     if args.target:
         target_dir = Path(os.path.expanduser(args.target))
@@ -211,6 +268,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             target_dir,
         )
     archive = build_archive(target_dir, max(1, args.keep), dry_run=args.dry_run)
+    if archive and args.remote and not args.dry_run:
+        upload_remote(archive, args.remote, args.rclone_bin, args.rclone_config)
+    elif args.remote and args.dry_run:
+        log.info("dry-run: облачная выгрузка в %s не выполнялась", args.remote)
     print("OK", archive if archive else "(dry-run)")
     return 0
 

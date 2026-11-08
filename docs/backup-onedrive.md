@@ -1,59 +1,79 @@
-# Бэкап контент-завода в OneDrive
+# Бэкап контент-завода в OneDrive (Microsoft Graph API)
 
-Цель: ежедневный архив `data/` (SQLite, отчёты, outbox, аналитика, логи),
-`config/`, `docs/promo/` и `scripts/` — в облако, с ротацией и SHA256.
-Секреты (`.env`) в архив **не попадают**.
+Ежедневный архив `data/` (SQLite, отчёты, outbox, аналитика, логи), `config/`,
+`docs/promo/`, `scripts/` — в OneDrive через **Microsoft Graph API**.
+Секреты (`.env`, `rclone.conf`) в архив **не попадают**.
 
-## Как это работает
+## Статус (07.11.2026)
 
-Скрипт `scripts/backup_onedrive.py`:
+- ✅ OneDrive подключён (Graph API, rclone v1.76): **5 ГБ**, свободно ~5 ГБ.
+- ✅ Тестовая выгрузка: архив 2.8 МБ + `.sha256` лежит в `onedrive:ContentFactoryBackups`.
+- ✅ launchd-агент `com.contentfactory.backup`: ежедневно в **03:30**.
+- Локальные копии: `data/backups/`, ротация — 14 архивов.
 
-1. Находит папку синхронизации OneDrive:
-   - `~/OneDrive/` (классический клиент),
-   - `~/Library/CloudStorage/OneDrive*/` (новый клиент),
-   - иначе пишет локально в `data/backups/` с предупреждением.
-2. Делает согласованный снимок `factory.sqlite3` через SQLite backup API
-   (без блокировки базы).
-3. Пакует в `content-factory-backup-YYYYmmdd-HHMMSS.tar.gz` + `.sha256`.
-4. Удаляет старые архивы, оставляя последние 14.
+## Как устроено
 
-## Установка (один раз)
+`scripts/backup_onedrive.py`:
 
-1. Установите **OneDrive для Mac**: <https://www.microsoft.com/microsoft-365/onedrive/download>
-   (или Mac App Store) — права администратора не нужны.
-2. Войдите в Microsoft-аккаунт, который открывается по вашей ссылке
-   `onedrive.live.com`, и включите синхронизацию (появится `~/OneDrive`).
-3. Проверьте бэкап вручную:
+1. Согласованный снимок `factory.sqlite3` через SQLite backup API.
+2. `content-factory-backup-YYYYmmdd-HHMMSS.tar.gz` + `.sha256`.
+3. Локальный ретеншен (14) и выгрузка в `onedrive:ContentFactoryBackups/`
+   (rclone → Microsoft Graph API, токен обновляется сам).
+4. Если OneDrive не настроен — пишет локально с предупреждением.
 
-   ```bash
-   cd content-factory
-   python ../tools/markitdown-venv/bin/python scripts/backup_onedrive.py
-   ```
+Секреты и мусор исключены: `.env`, `rclone.conf`, модели Ollama (7+ ГБ), кэши.
 
-   В `~/OneDrive/ContentFactoryBackups/` появится архив.
+## OAuth-токен (как получен и где лежит)
 
-## Ежедневный запуск (launchd, без root)
+- Приложение — **rclone** (собственный зарегистрированный клиент, права
+  `Files.ReadWrite offline_access`); вход выполнен один раз в браузере.
+- Токен (access + **refresh**) — `data/rclone.conf`, `chmod 600`.
+  `data/` в `.gitignore`; из бэкапа файл исключён.
+- rclone сам обновляет access token по refresh token.
+- Если refresh token отозван (смена пароля/«выйти на всех устройствах»),
+  повторить:
+
+  ```bash
+  cd content-factory
+  ../tools/rclone/rclone authorize onedrive --auth-no-open-browser
+  # открыть ссылку из вывода, войти, скопировать JSON-токен
+  # затем вписать в data/rclone.conf (поле token), drive_id оставить:
+  ../tools/rclone/rclone --config data/rclone.conf lsd onedrive:
+  ```
+
+## Ручной запуск
+
+```bash
+cd content-factory
+../tools/markitdown-venv/bin/python scripts/backup_onedrive.py
+# архив появится в data/backups и уедет в OneDrive:ContentFactoryBackups
+```
+
+Полезные флаги: `--dry-run`, `--keep N`, `--target DIR`,
+`--remote onedrive:ContentFactoryBackups`, `--verbose`.
+
+## Ежедневное расписание (launchd)
 
 ```bash
 cd content-factory
 bash scripts/install_backup_schedule.sh
 ```
 
-Скрипт создаёт `~/Library/LaunchAgents/com.contentfactory.backup.plist`
-и запускает его в 03:30 каждый день. Логи: `data/logs/backup.log`.
-Удалить расписание: `launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.contentfactory.backup.plist`.
+Лог: `data/logs/backup.log`. Удалить: `launchctl bootout gui/$(id -u)
+~/Library/LaunchAgents/com.contentfactory.backup.plist`.
 
 ## Восстановление
 
 ```bash
 cd content-factory
-tar -xzf ~/OneDrive/ContentFactoryBackups/content-factory-backup-<дата>.tar.gz
-# .env нужно вернуть отдельно (он не бэкапится — это секреты)
+../tools/rclone/rclone --config data/rclone.conf copy \
+  onedrive:ContentFactoryBackups/content-factory-backup-<дата>.tar.gz ./
+tar -xzf content-factory-backup-<дата>.tar.gz
+# .env вернуть отдельно (в бэкап не входит — секреты)
 ```
 
-## Если OneDrive ставить не хочется
+## Вариант GitHub Actions
 
-Можно ходить в OneDrive через Microsoft Graph API (OAuth): нужен
-`client_id`/`refresh_token` приложения Microsoft Entra. Тогда бэкап можно
-делать и с GitHub Actions (раннер ходит в Graph без блокировок). Скажи —
-подготовлю OAuth-инструкцию и workflow.
+Раннер ходит в Graph без блокировок: можно выгружать архив в OneDrive из
+workflow. Понадобится `rclone.conf` (с токеном) в GitHub Secrets —
+скажи, подготовлю workflow.
