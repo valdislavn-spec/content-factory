@@ -27,7 +27,7 @@
 | **YouTube** | Data API v3 | OAuth2 Google (`YOUTUBE_CLIENT_ID/SECRET/REFRESH_TOKEN`) | видео | 🔲 только видео, нужен OAuth |
 | **TikTok** | Content Posting API | app + токен (после ревью) | видео | 🔲 нужен ревью приложения |
 | **Pinterest** | API v5 | `PINTEREST_TOKEN` + URL картинки | пины | 🔲 нужен хостинг картинок |
-| **Tumblr** | API | OAuth | текст/медиа | 🔲 могу добавить |
+| **Tumblr** | API v2, OAuth 1.0a | `TUMBLR_CONSUMER_KEY`, `TUMBLR_CONSUMER_SECRET`, `TUMBLR_OAUTH_TOKEN`, `TUMBLR_OAUTH_TOKEN_SECRET`, `TUMBLR_BLOG` | текст до 12 000 символов | ✅ реализован и подключён (`vlad-007`), автопостинг из GitHub Actions |
 
 ## Как получить ключи (коротко)
 
@@ -51,6 +51,7 @@
   логин/пароль бота, сабреддит.
 - **YouTube**: Google Cloud Console → OAuth client (Desktop) → consent screen →
   refresh token (Google-аккаунт уже подключён в `.local/google-connect`).
+- **Tumblr**: <https://www.tumblr.com/oauth/apps> → Register application → **Show secret key** → `TUMBLR_CONSUMER_KEY/SECRET`; затем OAuth 1.0a (request_token → authorize → access_token) → `TUMBLR_OAUTH_TOKEN/SECRET`, `TUMBLR_BLOG` — имя блога (напр. `vlad-007`).
 - **TikTok**: <https://developers.tiktok.com> → Content Posting API → app review.
 
 ## Как включить публикацию в канал
@@ -75,3 +76,17 @@
 - Facebook/Instagram: приложение Meta должно быть в Live-режиме для чужих
   токенов; для своих страниц достаточно dev-режима.
 - Telegram остаётся главным каналом; остальные — дополнительный охват.
+
+## Tumblr в облаке (GitHub Actions)
+
+Автопостинг по расписанию идёт из `content-factory.yml`. Секреты репозитория:
+`TUMBLR_CONSUMER_KEY`, `TUMBLR_CONSUMER_SECRET`, `TUMBLR_OAUTH_TOKEN`,
+`TUMBLR_OAUTH_TOKEN_SECRET`, `TUMBLR_BLOG` (Settings → Secrets and variables →
+Actions). В `config/channels.en.yaml` и `config/channels.es.yaml` включено
+`publisher_ids: [telegram, tumblr]` — посты кросспостятся в Tumblr автоматически.
+
+- Текст: plain-text из Telegram-поста (HTML снимается), лимит **12 000 символов**,
+  хэштеги → теги Tumblr, в конце ссылка на Telegram-канал; пер-канальный блог
+  задаётся `TUMBLR_BLOG_<CHANNEL_ID>`.
+- Секреты добавлены 2026-11-07; первый облачный прогон с ними — run `42431211988`.
+
