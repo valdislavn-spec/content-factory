@@ -154,11 +154,11 @@ def test_cta_rotates_by_day():
     assert len(texts) == 3
 
 
-def test_alt_text_in_assets():
+def test_alt_text_is_not_sent_to_buffer():
     pin = dict(PIN)
     pin["image_url"] = "https://example.com/a.png"
     pin["alt_text"] = "Travel guide cover"
-    assert build_assets(pin, True)[0]["image"]["altText"] == "Travel guide cover"
+    assert "altText" not in build_assets(pin, True)[0]["image"]
     assert "altText" not in build_assets(pin, False)[0]["image"]
 
 
