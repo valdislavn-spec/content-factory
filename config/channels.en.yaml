@@ -6,7 +6,9 @@
 #    AINEWS0007           -1004351191643  ИИ
 #    HOOPY0007            -1003891468537  крипто/блокчейн
 #
-#  Пост каждые ~90 минут в каждый канал: 15 слотов/сутки (локальное время канала).
+#  Пост раз в 90 минут в каждый канал: 16 слотов/сутки (UTC), 48 постов/сутки.
+#  Слоты: 00:00, 01:30, 03:00, 04:30, 06:00, 07:30, 09:00, 10:30, 12:00,
+#         13:30, 15:00, 16:30, 18:00, 19:30, 21:00, 22:30.
 #
 #  Источники: RSS + API (World News / newsdata / Currents) с daily_limit;
 #  для US-спорта — ESPN JSON API (type: espn, без ключа, UA браузера).
@@ -18,9 +20,8 @@ channels:
 - id: sport-news
   title: US Sports News
   description: "NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis.\n🌐 Network: AI News @AINEWS0007 · Crypto & Blockchain @HOOPY0007"
+  publisher_ids: [telegram, mastodon]
   telegram_chat_id: '-1003802742871'
-  publisher_ids: [telegram, bluesky, mastodon, discord]
-  public_url: https://t.me/SPORTNews0007
   language: en
   topics:
   - nfl
@@ -204,9 +205,8 @@ channels:
 - id: ai-news
   title: AI News
   description: "AI for a US audience: models, products, policy and the companies building them.\n🌐 Network: Crypto & Blockchain @HOOPY0007 · US Sports News @SPORTNews0007"
+  publisher_ids: [telegram, mastodon]
   telegram_chat_id: '-1004351191643'
-  publisher_ids: [telegram, bluesky, mastodon, discord]
-  public_url: https://t.me/AINEWS0007
   language: en
   topics:
   - artificial intelligence
@@ -359,9 +359,20 @@ channels:
   title: Crypto & Blockchain
   description: "US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain.\n🌐 Network: AI News @AINEWS0007 · US Sports News @SPORTNews0007"
   telegram_chat_id: '-1003891468537'
-  publisher_ids: [telegram, bluesky, mastodon, discord, akkoma]
-  public_url: https://t.me/HOOPY0007
   language: en
+  # Живая строка рынка в конце каждого поста (см. docs/market-line.md)
+  market_line:
+    enabled: true
+    price_source: bingx
+    coins: [bitcoin, ethereum, solana]
+    kalshi_series: [KXBTCMAX100, KXBTCABOVE100BY, KXBTCABOVE85BY, KXBTC]
+  # Реферальная строка: 1 раз в 3 поста, с маркировкой (см. docs/monetization/affiliate-line.md)
+  affiliate:
+    enabled: true
+    link: "https://bingxdao.com/invite/WYYEGK/"
+    tracked_url: "https://links-tracker.valdislav-n.workers.dev/r/bingx-crypto-news"
+    every_n_posts: 3
+    disclaimer: "Ad · affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong. Crypto is volatile — risk of loss."
   topics:
   - bitcoin
   - ethereum
@@ -397,6 +408,15 @@ channels:
   - Crypto
   - Blockchain
   sources:
+  - id: bingx-announcements
+    type: bingx
+    url: https://bingx.com/en/support/notice-center
+    weight: 1.2
+    options:
+      sections: [latest, spot-listing, futures-listing]
+      max_items: 6
+      full_text: true
+      trust: true
   - id: coindesk
     type: rss
     url: https://www.coindesk.com/arc/outboundfeeds/rss/
