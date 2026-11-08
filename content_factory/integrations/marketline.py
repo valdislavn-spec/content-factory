@@ -167,14 +167,40 @@ def _kalshi_label(market: Dict[str, Any]) -> str:
     haystack = title + " " + subtitle
     asset = "BTC" if re.search(r"bitcoin|btc", haystack, re.IGNORECASE) else ""
     match = re.search(r"\$[\d,.]+\s*[kKmM]?", haystack)
-    target = match.group(0).replace(" ", "") if match else ""
-    normalized_target = target.replace(",", "")
-    target_in_subtitle = bool(target) and normalized_target in subtitle.replace(" ", "").replace(",", "")
+    raw_target = match.group(0).replace(" ", "") if match else ""
+    normalized_target = raw_target.replace("$", "").replace(",", "").lower()
+    subtitle_key = subtitle.replace(" ", "").replace(",", "").lower()
+    target_in_subtitle = bool(normalized_target) and normalized_target in subtitle_key
+    target = _format_target(raw_target) if raw_target else ""
     parts = [part for part in (asset, "" if target_in_subtitle else target) if part]
     label = " ".join(parts).strip()
     if subtitle:
         return "%s · %s" % (label, subtitle) if label else subtitle
     return label or title
+
+
+def _format_target(raw: str) -> str:
+    """$100,000.00 -> $100k, $85000 -> $85k, $1,000,000 -> $1M."""
+    clean = str(raw or "").replace("$", "").replace(",", "").replace(" ", "").strip()
+    multiplier = 1.0
+    suffix = ""
+    if clean and clean[-1] in "kK":
+        multiplier = 1_000.0
+        clean = clean[:-1]
+    elif clean and clean[-1] in "mM":
+        multiplier = 1_000_000.0
+        clean = clean[:-1]
+    try:
+        amount = float(clean) * multiplier
+    except (TypeError, ValueError):
+        return str(raw or "")
+    if amount >= 1_000_000:
+        text = ("%g" % round(amount / 1_000_000.0, 2)) + "M"
+    elif amount >= 1_000:
+        text = ("%g" % round(amount / 1_000.0, 2)) + "k"
+    else:
+        text = "%g" % amount
+    return "$" + text + suffix
 
 
 def format_market_line(

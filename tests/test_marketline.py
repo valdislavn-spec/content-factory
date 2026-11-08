@@ -79,6 +79,15 @@ def test_kalshi_line_prefers_price_target_market():
 
     line = kalshi_btc_line(("KXBTCMAX100", "KXBTC"), markets_fetcher=markets_fetcher)
     assert line == "Kalshi: BTC $100k · Before January 2027 — 12¢"
+    # long-form dollar targets are compacted
+    line_long = kalshi_btc_line(("KXBTCMAX100",), markets_fetcher=lambda t: [{
+        "ticker": "KXBTCMAX100-26-DEC",
+        "title": "When will Bitcoin cross $100,000.00 again?",
+        "yes_sub_title": "Before January 2027",
+        "yes_bid_dollars": "0.12",
+        "volume_fp": "40000",
+    }])
+    assert line_long == "Kalshi: BTC $100k · Before January 2027 — 12¢"
     assert "KXBTCMAX100" in seen
 
 
