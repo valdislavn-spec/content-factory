@@ -1,0 +1,70 @@
+name: competitors
+
+# Ежедневный отчёт «Конкуренты» по бесплатному endpoint Similarweb
+# (трафик/ранги сайтов-конкурентов каналов: crypto, AI, sports).
+#
+# Почему здесь, а не локально: endpoint data.similarweb.com отдаёт 403 из РФ
+# (CloudFront geo-block), а с раннеров GitHub Actions доступен.
+# Ничего не публикует — только собирает отчёт и (по расписанию) шлёт сводку
+# в Telegram; полный Markdown кладётся в артефакты.
+
+on:
+  schedule:
+    - cron: "25 7 * * *"   # 10:25 МСК — после growth-report (09:10 UTC)
+  workflow_dispatch:
+    inputs:
+      group:
+        description: "Группа конкурентов"
+        required: true
+        default: "all"
+        type: choice
+        options: ["all", "ai", "crypto", "sports"]
+      send:
+        description: "Отправить сводку в Telegram"
+        required: true
+        default: "yes"
+        type: choice
+        options: ["yes", "no"]
+
+concurrency:
+  group: competitors
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  competitors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      SIMILARWEB_DELAY: "2.5"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build competitor report
+        run: |
+          GROUP="${{ github.event.inputs.group || 'all' }}"
+          ARGS="--group $GROUP --json-out data/reports/competitors-raw.json"
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.send || 'yes' }}" = "yes" ]; then
+            ARGS="$ARGS --send"
+          fi
+          python scripts/competitor_traffic.py $ARGS
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: competitor-report
+          path: |
+            data/reports/competitors-*.md
+            data/reports/competitors-raw.json
+          if-no-files-found: ignore

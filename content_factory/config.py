@@ -405,9 +405,10 @@ def load_channels(
     channels: List[ChannelConfig] = []
     errors: List[str] = []
     seen_ids = set()
+    curated = _load_curated_sources(settings)
     for index, raw in enumerate(raw_channels, start=1):
         try:
-            channel = _parse_channel(raw, index, settings)
+            channel = _parse_channel(raw, index, settings, curated)
             if channel.id in seen_ids:
                 raise ConfigError(f"повторяющийся id канала: {channel.id}")
             seen_ids.add(channel.id)
@@ -421,6 +422,72 @@ def load_channels(
 
 # Дополнительные файлы каналов (ES-набор подключается отдельным тиком).
 NETWORK_CHANNEL_FILES = ("config/channels.es.yaml",)
+
+# Кураторские источники (Feedly/Feedspot/Substack/Beehiiv-подборка):
+# отдельный YAML, чтобы не править рабочие channels.*.yaml при расширении набора.
+CURATED_SOURCES_ENV = "CONTENT_FACTORY_CURATED_SOURCES"
+DEFAULT_CURATED_SOURCES_FILE = "config/sources.curated.yaml"
+
+
+def _load_curated_sources(settings: "Settings") -> Dict[str, List[Any]]:
+    """Читает ``config/sources.curated.yaml``: id канала (или ``*``) → источники.
+
+    Файла может не быть — тогда возвращается пустой словарь. Путь можно
+    переопределить env-переменной ``CONTENT_FACTORY_CURATED_SOURCES`` или
+    ключом ``app.curated_sources_file`` в settings.yaml.
+    """
+    path_value = env(CURATED_SOURCES_ENV, "") or str(
+        settings.raw.get("app", {}).get("curated_sources_file") or ""
+    )
+    path = Path(path_value) if path_value else Path(DEFAULT_CURATED_SOURCES_FILE)
+    if not path.is_absolute():
+        path = settings.root / path
+    if not path.is_file():
+        return {}
+    data = _load_yaml(path)
+    if not isinstance(data, dict):
+        raise ConfigError(f"Кураторские источники: ожидался объект в {path}")
+    raw_channels = data.get("channels", data)
+    if not isinstance(raw_channels, dict):
+        raise ConfigError(f"Кураторские источники: ключ channels должен быть объектом ({path})")
+    curated: Dict[str, List[Any]] = {}
+    for channel_id, entries in raw_channels.items():
+        if not isinstance(entries, list):
+            raise ConfigError(f"Кураторские источники: для {channel_id!r} ожидался список источников")
+        curated[str(channel_id).strip()] = entries
+    return curated
+
+
+def _parse_source_entry(src: Any, index: int) -> SourceConfig:
+    """Разбирает один источник из YAML (inline в канале или кураторский)."""
+    if not isinstance(src, dict):
+        raise ConfigError(f"источник #{index} должен быть объектом")
+    src_id = str(src.get("id") or f"source-{index}").strip()
+    src_type = str(src.get("type") or "rss").strip().lower()
+    if src_type not in ("rss", "web", "telegram", "worldnews", "newsdata", "currents", "espn"):
+        raise ConfigError(
+            f"источник {src_id}: неизвестный type={src_type!r} "
+            "(rss/web/telegram/worldnews/newsdata/currents/espn)"
+        )
+    url = str(src.get("url") or "").strip()
+    if src_type != "telegram" and not url:
+        raise ConfigError(f"источник {src_id}: нужен url")
+    if src_type == "telegram" and not url:
+        raise ConfigError(f"источник {src_id}: для telegram нужен url вида https://t.me/channel")
+    options = src.get("options") or {}
+    if not isinstance(options, dict):
+        raise ConfigError(f"источник {src_id}: options должен быть объектом")
+    return SourceConfig(
+        id=src_id,
+        type=src_type,
+        url=url,
+        name=str(src.get("name") or src_id),
+        weight=float(src.get("weight", 1.0)),
+        enabled=bool(src.get("enabled", True)),
+        options=options,
+    )
+
+
 
 
 def load_network_channels(settings: Optional[Settings] = None) -> List[ChannelConfig]:
@@ -454,7 +521,12 @@ def load_network_channels(settings: Optional[Settings] = None) -> List[ChannelCo
     return channels
 
 
-def _parse_channel(raw: Any, index: int, settings: Settings) -> ChannelConfig:
+def _parse_channel(
+    raw: Any,
+    index: int,
+    settings: Settings,
+    curated: Optional[Dict[str, List[Any]]] = None,
+) -> ChannelConfig:
     if not isinstance(raw, dict):
         raise ConfigError("ожидался объект с полями id/title/...")
     data = copy.deepcopy(CHANNEL_DEFAULTS)
@@ -490,34 +562,22 @@ def _parse_channel(raw: Any, index: int, settings: Settings) -> ChannelConfig:
         raise ConfigError("sources должен быть списком источников")
     sources: List[SourceConfig] = []
     for src_index, src in enumerate(raw_sources, start=1):
-        if not isinstance(src, dict):
-            raise ConfigError(f"источник #{src_index} должен быть объектом")
-        src_id = str(src.get("id") or f"source-{src_index}").strip()
-        src_type = str(src.get("type") or "rss").strip().lower()
-        if src_type not in ("rss", "web", "telegram", "worldnews", "newsdata", "currents", "espn"):
-            raise ConfigError(
-                f"источник {src_id}: неизвестный type={src_type!r} "
-                "(rss/web/telegram/worldnews/newsdata/currents/espn)"
-            )
-        url = str(src.get("url") or "").strip()
-        if src_type != "telegram" and not url:
-            raise ConfigError(f"источник {src_id}: нужен url")
-        if src_type == "telegram" and not url:
-            raise ConfigError(f"источник {src_id}: для telegram нужен url вида https://t.me/channel")
-        options = src.get("options") or {}
-        if not isinstance(options, dict):
-            raise ConfigError(f"источник {src_id}: options должен быть объектом")
-        sources.append(
-            SourceConfig(
-                id=src_id,
-                type=src_type,
-                url=url,
-                name=str(src.get("name") or src_id),
-                weight=float(src.get("weight", 1.0)),
-                enabled=bool(src.get("enabled", True)),
-                options=options,
-            )
-        )
+        sources.append(_parse_source_entry(src, src_index))
+
+    # Кураторские источники (config/sources.curated.yaml): сначала для конкретного
+    # канала, затем общие "*". Дубли по id/url отбрасываем, чтобы не ловить
+    # одинаковые статьи дважды.
+    if curated:
+        for key in (channel_id, "*"):
+            for extra_index, extra in enumerate(curated.get(key) or [], start=1):
+                try:
+                    source = _parse_source_entry(extra, extra_index)
+                except ConfigError as exc:
+                    raise ConfigError(f"кураторские источники ({key}): {exc}") from exc
+                if any(item.id == source.id or (item.url and item.url == source.url) for item in sources):
+                    continue
+                sources.append(source)
+
     if not any(s.enabled for s in sources):
         raise ConfigError("нет ни одного включённого источника (enabled: true)")
 

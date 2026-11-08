@@ -1,0 +1,74 @@
+# =====================================================================
+#  Кураторская подборка RSS-источников (Feedly / Feedspot / Substack / Beehiiv)
+#
+#  Дополнительные источники к тем, что прописаны прямо в config/channels.*.yaml.
+#  Зачем: именно эти ленты дают «идеи сюжетов» и качественные разборы —
+#  то, что в списке подписок значат Feedly/Feedspot/Substack/Beehiiv
+#  (см. factory-subscriptions-selection.md, раздел 2). Аккаунты Feedly и
+#  Feedspot для этого не нужны: у всех источников есть открытый RSS/Atom.
+#
+#  Формат: ключ — id канала (можно "*" для всех каналов), значение — список
+#  источников в том же формате, что и в channels.yaml.
+#  Дубли по url/id с уже подключёнными источниками отбрасываются автоматически.
+#
+#  Проверено 8 ноября 2026: все ленты отвечают 200 из РФ; из GitHub Actions
+#  тем более доступны.
+# =====================================================================
+
+channels:
+  ai-news:
+    # Substack: глубокие разборы AI-повестки (идеи постов, «почему это важно»)
+    - id: substack-import-ai
+      type: rss
+      url: https://importai.substack.com/feed
+      name: Import AI (Substack)
+      weight: 1.2
+      options:
+        max_items: 8
+    - id: substack-one-useful-thing
+      type: rss
+      url: https://www.oneusefulthing.org/feed
+      name: One Useful Thing (Substack)
+      weight: 1.1
+      options:
+        max_items: 8
+    # Личный блог-агрегатор Simon Willison — быстрые, «объяснительные» новости
+    - id: simon-willison
+      type: rss
+      url: https://simonwillison.net/atom/everything/
+      name: Simon Willison
+      weight: 1.1
+      options:
+        max_items: 8
+    # Кураторский дайджест (аналог Feedly-борда «AI»)
+    - id: tldr-ai
+      type: rss
+      url: https://tldr.tech/api/rss/ai
+      name: TLDR AI
+      weight: 1.0
+      options:
+        max_items: 8
+
+  crypto-news:
+    # The Defiant (Substack) — DeFi/крипто-аналитика, отлично для analysis-постов
+    - id: substack-the-defiant
+      type: rss
+      url: https://newsletter.thedefiant.io/feed
+      name: The Defiant (Substack)
+      weight: 1.2
+      options:
+        max_items: 8
+    - id: blockworks
+      type: rss
+      url: https://blockworks.co/feed
+      name: Blockworks
+      weight: 1.1
+      options:
+        max_items: 10
+    - id: beincrypto
+      type: rss
+      url: https://beincrypto.com/feed/
+      name: BeInCrypto
+      weight: 1.0
+      options:
+        max_items: 8
