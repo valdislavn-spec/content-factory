@@ -1,0 +1,31 @@
+# Kalshi prediction-market digests for the channels.
+# Public market data: no API key required. Signed requests (portfolio/orders)
+# need an API key — see docs/kalshi.md.
+base_url: https://external-api.kalshi.com
+status: open
+limit: 200
+
+digests:
+  - channel: crypto-news
+    language: en
+    title: "📊 Crypto prediction markets right now"
+    keywords: ["bitcoin", "btc", "ethereum", "eth", "solana", "crypto"]
+    min_volume: 5000
+    max_items: 4
+    affiliate_url: ""
+
+  - channel: sport-news
+    language: en
+    title: "🏈 Sports prediction markets"
+    keywords: ["nfl", "nba", "mlb", "nhl", "super bowl", "playoff", "championship"]
+    min_volume: 10000
+    max_items: 3
+    affiliate_url: ""
+
+  - channel: ai-news
+    language: en
+    title: "🤖 AI & tech prediction markets"
+    keywords: ["ai", "openai", "gpt", "nvidia", "apple", "google", "meta"]
+    min_volume: 3000
+    max_items: 3
+    affiliate_url: ""
