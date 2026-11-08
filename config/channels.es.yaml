@@ -98,7 +98,7 @@ channels:
   - "23:00"
   posts_per_day: 15
   strict_topics: true
-  min_relevance: 0.30
+  min_relevance: 0.50
   timezone_offset: -6
   max_post_chars: 1800
   cta: "Síguenos y comparte este post con un amigo."
@@ -136,13 +136,6 @@ channels:
     options:
       trust: true
       max_items: 10
-  - id: elfinanciero
-    type: rss
-    url: https://www.elfinanciero.com.mx/rss/
-    name: El Financiero (MX)
-    weight: 0.9
-    options:
-      max_items: 12
   night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:

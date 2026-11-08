@@ -913,7 +913,15 @@ def _recap_from_posts(
                 candidate = normalize_space(candidate)
                 if not (40 <= len(candidate) <= 300):
                     continue
-                key = candidate.lower()[:60]
+                lowered = candidate.lower()
+                # Рекап не должен повторять офтоп: только тематические фразы.
+                if any(bad and bad in lowered for bad in channel.exclude_keywords):
+                    continue
+                if channel.topics and not any(
+                    match_keyword(str(topic), lowered) for topic in channel.topics
+                ):
+                    continue
+                key = lowered[:60]
                 if key in seen_prefixes:
                     continue
                 seen_prefixes.add(key)
