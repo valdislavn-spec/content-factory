@@ -26,5 +26,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Restore LLM usage state
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/llm_usage*.json
+            data/llm_tokens.json
+          key: heartbeat-llm-${{ github.run_id }}
+          restore-keys: |
+            cf-state-
       - name: Send heartbeat
         run: python scripts/heartbeat.py

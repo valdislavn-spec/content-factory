@@ -62,6 +62,50 @@ def subscribers_line() -> str:
     return "Подписчики: " + (" · ".join(parts) if parts else "нет данных")
 
 
+def llm_usage_line() -> str:
+    """Расход бесплатных LLM-провайдеров за текущие сутки (UTC)."""
+    from pathlib import Path
+
+    limits = {
+        "cloudflare": 100,
+        "cohere": 30,
+        "ollama_cloud": 250,
+        "deepseek_chat": 120,
+        "openrouter": 50,
+    }
+    parts = []
+    warnings = []
+    for provider, limit in limits.items():
+        path = Path("data") / f"llm_usage_{provider}.json"
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        count = int(data.get("count") or 0)
+        parts.append(f"{provider} {count}/{limit}")
+        if limit and count >= limit * 0.9:
+            warnings.append(provider)
+    tokens_line = ""
+    tokens_path = Path("data") / "llm_tokens.json"
+    if tokens_path.is_file():
+        try:
+            tokens = json.loads(tokens_path.read_text(encoding="utf-8"))
+            calls = int(tokens.get("calls") or 0)
+            prompt = int(tokens.get("prompt_tokens") or 0)
+            completion = int(tokens.get("completion_tokens") or 0)
+            tokens_line = f" · токены: {calls} вызовов, {prompt}+{completion}"
+        except (OSError, ValueError):
+            tokens_line = ""
+    if not parts:
+        return "LLM: нет данных (кэш состояния не восстановлен)"
+    line = "LLM за сутки: " + " · ".join(parts) + tokens_line
+    if warnings:
+        line += " ⚠️ близко к лимиту: " + ", ".join(sorted(warnings))
+    return line
+
+
 def main() -> int:
     token = os.environ.get("ALERT_GITHUB_TOKEN", "").strip()
     now = datetime.now(timezone.utc)
@@ -85,6 +129,7 @@ def main() -> int:
     else:
         lines.append("ALERT_GITHUB_TOKEN не задан — статус без деталей")
     lines.append(subscribers_line())
+    lines.append(llm_usage_line())
     text = "\n".join(lines)
     print(text)
     script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "notify_telegram.py")
