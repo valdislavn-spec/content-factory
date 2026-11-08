@@ -85,3 +85,24 @@ status: scheduled). Уже **отправленные** посты (17:16 и tra
 Опубликован FB-пост с партнёрской ссылкой:
 - «Cheap flights alert ✈️» → `https://is.gd/Flights`
 - https://facebook.com/865322629989875_122148527169054089
+
+## Travelpayouts API (токен + маркер 674170, 08.11.2026)
+
+- API-токен и маркер добавлены в `.env` (`TRAVELPAYOUTS_API_TOKEN`,
+  `TRAVELPAYOUTS_MARKER=674170`), шаблон — в `.env.example`.
+- Скрипт `scripts/travel_links.py`: берёт цены через API Travelpayouts
+  (`/v1/city-directions`, `/v1/prices/cheap`) и строит аффилиатные ссылки
+  Aviasales с маркером: `https://aviasales.ru/search/<ORIGIN><DDMM><DEST>1?marker=674170`.
+
+Пример запуска:
+```bash
+.venv/bin/python scripts/travel_links.py --origin MOW --limit 5
+```
+
+Тестовый вывод (08.11.2026):
+- MOW→LED 3 388 ₽ → https://aviasales.ru/search/MOW1011LED1?marker=674170
+- MOW→AER 5 926 ₽ → https://aviasales.ru/search/MOW0911AER1?marker=674170
+- MOW→EVN 14 723 ₽ → https://aviasales.ru/search/MOW2011EVN1?marker=674170
+
+Важно: маркер работает на aviasales.ru (RU-аудитория). Для EN-каналов
+(US/global) нужен отдельный маркер под aviasales.com или другой travel-бренд.
