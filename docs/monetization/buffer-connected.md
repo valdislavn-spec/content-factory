@@ -114,3 +114,30 @@ https://facebook.com/865322629989875_122148500589054089
 - AI: https://t.me/AINEWS0007
 - US Sports: https://t.me/SPORTNews0007
 - ES: https://t.me/TechnologiesNews01, https://t.me/WORLDNews0007, https://t.me/SPORTSAnalytics007
+
+
+## Очередь на 6 часов (каждые 2 часа, 08.11.2026)
+
+Собраны свежие новости (Decrypt, TechCrunch AI, ESPN — 08.11.2026), ссылки
+замаскированы под названия каналов через короткие алиасы is.gd:
+
+| Канал | Алиас | Ведёт на |
+|---|---|---|
+| Crypto & Blockchain | `https://is.gd/CryptoBlockchain` / `https://is.gd/HOOPY0007` | t.me/HOOPY0007 |
+| AI News | `https://is.gd/AINEWS0007` | t.me/AINEWS0007 |
+| US Sports | `https://is.gd/SPORTNews0007` | t.me/SPORTNews0007 |
+| ES Crypto | `https://is.gd/TechnologiesNews01` | t.me/TechnologiesNews01 |
+| ES AI | `https://is.gd/WORLDNews0007` | t.me/WORLDNews0007 |
+| ES Sports | `https://is.gd/SPORTSAnalytics007` | t.me/SPORTSAnalytics007 |
+
+Расписание (UTC): **17:16, 19:16, 21:16** — по 3 соцсети (Bluesky, X, Facebook),
+всего 9 постов (status: scheduled). Контент:
+- Bluesky (≤300): 2 крипто-заголовка + «Crypto & Blockchain» алиас.
+- X (≤280): короткий дайджест + алиас.
+- Facebook (≤500): 2 крипто + 1 AI + 1 спорт, 3 ссылки на ТГ-каналы, хештеги.
+
+Лимиты Free Plan: Bluesky 100/день, X 100/день, Facebook 35/день (использовано
+по 3 отправленных + 3 запланированных на канал) — в лимит укладываемся.
+
+Чтобы новости были свежими к каждому слоту, можно за 10 минут до публикации
+обновлять текст запланированного поста (editPost) — поставить напоминания.
