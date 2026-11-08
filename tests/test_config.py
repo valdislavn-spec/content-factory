@@ -133,7 +133,12 @@ class ConfigTest(unittest.TestCase):
 
                     parse_hhmm(slot)
                 # Каналы работают по числовым ID, а не по @username.
-                self.assertTrue(channel.telegram_chat_id.startswith("-100"), channel.id)
+                # ES-каналы получают id из GitHub Secrets на раннере, поэтому
+                # локально/в CI без секретов поле может быть пустым.
+                self.assertTrue(
+                    channel.telegram_chat_id.startswith("-100") or not channel.telegram_chat_id,
+                    channel.id,
+                )
         for channel in es_channels:
             self.assertEqual(channel.language, "es", channel.id)
         for channel in en_channels:

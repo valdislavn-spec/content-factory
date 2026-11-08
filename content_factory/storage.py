@@ -80,6 +80,38 @@ CREATE TABLE IF NOT EXISTS metrics (
 );
 CREATE INDEX IF NOT EXISTS idx_metrics_channel_time ON metrics (channel_id, collected_at);
 
+CREATE TABLE IF NOT EXISTS telegram_posts (
+    channel_id   TEXT NOT NULL,
+    message_id   INTEGER NOT NULL,
+    posted_at    TEXT,
+    views        INTEGER,
+    forwards     INTEGER DEFAULT 0,
+    reactions    INTEGER DEFAULT 0,
+    replies      INTEGER DEFAULT 0,
+    text_preview TEXT DEFAULT '',
+    url          TEXT DEFAULT '',
+    collected_at TEXT NOT NULL,
+    PRIMARY KEY (channel_id, message_id)
+);
+CREATE INDEX IF NOT EXISTS idx_telegram_posts_channel_time
+    ON telegram_posts (channel_id, posted_at);
+
+CREATE TABLE IF NOT EXISTS telegram_channel_metrics (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    channel_id      TEXT NOT NULL,
+    collected_at    TEXT NOT NULL,
+    subscribers     INTEGER,
+    posts_analyzed  INTEGER DEFAULT 0,
+    total_views     INTEGER DEFAULT 0,
+    avg_views       REAL DEFAULT 0,
+    total_reactions INTEGER DEFAULT 0,
+    total_forwards  INTEGER DEFAULT 0,
+    er              REAL DEFAULT 0,
+    payload         TEXT DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS idx_telegram_metrics_channel_time
+    ON telegram_channel_metrics (channel_id, collected_at);
+
 CREATE TABLE IF NOT EXISTS runs (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     channel_id      TEXT NOT NULL,
@@ -95,6 +127,18 @@ CREATE TABLE IF NOT EXISTS runs (
     dry_run         INTEGER DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_runs_channel_time ON runs (channel_id, started_at);
+
+CREATE TABLE IF NOT EXISTS growth_events (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    event       TEXT NOT NULL,
+    channel_id  TEXT DEFAULT '',
+    payload     TEXT DEFAULT '',
+    user_id     TEXT DEFAULT '',
+    source      TEXT DEFAULT '',
+    created_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_growth_events_time ON growth_events (created_at);
+CREATE INDEX IF NOT EXISTS idx_growth_events_channel ON growth_events (channel_id, created_at);
 """
 
 
@@ -289,15 +333,33 @@ class Storage:
         row = self.conn.execute("SELECT 1 FROM posts WHERE post_id = ?", (post_id,)).fetchone()
         return row is not None
 
-    def last_post_time(self, channel_id: str) -> Optional[datetime]:
-        """Время последнего поста канала (для окна «сводка за период»)."""
-        row = self.conn.execute(
-            "SELECT created_at FROM posts WHERE channel_id = ? ORDER BY created_at DESC LIMIT 1",
+    def recent_post_sources(self, channel_id: str, hours: float = 72) -> List[str]:
+        """URL источников из недавних постов — защита от повторных сюжетов."""
+        rows = self.conn.execute(
+            """SELECT sources FROM posts
+               WHERE channel_id = ? AND created_at >= ?
+               ORDER BY created_at DESC LIMIT 200""",
+            (channel_id, format_iso(utcnow() - timedelta(hours=hours))),
+        ).fetchall()
+        urls: List[str] = []
+        for row in rows:
+            for source in _loads(row["sources"], []) or []:
+                if isinstance(source, dict) and source.get("url"):
+                    urls.append(str(source["url"]))
+        return urls
+
+    def last_fallback_post_time(self, channel_id: str) -> Optional[datetime]:
+        """Время последнего fallback-поста (рекапа) канала."""
+        rows = self.conn.execute(
+            """SELECT created_at, meta FROM posts
+               WHERE channel_id = ? ORDER BY created_at DESC LIMIT 100""",
             (channel_id,),
-        ).fetchone()
-        if row is None:
-            return None
-        return parse_datetime(row["created_at"])
+        ).fetchall()
+        for row in rows:
+            meta = _loads(row["meta"], {}) or {}
+            if meta.get("fallback") or str(meta.get("generator")) == "recap":
+                return parse_datetime(row["created_at"])
+        return None
 
     def get_posts(
         self, channel_id: Optional[str] = None, days: float = 7, limit: int = 500
@@ -318,6 +380,69 @@ class Storage:
         data["sources"] = _loads(data.get("sources"), [])
         data["meta"] = _loads(data.get("meta"), {})
         return data
+
+    # ------------------------------------------------------------------
+    # Growth-события: deep links /start, inline, кросспостинг
+    # ------------------------------------------------------------------
+    def save_growth_event(
+        self,
+        event: str,
+        *,
+        channel_id: str = "",
+        payload: str = "",
+        user_id: str = "",
+        source: str = "",
+    ) -> None:
+        """Фиксирует событие роста (подписка по deep link, переход и т.п.)."""
+        self.conn.execute(
+            """INSERT INTO growth_events (event, channel_id, payload, user_id, source, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                str(event or ""),
+                str(channel_id or ""),
+                str(payload or ""),
+                str(user_id or ""),
+                str(source or ""),
+                format_iso(utcnow()),
+            ),
+        )
+        self.conn.commit()
+
+    def recent_growth_events(self, days: float = 7, limit: int = 500) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """SELECT * FROM growth_events WHERE created_at >= ?
+               ORDER BY id DESC LIMIT ?""",
+            (_cutoff(days), int(limit)),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def growth_summary(self, days: float = 7) -> Dict[str, Any]:
+        """Сводка событий роста: всего, по событиям/каналам/источникам."""
+        rows = self.conn.execute(
+            """SELECT event, channel_id, source, COUNT(*) AS n
+               FROM growth_events WHERE created_at >= ?
+               GROUP BY event, channel_id, source ORDER BY n DESC""",
+            (_cutoff(days),),
+        ).fetchall()
+        by_event: Dict[str, int] = {}
+        by_channel: Dict[str, int] = {}
+        by_source: Dict[str, int] = {}
+        total = 0
+        for row in rows:
+            count = int(row["n"] or 0)
+            total += count
+            by_event[str(row["event"])] = by_event.get(str(row["event"]), 0) + count
+            if row["channel_id"]:
+                by_channel[str(row["channel_id"])] = by_channel.get(str(row["channel_id"]), 0) + count
+            if row["source"]:
+                by_source[str(row["source"])] = by_source.get(str(row["source"]), 0) + count
+        return {
+            "days": days,
+            "total": total,
+            "by_event": by_event,
+            "by_channel": by_channel,
+            "by_source": by_source,
+        }
 
     # ------------------------------------------------------------------
     # Публикации
@@ -402,6 +527,123 @@ class Storage:
         data = dict(row)
         data["payload"] = _loads(data.get("payload"), {})
         return data
+
+    # ------------------------------------------------------------------
+    # Telegram-метрики постов (просмотры/реакции/репосты)
+    # ------------------------------------------------------------------
+    def save_telegram_posts(
+        self,
+        channel_id: str,
+        posts: Sequence[Dict[str, Any]],
+        collected_at: Optional[datetime] = None,
+    ) -> int:
+        """Сохранить/обновить метрики постов Telegram (idempotent upsert)."""
+        stamp = format_iso(collected_at or utcnow())
+        saved = 0
+        for post in posts:
+            try:
+                message_id = int(post.get("message_id") or 0)
+            except (TypeError, ValueError):
+                continue
+            if message_id <= 0:
+                continue
+            self.conn.execute(
+                """INSERT INTO telegram_posts
+                (channel_id, message_id, posted_at, views, forwards, reactions,
+                 replies, text_preview, url, collected_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(channel_id, message_id) DO UPDATE SET
+                    posted_at=excluded.posted_at,
+                    views=excluded.views,
+                    forwards=excluded.forwards,
+                    reactions=excluded.reactions,
+                    replies=excluded.replies,
+                    text_preview=excluded.text_preview,
+                    url=excluded.url,
+                    collected_at=excluded.collected_at""",
+                (
+                    channel_id,
+                    message_id,
+                    post.get("posted_at"),
+                    post.get("views"),
+                    int(post.get("forwards") or 0),
+                    int(post.get("reactions") or 0),
+                    int(post.get("replies") or 0),
+                    str(post.get("text_preview") or "")[:300],
+                    str(post.get("url") or ""),
+                    stamp,
+                ),
+            )
+            saved += 1
+        self.conn.commit()
+        return saved
+
+    def save_telegram_channel_metrics(
+        self,
+        channel_id: str,
+        summary: Dict[str, Any],
+        collected_at: Optional[datetime] = None,
+    ) -> None:
+        """Сохранить срез Telegram-метрик канала."""
+        self.conn.execute(
+            """INSERT INTO telegram_channel_metrics
+            (channel_id, collected_at, subscribers, posts_analyzed, total_views,
+             avg_views, total_reactions, total_forwards, er, payload)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                channel_id,
+                format_iso(collected_at or utcnow()),
+                summary.get("subscribers"),
+                int(summary.get("posts_analyzed") or 0),
+                int(summary.get("total_views") or 0),
+                float(summary.get("avg_views") or 0.0),
+                int(summary.get("total_reactions") or 0),
+                int(summary.get("total_forwards") or 0),
+                float(summary.get("er") or 0.0),
+                _dumps(summary.get("payload") or {}),
+            ),
+        )
+        self.conn.commit()
+
+    def latest_telegram_channel_metrics(self, channel_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            """SELECT * FROM telegram_channel_metrics
+               WHERE channel_id = ? ORDER BY collected_at DESC, id DESC LIMIT 1""",
+            (channel_id,),
+        ).fetchone()
+        if not row:
+            return None
+        data = dict(row)
+        data["payload"] = _loads(data.get("payload"), {})
+        return data
+
+    def telegram_channel_history(
+        self, channel_id: str, days: float = 30
+    ) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """SELECT * FROM telegram_channel_metrics
+               WHERE channel_id = ? AND collected_at >= ?
+               ORDER BY collected_at ASC, id ASC""",
+            (channel_id, _cutoff(days)),
+        ).fetchall()
+        result: List[Dict[str, Any]] = []
+        for row in rows:
+            data = dict(row)
+            data["payload"] = _loads(data.get("payload"), {})
+            result.append(data)
+        return result
+
+    def telegram_posts(
+        self, channel_id: str, days: float = 30, limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        rows = self.conn.execute(
+            """SELECT * FROM telegram_posts
+               WHERE channel_id = ? AND collected_at >= ?
+               ORDER BY COALESCE(posted_at, collected_at) DESC
+               LIMIT ?""",
+            (channel_id, _cutoff(days), int(limit)),
+        ).fetchall()
+        return [dict(row) for row in rows]
 
     # ------------------------------------------------------------------
     # Запуски

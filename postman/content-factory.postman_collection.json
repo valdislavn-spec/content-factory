@@ -1,0 +1,355 @@
+{
+  "info": {
+    "name": "content-factory: API checks",
+    "description": "Ручные проверки API контент-завода: Telegram Bot API, VK, Dify, RSS-источники, HF-датасеты роста. Секреты — в Environment 'content-factory (secrets)', в коллекции их нет.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "telegram_api_base",
+      "value": "https://api.telegram.org"
+    },
+    {
+      "key": "vk_api_base",
+      "value": "https://api.vk.com/method"
+    },
+    {
+      "key": "dify_base_url",
+      "value": "https://api.dify.ai/v1"
+    },
+    {
+      "key": "postman_api_base",
+      "value": "https://api.getpostman.com"
+    },
+    {
+      "key": "habr_rss_url",
+      "value": "https://habr.com/ru/rss/news/?fl=ru"
+    },
+    {
+      "key": "telegram_test_text",
+      "value": "Тест content-factory: проверка API"
+    }
+  ],
+  "item": [
+    {
+      "name": "Telegram Bot API",
+      "item": [
+        {
+          "name": "getMe — проверить токен бота",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{telegram_api_base}}/bot{{telegram_bot_token}}/getMe"
+            },
+            "description": "Проверка TELEGRAM_BOT_TOKEN: Postman резолвит переменные окружения."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.eql(true));",
+                  "pm.test('это бот', () => pm.expect(pm.response.json().result.is_bot).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "getChatMemberCount — подписчики канала",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{telegram_api_base}}/bot{{telegram_bot_token}}/getChatMemberCount?chat_id={{telegram_chat_id}}",
+              "query": [
+                {
+                  "key": "chat_id",
+                  "value": "{{telegram_chat_id}}"
+                }
+              ]
+            },
+            "description": "Точное число подписчиков (Bot API) — как в scripts/growth_report.py."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.eql(true));",
+                  "pm.test('это число', () => pm.expect(pm.response.json().result).to.be.a('number'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "getChat — резолв @username в chat_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{telegram_api_base}}/bot{{telegram_bot_token}}/getChat?chat_id={{telegram_chat_id}}",
+              "query": [
+                {
+                  "key": "chat_id",
+                  "value": "{{telegram_chat_id}}"
+                }
+              ]
+            },
+            "description": "Показывает id/title/type канала."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('ok: true', () => pm.expect(pm.response.json().ok).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "sendMessage (тест, отключён)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{telegram_api_base}}/bot{{telegram_bot_token}}/sendMessage"
+            },
+            "description": "Тестовая отправка в канал. По умолчанию отключён — включите вручную.\n\nОтключён по умолчанию: тестовый запрос (dry-run), не отправлять без нужды.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chat_id\": \"{{telegram_chat_id}}\",\n  \"text\": \"{{telegram_test_text}}\",\n  \"parse_mode\": \"HTML\",\n  \"disable_web_page_preview\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "name": "VK API",
+      "item": [
+        {
+          "name": "wall.post (тест, отключён)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{vk_api_base}}/wall.post"
+            },
+            "description": "Тест публикации во ВКонтакте (publishers/vk.py). Отключён по умолчанию.\n\nОтключён по умолчанию: тестовый запрос (dry-run), не отправлять без нужды.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "access_token",
+                  "value": "{{vk_access_token}}",
+                  "type": "text"
+                },
+                {
+                  "key": "owner_id",
+                  "value": "{{vk_owner_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "message",
+                  "value": "{{telegram_test_text}}",
+                  "type": "text"
+                },
+                {
+                  "key": "v",
+                  "value": "5.199",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "name": "Dify",
+      "item": [
+        {
+          "name": "chat-messages (тест, отключён)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dify_api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{dify_base_url}}/chat-messages"
+            },
+            "description": "Проверка Dify-приложения (llm.provider: dify). Отключён по умолчанию.\n\nОтключён по умолчанию: тестовый запрос (dry-run), не отправлять без нужды.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inputs\": {},\n  \"query\": \"{{telegram_test_text}}\",\n  \"response_mode\": \"blocking\",\n  \"user\": \"content-factory\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "name": "Источники и данные роста",
+      "item": [
+        {
+          "name": "RSS Habr (источник tech-ai)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{habr_rss_url}}"
+            },
+            "description": "Проверка доступности RSS-источника (sources/rss.py)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('это RSS/Atom', () => pm.expect(pm.response.text()).to.match(/<rss|<feed/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HF: SillyFeed (RU-бенчмарки)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://huggingface.co/api/datasets/Pershlab/sillyfeed-telegram-topics"
+            },
+            "description": "Метаданные датасета для RU-бенчмарков (см. docs/tg-growth.md §4.3)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('датасет найден', () => pm.expect(pm.response.json().id).to.include('sillyfeed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HF: top-10k каналов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://huggingface.co/api/datasets/JohnRicoco/top-telegram-channels"
+            },
+            "description": "Метаданные глобального датасета каналов."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('датасет найден', () => pm.expect(pm.response.json().id).to.include('top-telegram'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Публичное превью канала t.me/s",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://t.me/s/{{tg_channel_username}}"
+            },
+            "description": "Просмотры/реакции — используется analytics/preview.py. Может быть недоступно из некоторых сетей (см. docs/growth-analytics.md)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Postman API",
+      "item": [
+        {
+          "name": "me — проверить Postman API key",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Api-Key",
+                "value": "{{postman_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{postman_api_base}}/me"
+            },
+            "description": "Проверка POSTMAN_API_KEY (хранится в .env проекта, не в коллекции)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('есть username', () => pm.expect(pm.response.json().user.username).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -210,6 +210,65 @@ def _last_run_info(last_run: Optional[Dict[str, Any]], offset: int) -> Optional[
 # ---------------------------------------------------------------------------
 # сбор данных
 # ---------------------------------------------------------------------------
+def _telegram_channel_data(
+    latest: Optional[Dict[str, Any]],
+    posts: Sequence[Dict[str, Any]],
+    history: Sequence[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Собрать блок Telegram-метрик одного канала из storage."""
+    if not latest and not posts:
+        return None
+    latest = latest or {}
+    if not posts and latest.get("subscribers") is None:
+        return None
+    history = list(history or [])
+    known = [
+        int(row.get("subscribers"))
+        for row in history
+        if isinstance(row.get("subscribers"), int)
+        and not isinstance(row.get("subscribers"), bool)
+    ]
+    current: Optional[int] = None
+    raw_subscribers = latest.get("subscribers")
+    if isinstance(raw_subscribers, int) and not isinstance(raw_subscribers, bool):
+        current = int(raw_subscribers)
+    elif known:
+        current = known[-1]
+    previous = known[-2] if len(known) >= 2 else None
+    growth: Optional[int] = None
+    if current is not None and previous is not None:
+        growth = current - previous
+
+    ranked = sorted(
+        posts,
+        key=lambda post: int(post.get("views") or 0),
+        reverse=True,
+    )
+    top_posts = [
+        {
+            "message_id": int(post.get("message_id") or 0),
+            "views": int(post.get("views") or 0),
+            "reactions": int(post.get("reactions") or 0),
+            "forwards": int(post.get("forwards") or 0),
+            "posted_at": str(post.get("posted_at") or ""),
+            "url": str(post.get("url") or ""),
+            "text_preview": str(post.get("text_preview") or ""),
+        }
+        for post in ranked[:3]
+    ]
+    return {
+        "subscribers": current,
+        "growth": growth,
+        "posts_analyzed": int(latest.get("posts_analyzed") or 0),
+        "avg_views": float(latest.get("avg_views") or 0.0),
+        "er": float(latest.get("er") or 0.0),
+        "total_views": int(latest.get("total_views") or 0),
+        "total_reactions": int(latest.get("total_reactions") or 0),
+        "total_forwards": int(latest.get("total_forwards") or 0),
+        "top_posts": top_posts,
+    }
+
+
 def build_report(
     settings: Settings,
     storage: Storage,
@@ -233,6 +292,17 @@ def build_report(
     subscribers_known = 0
     chars_weighted = 0.0
     channels_with_data = 0
+    telegram_totals = {
+        "subscribers": 0,
+        "subscribers_known": 0,
+        "growth": 0,
+        "growth_known": 0,
+        "views": 0,
+        "reactions": 0,
+        "forwards": 0,
+        "posts": 0,
+        "channels": 0,
+    }
 
     for channel in channels:
         stats: Dict[str, Any] = {}
@@ -242,6 +312,12 @@ def build_report(
             stats = storage.channel_stats(channel.id, days=days)
             posts = storage.get_posts(channel.id, days=days)
             latest = storage.latest_metrics(channel.id)
+            try:
+                tg_latest = storage.latest_telegram_channel_metrics(channel.id)
+                tg_posts = storage.telegram_posts(channel.id, days=days, limit=100)
+                tg_history = storage.telegram_channel_history(channel.id, days=max(days, 30))
+            except Exception:  # noqa: BLE001 - старые базы без таблиц не должны ломать отчёт
+                tg_latest, tg_posts, tg_history = None, [], []
         except Exception as exc:  # noqa: BLE001 - один канал не должен ломать отчёт
             logger.exception("Отчёт: не удалось прочитать данные канала %s: %s", channel.id, exc)
 
@@ -277,6 +353,20 @@ def build_report(
             subscribers_value = int(subscribers)
             subscribers_sum += subscribers_value
             subscribers_known += 1
+
+        telegram_channel = _telegram_channel_data(tg_latest, tg_posts, tg_history)
+        if telegram_channel:
+            telegram_totals["channels"] += 1
+            if telegram_channel["subscribers"] is not None:
+                telegram_totals["subscribers"] += int(telegram_channel["subscribers"])
+                telegram_totals["subscribers_known"] += 1
+            if telegram_channel["growth"] is not None:
+                telegram_totals["growth"] += int(telegram_channel["growth"])
+                telegram_totals["growth_known"] += 1
+            telegram_totals["views"] += int(telegram_channel["total_views"])
+            telegram_totals["reactions"] += int(telegram_channel["total_reactions"])
+            telegram_totals["forwards"] += int(telegram_channel["total_forwards"])
+            telegram_totals["posts"] += int(telegram_channel["posts_analyzed"])
 
         last_run = _last_run_info(stats.get("last_run"), channel.timezone_offset)
         if last_run and last_run["errors"]:
@@ -316,6 +406,7 @@ def build_report(
                 "formats": channel_formats,
                 "top_terms": channel_terms,
                 "top_sources": channel_sources,
+                "telegram": telegram_channel,
                 "last_run": last_run,
             }
         )
@@ -416,6 +507,39 @@ def build_report(
             "python -m content_factory run --channel all."
         )
 
+    telegram_avg_views = (
+        round(telegram_totals["views"] / telegram_totals["posts"], 1)
+        if telegram_totals["posts"]
+        else 0.0
+    )
+    telegram_er = (
+        round(
+            (telegram_totals["reactions"] + telegram_totals["forwards"])
+            / telegram_totals["views"]
+            * 100.0,
+            2,
+        )
+        if telegram_totals["views"]
+        else 0.0
+    )
+    telegram = {
+        "has_data": telegram_totals["channels"] > 0,
+        "channels": [
+            {
+                "channel_id": channel["id"],
+                "channel_title": channel["title"],
+                **(channel.get("telegram") or {}),
+            }
+            for channel in per_channel
+            if channel.get("telegram")
+        ],
+        "totals": {
+            **telegram_totals,
+            "avg_views": telegram_avg_views,
+            "er": telegram_er,
+        },
+    }
+
     return {
         "title": str(settings.analytics.get("report_title") or "Контент-завод: аналитика"),
         "generated_at": format_iso(now),
@@ -435,6 +559,7 @@ def build_report(
             "avg_post_chars": avg_post_chars,
         },
         "per_channel": per_channel,
+        "telegram": telegram,
         "sources": sources,
         "formats": formats,
         "top_terms": top_terms,
@@ -470,6 +595,23 @@ def _summary_cards(data: Dict[str, Any]) -> str:
             "каналов с данными: {}".format(totals["subscribers_known_channels"]),
         ),
     ]
+    telegram = data.get("telegram") or {}
+    if telegram.get("has_data"):
+        tg_totals = telegram.get("totals") or {}
+        cards.append(
+            (
+                "Ср. просмотры",
+                _fmt_float(tg_totals.get("avg_views")),
+                "по {} постам".format(_fmt_int(tg_totals.get("posts"))),
+            )
+        )
+        cards.append(
+            (
+                "ER",
+                "{}%".format(_fmt_float(tg_totals.get("er"))),
+                "реакции + репосты / просмотры",
+            )
+        )
     blocks = []
     for label, value, sub in cards:
         blocks.append(
@@ -534,6 +676,65 @@ def _channels_table(data: Dict[str, Any]) -> str:
         "<th>Канал</th><th class=\"num\">Статьи</th><th class=\"num\">Посты</th>"
         "<th class=\"num\">Публикации</th><th class=\"num\">Подписчики</th>"
         "<th>Форматы</th><th class=\"num\">Символов</th><th>Расписание и запуск</th>"
+        "</tr></thead><tbody>{}</tbody></table></div>".format("".join(rows))
+    )
+
+
+def _telegram_table(data: Dict[str, Any]) -> str:
+    telegram = data.get("telegram") or {}
+    if not telegram.get("has_data"):
+        return (
+            '<p class="empty">Telegram-метрики ещё не собраны. Запустите '
+            '<code>python -m content_factory telegram-metrics</code> — нужен бот-админ '
+            'и, для просмотров/реакций, Telethon с TG_API_ID/TG_API_HASH.</p>'
+        )
+    rows = []
+    for channel in telegram.get("channels") or []:
+        growth = channel.get("growth")
+        if growth is None:
+            growth_text = "—"
+        elif growth > 0:
+            growth_text = '<span class="ok">+{}</span>'.format(_e(_fmt_int(growth)))
+        elif growth < 0:
+            growth_text = '<span class="err">{}</span>'.format(_e(_fmt_int(growth)))
+        else:
+            growth_text = "0"
+        subscribers = channel.get("subscribers")
+        top = (channel.get("top_posts") or [{}])[0]
+        top_views = top.get("views")
+        top_text = "—"
+        if top.get("message_id") and top_views:
+            label = "#{} · {}".format(top["message_id"], _fmt_int(top_views))
+            if str(top.get("url") or "").startswith(("http://", "https://")):
+                top_text = '<a href="{href}">{label}</a>'.format(
+                    href=_ea(top["url"]), label=_e(label)
+                )
+            else:
+                top_text = _e(label)
+        rows.append(
+            "<tr><td><b>{title}</b><div class=\"muted\">{cid}</div></td>"
+            '<td class="num">{subs}</td><td class="num">{growth}</td>'
+            '<td class="num">{posts}</td><td class="num">{avg_views}</td>'
+            '<td class="num">{er}%</td><td class="num">{reactions}</td>'
+            '<td class="num">{forwards}</td><td>{top}</td></tr>'.format(
+                title=_e(channel.get("channel_title") or channel.get("channel_id") or ""),
+                cid=_e(channel.get("channel_id") or ""),
+                subs=_fmt_int(subscribers, "—") if subscribers is not None else "—",
+                growth=growth_text,
+                posts=_fmt_int(channel.get("posts_analyzed")),
+                avg_views=_fmt_float(channel.get("avg_views")),
+                er=_fmt_float(channel.get("er")),
+                reactions=_fmt_int(channel.get("total_reactions")),
+                forwards=_fmt_int(channel.get("total_forwards")),
+                top=top_text,
+            )
+        )
+    return (
+        '<div class="table-wrap"><table><thead><tr>'
+        "<th>Канал</th><th class=\"num\">Подписчики</th><th class=\"num\">Рост</th>"
+        "<th class=\"num\">Постов</th><th class=\"num\">Ср. просмотры</th>"
+        "<th class=\"num\">ER</th><th class=\"num\">Реакции</th>"
+        "<th class=\"num\">Репосты</th><th>Лучший пост</th>"
         "</tr></thead><tbody>{}</tbody></table></div>".format("".join(rows))
     )
 
@@ -684,7 +885,8 @@ def render_html(data: Dict[str, Any]) -> str:
     if data.get("dry_run"):
         warning = (
             '<div class="warn">DRY RUN: реальная публикация отключена, '
-            "посты сохраняются в data/outbox, а цифры подписчиков недоступны.</div>"
+            "посты сохраняются в data/outbox. Telegram-метрики собираются "
+            "отдельной командой telegram-metrics.</div>"
         )
     hint = ""
     if data.get("hint"):
@@ -713,6 +915,8 @@ def render_html(data: Dict[str, Any]) -> str:
 {cards}
 <h2>Каналы</h2>
 {channels}
+<h2>Telegram-метрики</h2>
+{telegram}
 <h2>Форматы постов</h2>
 {formats}
 <h2>Топ-темы</h2>
@@ -740,6 +944,7 @@ def render_html(data: Dict[str, Any]) -> str:
         hint=hint,
         cards=_summary_cards(data),
         channels=_channels_table(data),
+        telegram=_telegram_table(data),
         formats=_formats_bars(data),
         terms=_top_terms(data),
         sources=_sources_table(data),
@@ -826,6 +1031,49 @@ def render_markdown(data: Dict[str, Any]) -> str:
                 _md_cell(formats),
                 _md_cell(channel["schedule"]),
             )
+        )
+    lines.extend(["", "## Telegram-метрики", ""])
+    telegram = data.get("telegram") or {}
+    if not telegram.get("has_data"):
+        lines.append(
+            "Пока не собраны. Запустите `python -m content_factory telegram-metrics` "
+            "(нужен бот-админ; для просмотров/реакций — Telethon и TG_API_ID/TG_API_HASH)."
+        )
+    else:
+        lines.extend(
+            [
+                "| Канал | Подписчики | Рост | Постов | Ср. просмотры | ER | Реакции | Репосты |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for channel in telegram.get("channels") or []:
+            growth = channel.get("growth")
+            if growth is None:
+                growth_text = "—"
+            else:
+                growth_text = "{:+d}".format(int(growth))
+            lines.append(
+                "| {} | {} | {} | {} | {} | {}% | {} | {} |".format(
+                    _md_cell(channel.get("channel_title") or channel.get("channel_id")),
+                    _md_cell(channel.get("subscribers") if channel.get("subscribers") is not None else "—"),
+                    _md_cell(growth_text),
+                    _md_cell(channel.get("posts_analyzed")),
+                    _fmt_float(channel.get("avg_views")),
+                    _fmt_float(channel.get("er")),
+                    _md_cell(channel.get("total_reactions")),
+                    _md_cell(channel.get("total_forwards")),
+                )
+            )
+        tg_totals = telegram.get("totals") or {}
+        lines.extend(
+            [
+                "",
+                "Итого: подписчиков — {}, средние просмотры — {}, ER — {}%.".format(
+                    _md_cell(tg_totals.get("subscribers") if tg_totals.get("subscribers") else "—"),
+                    _fmt_float(tg_totals.get("avg_views")),
+                    _fmt_float(tg_totals.get("er")),
+                ),
+            ]
         )
     lines.extend(["", "## Форматы", ""])
     if data["formats"]:
