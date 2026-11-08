@@ -10,6 +10,20 @@ telegram_crypto: https://t.me/HOOPY0007
 telegram_ai: https://t.me/AINEWS0007
 travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default
 travel_disclosure: "Ad · travel partner · prices vary."
+travel_offers:
+  - name: "Aviasales"
+    cta: "Compare flight deals"
+    link: "https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales"
+  - name: "Airalo"
+    cta: "Get a travel eSIM"
+    link: "https://links-tracker.valdislav-n.workers.dev/r/travel-airalo"
+  - name: "Yesim"
+    cta: "Set up mobile data for the trip"
+    link: "https://links-tracker.valdislav-n.workers.dev/r/travel-yesim"
+  - name: "Kiwitaxi"
+    cta: "Book an airport transfer"
+    link: "https://links-tracker.valdislav-n.workers.dev/r/travel-kiwitaxi"
+
 travel_headlines:
   - "Travel season is back — flights, hotels and city breaks are moving fast."
   - "Planning the next trip? These are the travel stories worth your time."
@@ -70,7 +84,7 @@ templates:
   travel: |
     ✈️ {travel_headline}
 
-    Plan the next trip with our travel partner: {travel_link}
+    {travel_cta} with our travel partner: {travel_link}
 
     {travel_disclosure}
 

@@ -83,12 +83,18 @@ python scripts/fediverse_mix.py --topic ai       # внеочередной AI-�
 
 ## Travel-реклама — когда появится партнёрка
 
-**Партнёрская ссылка уже подключена:** Travelpayouts-аккаунт (ID 674170) активен,
-сгенерирована Aviasales-ссылка с subid `akkoma`:
-`https://aviasales.tpk.ro/IhIQwQjr` (редирект содержит `marker=674170…`).
-Трекер `travel-default` теперь ведёт на неё:
-`https://links-tracker.valdislav-n.workers.dev/r/travel-default` → Aviasales.
-Клики считаются нашим трекером и Travelpayouts.
+**Партнёрские ссылки подключены:** Travelpayouts-аккаунт (ID 674170) активен,
+сгенерированы 4 оффера с subid `akkoma` и заведены коды в трекере:
+
+| Оффер | Код трекера | Куда ведёт |
+|---|---|---|
+| Aviasales | `travel-aviasales` | aviasales.tpk.ro/IhIQwQjr |
+| Airalo | `travel-airalo` | airalo.tpk.ro/3MTQ3pYY |
+| Yesim | `travel-yesim` | yesim.tpk.ro/GJVi1V64 |
+| Kiwitaxi | `travel-kiwitaxi` | kiwitaxi.tpk.ro/6eYqEgwC |
+
+Travel-посты **ротируются** по `travel_offers` в конфиге (по одному офферу за
+пост, CTA подставляется). Клики считаются трекером и Travelpayouts.
 
 Для быстрого переключения без коммита остаётся env-override `TRAVEL_AFFILIATE_URL`
 (локально или GitHub Secret) — если задан, travel-пост берёт его напрямую. После входа в Travelpayouts и одобрения бренда:

@@ -92,13 +92,16 @@ def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional
     template = str(templates.get(topic) or "").strip()
     if not template:
         raise ValueError("no template for topic {!r}".format(topic))
-    travel_link = (os.environ.get("TRAVEL_AFFILIATE_URL", "") or "").strip() or config.get("travel_link", "")
+    offers = [o for o in (config.get("travel_offers") or []) if isinstance(o, dict) and o.get("link")]
+    offer = offers[index % len(offers)] if offers else {}
+    travel_link = (os.environ.get("TRAVEL_AFFILIATE_URL", "") or "").strip() or offer.get("link") or config.get("travel_link", "")
     values: Dict[str, Any] = {
         "telegram_crypto": config.get("telegram_crypto", ""),
         "telegram_ai": config.get("telegram_ai", ""),
         "travel_link": travel_link,
         "travel_disclosure": config.get("travel_disclosure", "Ad · partner link."),
         "travel_headline": (article or {}).get("title") or (config.get("travel_headlines") or ["Travel season is back — flights, hotels and city breaks are moving fast."])[index % len(config.get("travel_headlines") or [1])],
+        "travel_cta": str(offer.get("cta") or "Plan the next trip"),
     }
     meta: Dict[str, Any] = {}
     if topic == "travel" and article:
