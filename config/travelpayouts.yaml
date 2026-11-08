@@ -1,0 +1,31 @@
+# Travelpayouts: партнёрские ссылки для пинов.
+# Нужны: API token (Profile → API token), Partner ID (marker, внизу слева в
+# кабинете), Project ID (trs, список проектов). Лучше хранить в env/secrets:
+#   TRAVELPAYOUTS_TOKEN, TRAVELPAYOUTS_MARKER, TRAVELPAYOUTS_TRS
+#
+# Схема: пин ведёт на наш хаб (/go/<slug>.html), страница редиректит на
+# партнёрскую ссылку Travelpayouts. Так пин остаётся «на нашем хабе», а клик
+# засчитывается партнёрке.
+hub_public_base: https://valdislavn-spec.github.io/content-factory
+shorten: true
+
+# brand URL, который конвертируем в партнёрский (полные ссылки, не короткие)
+programs:
+  aviasales: https://www.aviasales.com/
+  booking: https://www.booking.com/
+  getyourguide: https://www.getyourguide.com/
+
+# какой пин (файл sidecar без .json) в какую программу ведём
+pins:
+  "01-europe-for-under-300":
+    program: aviasales
+    sub_id: pin_europe
+  "02-bali-on-a-budget":
+    program: booking
+    sub_id: pin_bali
+  "03-48-hours-in-rome":
+    program: getyourguide
+    sub_id: pin_rome
+  "04-travel-insurance-mistakes":
+    program: aviasales
+    sub_id: pin_insurance
