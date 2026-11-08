@@ -38,6 +38,7 @@ cat > "$PLIST" <<PLISTEOF
     <string>${PYTHON_BIN}</string>
     <string>${ROOT}/scripts/price_alerts.py</string>
     <string>--loop</string>
+    <string>--live</string>
   </array>
   <key>WorkingDirectory</key><string>${ROOT}</string>
   <key>RunAtLoad</key><true/>

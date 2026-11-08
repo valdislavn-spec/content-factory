@@ -59,8 +59,13 @@ python scripts/price_alerts.py --loop
 python scripts/price_alerts.py --once --channel crypto-news
 ```
 
-Реальная публикация требует, чтобы `TELEGRAM_DRY_RUN=false` в `.env`
-(как и у контент-завода). `--dry-run` принудительно включает dryrun-публикатор.
+Реальная публикация включается флагом **`--live`**: он выставляет
+`CONTENT_FACTORY_DRY_RUN=false` только для процесса алертов, не меняя режим
+остального завода. `--dry-run` наоборот принудительно включает dryrun.
+
+```bash
+python scripts/price_alerts.py --loop --live    # боевой режим
+```
 
 ## Автозапуск (launchd, macOS)
 
@@ -69,9 +74,11 @@ bash scripts/install_price_alerts_schedule.sh            # установить
 bash scripts/install_price_alerts_schedule.sh --uninstall
 ```
 
-Агент `com.contentfactory.price-alerts`:
+Агент `com.contentfactory.price-alerts` (уже установлен 08.11.2026):
+- запускается как `scripts/price_alerts.py --loop --live` (боевой режим);
 - `RunAtLoad` + `KeepAlive` — стартует при входе и перезапускается при падении;
 - логи: `data/logs/price-alerts.log`;
+- проверить: `launchctl print gui/$(id -u)/com.contentfactory.price-alerts`;
 - рабочий каталог — репозиторий, поэтому `.env` подхватывается.
 
 ## Когда менять уровни

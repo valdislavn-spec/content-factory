@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Optional, Sequence
@@ -41,6 +42,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--loop", action="store_true", help="работать демоном")
     parser.add_argument("--interval", type=float, default=None, help="интервал проверки, сек")
     parser.add_argument("--dry-run", action="store_true", help="не публиковать, только логи")
+    parser.add_argument("--live", action="store_true", help="публиковать реально (CONTENT_FACTORY_DRY_RUN=false для этого процесса)")
     parser.add_argument("--channel", action="append", default=[], help="id канала (можно несколько)")
     parser.add_argument("--state", default="", help="путь к state-файлу")
     parser.add_argument("--sample", action="store_true", help="опубликовать тестовый алерт BTC")
@@ -55,6 +57,10 @@ def _load_config(path: str) -> dict:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
+    if args.live:
+        os.environ["CONTENT_FACTORY_DRY_RUN"] = "false"
+    if args.dry_run:
+        os.environ["CONTENT_FACTORY_DRY_RUN"] = "true"
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
