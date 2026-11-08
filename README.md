@@ -475,6 +475,7 @@ content-factory/
 | [cloud-actions.md](docs/cloud-actions.md) | запуск без ПК и без Oracle: GitHub Actions, кэш состояния, dry-run, лимиты |
 | [growth-analytics.md](docs/growth-analytics.md) | ежедневный отчёт роста: подписчики, просмотры, ER, дельты, сводка в Telegram |
 | [promo/catalog-package.md](docs/promo/catalog-package.md) | карточки для каталогов: описания 120–200, категории, ключевые слова; [promo/vp-outreach.md](docs/promo/vp-outreach.md) — ВП-шаблоны и трекер |
+| [promo/email-newsletter-free.md](docs/promo/email-newsletter-free.md) | бесплатные email-рассылки: GitHub-проекты (Listmonk, Ghost, Keila), free-тарифы Brevo/Resend/Mailgun/SendPulse, сбор адресов и сценарии запуска |
 | [plan.md](docs/plan.md) | чек-лист запуска на 7 дней и дорожная карта |
 | [free-cloud.md](docs/free-cloud.md) | бесплатные облачные варианты: сбор новостей, LLM, хостинг, автопостинг, рецепты Oracle/GitHub Actions/Apps Script/n8n |
 | [legal.md](docs/legal.md) | авторские права, ToS, дисклеймеры, ответственность |
