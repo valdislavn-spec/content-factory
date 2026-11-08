@@ -43,13 +43,15 @@ def build_text(pin: dict, channel: dict, hub_url: str) -> str:
     description = str(pin.get("description") or "").strip()
     link = hub_link(hub_url, channel.get("utm") or {})
     disclosure = " Ad" if pin.get("affiliate") else ""
-    if service in ("twitter", "bluesky"):
-        base = "%s\n\n%s" % (title, description)
-        reserve = len(link) + len(disclosure) + 4
-        body = clip(base, max(40, limit - reserve))
-        return "%s\n\n%s%s" % (body, link, disclosure)
-    base = "%s\n\n%s" % (title, description)
-    return clip(base, max(80, limit - len(link) - len(disclosure) - 4)) + "\n\n" + link + disclosure
+    title_part = clip(title, 90)
+    suffix = "\n\n" + link + disclosure
+    budget = limit - len(title_part) - len(suffix) - 2
+    description_part = clip(description, max(20, budget))
+    body = title_part + ("\n\n" + description_part if description_part else "")
+    text = body + suffix
+    if len(text) > limit:
+        text = clip(text, limit)
+    return text
 
 
 def main(argv=None) -> int:
@@ -76,7 +78,13 @@ def main(argv=None) -> int:
     now = datetime.now(timezone.utc)
     day = args.date or now.strftime("%Y-%m-%d")
     index = now.timetuple().tm_yday % len(pin_files)
-    pin = json.loads(pin_files[index].read_text(encoding="utf-8"))
+    sidecar = json.loads(pin_files[index].read_text(encoding="utf-8"))
+    pin_payload = sidecar.get("pin") or {}
+    pin = {
+        "title": pin_payload.get("title") or sidecar.get("title") or "",
+        "description": pin_payload.get("description") or sidecar.get("description") or "",
+        "affiliate": bool(sidecar.get("affiliate") or pin_payload.get("link")),
+    }
     print("pin:", pin_files[index].name, "| date:", day, "| channels:", len(channels))
 
     client = BufferClient.from_env() if args.live else BufferClient(token="preview")
