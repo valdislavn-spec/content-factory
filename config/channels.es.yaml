@@ -7,7 +7,8 @@
 #    ES Sports News      (futbol-es)          id → Secret TELEGRAM_CHAT_ID_FUTBOL_ES
 #
 #  Источники проверены 06.11.2026: испанские RSS + ESPN JSON API с lang=es.
-#  Расписание — местное UTC-5 (ЛатАм); у каналов 6 постов/сутки.
+#  Расписание — каждые 5 часов (5 слотов/сутки, UTC-сдвиг), посты — подробные
+#  сводки новостей за период (digest, до 4000 символов).
 #
 #  Отдельные TELEGRAM_CHAT_ID_* не нужны — ID прописаны здесь.
 # =====================================================================
@@ -67,26 +68,16 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:20"
-  - "03:40"
-  - "07:00"
-  - "08:00"
-  - "09:00"
+  - "00:40"
+  - "05:40"
   - "10:40"
-  - "13:00"
-  - "14:00"
   - "15:40"
-  - "17:20"
-  - "19:00"
-  - "20:00"
-  - "21:00"
-  - "22:00"
-  - "23:00"
+  - "20:40"
   posts_per_day: 15
   strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
-  max_post_chars: 1800
+  max_post_chars: 4000
   cta: "Síguenos y comparte este post con un amigo."
   sources:
   - id: hipertextual
@@ -129,7 +120,7 @@ channels:
     weight: 0.9
     options:
       max_items: 12
-  night_max_chars: 900
+  night_max_chars: 2600
   night_window: 23:00-07:00
   content_mix:
     story: 30
@@ -193,26 +184,16 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:35"
-  - "03:55"
-  - "07:15"
-  - "08:15"
-  - "09:15"
-  - "10:55"
-  - "13:15"
-  - "14:15"
-  - "15:55"
-  - "17:35"
-  - "19:15"
-  - "20:15"
-  - "21:15"
-  - "22:15"
-  - "23:15"
+  - "00:50"
+  - "05:50"
+  - "10:50"
+  - "15:50"
+  - "20:50"
   posts_per_day: 15
   strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
-  max_post_chars: 1800
+  max_post_chars: 4000
   cta: "Comparte este post con un amigo, así crecemos."
   sources:
   - id: criptonoticias
@@ -247,7 +228,7 @@ channels:
     options:
       trust: true
       max_items: 10
-  night_max_chars: 900
+  night_max_chars: 2600
   night_window: 23:00-07:00
   content_mix:
     story: 30
@@ -350,26 +331,16 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:50"
-  - "04:10"
-  - "07:30"
-  - "08:30"
-  - "09:30"
-  - "11:10"
-  - "13:30"
-  - "14:30"
-  - "16:10"
-  - "17:50"
-  - "19:30"
-  - "20:30"
-  - "21:30"
-  - "22:30"
-  - "23:30"
+  - "01:00"
+  - "06:00"
+  - "11:00"
+  - "16:00"
+  - "21:00"
   posts_per_day: 15
   strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
-  max_post_chars: 1800
+  max_post_chars: 4000
   cta: "18+ | Juega con responsabilidad. Comparte este post con un hincha."
   sources:
   - id: espn-laliga
@@ -473,7 +444,7 @@ channels:
       language: es
       max_items: 10
       daily_limit: 100
-  night_max_chars: 900
+  night_max_chars: 2600
   night_window: 23:00-07:00
   content_mix:
     story: 30
