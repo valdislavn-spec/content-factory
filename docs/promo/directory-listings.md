@@ -207,12 +207,12 @@ $7 за натив 24 ч (CPM ~$35), закреп $10, неделя $28.
 | **TelegramHub.org** | 6/6 | ✅ API `POST https://telegramhub.org/api/submissions/` → 201 «提交成功，等待审核» (pending review) |
 | **BuscadorTelegram** | 6/6 | ✅ отправлены ранее (08.11.2026), см. раздел выше |
 | **TGBlue** (tgblue.com) | 3/3 ES | ✅ API `POST https://tgblue.com/api/channels` → `{"ok":true}`: ES Crypto → categoryId 3 (Crypto), ES AI и ES Sports → categoryId 6 (News) |
-| **TelegramDir** | 2/6 | ✅ AI News и Crypto & Blockchain отправлены (Firecrawl, pending review). ❌ 4 канала (US Sports, ES AI, ES Crypto, ES Sports) упёрлись в rate-limit `429 Too many requests` с нашего IP; повторить позже с другого IP/из браузера |
+| **TelegramDir** | 6/6 | ✅ Все 6 каналов отправлены (pending review). AI и Crypto — через Firecrawl; US Sports — повторно подтверждён как pending; ES AI/ES Crypto/ES Sports — отправлены 08.11.2026 после снятия лимита |
 | **TelegramRankings** | 1/6 было | HOOPY0007 уже подавался ранее. Остальные 5: форма пишет в Supabase `channel_submissions`, но анонимный insert получает `401 42501 row-level security`; нужен ручной браузер/аккаунт или их поддержка |
 | **TGMania** (tgmania.com) | 0/6 | ❌ многошаговая Next.js-форма; JS-чанки не загружаются (ERR_TIMED_OUT), форма без гидрации не отправляется. Нужен ручной браузер |
 
 ### Ручные повторы
 
-- **TelegramDir**: `https://telegramdir.com/?submit=1` — открыть в обычном браузере (не из этой сети), по одному каналу; категории: AI, Crypto & Market Data, Sports / Football; контакт `@Novyi0007Bot`.
+- **TelegramDir**: ✅ все 6 отправлены; повторно подавать не нужно.
 - **TelegramRankings**: `https://telegramrankings.com/submit` — обязателен username; остальное опционально; HOOPY0007 не дублировать.
 - **TGMania**: `https://tgmania.com/submit` — шаг 1 username, шаг 2 категория (Crypto & Finance / Technology / News), шаг 3 детали; ревью 24–48 ч.
