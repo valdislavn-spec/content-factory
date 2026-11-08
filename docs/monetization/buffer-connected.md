@@ -163,3 +163,22 @@ https://facebook.com/865322629989875_122148500589054089
 
 Темы: Bitcoin quantum-resistance, AI chip stocks/bubble, OpenAI $11B, Cowboys inactives.
 Следующее обновление — 19:05 UTC (слот 19:16).
+
+## Автоочередь из фабрики пинов (08.11.2026)
+
+`scripts/buffer_queue.py` + workflow **buffer-queue** (ежедневно 09:10 UTC)
+берут один пин дня (ротация по `docs/assets/pins/`) и ставят по одному посту
+в очередь каждого канала Buffer с адаптацией под сеть:
+
+| Сеть | Канал | Формат |
+|---|---|---|
+| Bluesky | BRAVE | разговорный текст + ссылка на хаб с UTM `utm_source=bsky`, лимит 300 симв. |
+| X | NValdislav | хук + ссылка (UTM `x`), лимит 280 симв. |
+| Facebook | The best offers | текст + ссылка (UTM `facebook`), `metadata.facebook.type=post` |
+
+Режим — `addToQueue` (следующий слот очереди Buffer). Отчёт по каждому посту:
+`data/reports/buffer-queue-YYYY-MM-DD.json` (post_id, due_at, текст, лимиты).
+
+Первый прогон: 3 поста в очереди на 2026-11-09 (Bluesky 15:15Z, X 05:32Z,
+Facebook 06:32Z). Pinterest в Buffer на Free-плане не влезает (3 канала
+лимит) — пины публикуются отдельно через Business Hub → CSV.
