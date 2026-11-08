@@ -341,7 +341,14 @@ def main(argv=None) -> int:
                     metadata=channel.get("metadata"),
                     assets=assets or None,
                 )
-                record.update({"ok": True, "post_id": post.get("id"), "due_at": post.get("dueAt")})
+                record.update({
+                    "ok": True,
+                    "post_id": post.get("id"),
+                    "due_at": post.get("dueAt"),
+                    "external_link": post.get("externalLink") or "",
+                })
+                if post.get("externalLink"):
+                    print("link:", post.get("externalLink"))
                 print("queued:", channel.get("service"), "->", post.get("dueAt"))
             except BufferError as error:
                 record["error"] = str(error)
