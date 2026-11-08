@@ -48,7 +48,21 @@ def valid_link(link: str) -> bool:
 
 def resolve_link(config: Dict[str, Any], channel_id: str = "") -> str:
     config = config if isinstance(config, dict) else {}
-    link = _env_link(channel_id) or str(config.get("link") or "").strip()
+    # 1) явный env-override (прямая ссылка, без трекинга)
+    env_link = _env_link(channel_id)
+    if valid_link(env_link):
+        return env_link
+    # 2) готовая трекаемая ссылка из конфига
+    tracked = str(config.get("tracked_url") or "").strip()
+    if valid_link(tracked):
+        return tracked
+    # 3) код + LINK_TRACKER_BASE → собираем short URL
+    code = str(config.get("code") or "").strip()
+    base = os.environ.get("LINK_TRACKER_BASE", "").strip().rstrip("/")
+    if code and base.startswith(("http://", "https://")):
+        return "{}/r/{}".format(base, code)
+    # 4) обычная партнёрская ссылка
+    link = str(config.get("link") or "").strip()
     return link if valid_link(link) else ""
 
 

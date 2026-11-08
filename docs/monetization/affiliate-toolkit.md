@@ -63,7 +63,7 @@
 
 ## Следующие шаги
 
-- [ ] Развернуть shortlink-worker на Cloudflare (KV/D1 + `/r/` + `/stats`).
-- [ ] Подключить его в `content_factory/integrations/shortlink.py` для партнёрских ссылок.
+- [x] Развернуть shortlink-worker на Cloudflare (KV/D1 + `/r/` + `/stats`) — `links-tracker.valdislav-n.workers.dev`, см. `link-tracker.md`.
+- [x] Подключить трекаемые ссылки в партнёрские строки постов/алертов (`tracked_url` в конфиге).
 - [ ] После одобрения BingX: развернуть `BingX_CRM`, получить Agent API key, включить daily-отчёты в Telegram.
 - [ ] Добавить MyLead API-клиент (ссылки/статистика) в интеграции.

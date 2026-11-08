@@ -7,6 +7,7 @@ affiliate_every_n: 3          # реферальная строка (BingX) — 
 affiliate:                    # общий блок; можно переопределить на канале
   enabled: true
   link: "https://bingxdao.com/invite/WYYEGK/"
+  tracked_url: "https://links-tracker.valdislav-n.workers.dev/r/bingx-default"
   disclaimer: "Ad · affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong. Crypto is volatile — risk of loss."
 channels_files:
   - config/channels.en.yaml

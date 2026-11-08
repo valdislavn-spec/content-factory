@@ -375,6 +375,7 @@ channels:
   affiliate:
     enabled: true
     link: "https://bingxdao.com/invite/WYYEGK/"
+    tracked_url: "https://links-tracker.valdislav-n.workers.dev/r/bingx-crypto-news"
     every_n_posts: 3
     disclaimer: "Ad · affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong. Crypto is volatile — risk of loss."
   topics:
