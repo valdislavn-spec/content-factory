@@ -7,6 +7,10 @@ telegram_crypto: https://t.me/HOOPY0007
 telegram_ai: https://t.me/AINEWS0007
 travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default
 travel_disclosure: "Ad · travel partner · prices vary."
+travel_headlines:
+  - "Travel season is back — flights, hotels and city breaks are moving fast."
+  - "Planning the next trip? These are the travel stories worth your time."
+  - "Weekend escape or long haul: travel deals are moving fast."
 
 # Красивые обложки: график BTC для крипто, AI-карточка, travel-карточка
 # Картинки из статей: свежие RSS-новости каналов → og:image/media.
@@ -17,6 +21,11 @@ article_images:
   max_age_hours: 48
   max_feeds: 4
   max_candidates: 6
+  feeds:
+    travel:
+      - https://thepointsguy.com/feed/
+      - https://www.nomadicmatt.com/feed/
+      - https://www.travelpayouts.com/blog/feed/
 
 image:
   enabled: true
@@ -54,7 +63,7 @@ templates:
 
     #AI #Crypto #Trading
   travel: |
-    ✈️ Travel season is back — flights, hotels and city breaks are moving fast.
+    ✈️ {travel_headline}
 
     Plan the next trip with our travel partner: {travel_link}
 

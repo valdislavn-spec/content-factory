@@ -97,8 +97,11 @@ def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional
         "telegram_ai": config.get("telegram_ai", ""),
         "travel_link": config.get("travel_link", ""),
         "travel_disclosure": config.get("travel_disclosure", "Ad · partner link."),
+        "travel_headline": (article or {}).get("title") or (config.get("travel_headlines") or ["Travel season is back — flights, hotels and city breaks are moving fast."])[index % len(config.get("travel_headlines") or [1])],
     }
     meta: Dict[str, Any] = {}
+    if topic == "travel" and article:
+        values["travel_headline"] = article.get("title") or values["travel_headline"]
     if topic == "crypto":
         headlines = config.get("crypto_headlines") or ["Crypto markets update."]
         values["headline"] = (article or {}).get("title") or headlines[index % len(headlines)]
@@ -544,7 +547,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for step in range(total):
         topic = args.topic or rotation[(index + step) % len(rotation)]
         try:
-            article = find_article(topic, config) if topic in ("crypto", "ai") else None
+            article = find_article(topic, config)
             if article:
                 print("article:", article.get("title", "")[:90], "|", article.get("source", ""))
             text, meta = build_post(config, topic, index + step, article)
