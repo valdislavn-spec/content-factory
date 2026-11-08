@@ -123,3 +123,27 @@ Mastodon (текст обрезается до 500 символов, HTML сни
 4. Ссылки на каналы — в профиле/закрепе; через 1–2 недели активности ссылки
    в постах обычно перестают фильтроваться;
 5. Если пост удалён — повторите без ссылок, не спамьте повторами.
+## 10. Оформление профиля (аватар, шапка, био, бот)
+
+Картинки: `assets/mastodon/avatar.png` (400×400), `assets/mastodon/header.png` (1500×500).
+
+```bash
+python scripts/mastodon_profile.py --dry-run   # показать поля без запросов
+python scripts/mastodon_profile.py             # применить
+```
+
+Скрипт ставит `display_name`, био со ссылками на Telegram-каналы, поля-ссылки,
+флаг **bot**, `discoverable` и `indexable`. Нужен токен с **`write:accounts`**
+(создаётся через `scripts/mastodon_auth.py`; токен сохраните как `access_token`
+в `data/mastodon_app_profile.json`).
+
+## 11. Ссылки в постах: временный режим
+
+Пока аккаунт новый, пайплайн публикует без ссылок: переменная
+`MASTODON_NO_LINKS=1` (local `.env` и GitHub variable) вырезает URL из текста
+поста перед отправкой, оставляя упоминания вида `@AINEWS0007`.
+
+- сейчас: `MASTODON_NO_LINKS=1` — ссылки в профиле, посты без URL;
+- через 1–2 недели активности (заполнен профиль, подтверждён email, есть
+  фолловеры/бусты): выставить `MASTODON_NO_LINKS=0` — ссылки вернутся в посты;
+- GitHub variable: Settings → Secrets and variables → Actions → Variables.

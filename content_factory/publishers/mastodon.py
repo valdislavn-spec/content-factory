@@ -10,6 +10,7 @@ scope write:statuses). Бот-аккаунт рекомендуется поме
 from __future__ import annotations
 
 import logging
+import re
 from typing import Tuple
 
 from ..config import Settings
@@ -47,6 +48,14 @@ class MastodonPublisher(SocialPublisher):
         base = self._env(channel, "MASTODON_BASE_URL").rstrip("/")
         token = self._env(channel, "MASTODON_TOKEN")
         text = post_text(post, MAX_TEXT, channel)
+        from ..utils import env as _env
+
+        if str(_env("MASTODON_NO_LINKS", "") or "").strip().lower() in {"1", "true", "yes", "on"}:
+            # Новый аккаунт: mastodon.social удаляет посты с внешними ссылками.
+            # Полосуем URL, оставляя текстовые упоминания (@channel).
+            text = re.sub(r"https?://\S+", "", text)
+            text = re.sub(r"[ \t]{2,}", " ", text).strip()
+            text = re.sub(r"\n{3,}", "\n\n", text)
         try:
             data = http_json(
                 f"{base}/api/v1/statuses",
