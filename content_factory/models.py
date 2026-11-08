@@ -15,6 +15,15 @@ from typing import Any, Dict, List, Optional
 MSK = timezone(timedelta(hours=3), name="MSK")
 
 
+def as_utc(value: Optional[datetime]) -> Optional[datetime]:
+    """Приводит дату к timezone-aware UTC (наивные даты считаем UTC)."""
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def utcnow() -> datetime:
     """Текущее время в UTC (все даты внутри системы — timezone-aware UTC)."""
     return datetime.now(timezone.utc)
@@ -178,10 +187,10 @@ class StoryCluster:
     def __post_init__(self) -> None:
         if not self.articles:
             return
-        dates = [a.published_at for a in self.articles if a.published_at]
+        dates = [as_utc(a.published_at) for a in self.articles if a.published_at]
         if dates:
-            self.first_published = self.first_published or min(dates)
-            self.last_published = self.last_published or max(dates)
+            self.first_published = as_utc(self.first_published) or min(dates)
+            self.last_published = as_utc(self.last_published) or max(dates)
 
     @property
     def coverage(self) -> int:
