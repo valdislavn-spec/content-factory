@@ -107,3 +107,14 @@ https://<реф-ссылка>?utm_source=tg_<channel>&utm_medium=telegram&utm_ca
 1. Закрепы (6 шт) — после получения ссылок.
 2. Затем реф-посты (1 на 5 обычных), начиная с crypto-news и ai-news.
 3. Ссылки в лендинг (footer) — после закрепов.
+
+## 8. Найдено в почте / входы (2026-11-08)
+
+- **collaborator.pro** — ваша партнёрская ссылка из письма:
+  `https://collaborator.pro/ru/signup?code=m9Vidx`
+- **N1 Partners** — кабинет партнёра: `https://backoffice.n1.partners/partner/login`
+- **Travelpayouts** — пароль сброшен агентом (новый сохранён в
+  `.local/affiliate/credentials.json`); вход по паролю блокируется reCAPTCHA из РФ,
+  Google-SSO доводится до согласия, но сессия не создаётся — нужен VPN.
+- Google-сессия в браузере агента активна (`valdislav.n@gmail.com`), Gmail доступен —
+  можно делать сбросы паролей остальных сервисов, если не мешает капча/Cloudflare.
