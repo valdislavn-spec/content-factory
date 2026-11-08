@@ -105,11 +105,40 @@ def _short(url: str, enabled: bool) -> str:
     return shorten_url(url)
 
 
+_PARTNER_CACHE: dict = {}
+
+
+def partner_url(slug: str) -> str:
+    """Партнёрская ссылка Travelpayouts для пина (config/travelpayouts.yaml)."""
+    if not _PARTNER_CACHE:
+        try:
+            import yaml as _yaml
+
+            path = ROOT / "config" / "travelpayouts.yaml"
+            data = _yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            _PARTNER_CACHE.update(data.get("pins") or {})
+        except Exception:  # noqa: BLE001 - без конфига работаем как раньше
+            _PARTNER_CACHE["__missing__"] = True
+    entry = _PARTNER_CACHE.get(str(slug or ""))
+    if isinstance(entry, dict):
+        return str(entry.get("partner_url") or "").strip()
+    return ""
+
+
 def article_link(pin: dict, hub_url: str) -> str:
-    """Ссылка на статью/гайд пина: go/<slug>.html (если есть) или hub."""
+    """Ссылка на статью/гайд пина.
+
+    Для travel-пинов — сразу партнёрская ссылка Travelpayouts (как в
+    app.travelpayouts.com/programs), чтобы клик считался партнёркой.
+    Для остальных — go/<slug>.html (если есть) или hub.
+    """
     slug = str(pin.get("slug") or "").strip()
     if pin.get("article_url"):
         return str(pin["article_url"])
+    if str(pin.get("niche") or "") == "travel":
+        affiliate = partner_url(slug)
+        if affiliate:
+            return affiliate
     if slug and (ROOT / "docs" / "go" / (slug + ".html")).exists():
         return hub_url.rstrip("/") + "/go/" + slug + ".html"
     return hub_url

@@ -1,6 +1,6 @@
 """Tests for the Buffer daily queue (no network)."""
 
-from scripts.buffer_queue import build_assets, build_text, clip, hub_link
+from scripts.buffer_queue import build_assets, build_text, clip, hub_link, partner_url
 
 CONFIG = {
     "niches": {
@@ -124,3 +124,22 @@ def test_image_does_not_break_text_fit():
     pin["image_url"] = "https://example.com/article.png"
     text = build_text(pin, CHANNEL_BSKY, HUB, CONFIG)
     assert len(text) <= 300
+
+
+def test_travel_pin_uses_partner_link(monkeypatch):
+    monkeypatch.setattr("scripts.buffer_queue.shorten_url", lambda url: url)
+    pin = dict(PIN)
+    pin["slug"] = "02-bali-on-a-budget"
+    assert partner_url("02-bali-on-a-budget") == "https://aviasales.tpk.ro/rYaenwKl"
+    text = build_text(pin, CHANNEL_X, HUB, CONFIG)
+    assert "https://aviasales.tpk.ro/rYaenwKl" in text
+    assert "/go/" not in text
+
+
+def test_non_travel_pin_keeps_hub(monkeypatch):
+    monkeypatch.setattr("scripts.buffer_queue.shorten_url", lambda url: url)
+    pin = dict(PIN)
+    pin["niche"] = "crypto"
+    pin["slug"] = "05-bitcoin-at-100k"
+    text = build_text(pin, CHANNEL_X, HUB, CONFIG)
+    assert HUB in text

@@ -45,8 +45,9 @@ python scripts/buffer_queue.py --date 2026-11-08
 - **Картинка статьи** (пина, `image_url`) прикладывается к посту через
   Buffer `assets: [{image: {url}}]` (схема из [Create Image Post](https://developers.buffer.com/examples/create-image-post.html)).
   Картинка Telegram-канала больше не используется.
-- **Ссылка на статью** — `go/<slug>.html` (если есть) или hub; сокращается
-  через TinyURL до «одного слова».
+- **Ссылка на статью** — для travel-пинов это **партнёрская ссылка Travelpayouts**
+  (`config/travelpayouts.yaml` → `pins.<slug>.partner_url`, аккаунт 674170 / проект 597635);
+  для остальных — `go/<slug>.html` или hub. Длинные ссылки сокращаются TinyURL.
 - **Ссылка на канал** — `links.channel_default` / `niche_channels` в конфиге,
   подставляется в каждый пост (`Telegram: https://t.me/…`).
 - Длинные ссылки сокращаются (`links.shorten: true`), лимиты X/Bluesky при этом соблюдаются.
