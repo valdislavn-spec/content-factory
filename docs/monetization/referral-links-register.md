@@ -126,3 +126,11 @@ https://<реф-ссылка>?utm_source=tg_<channel>&utm_medium=telegram&utm_ca
 - **N1 Partners** — пропущен по решению (2FA/блок).
 - **Travelpayouts**, **1xPartners**, **KissMyAds** — ждут входа в окне браузера
   (капчи/2FA проходятся только вручную).
+
+### Обновление 2026-11-08 (вечер)
+
+- **KissMyAds (KMA)** — пароль сброшен по e-mail, окно логина открыто с
+  предзаполненными полями; вход выполняет пользователь (капча/антибот).
+- **Travelpayouts** — пароль сброшен, окно логина открыто (предзаполнено).
+- **collaborator.pro** — реф-ссылка из письма: `https://collaborator.pro/ru/signup?code=m9Vidx`.
+- **N1 Partners** — пропущен (2FA/блок).
