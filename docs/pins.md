@@ -79,3 +79,25 @@ AI-сервисы (реф-программы), спорт (18+).
 - [Postiz](https://github.com/gitroomhq/postiz-app) — если позже понадобится
   UI-календарь и мультиплатформенный постинг (Pinterest поддерживается).
 - [n8n](https://github.com/n8n-io/n8n) — альтернатива для визуальных воркфлоу.
+
+## Публикация без API: Business Hub → Импорт контента (CSV)
+
+Пока приложение Pinterest не одобрено для Trial access, пины можно публиковать
+**через Business Hub**, без API:
+
+1. Сгенерировать пины и CSV:
+   ```bash
+   python scripts/generate_pins.py --out docs/assets/pins --limit 7 --no-ai
+   python scripts/build_pinterest_csv.py --pins docs/assets/pins --out docs/pinterest-import.csv
+   git add -A && git commit -m "pins" && git push   # чтобы картинки стали публичными на GitHub Pages
+   ```
+2. Дождаться, пока `https://valdislavn-spec.github.io/content-factory/assets/pins/*.png`
+   начнёт отдавать 200.
+3. В Pinterest (business-аккаунт, desktop): **Настройки → Импорт контента →
+   Загрузить файл CSV или TXT → Загрузить** → выбрать `docs/pinterest-import.csv`.
+4. Pinterest создаёт пины асинхронно (обычно до 2 часов); при ошибках приходит
+   письмо на email. Доски из колонки «Pinterest board» создаются автоматически.
+
+Колонки CSV: `Title, Media URL, Pinterest board, Thumbnail, Description, Link,
+Publish date, Keywords` (Thumbnail — только для видео). Лимит — 200 пинов на
+загрузку. Партнёрские ссылки идут в `Link` с обязательной пометкой `Ad`.
