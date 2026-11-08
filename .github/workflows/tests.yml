@@ -10,9 +10,9 @@ permissions:
   contents: read
 
 jobs:
-  smoke:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,12 +24,5 @@ jobs:
           pip install -r requirements.txt pytest
       - name: Compile check
         run: python -m compileall -q content_factory scripts
-      - name: Regression tests
-        run: |
-          pytest -q \
-            tests/test_cluster_datetime.py \
-            tests/test_config.py \
-            tests/test_content_gates.py \
-            tests/test_dedup.py \
-            tests/test_unified.py \
-            tests/test_growth.py
+      - name: Full test suite
+        run: pytest -q
