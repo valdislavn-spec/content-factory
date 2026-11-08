@@ -22,6 +22,29 @@ Mastodon — бесплатная федеративная соцсеть без
 3. Scopes: **`read:accounts`**, **`write:statuses`** (для постов достаточно);
 4. Submit → откройте приложение → скопируйте **Your access token**.
 
+
+## 2.1 OAuth-скрипт (быстрый путь)
+
+Не нужно вручную создавать приложение в UI — есть помощник:
+
+```bash
+# 1. создать OAuth-приложение на инстансе (аккаунт пока не нужен)
+python scripts/mastodon_auth.py register
+#    → печатает ссылку авторизации
+
+# 2. зарегистрироваться на https://mastodon.social/start и открыть ссылку,
+#    нажать Authorize и скопировать код
+
+# 3. обменять код на токен и записать в .env
+python scripts/mastodon_auth.py token --code ВАШ_КОД --write-env
+
+# 4. проверить
+python scripts/mastodon_auth.py check
+```
+
+Права приложения ограничены `read:accounts` + `write:statuses`.
+Служебный файл приложения — `data/mastodon_app.json` (gitignored).
+
 ## 3. Переменные окружения
 
 В `.env` (локально) или GitHub Secrets (для Actions):
