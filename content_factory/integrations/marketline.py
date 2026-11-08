@@ -151,11 +151,29 @@ def kalshi_btc_line(
     market = _interesting_btc_market(collected)
     if market is None:
         market = sorted(collected, key=market_volume, reverse=True)[0]
-    subtitle = str(market.get("yes_sub_title") or "").strip()
+    label = _kalshi_label(market)
     price = yes_price_cents(market)
-    if not subtitle or price is None:
+    if not label or price is None:
         return ""
-    return "Kalshi: %s — %d¢" % (subtitle, price)
+    return "Kalshi: %s — %d¢" % (label, price)
+
+
+def _kalshi_label(market: Dict[str, Any]) -> str:
+    """Short but self-explanatory label: asset + target + deadline."""
+    import re
+
+    title = str(market.get("title") or "").strip()
+    subtitle = str(market.get("yes_sub_title") or "").strip()
+    haystack = title + " " + subtitle
+    target = ""
+    match = re.search(r"\$[\d,.]+\s*[kKmM]?", haystack)
+    if match:
+        target = match.group(0).replace(" ", "")
+    asset = "BTC" if re.search(r"bitcoin|btc", haystack, re.IGNORECASE) else ""
+    label = " ".join(part for part in (asset, target) if part).strip()
+    if label and subtitle:
+        return "%s · %s" % (label, subtitle)
+    return label or subtitle or title
 
 
 def format_market_line(

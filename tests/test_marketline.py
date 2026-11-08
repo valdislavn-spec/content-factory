@@ -78,7 +78,7 @@ def test_kalshi_line_prefers_price_target_market():
     from content_factory.integrations.marketline import kalshi_btc_line
 
     line = kalshi_btc_line(("KXBTCMAX100", "KXBTC"), markets_fetcher=markets_fetcher)
-    assert line == "Kalshi: Before January 2027 — 12¢"
+    assert line == "Kalshi: BTC $100k · Before January 2027 — 12¢"
     assert "KXBTCMAX100" in seen
 
 
