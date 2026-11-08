@@ -36,3 +36,43 @@ cd content-factory
 - Telemetr (telemetr.me) — карточка канала и аналитика.
 - Tlgrm.eu — каталог каналов.
 - Каталоги из `docs/promo/catalog-package.md` (медиакит уже готов).
+
+## Матрица каталогов (проверено 08.11.2026)
+
+| Каталог | Как попасть | Статус наших каналов | Кто может сделать |
+|---|---|---|---|
+| **WebGrupos** | публичная форма/API (без логина) | ✅ все 6 live | сделано |
+| **TGStat** | автопарсинг + подтверждение владельца через Telegram | ✅ @HOOPY0007 (verified, 3 665 подп., статистика постов); ❌ остальные 5 (404) | **вручную** |
+| **telegramchannels.me** | аккаунт в кабинете | ❌ не поданы | **вручную** |
+| **tdirectory.me** | модалка с reCAPTCHA | ❌ не поданы (капча) | **вручную** |
+| **telegramic.org** | «Add Channel» → их Telegram-бот | ❌ не поданы | **вручную** |
+| **tlgrm.eu** | форма forms.tlgrm.eu (из нашей сети недоступна) | ❌ не поданы | **вручную** (из браузера) |
+
+## Что сделать вручную (~10–15 минут, самое ценное — TGStat)
+
+TGStat — главный каталог для рекламодателей: если канала нет, рекламу не купят.
+Крипто-канал уже там и подтверждён; добавьте остальные 5:
+
+1. Откройте TGStat и войдите через Telegram: <https://tgstat.com/>
+2. Для каждого канала: `tgstat.com/channel/@<username>` → кнопка
+   **«Is this your channel? Confirm»** → подтверждение через TGStat-бота.
+   - @AINEWS0007
+   - @SPORTNews0007
+   - @WORLDNews0007
+   - @TechnologiesNews01
+   - @SPORTSAnalytics007
+   (если страницы «Channel not found» — в кабинете TGStat → «Добавить канал»,
+   либо @TGStat_Bot → `/add`.)
+3. **telegramchannels.me**: регистрация → <https://telegramchannels.me/cp/media/create>
+   → добавить 6 каналов (по статье: список появляется < 1 дня).
+4. **tdirectory.me**: на главной кнопка «Submit» → вставить ссылку + решить
+   reCAPTCHA → опубликовать (по 1 каналу).
+5. **telegramic.org**: «Add Channel» → их бот в Telegram → добавить каналы.
+6. **tlgrm.eu**: <https://tlgrm.eu/channels/suggest> (или форма из карточки канала).
+
+## Проверка результата
+
+- Через 72 ч: `site:webgrupos.net` / `site:tgstat.com @HOOPY0007` в Google.
+- Подписчики: недельная дельта в `growth-report` (Telegram-отчёт).
+- TGStat: после подтверждения появится статистика канала — её можно
+  использовать в медиаките для продажи рекламы.
