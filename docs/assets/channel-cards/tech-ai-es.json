@@ -1,0 +1,25 @@
+{
+  "channel_id": "tech-ai-es",
+  "language": "es",
+  "niche": "ai",
+  "affiliate": true,
+  "disclosure": "Ad · travel partner",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "IA en Español",
+    "description": "Modelos, productos, empresas y políticas de IA. Hipertextual, ABC Tecnología, FayerWayer y más. IA en Español — Modelos, productos, empresas y políticas de IA. Hipertextual, ABC Tecnología, FayerWayer y más. Nuevos modelos Startups y fondos IA que importa. Seguir en Telegram: https://t.me/WORLDNews0007\n✈️ Comparar vuelos baratos: https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales (Anuncio · socio de viajes · precios varían) #InteligenciaArtificial #IA #Telegram",
+    "alt_text": "IA en Español — Telegram channel card",
+    "link": "https://t.me/WORLDNews0007",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://raw.githubusercontent.com/valdislavn-spec/content-factory/main/docs/assets/channel-cards/tech-ai-es.png"
+    }
+  },
+  "travel": {
+    "name": "Aviasales",
+    "label": "Compare flight deals",
+    "label_es": "Comparar vuelos baratos",
+    "display": "is.gd/Flights",
+    "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales"
+  }
+}

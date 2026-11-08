@@ -1,0 +1,25 @@
+{
+  "channel_id": "crypto-es",
+  "language": "es",
+  "niche": "crypto",
+  "affiliate": true,
+  "disclosure": "Ad · travel partner",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Cripto & Blockchain",
+    "description": "Bitcoin, Ethereum, mercados y regulación en español. CriptoNoticias, BeInCrypto y las noticias que mueven el mercado. Cripto & Blockchain — Bitcoin, Ethereum, mercados y regulación en español. CriptoNoticias, BeInCrypto y las noticias que mueven el mercado. Bitcoin y ETFs Regulación en LatAm Mercado en 5 minutos. Seguir en Telegram: https://t.me/TechnologiesNews01\n✈️ Datos móviles para el viaje: https://links-tracker.valdislav-n.workers.dev/r/travel-yesim (Anuncio · socio de viajes · precios var",
+    "alt_text": "Cripto & Blockchain — Telegram channel card",
+    "link": "https://t.me/TechnologiesNews01",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://raw.githubusercontent.com/valdislavn-spec/content-factory/main/docs/assets/channel-cards/crypto-es.png"
+    }
+  },
+  "travel": {
+    "name": "Yesim",
+    "label": "Mobile data for the trip",
+    "label_es": "Datos móviles para el viaje",
+    "display": "is.gd/TravelData",
+    "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-yesim"
+  }
+}

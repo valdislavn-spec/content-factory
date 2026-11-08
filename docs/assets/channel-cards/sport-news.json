@@ -1,0 +1,25 @@
+{
+  "channel_id": "sport-news",
+  "language": "en",
+  "niche": "sports",
+  "affiliate": true,
+  "disclosure": "Ad · travel partner",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "US Sports News",
+    "description": "NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis. 16 updates a day, no fluff. US Sports News — NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis. 16 updates a day, no fluff. Scores & injuries Trades & rumors Playoff picture. Follow in Telegram: https://t.me/SPORTNews0007\n✈️ Book an airport transfer: https://links-tracker.valdislav-n.workers.dev/r/travel-kiwitaxi (Ad · travel partner · prices vary) #NFL #NBA #Telegram",
+    "alt_text": "US Sports News — Telegram channel card",
+    "link": "https://t.me/SPORTNews0007",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://raw.githubusercontent.com/valdislavn-spec/content-factory/main/docs/assets/channel-cards/sport-news.png"
+    }
+  },
+  "travel": {
+    "name": "Kiwitaxi",
+    "label": "Book an airport transfer",
+    "label_es": "Traslado al aeropuerto",
+    "display": "is.gd/AirportTaxi",
+    "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-kiwitaxi"
+  }
+}

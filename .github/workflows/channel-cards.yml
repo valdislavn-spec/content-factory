@@ -1,0 +1,124 @@
+name: channel-cards
+
+# Pinterest-style карточки Telegram-каналов (1000x1500) с описанием,
+# ссылкой на канал и travel-партнёрской ссылкой.
+# Публикация: Mastodon, Akkoma, Buffer (X/Bluesky/Facebook), Tumblr, Pinterest.
+# По умолчанию — dry-run: карточки генерируются и коммитятся, посты не уходят.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "dry-run = только сгенерировать/закоммитить, live = опубликовать"
+        required: true
+        default: "dry-run"
+        type: choice
+        options: ["dry-run", "live"]
+      platforms:
+        description: "Платформы через запятую: mastodon,akkoma,buffer,tumblr,pinterest"
+        required: false
+        default: "mastodon,akkoma,buffer,tumblr,pinterest"
+      channels:
+        description: "Только эти каналы (через запятую; пусто = все 6)"
+        required: false
+        default: ""
+      commit_cards:
+        description: "Коммитить PNG/JSON в docs/assets/channel-cards"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+concurrency:
+  group: channel-cards
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
+      MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
+      AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
+      AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      TUMBLR_CONSUMER_KEY: ${{ secrets.TUMBLR_CONSUMER_KEY }}
+      TUMBLR_CONSUMER_SECRET: ${{ secrets.TUMBLR_CONSUMER_SECRET }}
+      TUMBLR_OAUTH_TOKEN: ${{ secrets.TUMBLR_OAUTH_TOKEN }}
+      TUMBLR_OAUTH_TOKEN_SECRET: ${{ secrets.TUMBLR_OAUTH_TOKEN_SECRET }}
+      TUMBLR_BLOG: ${{ secrets.TUMBLR_BLOG }}
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate channel cards
+        run: |
+          python scripts/generate_channel_cards.py \
+            --out docs/assets/channel-cards \
+            --public-base "https://valdislavn-spec.github.io/content-factory" \
+            --only "${{ github.event.inputs.channels || '' }}"
+
+      - name: Commit cards (so public image URLs are live)
+        if: ${{ github.event.inputs.commit_cards != 'false' }}
+        run: |
+          git config user.name "content-factory-bot"
+          git config user.email "dev@content-factory.local"
+          git add docs/assets/channel-cards
+          if git diff --cached --quiet; then
+            echo "Карточки не изменились"
+            exit 0
+          fi
+          git commit -m "assets(channel-cards): Telegram channel promo cards (1000x1500)"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main || true
+            if git push origin HEAD:main; then
+              echo "Карточки запушены"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::не удалось запушить карточки"
+          exit 1
+
+      - name: Publish cards
+        run: |
+          FLAGS="--platforms '${{ github.event.inputs.platforms }}'"
+          if [ -n "${{ github.event.inputs.channels }}" ]; then
+            FLAGS="$FLAGS --channels '${{ github.event.inputs.channels }}'"
+          fi
+          if [ "${{ github.event.inputs.publish }}" = "live" ]; then
+            FLAGS="$FLAGS --live"
+          fi
+          eval python scripts/post_channel_cards.py $FLAGS | tee post.log
+          {
+            echo "### Channel cards"
+            echo '```'
+            tail -n 80 post.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload card artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: channel-cards-${{ github.run_id }}
+          path: |
+            docs/assets/channel-cards
+            data/reports/channel-cards-post-*.json
+          retention-days: 30
+          if-no-files-found: warn

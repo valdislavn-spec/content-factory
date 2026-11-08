@@ -1,0 +1,25 @@
+{
+  "channel_id": "ai-news",
+  "language": "en",
+  "niche": "ai",
+  "affiliate": true,
+  "disclosure": "Ad · travel partner",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "AI News",
+    "description": "Model releases, products, policy and the companies building AI. Daily updates from TechCrunch, The Verge, OpenAI and NVIDIA. AI News — Model releases, products, policy and the companies building AI. Daily updates from TechCrunch, The Verge, OpenAI and NVIDIA. New models & products AI policy & funding What actually matters. Follow in Telegram: https://t.me/AINEWS0007\n✈️ Get a travel eSIM: https://links-tracker.valdislav-n.workers.dev/r/travel-airalo (Ad · travel partner · prices vary) #AI #Machin",
+    "alt_text": "AI News — Telegram channel card",
+    "link": "https://t.me/AINEWS0007",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://raw.githubusercontent.com/valdislavn-spec/content-factory/main/docs/assets/channel-cards/ai-news.png"
+    }
+  },
+  "travel": {
+    "name": "Airalo",
+    "label": "Get a travel eSIM",
+    "label_es": "eSIM para viajar",
+    "display": "is.gd/TravelESIM",
+    "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-airalo"
+  }
+}

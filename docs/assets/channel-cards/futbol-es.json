@@ -1,0 +1,25 @@
+{
+  "channel_id": "futbol-es",
+  "language": "es",
+  "niche": "sports",
+  "affiliate": true,
+  "disclosure": "Ad · travel partner",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Deporte & Fútbol",
+    "description": "Resultados, fichajes y análisis en español. LaLiga, Champions y selecciones — todos los días. Deporte & Fútbol — Resultados, fichajes y análisis en español. LaLiga, Champions y selecciones — todos los días. Resultados y jornadas Fichajes y rumores Análisis táctico. Seguir en Telegram: https://t.me/SPORTSAnalytics007\n✈️ eSIM para viajar: https://links-tracker.valdislav-n.workers.dev/r/travel-airalo (Anuncio · socio de viajes · precios varían) #Fútbol #Deporte #Telegram",
+    "alt_text": "Deporte & Fútbol — Telegram channel card",
+    "link": "https://t.me/SPORTSAnalytics007",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://raw.githubusercontent.com/valdislavn-spec/content-factory/main/docs/assets/channel-cards/futbol-es.png"
+    }
+  },
+  "travel": {
+    "name": "Airalo",
+    "label": "Get a travel eSIM",
+    "label_es": "eSIM para viajar",
+    "display": "is.gd/TravelESIM",
+    "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-airalo"
+  }
+}

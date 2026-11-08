@@ -1,0 +1,25 @@
+{
+  "channel_id": "crypto-news",
+  "language": "en",
+  "niche": "crypto",
+  "affiliate": true,
+  "disclosure": "Ad · travel partner",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Crypto & Blockchain",
+    "description": "Bitcoin, Ethereum, markets, regulation and the companies moving the space. US-focused daily coverage. Crypto & Blockchain — Bitcoin, Ethereum, markets, regulation and the companies moving the space. US-focused daily coverage. Bitcoin & ETF flows SEC / CFTC regulation Market moves in 5 minutes. Follow in Telegram: https://t.me/HOOPY0007\n✈️ Compare flight deals: https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales (Ad · travel partner · prices vary) #Crypto #Bitcoin #Telegram",
+    "alt_text": "Crypto & Blockchain — Telegram channel card",
+    "link": "https://t.me/HOOPY0007",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://raw.githubusercontent.com/valdislavn-spec/content-factory/main/docs/assets/channel-cards/crypto-news.png"
+    }
+  },
+  "travel": {
+    "name": "Aviasales",
+    "label": "Compare flight deals",
+    "label_es": "Comparar vuelos baratos",
+    "display": "is.gd/Flights",
+    "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales"
+  }
+}
