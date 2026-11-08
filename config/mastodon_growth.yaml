@@ -1,0 +1,24 @@
+# Программа роста Mastodon: подписки на релевантных авторов, хэштеги, бусты.
+enabled: true
+state_path: data/mastodon_growth_state.json
+topics:
+  - bitcoin
+  - crypto
+  - ai
+  - travel
+  - fediverse
+follow:
+  daily_limit: 20
+  min_followers: 5
+  min_statuses: 10
+  max_followers: 200000
+  require_bio: true
+  languages: [en, es]
+  max_age_hours: 72
+boost:
+  daily_limit: 5
+  min_favourites: 1
+  max_followers: 200000
+  languages: [en, es]
+  max_age_hours: 48
+tags_follow: true
