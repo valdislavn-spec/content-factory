@@ -62,3 +62,48 @@ https://<реф-ссылка>?utm_source=tg_<channel>&utm_medium=telegram&utm_ca
   после этого я вытащу реф-ссылки и заполню таблицу.
 - Admitad/MEXC/KuCoin/Bitget/Kraken/Bybit из текущей сети недоступны —
   нужен ваш VPN/резидентный прокси.
+
+## 6. Шаблоны закрепов по каналам (подставить реф-ссылки)
+
+**crypto-news (EN)** — закреп «Tools & Exchanges»:
+```
+🔧 Tools & Exchanges we use
+
+• MEXC — spot & futures, fast listings → {{MEXC_REF}}
+• Bybit — derivatives & copy trading → {{BYBIT_REF}}
+• Bitget — copy trading, new listings → {{BITGET_REF}}
+• Kraken — regulated US exchange → {{KRAKEN_REF}}
+
+⚠️ Advertising / affiliate links. Crypto is volatile — do your own research.
+```
+
+**ai-news (EN)** — закреп «AI Tools»:
+```
+🤖 AI tools we cover & recommend
+
+• Writesonic — AI writing & GEO → {{WRITESONIC_REF}}
+• Synthesia — AI video avatars → {{SYNTHESIA_REF}}
+• ElevenLabs — AI voice → {{ELEVENLABS_REF}}
+• NordVPN — privacy for AI tools → {{NORDVPN_REF}}
+
+⚠️ Advertising / affiliate links.
+```
+
+**sport-news (EN)** — закреп «Partners» (18+):
+```
+🏆 Partners
+
+• 1xBet — live betting & odds → {{ONEXBET_REF}}
+• N1 Partners — betting offers → {{N1_REF}}
+
+⚠️ 18+. Advertising / affiliate links. Bet responsibly.
+```
+
+**ES-каналы** — аналогично: Hotmart (курсы), Writesonic, Bitget/MEXC, 1xBet/N1;
+маркировка «Publicidad / enlace de afiliado».
+
+## 7. Порядок публикации
+
+1. Закрепы (6 шт) — после получения ссылок.
+2. Затем реф-посты (1 на 5 обычных), начиная с crypto-news и ai-news.
+3. Ссылки в лендинг (footer) — после закрепов.
