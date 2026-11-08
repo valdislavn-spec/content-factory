@@ -41,6 +41,7 @@ pipeline:
   # Без пропусков слотов: если свежих статей нет — рекап из истории.
   fallback_recap_hours: 48      # окно свежих статей для рекапа
   fallback_from_posts_hours: 72 # окно последних постов для крайнего рекапа
+  fallback_recap_cooldown_hours: 10 # не повторять рекап из постов чаще раза в N часов
   fallback_min_cluster_chars: 80
   # post_generator: internal — встроенная генерация (LLM/extractive)
   # post_generator: dify_app — готовый пост из Dify workflow-приложения

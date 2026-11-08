@@ -118,6 +118,29 @@ def post_language_ok(text: str, language: str) -> bool:
     return detect_text_language([plain], default=lang) == lang
 
 
+def _published_url_hashes(
+    storage: Storage, channel: ChannelConfig, hours: float = 72
+) -> set:
+    """Хэши URL уже опубликованных источников — чтобы не повторять сюжеты."""
+    try:
+        urls = storage.recent_post_sources(channel.id, hours=hours)
+    except Exception:  # noqa: BLE001 - дедуп не должен ронять канал
+        log.debug("Не удалось получить URL последних постов %s", channel.id, exc_info=True)
+        return set()
+    return {url_hash(url) for url in urls if url}
+
+
+def _cluster_published(cluster: StoryCluster, published_hashes: set) -> bool:
+    """Сюжет уже публиковался, если хотя бы одна его статья есть в постах."""
+    if not published_hashes:
+        return False
+    for article in cluster.articles:
+        url = str(getattr(article, "url", "") or "")
+        if url and url_hash(url) in published_hashes:
+            return True
+    return False
+
+
 def filter_articles(
     channel: ChannelConfig,
     articles: Sequence[Article],
@@ -601,8 +624,14 @@ def _build_window_digest(
         recent = [strip_html(text) for text in storage.recent_post_titles(channel.id, hours=duplicate_window)]
     except Exception:  # noqa: BLE001
         recent = []
+    published_hashes = _published_url_hashes(storage, channel, duplicate_window)
+    # Сюжеты, чьи источники уже были в постах, повторно не публикуем.
+    window = [cluster for cluster in window if not _cluster_published(cluster, published_hashes)]
     fresh = [cluster for cluster in window if not is_duplicate_title(cluster.title, recent, threshold=0.55)]
-    window = fresh or window
+    if not fresh:
+        errors.append("дайджест: все сюжеты уже публиковались")
+        return None, errors
+    window = fresh
 
     min_chars = int(
         getattr(channel, "min_cluster_chars", 0)
@@ -717,10 +746,22 @@ def generate_posts(
             posts.append(digest)
             return posts, errors
 
+    duplicate_window = float(settings.pipeline.get("post_duplicate_window_hours", 72))
+    try:
+        recent_plain = [
+            strip_html(text)
+            for text in storage.recent_post_titles(channel.id, hours=duplicate_window)
+        ]
+    except Exception:  # noqa: BLE001
+        recent_plain = []
+    published_hashes = _published_url_hashes(storage, channel, duplicate_window)
+
     # Дайджест — один пост сразу по нескольким сюжетам.
     digest_clusters = [
         cluster for cluster in clusters
         if len((cluster.combined_text or "").strip()) >= min_chars
+        and not _cluster_published(cluster, published_hashes)
+        and not is_duplicate_title(cluster.title, recent_plain, threshold=0.55)
     ]
     if dify_generator is None and fmt == "digest" and (len(digest_clusters) >= 2 or (recap and digest_clusters)):
         try:
@@ -754,9 +795,6 @@ def generate_posts(
 
         clusters = sorted(list(clusters), key=_trend_rank)
 
-    duplicate_window = float(settings.pipeline.get("post_duplicate_window_hours", 72))
-    recent_titles = storage.recent_post_titles(channel.id, hours=duplicate_window)
-    recent_plain = [strip_html(text) for text in recent_titles]
     target_posts = max(1, max_posts)
     attempted = 0
     # Идём по всем сюжетам, пока не наберём нужное число постов: первый сюжет
@@ -772,6 +810,9 @@ def generate_posts(
         if current_fmt == "digest":
             current_fmt = "story"  # одиночный сюжет дайджестом не публикуем
         try:
+            if _cluster_published(cluster, published_hashes):
+                log.info("Пропуск уже опубликованного сюжета: %s", cluster.title)
+                continue
             if not recap and is_duplicate_title(cluster.title, recent_plain, threshold=0.55):
                 log.info("Пропуск повтора сюжета: %s", cluster.title)
                 continue
@@ -847,6 +888,17 @@ def _recap_from_posts(
 ) -> Optional[GeneratedPost]:
     """Дайджест из последних постов канала — гарантирует пост в каждом слоте."""
     try:
+        cooldown = float(settings.pipeline.get("fallback_recap_cooldown_hours", 10) or 10)
+        last_recap = storage.last_fallback_post_time(channel.id)
+        if last_recap is not None:
+            age_hours = (utcnow() - last_recap).total_seconds() / 3600.0
+            if age_hours < cooldown:
+                log.info(
+                    "Рекап пропущен: предыдущий рекап %.1f ч назад (кулдаун %.0f ч)",
+                    age_hours,
+                    cooldown,
+                )
+                return None
         hours = float(settings.pipeline.get("fallback_from_posts_hours", 72))
         rows = storage.get_posts(channel.id, days=hours / 24, limit=40)
         if not rows:

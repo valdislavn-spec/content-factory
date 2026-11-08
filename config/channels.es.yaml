@@ -54,6 +54,21 @@ channels:
   - quiz
   - quordle
   - juegos
+  - videojuego
+  - zelda
+  - netflix
+  - serie
+  - película
+  - pelicula
+  - true crime
+  - farándula
+  - celebridades
+  - espectáculos
+  - telenovela
+  - concierto
+  - turismo
+  - receta
+  - cocina
   tone: expert
   emoji: true
   hashtags:
@@ -83,7 +98,7 @@ channels:
   - "23:00"
   posts_per_day: 15
   strict_topics: true
-  min_relevance: 0.18
+  min_relevance: 0.30
   timezone_offset: -6
   max_post_chars: 1800
   cta: "Síguenos y comparte este post con un amigo."
