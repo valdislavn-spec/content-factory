@@ -26,6 +26,10 @@ on:
         description: "Фильтр Buffer: twitter,bluesky,facebook (пусто = все)"
         required: false
         default: ""
+      mastodon_links:
+        description: "1 = оставить внешние ссылки в Mastodon (для прогретых аккаунтов)"
+        required: false
+        default: "0"
       commit_cards:
         description: "Коммитить PNG/JSON в docs/assets/channel-cards"
         required: true
@@ -47,6 +51,7 @@ jobs:
     env:
       MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
       MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
+      MASTODON_LINKS: ${{ github.event.inputs.mastodon_links }}
       AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
       AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}

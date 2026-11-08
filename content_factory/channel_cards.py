@@ -270,6 +270,14 @@ def build_caption(
             f"{' '.join(card.bullets)}. {links} {tags}"
         )
         return body[:480]
+    if platform == "mastodon_nolinks":
+        # mastodon.social режет новые аккаунты с внешними ссылками: ссылки
+        # остаются на картинке, в тексте — только описание и @handle.
+        body = (
+            f"{heading}\n\n{short_desc}\n\n{bullets}\n\n"
+            f"{card.cta}: {card.handle} (links are on the card)\n\n{tags}"
+        )
+        return body[:480]
     # mastodon / akkoma / tumblr
     body = f"{heading}\n\n{short_desc}\n\n{bullets}\n\n{links}\n\n{tags}"
     return body[:480]
@@ -523,7 +531,7 @@ def card_manifest(
         travel = travel_offer(start_index + offset)
         captions = {
             platform: build_caption(card, platform, travel)
-            for platform in ("mastodon", "akkoma", "x", "bluesky", "facebook", "tumblr", "pinterest")
+            for platform in ("mastodon", "mastodon_nolinks", "akkoma", "x", "bluesky", "facebook", "tumblr", "pinterest")
         }
         rows.append(
             {

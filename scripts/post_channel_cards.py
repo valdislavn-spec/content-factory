@@ -163,7 +163,10 @@ def _fediverse_publish(
     platform: str,
     dry_run: bool,
 ) -> Dict[str, Any]:
-    caption = _clip(row["captions"].get(platform) or row["captions"]["mastodon"], FEDIVERSE_LIMIT)
+    caption_key = platform
+    if platform == "mastodon" and _env("MASTODON_LINKS").lower() not in {"1", "true", "yes", "on"}:
+        caption_key = "mastodon_nolinks"
+    caption = _clip(row["captions"].get(caption_key) or row["captions"]["mastodon"], FEDIVERSE_LIMIT)
     if dry_run:
         return {"ok": True, "dry_run": True, "text": caption}
     media = _post_multipart(
