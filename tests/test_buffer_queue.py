@@ -1,6 +1,6 @@
 """Tests for the Buffer daily queue (no network)."""
 
-from scripts.buffer_queue import build_text, clip, hub_link
+from scripts.buffer_queue import build_assets, build_text, clip, hub_link
 
 CONFIG = {
     "niches": {
@@ -90,3 +90,37 @@ def test_unknown_service_falls_back():
     channel = {"service": "mastodon", "max_chars": 500, "utm": {"utm_source": "m"}}
     text = build_text(PIN, channel, HUB, CONFIG)
     assert len(text) <= 500
+
+
+def test_assets_from_pin_image():
+    pin = dict(PIN)
+    pin["image_url"] = "https://example.com/article.png"
+    assert build_assets(pin) == [{"image": {"url": "https://example.com/article.png"}}]
+    pin["image_url"] = ""
+    assert build_assets(pin) == []
+
+
+def test_short_links_and_channel(monkeypatch):
+    calls = []
+
+    def fake_shorten(url):
+        calls.append(url)
+        return "https://tinyurl.com/" + str(len(calls))
+
+    monkeypatch.setattr("scripts.buffer_queue.shorten_url", fake_shorten)
+    config = dict(CONFIG)
+    config["links"] = {"shorten": True, "channel_default": "https://t.me/HOOPY0007"}
+    config["niche_channels"] = {"travel": "https://t.me/AINEWS0007"}
+    text = build_text(PIN, CHANNEL_X, HUB, config)
+    assert "https://tinyurl.com/" in text
+    assert "Telegram: https://t.me/AINEWS0007" in text
+    assert "Guide: https://tinyurl.com/" in text
+    # сокращаются статья и канал; канал короткий, поэтому остаётся t.me-ссылка
+    assert calls, "shortener должен вызываться для ссылки на статью"
+
+
+def test_image_does_not_break_text_fit():
+    pin = dict(PIN)
+    pin["image_url"] = "https://example.com/article.png"
+    text = build_text(pin, CHANNEL_BSKY, HUB, CONFIG)
+    assert len(text) <= 300

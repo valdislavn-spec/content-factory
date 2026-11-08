@@ -40,10 +40,20 @@
 python scripts/buffer_queue.py --date 2026-11-08
 ```
 
+## Картинка и ссылки (с 08.11.2026)
+
+- **Картинка статьи** (пина, `image_url`) прикладывается к посту через
+  Buffer `assets: [{image: {url}}]` (схема из [Create Image Post](https://developers.buffer.com/examples/create-image-post.html)).
+  Картинка Telegram-канала больше не используется.
+- **Ссылка на статью** — `go/<slug>.html` (если есть) или hub; сокращается
+  через TinyURL до «одного слова».
+- **Ссылка на канал** — `links.channel_default` / `niche_channels` в конфиге,
+  подставляется в каждый пост (`Telegram: https://t.me/…`).
+- Длинные ссылки сокращаются (`links.shorten: true`), лимиты X/Bluesky при этом соблюдаются.
+
 ## Что можно улучшить дальше
 
-1. **Картинки**: Buffer `createPost` поддерживает `assets` — добавить обложку пина и
-   `altText` (обязательно для Bluesky). Нужно проверить схему AssetInput на живом API.
+1. **Alt-текст**: схема Buffer в примере не показывает `altText`; если появится — добавить (важно для Bluesky).
 2. **A/B**: чередовать CTA («Full guide:» vs «Save this:») и замерять клики по UTM.
 3. **Время**: Buffer сам ставит в очередь; при ручном расписании — X утро, FB 13:00–15:00,
    Bluesky — по активности аудитории.

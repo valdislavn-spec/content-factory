@@ -4,6 +4,16 @@
 organization_id: 68d276b0ab330eddbacc2da8
 hub_url: https://valdislavn-spec.github.io/content-factory/
 
+# Ссылки в каждом посте: статья (пин) + Telegram-канал, обе сокращаются.
+links:
+  shorten: true                 # TinyURL: длинные ссылки → одно короткое слово
+  channel_default: https://t.me/HOOPY0007
+niche_channels:
+  travel: https://t.me/HOOPY0007
+  crypto: https://t.me/HOOPY0007
+  ai: https://t.me/AINEWS0007
+  sports: https://t.me/SPORTNews0007
+
 # Стиль под нишу пина: эмодзи, хэштеги, CTA. Подставляется в шаблоны постов.
 niches:
   travel:

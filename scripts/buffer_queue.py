@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from content_factory.integrations.buffer import BufferClient, BufferError  # noqa: E402
+from content_factory.integrations.shortlink import shorten_url  # noqa: E402
 
 
 def hub_link(base: str, utm: dict) -> str:
@@ -97,6 +98,38 @@ def _tags(style: dict, maximum: int) -> str:
     return " ".join(tags[:max(0, maximum)])
 
 
+def _short(url: str, enabled: bool) -> str:
+    """Короткая ссылка (TinyURL) — «одно слово» вместо длинного URL."""
+    if not enabled or not url:
+        return url
+    return shorten_url(url)
+
+
+def article_link(pin: dict, hub_url: str) -> str:
+    """Ссылка на статью/гайд пина: go/<slug>.html (если есть) или hub."""
+    slug = str(pin.get("slug") or "").strip()
+    if pin.get("article_url"):
+        return str(pin["article_url"])
+    if slug and (ROOT / "docs" / "go" / (slug + ".html")).exists():
+        return hub_url.rstrip("/") + "/go/" + slug + ".html"
+    return hub_url
+
+
+def channel_link(config: dict, niche: str) -> str:
+    """Ссылка на Telegram-канал под нишу (fallback — основной канал)."""
+    links = (config or {}).get("links") or {}
+    niche_links = (config or {}).get("niche_channels") or {}
+    return str(niche_links.get(niche) or links.get("channel_default") or "")
+
+
+def build_assets(pin: dict) -> list:
+    """Картинка статьи (пина) для Buffer: assets=[{image:{url}}]."""
+    image = str(pin.get("image_url") or "").strip()
+    if not image.startswith(("http://", "https://")):
+        return []
+    return [{"image": {"url": image}}]
+
+
 def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
     """Собирает пост и гарантированно укладывается в лимит, не режа по живому."""
     text = hook + ("\n\n" + benefit if benefit else "") + "\n\n" + footer
@@ -112,43 +145,49 @@ def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
     return clip(hook, max(20, room)) + "\n\n" + footer
 
 
-def build_x(pin: dict, link: str, style: dict, limit: int = 280) -> str:
-    """X: хук в первой строке, 0 хэштегов (NLP-алгоритм), ссылка в конце."""
+def _link_lines(article: str, channel: str) -> str:
+    lines = []
+    if article:
+        lines.append("Guide: " + article)
+    if channel:
+        lines.append("Telegram: " + channel)
+    return " · ".join(lines)
+
+
+def build_x(pin: dict, link: str, style: dict, limit: int = 280, channel: str = "") -> str:
+    """X: хук в первой строке, 0 хэштегов, короткие ссылки (статья + канал)."""
     disclosure = " Ad" if pin.get("affiliate") else ""
-    cta = str(style.get("cta") or "").strip()
     hook = _hook(pin.get("title") or "", 120)
-    footer = (cta + " " + link + disclosure).strip()
+    footer = (_link_lines(link, channel) + disclosure).strip()
     benefit = _first_sentence(pin.get("description") or "", 120)
     return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
 
 
-def build_bluesky(pin: dict, link: str, style: dict, limit: int = 300) -> str:
-    """Bluesky: хук с эмодзи, 1–3 хэштега, ссылка; альт-текст — отдельно."""
+def build_bluesky(pin: dict, link: str, style: dict, limit: int = 300, channel: str = "") -> str:
+    """Bluesky: хук с эмодзи, 1–3 хэштега, короткие ссылки статья + канал."""
     disclosure = " Ad" if pin.get("affiliate") else ""
     emoji = str(style.get("emoji") or "").strip()
     tags = _tags(style, 3)
-    cta = str(style.get("cta") or "").strip()
     hook = (emoji + " " + _hook(pin.get("title") or "", 120)).strip()
-    footer = (cta + " " + link + disclosure + (" " + tags if tags else "")).strip()
+    footer = (_link_lines(link, channel) + disclosure + (" " + tags if tags else "")).strip()
     benefit = _first_sentence(pin.get("description") or "", 120)
     return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
 
 
-def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000) -> str:
-    """Facebook: хук <80 симв., 2–3 пункта, вопрос, ссылка, 0–2 тега."""
+def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000, channel: str = "") -> str:
+    """Facebook: хук <80 симв., пункты, вопрос, статья + канал, 0–2 тега."""
     disclosure = " Ad" if pin.get("affiliate") else ""
     emoji = str(style.get("emoji") or "").strip()
     tags = _tags(style, 2)
     hook = (emoji + " " + _hook(pin.get("title") or "", 80)).strip()
     bullets = _bullets(pin.get("description") or "")
-    cta = str(style.get("cta") or "").strip()
     question = str(style.get("question") or "").strip()
     parts = [hook]
     if bullets:
         parts.append(bullets)
     if question:
         parts.append(question)
-    parts.append((cta + " " + link + disclosure).strip())
+    parts.append(_link_lines(link, channel) + disclosure)
     if tags:
         parts.append(tags)
     return clip("\n\n".join(parts), limit, keep_lines=True)
@@ -157,21 +196,27 @@ def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000) -> str:
 def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None) -> str:
     service = str(channel.get("service") or "")
     limit = int(channel.get("max_chars") or 280)
-    style = _style(config or {}, str(pin.get("niche") or ""))
-    link = hub_link(hub_url, channel.get("utm") or {})
-    if service in ("twitter", "x", "bluesky"):
-        # У X/Bluesky жёсткие лимиты — убираем utm_medium/campaign, оставляем source.
-        utm = channel.get("utm") or {}
-        link = hub_link(hub_url, {"utm_source": utm.get("utm_source")} if utm.get("utm_source") else {})
+    niche = str(pin.get("niche") or "")
+    style = _style(config or {}, niche)
+    links_config = (config or {}).get("links") or {}
+    shorten = bool(links_config.get("shorten", False))
+    utm = channel.get("utm") or {}
+    article = article_link(pin, hub_url)
+    if utm.get("utm_source"):
+        article = hub_link(article, {"utm_source": utm.get("utm_source")})
+    article = _short(article, shorten)
+    tg_link = channel_link(config, niche)
+    # t.me-ссылки и так короткие — сокращаем только длинные.
+    tg_channel = _short(tg_link, shorten) if len(tg_link) > 40 else tg_link
     if service in ("twitter", "x"):
-        return build_x(pin, link, style, limit)
+        return build_x(pin, article, style, limit, tg_channel)
     if service == "bluesky":
-        return build_bluesky(pin, link, style, limit)
+        return build_bluesky(pin, article, style, limit, tg_channel)
     if service == "facebook":
-        return build_facebook(pin, link, style, limit)
+        return build_facebook(pin, article, style, limit, tg_channel)
     title_part = clip(pin.get("title") or "", 90)
-    description_part = clip(pin.get("description") or "", max(20, limit - len(title_part) - len(link) - 10))
-    return clip(title_part + "\n\n" + description_part + "\n\n" + link, limit)
+    description_part = clip(pin.get("description") or "", max(20, limit - len(title_part) - len(article) - 10))
+    return clip(title_part + "\n\n" + description_part + "\n\n" + _link_lines(article, tg_channel), limit)
 
 
 def main(argv=None) -> int:
@@ -221,10 +266,13 @@ def main(argv=None) -> int:
     sidecar = json.loads(pin_files[index].read_text(encoding="utf-8"))
     pin_payload = sidecar.get("pin") or {}
     pin = {
+        "slug": pin_files[index].stem,
         "title": pin_payload.get("title") or sidecar.get("title") or "",
         "description": pin_payload.get("description") or sidecar.get("description") or "",
         "niche": sidecar.get("niche") or pin_payload.get("niche") or "",
         "alt_text": pin_payload.get("alt_text") or sidecar.get("alt_text") or "",
+        "image_url": sidecar.get("image_url") or pin_payload.get("media_source", {}).get("url") or "",
+        "article_url": sidecar.get("article_url") or "",
         "affiliate": bool(sidecar.get("affiliate") or pin_payload.get("link")),
     }
     print("pin:", pin_files[index].name, "| date:", day, "| channels:", len(channels))
@@ -234,6 +282,7 @@ def main(argv=None) -> int:
     slug_link = hub_url
     if slug in affiliate_slugs:
         slug_link = "%s/go/%s.html" % (hub_url.rstrip("/"), slug)
+    assets = build_assets(pin)
     for channel in channels:
         text = build_text(pin, channel, slug_link, config)
         record = {
@@ -243,6 +292,7 @@ def main(argv=None) -> int:
             "name": channel.get("name"),
             "text": text,
             "chars": len(text),
+            "image": assets[0]["image"]["url"] if assets else "",
             "mode": mode,
             "ok": False,
         }
@@ -253,6 +303,7 @@ def main(argv=None) -> int:
                     text,
                     mode=mode,
                     metadata=channel.get("metadata"),
+                    assets=assets or None,
                 )
                 record.update({"ok": True, "post_id": post.get("id"), "due_at": post.get("dueAt")})
                 print("queued:", channel.get("service"), "->", post.get("dueAt"))
@@ -262,6 +313,8 @@ def main(argv=None) -> int:
         else:
             record["ok"] = True
             print("--- %s (%d chars) ---\n%s" % (channel.get("service"), len(text), text))
+            if assets:
+                print("[image] %s" % assets[0]["image"]["url"])
         results.append(record)
 
     report_dir = Path(args.report)
