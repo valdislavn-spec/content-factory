@@ -126,6 +126,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"json: {json_path}", file=sys.stderr)
 
     if args.send:
+        # Не шумим в Telegram, если endpoint заблокирован (403) и данных нет:
+        # ежедневный «пустой» отчёт хуже молчания — причину пишем в лог раннера.
+        if not ok:
+            print("нет данных — сводку в Telegram не отправляю", file=sys.stderr)
+            return 0
         return send_telegram(format_telegram(rows))
     return 0
 
