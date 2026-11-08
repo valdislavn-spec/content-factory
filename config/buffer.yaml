@@ -1,0 +1,36 @@
+# Buffer: дублирование дневного пина в подключённые соцсети.
+# Free plan = 3 канала: Bluesky, X (twitter), Facebook.
+# Ключ: BUFFER_API_KEY (Buffer → Settings → API).
+organization_id: 68d276b0ab330eddbacc2da8
+hub_url: https://valdislavn-spec.github.io/content-factory/
+# один пин в день, дальше — очередь Buffer (addToQueue)
+mode: addToQueue
+
+channels:
+  - service: bluesky
+    name: BRAVE
+    channel_id: 6ae8d9bae29c69a1713c812f
+    max_chars: 300
+    utm:
+      utm_source: bsky
+      utm_medium: social
+      utm_campaign: daily_pin
+  - service: twitter
+    name: NValdislav
+    channel_id: 6951b346457dae6a34bd5e32
+    max_chars: 280
+    utm:
+      utm_source: x
+      utm_medium: social
+      utm_campaign: daily_pin
+  - service: facebook
+    name: The best offers
+    channel_id: 695c387b457dae6a34e00408
+    max_chars: 5000
+    utm:
+      utm_source: facebook
+      utm_medium: social
+      utm_campaign: daily_pin
+    metadata:
+      facebook:
+        type: post
