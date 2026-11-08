@@ -1,0 +1,123 @@
+# Стартовая очередь постов для Mastodon (≤500 символов на пост).
+# Публикация: python scripts/mastodon_publish.py            # dry-run
+#             python scripts/mastodon_publish.py --apply    # реально
+# Креды (в .env или GitHub Secrets):
+#   MASTODON_BASE_URL / MASTODON_TOKEN
+#   либо per-channel: MASTODON_BASE_URL_<CHANNEL_ID> / MASTODON_TOKEN_<CHANNEL_ID>
+posts:
+  - channel: ai-news
+    language: en
+    visibility: public
+    text: |
+      We're now on Mastodon 🛰
+
+      AI News — the Telegram channel where AI funding, models and policy are explained in plain language. No hype and no listicles: what happened, with context and sources.
+
+      Follow, boost, and say hi 👋
+      https://t.me/AINEWS0007
+
+      #AI #MachineLearning #OpenAI #Mastodon
+
+  - channel: ai-news
+    language: en
+    visibility: public
+    text: |
+      OpenAI reportedly raised another $11B at a $1.25T valuation, with the round targeting up to $20B. The money is not for a new model — it is for compute, data and long-term research bets. Anthropic is nearing an IPO as AI spending cools.
+
+      Full story: https://t.me/AINEWS0007
+
+      #OpenAI #AI #Anthropic #AIFunding
+
+  - channel: ai-news
+    language: en
+    visibility: public
+    text: |
+      A quiet shift in AI: smaller models with better tools are beating giant ones on real tasks. Teams pick models by latency and price now, not benchmark rank. One-model-fits-all is over.
+
+      More analysis: https://t.me/AINEWS0007
+
+      #AI #LLM #Mastodon
+
+  - channel: crypto-news
+    language: en
+    visibility: public
+    text: |
+      We're on Mastodon 🪙
+
+      Crypto & Blockchain — daily crypto news in a Telegram channel: Bitcoin, Ethereum, regulation and the business of blockchains. Neutral tone, sources, no shilling.
+
+      Follow and boost 🚀
+      https://t.me/HOOPY0007
+
+      #Crypto #Bitcoin #Blockchain #Mastodon
+
+  - channel: crypto-news
+    language: en
+    visibility: public
+    text: |
+      US Treasury sanctioned eight Canadian money-service firms over ties to Iranian entities and moved to cut MEXC from the US financial system. FinCEN says MEXC handled transactions for sanctioned groups between 2021 and 2026.
+
+      Full story: https://t.me/HOOPY0007
+
+      #Crypto #MEXC #Regulation #Bitcoin
+
+  - channel: sport-news
+    language: en
+    visibility: public
+    text: |
+      We're on Mastodon 🏆
+
+      US Sports News — scores, trades and the business of sport, in short daily posts. Context over hot takes.
+
+      Follow: https://t.me/SPORTNews0007
+
+      #Sports #NFL #NBA #Mastodon
+
+  - channel: sport-news
+    language: en
+    visibility: public
+    text: |
+      NFL midseason picture: the contenders are separating, QB injuries are reshaping divisions, and the trade deadline is near. We track the numbers behind the headlines.
+
+      More: https://t.me/SPORTNews0007
+
+      #NFL #Sports #Football
+
+  - channel: tech-ai-es
+    language: es
+    visibility: public
+    text: |
+      ¡Estamos en Mastodon! 🛰
+
+      ES AI News — noticias de IA en español: financiación, modelos, regulación y herramientas. Con contexto y fuentes, sin hype.
+
+      Síguenos y comparte 👋
+      https://t.me/WORLDNews0007
+
+      #IA #InteligenciaArtificial #Mastodon
+
+  - channel: crypto-es
+    language: es
+    visibility: public
+    text: |
+      ¡Ya estamos en Mastodon! 🪙
+
+      ES Crypto & Blockchain — noticias de cripto en español: Bitcoin, Ethereum, regulación y blockchain. Sin promesas de rentabilidad.
+
+      Síguenos 🚀
+      https://t.me/TechnologiesNews01
+
+      #Cripto #Bitcoin #Blockchain #Mastodon
+
+  - channel: futbol-es
+    language: es
+    visibility: public
+    text: |
+      ¡Estamos en Mastodon! ⚽
+
+      ES Sports Analytics — fútbol con análisis: datos, fichajes y contexto de La Liga, Liga MX y el fútbol internacional.
+
+      Síguenos ⚽
+      https://t.me/SPORTSAnalytics007
+
+      #Fútbol #LaLiga #LigaMX #Mastodon
