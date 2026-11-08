@@ -189,6 +189,9 @@ class GeneratorTestBase(unittest.TestCase):
         # Ссылки — только реальные URL из статей кластера.
         expected_urls = {article.url for article in cluster.articles}
         for href in collector.hrefs:
+            # Пост может содержать ссылку на добровольную поддержку канала.
+            if "donationalerts.com" in href:
+                continue
             self.assertIn(href, expected_urls)
         self.assertTrue(post.sources)
         for source in post.sources:
