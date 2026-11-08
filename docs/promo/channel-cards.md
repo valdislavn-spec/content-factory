@@ -38,6 +38,45 @@ Travel-ссылки ротируются по карточкам (см. `TRAVEL_
 `content_factory/channel_cards.py`), клики считаются
 [трекером](../monetization/link-tracker.md).
 
+## Опубликовано 08.11.2026
+
+**Mastodon** (@amazing_Brave007) — 6 постов с картинками; из-за фильтра
+mastodon.social для новых аккаунтов подписи без внешних ссылок (ссылки видны
+на карточке):
+- Crypto: https://mastodon.social/@amazing_Brave007/117582993196830122
+- AI: https://mastodon.social/@amazing_Brave007/117582993318079174
+- US Sports: https://mastodon.social/@amazing_Brave007/117582993395781914
+- Cripto ES: https://mastodon.social/@amazing_Brave007/117582993538437325
+- IA ES: https://mastodon.social/@amazing_Brave007/117582993625823334
+- Deporte ES: https://mastodon.social/@amazing_Brave007/117582993715244517
+
+**Akkoma** (@hoopy0007@nuages.cloud) — 6 постов с картинками и кликабельными
+ссылками (Telegram + travel):
+- https://nuages.cloud/notice/BCFdGuYMySRflkLAeG
+- https://nuages.cloud/notice/BCFdH2sA2l1vZRf5bk
+- https://nuages.cloud/notice/BCFdH9hmdjt8lHrOu8
+- https://nuages.cloud/notice/BCFdHGeUoMPyJ7NNFg
+- https://nuages.cloud/notice/BCFdHMg8PBIGzwBldg
+- https://nuages.cloud/notice/BCFdHUhqYhPttZ3FQ0
+
+**Tumblr** (vlad-007) — 6 photo-постов:
+- https://vlad-007.tumblr.com/post/832751744479084544
+- https://vlad-007.tumblr.com/post/832751745770946560
+- https://vlad-007.tumblr.com/post/832751746591883264
+- https://vlad-007.tumblr.com/post/832751747741188096
+- https://vlad-007.tumblr.com/post/832751748550721536
+- https://vlad-007.tumblr.com/post/832751749550997505
+
+**Buffer** — 18 постов в очереди (6 Bluesky, 6 X, 6 Facebook), разойдутся по
+слотам Buffer; картинки берутся с публичных URL, текст адаптирован под лимиты.
+
+**Pinterest** — токен `PINTEREST_ACCESS_TOKEN` возвращает 401 (истёк/отозван):
+пины не созданы. Карточки уже в формате Pinterest (1000×1500), payloads лежат в
+`docs/assets/channel-cards/<channel>.json`; после обновления токена запустите
+workflow с `platforms: pinterest`.
+
+![Crypto & Blockchain card](../assets/channel-cards/crypto-news.png)
+
 ## Запуск
 
 ```bash
