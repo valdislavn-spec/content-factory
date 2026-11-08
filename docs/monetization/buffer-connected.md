@@ -185,3 +185,11 @@ Facebook 06:32Z). Pinterest в Buffer на Free-плане не влезает (
 
 
 Форматы постов под X/Facebook/Bluesky и источники практик: [buffer-posts-formats.md](buffer-posts-formats.md).
+
+### Обновление слота 19:16 UTC (19:06)
+Тексты обновлены свежими новостями (editPost), ссылки однословные:
+- Bluesky `6af09262004e4879a7c54a51` — 169 зн., scheduled 19:16
+- X `6af0926351492b796e4615c8` — 118 зн., scheduled 19:16
+- Facebook `6af092649214322f685f2a60` — 379 зн., scheduled 19:16
+Темы: Bitcoin quantum-resistance, AI chip stocks/bubble, OpenAI $11B, NC State/Rivers.
+Следующий слот — 21:16 UTC (напоминание 21:05).
