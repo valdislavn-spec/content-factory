@@ -1,0 +1,48 @@
+name: reddit-auth
+
+# Одноразовая авторизация Reddit для получения refresh_token (без пароля).
+# 1) Run workflow с пустым code → в логе будет ссылка авторизации.
+# 2) Открой ссылку, разреши доступ, скопируй code из redirect-URL.
+# 3) Run workflow с code=... → в артефакте reddit-refresh-token будет токен.
+# 4) Добавь его в Secrets как REDDIT_REFRESH_TOKEN и удали артефакт.
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "code из redirect-URL (пусто = только ссылка авторизации)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+      REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Auth URL
+        if: ${{ inputs.code == '' }}
+        run: python scripts/reddit_oauth.py --url
+      - name: Exchange code
+        if: ${{ inputs.code != '' }}
+        run: python scripts/reddit_oauth.py --code "${{ inputs.code }}"
+      - name: Upload refresh token
+        if: ${{ inputs.code != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reddit-refresh-token
+          path: data/reddit_refresh_token.txt
+          retention-days: 1

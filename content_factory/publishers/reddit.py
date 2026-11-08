@@ -46,6 +46,7 @@ class RedditPublisher(SocialPublisher):
             "client_secret": self._env(channel, "REDDIT_CLIENT_SECRET"),
             "username": self._env(channel, "REDDIT_USERNAME"),
             "password": self._env(channel, "REDDIT_PASSWORD"),
+            "refresh_token": self._env(channel, "REDDIT_REFRESH_TOKEN"),
             "subreddit": self._env(channel, "REDDIT_SUBREDDIT"),
         }
 
@@ -61,10 +62,16 @@ class RedditPublisher(SocialPublisher):
                 "password": env("REDDIT_PASSWORD", "") or "",
                 "subreddit": env("REDDIT_SUBREDDIT", "") or "",
             }
-        missing = [key for key, value in creds.items() if not str(value or "").strip()]
+        required = ["client_id", "client_secret", "subreddit"]
+        missing = [key for key in required if not str(creds.get(key) or "").strip()]
+        has_password = bool(creds.get("username") and creds.get("password"))
+        has_refresh = bool(str(creds.get("refresh_token") or "").strip())
+        if not has_password and not has_refresh:
+            missing.append("refresh_token_or_username_password")
         if missing:
             return False, "Reddit не настроен: нет " + ", ".join(key.upper() for key in missing)
-        return True, "Reddit r/{}".format(creds["subreddit"].strip().lstrip("r/"))
+        mode = "refresh-token" if has_refresh else "password"
+        return True, "Reddit r/{} ({})".format(creds["subreddit"].strip().lstrip("r/"), mode)
 
     @staticmethod
     def _user_agent(username: str) -> str:
@@ -74,14 +81,18 @@ class RedditPublisher(SocialPublisher):
         basic = base64.b64encode(
             "{}:{}".format(creds["client_id"], creds["client_secret"]).encode("utf-8")
         ).decode("ascii")
-        payload = {
-            "grant_type": "password",
-            "username": creds["username"],
-            "password": creds["password"],
-            # /api/submit требует submit; identity нужен, если будем проверять
-            # аккаунт через /api/v1/me.
-            "scope": "submit,read,identity",
-        }
+        refresh = str(creds.get("refresh_token") or "").strip()
+        if refresh:
+            payload = {"grant_type": "refresh_token", "refresh_token": refresh}
+        else:
+            payload = {
+                "grant_type": "password",
+                "username": creds["username"],
+                "password": creds["password"],
+                # /api/submit требует submit; identity нужен, если будем проверять
+                # аккаунт через /api/v1/me.
+                "scope": "submit,read,identity",
+            }
         headers = {
             "Authorization": "Basic {}".format(basic),
             "User-Agent": self._user_agent(creds["username"]),
