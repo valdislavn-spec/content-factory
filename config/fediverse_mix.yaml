@@ -8,6 +8,13 @@ telegram_ai: https://t.me/AINEWS0007
 travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default
 travel_disclosure: "Ad · travel partner · prices vary."
 
+# Красивые обложки: график BTC для крипто, AI-карточка, travel-карточка
+image:
+  enabled: true
+  width: 1200
+  height: 675
+  footer: "Crypto & Blockchain · t.me/HOOPY0007"
+
 crypto_headlines:
   - "BTC holds above $76k as traders watch ETF flows and the next macro signal."
   - "Crypto markets are grinding higher: what the last 24h says about positioning."

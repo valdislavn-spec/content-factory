@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import logging
 import os
@@ -20,7 +21,9 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -70,7 +73,7 @@ def market_line(client: Optional[BingXClient] = None) -> str:
     return " · ".join(parts)
 
 
-def build_post(config: Dict[str, Any], topic: str, index: int) -> str:
+def build_post(config: Dict[str, Any], topic: str, index: int) -> Tuple[str, Dict[str, Any]]:
     templates = config.get("templates") or {}
     template = str(templates.get(topic) or "").strip()
     if not template:
@@ -81,14 +84,23 @@ def build_post(config: Dict[str, Any], topic: str, index: int) -> str:
         "travel_link": config.get("travel_link", ""),
         "travel_disclosure": config.get("travel_disclosure", "Ad · partner link."),
     }
+    meta: Dict[str, Any] = {}
     if topic == "crypto":
         headlines = config.get("crypto_headlines") or ["Crypto markets update."]
         values["headline"] = headlines[index % len(headlines)]
         values["market_line"] = market_line()
+        meta["headline"] = values["headline"]
+        meta["market"] = values["market_line"]
+        try:
+            from content_factory.integrations.bingx import BingXClient
+            meta["klines"] = BingXClient().klines("BTC/USDT", "1h", 24)
+        except Exception:  # noqa: BLE001
+            meta["klines"] = []
     if topic == "ai":
         angles = config.get("ai_angles") or ["AI and trading are converging."]
         values["ai_angle"] = angles[index % len(angles)]
-    return template.format(**values)
+        meta["angle"] = values["ai_angle"]
+    return template.format(**values), meta
 
 
 def publish(status: str, timeout: float = 30.0) -> Dict[str, Any]:
@@ -99,6 +111,216 @@ def publish(status: str, timeout: float = 30.0) -> Dict[str, Any]:
     request = urllib.request.Request(
         base + "/api/v1/statuses",
         data=json.dumps({"status": status, "visibility": "public", "language": "en"}).encode(),
+        headers={
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "content-factory-fediverse/1.0",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8", "replace") or "{}")
+
+
+BG = (16, 20, 28)
+FG = (240, 244, 248)
+MUTED = (150, 165, 180)
+ACCENTS = {"crypto": (247, 147, 26), "ai": (99, 179, 237), "travel": (72, 187, 150)}
+WIDTH, HEIGHT = 1200, 675
+
+
+def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+    candidates = [
+        "/System/Library/Fonts/Helvetica.ttc",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold else "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except Exception:  # noqa: BLE001
+            continue
+    return ImageFont.load_default()
+
+
+def _wrap(text: str, font: ImageFont.FreeTypeFont, max_width: int, draw: ImageDraw.ImageDraw) -> List[str]:
+    words = str(text or "").split()
+    lines: List[str] = []
+    current = ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        if draw.textlength(candidate, font=font) <= max_width or not current:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines[:5]
+
+
+def _gradient(width: int, height: int, top: Tuple[int, int, int], bottom: Tuple[int, int, int]) -> Image.Image:
+    img = Image.new("RGB", (width, height), BG)
+    draw = ImageDraw.Draw(img)
+    for y in range(height):
+        ratio = y / max(1, height - 1)
+        color = tuple(int(top[i] + (bottom[i] - top[i]) * ratio) for i in range(3))
+        draw.line([(0, y), (width, y)], fill=color)
+    return img
+
+
+def _footer(draw: ImageDraw.ImageDraw, width: int, height: int, text: str) -> None:
+    font = _font(24)
+    draw.text((60, height - 64), text, font=font, fill=MUTED)
+
+
+def make_crypto_card(headline: str, market: str, klines: Optional[List[Dict[str, Any]]] = None) -> Image.Image:
+    img = _gradient(WIDTH, HEIGHT, (18, 24, 34), (10, 13, 18))
+    draw = ImageDraw.Draw(img)
+    accent = ACCENTS["crypto"]
+    draw.rectangle([0, 0, 14, HEIGHT], fill=accent)
+    title_font = _font(54, bold=True)
+    y = 70
+    for line in _wrap(headline, title_font, WIDTH - 140, draw):
+        draw.text((60, y), line, font=title_font, fill=FG)
+        y += 66
+    # sparkline
+    closes = [float(k.get("close") or 0) for k in (klines or []) if k.get("close")]
+    if len(closes) >= 2:
+        chart_top, chart_bottom = y + 30, HEIGHT - 215
+        left, right = 70, WIDTH - 70
+        lo, hi = min(closes), max(closes)
+        span = max(hi - lo, 1e-9)
+        points = []
+        for i, value in enumerate(closes):
+            x = left + (right - left) * i / (len(closes) - 1)
+            yy = chart_bottom - (chart_bottom - chart_top) * (value - lo) / span
+            points.append((x, yy))
+        draw.line(points, fill=accent, width=6, joint="curve")
+        draw.text((left, chart_bottom + 14), "BTC/USDT · 24h trend", font=_font(26), fill=MUTED)
+    market_font = _font(34)
+    y_market = HEIGHT - 140
+    for line in _wrap(market, market_font, WIDTH - 140, draw):
+        draw.text((60, y_market), line, font=market_font, fill=accent)
+        y_market += 44
+    _footer(draw, WIDTH, HEIGHT, "Crypto & Blockchain · t.me/HOOPY0007")
+    return img
+
+
+def make_ai_card(angle: str, footer: str = "AI + Crypto · t.me/AINEWS0007") -> Image.Image:
+    img = _gradient(WIDTH, HEIGHT, (20, 30, 46), (12, 14, 24))
+    draw = ImageDraw.Draw(img)
+    accent = ACCENTS["ai"]
+    draw.rectangle([0, 0, 14, HEIGHT], fill=accent)
+    draw.text((60, 80), "AI × TRADING", font=_font(34, bold=True), fill=accent)
+    draw.line([(60, 140), (260, 140)], fill=accent, width=4)
+    _decor_ai(draw)
+    title_font = _font(52, bold=True)
+    y = 180
+    for line in _wrap(angle, title_font, 700, draw):
+        draw.text((60, y), line, font=title_font, fill=FG)
+        y += 64
+    draw.text((60, HEIGHT - 170), "AI adds speed — discipline still wins.", font=_font(32), fill=MUTED)
+    _footer(draw, WIDTH, HEIGHT, footer)
+    return img
+
+
+def make_travel_card() -> Image.Image:
+    img = _gradient(WIDTH, HEIGHT, (24, 60, 72), (18, 28, 30))
+    draw = ImageDraw.Draw(img)
+    accent = ACCENTS["travel"]
+    draw.rectangle([0, 0, 14, HEIGHT], fill=accent)
+    draw.text((60, 90), "TRAVEL DEALS", font=_font(36, bold=True), fill=accent)
+    draw.line([(60, 150), (300, 150)], fill=accent, width=4)
+    _decor_travel(draw)
+    title_font = _font(56, bold=True)
+    y = 200
+    for line in _wrap("Flights, hotels and city breaks — plan the next trip.", title_font, 700, draw):
+        draw.text((60, y), line, font=title_font, fill=FG)
+        y += 70
+    draw.text((60, HEIGHT - 160), "Ad · travel partner · prices vary", font=_font(28), fill=MUTED)
+    _footer(draw, WIDTH, HEIGHT, "Travel partner · tracked link")
+    return img
+
+
+def _decor_ai(draw: ImageDraw.ImageDraw) -> None:
+    """Нейросеть: узлы и связи справа."""
+    import math
+    nodes = [(980, 150), (1100, 230), (1010, 330), (1110, 430), (960, 480), (1080, 560)]
+    for i, (x1, y1) in enumerate(nodes):
+        for x2, y2 in nodes[i + 1:]:
+            if math.dist((x1, y1), (x2, y2)) < 190:
+                draw.line([(x1, y1), (x2, y2)], fill=(45, 70, 100), width=2)
+    for x, y in nodes:
+        draw.ellipse([x - 10, y - 10, x + 10, y + 10], fill=(99, 179, 237))
+
+
+def _decor_travel(draw: ImageDraw.ImageDraw) -> None:
+    """Солнце, горы и самолёт справа."""
+    draw.ellipse([880, 90, 1040, 250], fill=(250, 200, 120))
+    draw.polygon([(820, 560), (980, 330), (1140, 560)], fill=(38, 92, 100))
+    draw.polygon([(960, 560), (1080, 400), (1200, 560)], fill=(30, 74, 82))
+    draw.line([(860, 240), (1000, 300)], fill=(240, 244, 248), width=7)
+    draw.polygon([(1000, 300), (940, 280), (960, 310)], fill=(240, 244, 248))
+
+
+def build_card(topic: str, config: Dict[str, Any], headline: str, market: str, angle: str, klines: Optional[List[Dict[str, Any]]] = None) -> Optional[Image.Image]:
+    image_config = config.get("image") or {}
+    if image_config.get("enabled") is False:
+        return None
+    if topic == "crypto":
+        return make_crypto_card(headline, market, klines)
+    if topic == "ai":
+        return make_ai_card(angle)
+    if topic == "travel":
+        return make_travel_card()
+    return None
+
+
+def upload_media(image: Image.Image, timeout: float = 60.0) -> str:
+    base = (os.environ.get("AKKOMA_BASE_URL", "") or "").strip().rstrip("/")
+    token = (os.environ.get("AKKOMA_TOKEN", "") or "").strip()
+    if not base or not token:
+        raise RuntimeError("AKKOMA_BASE_URL/AKKOMA_TOKEN не заданы")
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    payload = buffer.getvalue()
+    boundary = "----contentfactory{}".format(int(time.time() * 1000))
+    body = b"".join([
+        ("--%s\r\n" % boundary).encode(),
+        b'Content-Disposition: form-data; name="file"; filename="card.png"\r\n',
+        b"Content-Type: image/png\r\n\r\n",
+        payload,
+        ("\r\n--%s--\r\n" % boundary).encode(),
+    ])
+    request = urllib.request.Request(
+        base + "/api/v2/media",
+        data=body,
+        headers={
+            "Authorization": "Bearer " + token,
+            "Content-Type": "multipart/form-data; boundary=" + boundary,
+            "Accept": "application/json",
+            "User-Agent": "content-factory-fediverse/1.0",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        data = json.loads(response.read().decode("utf-8", "replace") or "{}")
+    return str(data.get("id") or "")
+
+
+def publish(status: str, media_ids: Optional[List[str]] = None, timeout: float = 30.0) -> Dict[str, Any]:
+    base = (os.environ.get("AKKOMA_BASE_URL", "") or "").strip().rstrip("/")
+    token = (os.environ.get("AKKOMA_TOKEN", "") or "").strip()
+    if not base or not token:
+        raise RuntimeError("AKKOMA_BASE_URL/AKKOMA_TOKEN не заданы")
+    payload: Dict[str, Any] = {"status": status, "visibility": "public", "language": "en"}
+    if media_ids:
+        payload["media_ids"] = media_ids
+    request = urllib.request.Request(
+        base + "/api/v1/statuses",
+        data=json.dumps(payload).encode(),
         headers={
             "Authorization": "Bearer " + token,
             "Content-Type": "application/json",
@@ -145,7 +367,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for step in range(total):
         topic = args.topic or rotation[(index + step) % len(rotation)]
         try:
-            text = build_post(config, topic, index + step)
+            text, meta = build_post(config, topic, index + step)
         except (ValueError, KeyError) as exc:
             print("build error:", exc)
             return 1
@@ -153,7 +375,29 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if args.dry_run:
             continue
         try:
-            result = publish(text)
+            image = build_card(
+                topic,
+                config,
+                meta.get("headline", ""),
+                meta.get("market", ""),
+                meta.get("angle", ""),
+                meta.get("klines"),
+            )
+            if image is not None:
+                image_path = ROOT / "data" / "outbox" / "fediverse" / "card-{}.png".format(int(time.time()))
+                image_path.parent.mkdir(parents=True, exist_ok=True)
+                image.save(image_path)
+                print("image:", image_path)
+            media_ids: List[str] = []
+            if image is not None:
+                try:
+                    media_id = upload_media(image)
+                    if media_id:
+                        media_ids = [media_id]
+                        print("media uploaded:", media_id)
+                except Exception as exc:  # noqa: BLE001
+                    print("media upload failed (posting text only):", type(exc).__name__, exc)
+            result = publish(text, media_ids)
             print("published:", result.get("url") or result.get("id"))
         except Exception as exc:  # noqa: BLE001
             print("publish failed:", type(exc).__name__, exc)

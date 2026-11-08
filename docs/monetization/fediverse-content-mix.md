@@ -17,8 +17,9 @@ crypto/trading → AI×trading → travel-реклама → повтор
 
 Конфиг: [`config/fediverse_mix.yaml`](../../config/fediverse_mix.yaml).
 Скрипт: [`scripts/fediverse_mix.py`](../../scripts/fediverse_mix.py).
-Автопостинг: `.github/workflows/fediverse-mix.yml` — **2 раза в сутки**
-(10:17 и 18:17 UTC), state ротации кэшируется между запусками.
+Автопостинг: `.github/workflows/fediverse-mix.yml` — **2 раза в сутки в пиковые
+часы**: 14:17 и 23:17 UTC (≈ 9:17 и 18:17 ET — утро/вечер аудитории US-крипты),
+state ротации кэшируется между запусками.
 
 ## Как смешивать трейдинг, крипто и AI
 
@@ -31,6 +32,20 @@ crypto/trading → AI×trading → travel-реклама → повтор
 5. **Ссылки**: только через [трекер](link-tracker.md) — видно клики по каналам и
    темам (crypto/ai/travel).
 6. **Хэштеги**: 3–5, разные под тему (#Bitcoin #Crypto #Trading / #AI #Travel).
+
+## Оформление и картинки
+
+К каждому посту скрипт генерирует обложку 1200×675 (Pillow, без внешних API):
+
+- **crypto** — тёмная карточка с заголовком + реальный 24-часовой график BTC
+  (BingX klines) и строкой рынка BTC/ETH/SOL;
+- **ai** — карточка «AI × TRADING» с нейросетевым паттерном;
+- **travel** — карточка «TRAVEL DEALS» с солнцем/горами/самолётом и
+  дисклеймером.
+
+Картинка загружается в Akkoma через `/api/v2/media` и прикрепляется к посту
+(`media_ids`). Если загрузка не удалась — пост публикуется текстом (graceful
+fallback). Локальные копии карточек: `data/outbox/fediverse/`.
 
 ## Ручной запуск
 

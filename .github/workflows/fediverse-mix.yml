@@ -2,8 +2,8 @@ name: Fediverse content mix
 
 on:
   schedule:
-    # 2 поста в сутки: крипто → AI → travel (ротация по state-файлу)
-    - cron: "17 10,18 * * *"
+    # 2 поста в сутки в пиковые часы (14:17 и 23:17 UTC ≈ 9:17 ET и 18:17 ET)
+    - cron: "17 14,23 * * *"
   workflow_dispatch:
     inputs:
       topic:
@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install deps
-        run: pip install pyyaml
+        run: pip install pyyaml pillow
       - name: Restore rotation state
         uses: actions/cache@v4
         with:
