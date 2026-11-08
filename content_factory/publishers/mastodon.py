@@ -15,7 +15,7 @@ from typing import Tuple
 
 from ..config import Settings
 from ..models import ChannelConfig, GeneratedPost, PublishResult
-from .social import SocialAPIError, SocialPublisher, http_json, post_text
+from .social import SocialAPIError, SocialPublisher, channel_link, http_json, post_text
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,12 @@ class MastodonPublisher(SocialPublisher):
 
         if str(_env("MASTODON_NO_LINKS", "") or "").strip().lower() in {"1", "true", "yes", "on"}:
             # Новый аккаунт: mastodon.social удаляет посты с внешними ссылками.
-            # Полосуем URL, оставляя текстовые упоминания (@channel).
+            # Полосуем URL, но свой канал оставляем текстовым упоминанием,
+            # иначе зеркало не приводит подписчиков.
+            own = channel_link(channel) if channel is not None else ""
+            if own:
+                handle = own.rstrip("/").rsplit("/", 1)[-1]
+                text = text.replace(own, "Telegram: @" + handle)
             text = re.sub(r"https?://\S+", "", text)
             text = re.sub(r"[ \t]{2,}", " ", text).strip()
             text = re.sub(r"\n{3,}", "\n\n", text)
