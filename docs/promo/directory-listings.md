@@ -76,3 +76,22 @@ TGStat — главный каталог для рекламодателей: е
 - Подписчики: недельная дельта в `growth-report` (Telegram-отчёт).
 - TGStat: после подтверждения появится статистика канала — её можно
   использовать в медиаките для продажи рекламы.
+
+## Дополнительные каталоги (08.11.2026)
+
+| Каталог | Страница добавления | Барьер | Что делать |
+|---|---|---|---|
+| **TeleJoiner** | https://telejoiner.com/submit | форма на сайте отдаёт только CSRF (поля рендерятся/ломаются), автоматическая отправка невозможна | добавить вручную из браузера: ссылка на канал, категория, язык, страна; по заявлению сайта листинг публикуется сразу |
+| **TelXplorer** | https://telxplorer.com/en/create_group | после формы — подтверждение через Telegram-бота (у нас нет user-сессии), автопостинг с cookies блокируется CSRF/бот-проверкой | отправить вручную: тип (Channel), имя, описание (≤200 символов), затем подтвердить канал через их бота |
+| **Metricgram** | https://www.metricgram.com/directory | нужен аккаунт **с платным планом или trial**, подключённая Telegram-группа, затем Growth → Directory Listing → Publish (AI-модерация) | регистрация + 14-дневный trial → подключить канал → создать листинг |
+| **Telega.io** | https://telega.io/ | каталог рекламных каналов; добавление канала — только из личного кабинета после регистрации (email/контакт) | регистрация → кабинет → «Добавить канал»; после модерации канал смогут покупать рекламодатели |
+
+**Можно подготовить один раз и копировать:** ссылки каналов и описания:
+- @HOOPY0007 — Crypto & Blockchain; US crypto news: Bitcoin, Ethereum, markets, regulation, blockchain.
+- @AINEWS0007 — AI News; AI for a US audience: models, products, policy, companies.
+- @SPORTNews0007 — US Sports News; NFL, NBA, MLB, NHL, college football: scores, trades, injuries.
+- @WORLDNews0007 — ES AI News; IA en español: modelos, productos, empresas y políticas.
+- @TechnologiesNews01 — ES Crypto & Blockchain; Bitcoin, Ethereum y mercado cripto en español.
+- @SPORTSAnalytics007 — ES Sports News; Deporte en español con datos y análisis (18+).
+
+**Приоритет по эффекту:** TGStat (подтвердить 5 каналов) → Telega.io (может дать рекламодателей) → TeleJoiner/TelXplorer (SEO-ссылки) → Metricgram (нужен trial, слабый эффект).
