@@ -98,14 +98,6 @@ jobs:
       TG_API_HASH: ${{ secrets.TG_API_HASH }}
       TG_SESSION: ${{ secrets.TG_SESSION }}
 
-      # --- Бесплатные соцсети (кросспостинг) ----------------------------
-      # Tumblr: OAuth 1.0a, пустые значения = публикатор пропускается.
-      TUMBLR_CONSUMER_KEY: ${{ secrets.TUMBLR_CONSUMER_KEY }}
-      TUMBLR_CONSUMER_SECRET: ${{ secrets.TUMBLR_CONSUMER_SECRET }}
-      TUMBLR_OAUTH_TOKEN: ${{ secrets.TUMBLR_OAUTH_TOKEN }}
-      TUMBLR_OAUTH_TOKEN_SECRET: ${{ secrets.TUMBLR_OAUTH_TOKEN_SECRET }}
-      TUMBLR_BLOG: ${{ secrets.TUMBLR_BLOG }}
-
       # --- LLM-провайдеры ------------------------------------------------
       # Основной — Ollama Cloud (open-модели), резерв — Cloudflare Workers AI
       # (free 10 000 neurons/день) и локальные/российские провайдеры.
