@@ -2,7 +2,7 @@ name: Fediverse content mix
 
 on:
   schedule:
-    # 2 поста в сутки в пиковые часы (14:17 и 23:17 UTC ≈ 9:17 ET и 18:17 ET)
+    # 4 поста в сутки: 10:17, 14:17, 18:17, 22:17 UTC (14:17 и 23:17 UTC ≈ 9:17 ET и 18:17 ET)
     - cron: "17 14,23 * * *"
   workflow_dispatch:
     inputs:

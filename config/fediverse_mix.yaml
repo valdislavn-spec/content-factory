@@ -6,7 +6,7 @@ crosspost:
   mastodon_strip_links: false   # в дублях оставляем партнёрские ссылки
   pixelfed: true                # дублировать в Pixelfed (PIXELFED_* в .env)
 state_path: data/fediverse_mix_state.json
-rotation: [crypto, ai, travel]      # по одному посту на тему по кругу
+rotation: [crypto, ai, crypto, travel]   # 4 поста/сутки: 1 реклама в день
 telegram_crypto: https://t.me/HOOPY0007
 telegram_ai: https://t.me/AINEWS0007
 travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default

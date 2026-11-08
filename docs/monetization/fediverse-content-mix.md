@@ -6,7 +6,7 @@
 ## Ротация
 
 ```
-crypto/trading → AI×trading → travel-реклама → повтор
+crypto/trading → AI×trading → crypto/trading → travel-реклама → повтор
 ```
 
 - **crypto** — рынок + цифры BingX, ссылка на @HOOPY0007;
@@ -17,9 +17,9 @@ crypto/trading → AI×trading → travel-реклама → повтор
 
 Конфиг: [`config/fediverse_mix.yaml`](../../config/fediverse_mix.yaml).
 Скрипт: [`scripts/fediverse_mix.py`](../../scripts/fediverse_mix.py).
-Автопостинг: `.github/workflows/fediverse-mix.yml` — **2 раза в сутки в пиковые
-часы**: 14:17 и 23:17 UTC (≈ 9:17 и 18:17 ET — утро/вечер аудитории US-крипты),
-state ротации кэшируется между запусками.
+Автопостинг: `.github/workflows/fediverse-mix.yml` — **4 раза в сутки**:
+10:17, 14:17, 18:17 и 22:17 UTC (≈ 6:17, 10:17, 14:17, 18:17 ET — утро, день,
+вечер и прайм-тайм US-аудитории). State ротации кэшируется между запусками.
 
 ## Как смешивать трейдинг, крипто и AI
 
