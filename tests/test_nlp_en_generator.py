@@ -437,6 +437,9 @@ class EnglishGeneratorTestBase(unittest.TestCase):
             for article in (cluster.articles or [])
         }
         for href in collector.hrefs:
+            # Пост может содержать ссылку на добровольную поддержку канала.
+            if "donationalerts.com" in href:
+                continue
             self.assertIn(href, expected_urls)
         self.assertTrue(post.sources)
         for source in post.sources:
@@ -477,7 +480,8 @@ class EnglishStoryTest(EnglishGeneratorTestBase):
         )
         collector = self.assert_valid_post(post, self.channel, [self.cluster])
         self.assertTrue(collector.hrefs)
-        self.assertEqual(len(collector.hrefs), len(post.sources))
+        source_hrefs = [h for h in collector.hrefs if "donationalerts.com" not in h]
+        self.assertEqual(len(source_hrefs), len(post.sources))
         self.assertIn("<b>", post.text)
         self.assertNotIn("▪️ ", post.text)
         self.assertEqual(post.meta["quality_issues"], [])
