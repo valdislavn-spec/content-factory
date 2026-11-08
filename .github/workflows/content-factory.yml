@@ -294,27 +294,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload state snapshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: content-factory-state
-          path: |
-            data/factory.sqlite3
-            data/schedule_state.json
-            data/schedule_state_es.json
-            data/llm_cache.sqlite3
-            data/llm_tokens.json
-            data/llm_usage.json
-            data/llm_usage_*.json
-            data/source_*_usage.json
-            config/channels.en.yaml
-            config/channels.es.yaml
-            config/cross_promo.yaml
-            config/settings.yaml
-          if-no-files-found: ignore
-          retention-days: 14
-
       - name: Notify on failure
         if: failure()
         env:
