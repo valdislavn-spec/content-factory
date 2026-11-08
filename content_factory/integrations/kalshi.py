@@ -137,6 +137,8 @@ def build_digest(
         volume = market_volume(market)
         close = close_date(market)
         question = str(market.get("title") or market.get("yes_sub_title") or "").strip()
+        if len(question) > 140:
+            question = question[:137].rstrip() + "…"
         parts = []
         if price is not None:
             parts.append("YES %d¢" % price)
@@ -218,11 +220,23 @@ class KalshiClient:
         headers = self._signed_headers(method, path) if self.key_id else {}
         return self._fetch(url, headers, self.timeout)
 
-    def markets(self, status: str = "open", limit: int = 200, series_ticker: str = "") -> List[Dict[str, Any]]:
+    def markets(
+        self,
+        status: str = "open",
+        limit: int = 200,
+        series_ticker: str = "",
+        mve_filter: str = "exclude",
+    ) -> List[Dict[str, Any]]:
+        """Open markets. ``mve_filter="exclude"`` hides multivariate (parlay) markets."""
         data = self.request(
             "GET",
             TRADE_API + "/markets",
-            {"status": status, "limit": limit, "series_ticker": series_ticker or None},
+            {
+                "status": status,
+                "limit": limit,
+                "series_ticker": series_ticker or None,
+                "mve_filter": mve_filter or None,
+            },
         )
         return list(data.get("markets") or [])
 

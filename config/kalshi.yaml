@@ -4,6 +4,8 @@
 base_url: https://external-api.kalshi.com
 status: open
 limit: 200
+# exclude multivariate/parlay markets (they have garbage comma-list titles)
+mve_filter: exclude
 
 digests:
   - channel: crypto-news

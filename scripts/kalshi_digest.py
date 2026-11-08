@@ -113,6 +113,7 @@ def main(argv=None) -> int:
                 markets = client.markets(
                     status=str(config.get("status") or "open"),
                     limit=int(config.get("limit") or 200),
+                    mve_filter=str(config.get("mve_filter") or "exclude"),
                 )
                 print("Kalshi: fetched %d open markets" % len(markets))
                 for sample in markets[:5]:
