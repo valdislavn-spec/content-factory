@@ -80,3 +80,37 @@ https://facebook.com/865322629989875_122148500211054089
 - Bluesky: лимит 300, аудитория не любит хештеги, ценит живой тон.
 - Facebook: длиннее и вовлекающе, вопросы и нумерованные списки дают комментарии.
 - UTM-метки на всех ссылках → клики видны в GA4.
+
+
+## Посты с короткими ссылками на ТГ-каналы (08.11.2026)
+
+Вместо длинного URL лендинга — короткие ссылки на Telegram-каналы (`t.me/...`).
+
+### Bluesky (142 символа)
+> BTC above $100k, ETH L2 at a record, AI tokens waking up — we cover all of it daily in a free Telegram digest. Join us: https://t.me/HOOPY0007
+
+https://bsky.app/profile/did:plc:p67ksvae6f5gara4vueu7edo/post/3mzsp5cnmln2w
+
+### X (139 символов)
+> 📊 Crypto digest: BTC holds $100k+, ETH L2 activity at an ATH, AI tokens waking up.
+> Daily breakdown in our Telegram → https://t.me/HOOPY0007
+
+https://twitter.com/NValdislav/status/2119448027458900414
+
+### Facebook (364 символа)
+> Crypto markets are moving again 👇
+> • Bitcoin is holding above $100k
+> • ETH L2 activity is at an all-time high
+> • AI tokens are waking up after consolidation
+> We publish the full daily digest in Telegram — join free: https://t.me/HOOPY0007
+> AI & tech news: https://t.me/AINEWS0007
+> What are you watching this week? Tell us in the comments 👇
+> #Crypto #Bitcoin #AITokens
+
+https://facebook.com/865322629989875_122148500589054089
+
+Короткие ссылки ТГ-каналов:
+- crypto: https://t.me/HOOPY0007
+- AI: https://t.me/AINEWS0007
+- US Sports: https://t.me/SPORTNews0007
+- ES: https://t.me/TechnologiesNews01, https://t.me/WORLDNews0007, https://t.me/SPORTSAnalytics007
