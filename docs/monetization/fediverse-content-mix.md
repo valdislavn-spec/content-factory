@@ -67,10 +67,9 @@ max_age_hours, max_feeds, max_candidates). Локальные копии:
 Публикация идёт через `/api/v1/statuses`; ссылки вырезаются при
 `MASTODON_NO_LINKS=1` (правило mastodon.social для новых аккаунтов).
 
-Ограничение: токен имеет scopes `read:accounts, write:statuses` — **без
-`write:media`**, поэтому картинка в Mastodon не прикрепляется (текст уходит).
-Чтобы включить картинки: перевыпустить токен приложения с scope `write:media`
-(или авторизовать новое приложение) и добавить/обновить `MASTODON_TOKEN`.
+Токен обновлён (приложение `content-factory-media`, scopes `read write follow`) —
+**картинки прикрепляются** в Mastodon так же, как в Akkoma; ссылки (включая
+партнёрские) сохраняются в дублях. GitHub Secret `MASTODON_TOKEN` обновлён.
 
 ## Ручной запуск
 
