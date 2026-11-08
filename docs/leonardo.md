@@ -101,3 +101,10 @@ LEONARDO_API_KEY=... python scripts/leonardo_image.py \
 (карточки уже рендерятся Pillow; для «живой» иллюстрации положите файл в
 `assets/covers/` или передайте в `sendPhoto`). Если нужно — добавлю шаг
 «иллюстрация к посту» в `pipeline.py` с dry-run и лимитом стоимости.
+
+## 7. Ключа нет?
+
+Пока нет `LEONARDO_API_KEY`/API-кредитов — используйте бесплатный
+Pollinations без ключа: [docs/image-generation.md](image-generation.md)
+(`python scripts/image_gen.py "..."`). Leonardo-сервер уже готов и заработает
+сразу после добавления ключа.

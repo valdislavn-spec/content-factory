@@ -121,3 +121,14 @@ CLI-вариант:
 | **Наш `leonardo-mcp`** | `tools/leonardo_mcp.py` — stdlib MCP: generate/poll/download/models |
 
 Подробности и конфиг DSH: [docs/leonardo.md](leonardo.md).
+
+## Генерация изображений (image-mcp)
+
+| Провайдер | Ключ | Статус |
+|---|---|---|
+| Pollinations | не нужен | ✅ работает из РФ, 1 изображение/45 с |
+| Leonardo.ai | `LEONARDO_API_KEY` | ключа нет (API платный) |
+| HuggingFace | `HUGGINGFACE_API_KEY` | локально DNS блок, в Actions ок |
+
+Наш stdlib MCP: `tools/image_mcp.py` (`image_generate`, `image_providers`).
+Подробности: [docs/image-generation.md](image-generation.md).
