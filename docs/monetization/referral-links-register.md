@@ -21,7 +21,7 @@
 |---|---|---|---|---|
 | Admitad | CPA-сеть | ✅ есть | ⏳ нужен вход | войти в кабинет |
 | KMA → KissMyAds | CPA-сеть | ✅ есть | ⏳ | вход на kissmyads.pro |
-| MyLead | CPA-сеть (VPN) | ✅ есть | ⏳ | вход `pub.mylead.global` |
+| MyLead | CPA-сеть (VPN) | ✅ есть | `https://mylead.global/r/dJ67Qo` | вход выполнен (Vald001) |
 | Travelpayouts | CPA-сеть | ✅ есть | ⏳ | вход через **Google** |
 | N1 Partners | iGaming CPA | ✅ есть | ⏳ | вход n1.partners |
 | collaborator.pro | площадка | ✅ есть | ⏳ | вход collaborator.pro/login |
@@ -118,3 +118,11 @@ https://<реф-ссылка>?utm_source=tg_<channel>&utm_medium=telegram&utm_ca
   Google-SSO доводится до согласия, но сессия не создаётся — нужен VPN.
 - Google-сессия в браузере агента активна (`valdislav.n@gmail.com`), Gmail доступен —
   можно делать сбросы паролей остальных сервисов, если не мешает капча/Cloudflare.
+
+### Обновление 2026-11-08 (входы через сессию)
+
+- **MyLead** — вход выполнен (аккаунт `Vald001`), реф-ссылка:
+  `https://mylead.global/r/dJ67Qo`
+- **N1 Partners** — пропущен по решению (2FA/блок).
+- **Travelpayouts**, **1xPartners**, **KissMyAds** — ждут входа в окне браузера
+  (капчи/2FA проходятся только вручную).
