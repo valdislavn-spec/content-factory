@@ -32,6 +32,9 @@ BUDGET = ROOT / "data" / "reddit_usage.json"
 MAX_TITLE = 300
 
 
+CHANNEL_QUOTA = {"crypto-news": 3, "ai-news": 2, "sport-news": 2}
+
+
 def collect(hours: float, limit: int) -> list[Article]:
     settings = Settings.load()
     now = datetime.now(timezone.utc)
@@ -39,6 +42,7 @@ def collect(hours: float, limit: int) -> list[Article]:
     channels = {c.id: c for c in load_channels(settings, path="config/channels.en.yaml")}
     picked: list[Article] = []
     seen: set[str] = set()
+    per_channel: dict[str, list[Article]] = {}
     for channel_id in US_CHANNELS:
         channel = channels.get(channel_id)
         if channel is None:
@@ -64,18 +68,27 @@ def collect(hours: float, limit: int) -> list[Article]:
                 continue
             seen.add(key)
             picked.append(article)
+            per_channel.setdefault(channel_id, []).append(article)
+    # Сначала квоты по темам (крипто/AI/спорт), чтобы дайджест был смешанным,
+    # потом добор самыми свежими из оставшихся.
     picked.sort(key=lambda article: article.published_at, reverse=True)
-    # не больше 3 подряд из одного канала-источника: берём по кругу
-    by_source: dict[str, int] = {}
-    balanced: list[Article] = []
+    chosen: list[Article] = []
+    chosen_ids: set[str] = set()
+    for channel_id in US_CHANNELS:
+        quota = CHANNEL_QUOTA.get(channel_id, 2)
+        for article in per_channel.get(channel_id, [])[:quota]:
+            if article.id in chosen_ids:
+                continue
+            chosen.append(article)
+            chosen_ids.add(article.id)
     for article in picked:
-        if by_source.get(article.source_name, 0) >= 3:
-            continue
-        by_source[article.source_name] = by_source.get(article.source_name, 0) + 1
-        balanced.append(article)
-        if len(balanced) >= limit:
+        if len(chosen) >= limit:
             break
-    return balanced
+        if article.id not in chosen_ids:
+            chosen.append(article)
+            chosen_ids.add(article.id)
+    chosen.sort(key=lambda article: article.published_at, reverse=True)
+    return chosen[:limit]
 
 
 def build_post(articles: list[Article], subreddit: str) -> GeneratedPost:
@@ -161,7 +174,7 @@ def main() -> int:
     publisher = RedditPublisher(settings)
     ok, detail = publisher.check(reddit_channel)
     print("Reddit:", detail)
-    print("\n=== ЗАГОЛОВОК ===\n{}".format(post.text.splitlines()[0]))
+    print("\n=== ЗАГОЛОВОК ===\n{}".format(post.meta.get("reddit_title") or post.text.splitlines()[0]))
     print("\n=== ТЕКСТ ===\n{}".format(post.text))
     if not ok:
         print("\n(dry-run: креды не заданы, публикации не будет)")
