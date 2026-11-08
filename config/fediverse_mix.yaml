@@ -3,6 +3,7 @@
 enabled: true
 crosspost:
   mastodon: true          # дублировать пост в Mastodon (MASTODON_* в .env)
+  mastodon_strip_links: false   # в дублях оставляем партнёрские ссылки
 state_path: data/fediverse_mix_state.json
 rotation: [crypto, ai, travel]      # по одному посту на тему по кругу
 telegram_crypto: https://t.me/HOOPY0007

@@ -83,10 +83,15 @@ python scripts/fediverse_mix.py --topic ai       # внеочередной AI-�
 
 ## Travel-реклама — когда появится партнёрка
 
-Сейчас `travel_link` ведёт на Booking.com через трекер (клики считаются, но
-комиссии нет). Для быстрого переключения без коммита добавлен env-override:
-если задан `TRAVEL_AFFILIATE_URL` (локально или GitHub Secret), travel-пост
-берёт его вместо ссылки из конфига. После входа в Travelpayouts и одобрения бренда:
+**Партнёрская ссылка уже подключена:** Travelpayouts-аккаунт (ID 674170) активен,
+сгенерирована Aviasales-ссылка с subid `akkoma`:
+`https://aviasales.tpk.ro/IhIQwQjr` (редирект содержит `marker=674170…`).
+Трекер `travel-default` теперь ведёт на неё:
+`https://links-tracker.valdislav-n.workers.dev/r/travel-default` → Aviasales.
+Клики считаются нашим трекером и Travelpayouts.
+
+Для быстрого переключения без коммита остаётся env-override `TRAVEL_AFFILIATE_URL`
+(локально или GitHub Secret) — если задан, travel-пост берёт его напрямую. После входа в Travelpayouts и одобрения бренда:
 1. получить партнёрскую ссылку (или через [links API](https://support.travelpayouts.com/hc/en-us/articles/25289759198226-API-for-Travelpayouts-partner-links));
 2. обновить target у `travel-default`:
    `python scripts/links_admin.py create --code travel-default --target "<affiliate>" ...`;

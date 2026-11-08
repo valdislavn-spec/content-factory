@@ -533,14 +533,16 @@ def _strip_urls(text: str) -> str:
     return re.sub(r"https?://\S+", "", text).rstrip()
 
 
-def mastodon_publish(text: str, image: Optional[Image.Image] = None, timeout: float = 30.0) -> Optional[str]:
+def mastodon_publish(text: str, image: Optional[Image.Image] = None, timeout: float = 30.0, strip_links: Optional[bool] = None) -> Optional[str]:
     """Дублирует пост в Mastodon (если заданы MASTODON_BASE_URL/MASTODON_TOKEN)."""
     base = (os.environ.get("MASTODON_BASE_URL", "") or "").strip().rstrip("/")
     token = (os.environ.get("MASTODON_TOKEN", "") or "").strip()
     if not base or not token:
         return None
     body_text = text
-    if str(os.environ.get("MASTODON_NO_LINKS", "") or "").strip().lower() in {"1", "true", "yes", "on"}:
+    env_strip = str(os.environ.get("MASTODON_NO_LINKS", "") or "").strip().lower() in {"1", "true", "yes", "on"}
+    should_strip = env_strip if strip_links is None else bool(strip_links)
+    if should_strip:
         body_text = _strip_urls(body_text)
     media_ids: List[str] = []
     if image is not None:
@@ -657,7 +659,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             result = publish(text, media_ids)
             print("published:", result.get("url") or result.get("id"))
             if (config.get("crosspost") or {}).get("mastodon"):
-                mast_url = mastodon_publish(text, image)
+                crosspost_cfg = config.get("crosspost") or {}
+                mast_url = mastodon_publish(
+                    text,
+                    image,
+                    strip_links=crosspost_cfg.get("mastodon_strip_links"),
+                )
                 if mast_url:
                     print("mastodon:", mast_url)
                 else:
