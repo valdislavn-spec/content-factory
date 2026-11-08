@@ -56,6 +56,15 @@
 
 Ничего не закрывает: контент остаётся бесплатным, это только добровольные донаты.
 
+### Партнёрские ссылки (affiliate)
+
+В закрепы всех 6 каналов и на лендинг добавлены готовые партнёрские программы
+(08.11.2026): **MyLead** и **Collaborator.pro**, с раскрытием «реклама /
+affiliate link» и 18+ для спортивных каналов. Ссылки с UTM
+(`utm_source=tg_<channel>` / `landing`), реестр — `content-factory/config/affiliates.yaml`.
+Остальные программы (Bitget, MEXC, Kraken, 1xBet, N1, Hotmart, Writesonic)
+ждут получения реф-ссылок/входа в кабинеты — в блоки не попадают.
+
 ### Telegram — кросс-промо-посты
 
 `config/cross_promo.yaml`, workflow `cross-promo` (Вт/Пт 15:00 UTC):
