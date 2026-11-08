@@ -75,22 +75,6 @@ jobs:
 
       # ВКонтакте (опционально).
       VK_ACCESS_TOKEN: ${{ secrets.VK_ACCESS_TOKEN }}
-      # X (Twitter) — OAuth 1.0a user context (постинг). App-only bearer не подходит.
-      X_API_KEY: ${{ secrets.X_API_KEY }}
-      X_API_SECRET: ${{ secrets.X_API_SECRET }}
-      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
-      # Pinterest — API v5, публичный URL обложки из docs/assets/pinterest/
-      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
-      PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
-      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
-      PINTEREST_LINK: ${{ vars.PINTEREST_LINK }}
-      PINTEREST_IMAGE_URL_CRYPTO_NEWS: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_NEWS }}
-      PINTEREST_IMAGE_URL_AI_NEWS: ${{ vars.PINTEREST_IMAGE_URL_AI_NEWS }}
-      PINTEREST_IMAGE_URL_SPORT_NEWS: ${{ vars.PINTEREST_IMAGE_URL_SPORT_NEWS }}
-      PINTEREST_IMAGE_URL_CRYPTO_ES: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_ES }}
-      PINTEREST_IMAGE_URL_TECH_AI_ES: ${{ vars.PINTEREST_IMAGE_URL_TECH_AI_ES }}
-      PINTEREST_IMAGE_URL_FUTBOL_ES: ${{ vars.PINTEREST_IMAGE_URL_FUTBOL_ES }}
       VK_GROUP_ID: ${{ secrets.VK_GROUP_ID }}
 
       # --- Бесплатные соцсети (кросспостинг) ----------------------------
@@ -113,6 +97,14 @@ jobs:
       TG_API_ID: ${{ secrets.TG_API_ID }}
       TG_API_HASH: ${{ secrets.TG_API_HASH }}
       TG_SESSION: ${{ secrets.TG_SESSION }}
+
+      # --- Бесплатные соцсети (кросспостинг) ----------------------------
+      # Tumblr: OAuth 1.0a, пустые значения = публикатор пропускается.
+      TUMBLR_CONSUMER_KEY: ${{ secrets.TUMBLR_CONSUMER_KEY }}
+      TUMBLR_CONSUMER_SECRET: ${{ secrets.TUMBLR_CONSUMER_SECRET }}
+      TUMBLR_OAUTH_TOKEN: ${{ secrets.TUMBLR_OAUTH_TOKEN }}
+      TUMBLR_OAUTH_TOKEN_SECRET: ${{ secrets.TUMBLR_OAUTH_TOKEN_SECRET }}
+      TUMBLR_BLOG: ${{ secrets.TUMBLR_BLOG }}
 
       # --- LLM-провайдеры ------------------------------------------------
       # Основной — Ollama Cloud (open-модели), резерв — Cloudflare Workers AI
@@ -309,6 +301,27 @@ jobs:
             data/logs
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Upload state snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-factory-state
+          path: |
+            data/factory.sqlite3
+            data/schedule_state.json
+            data/schedule_state_es.json
+            data/llm_cache.sqlite3
+            data/llm_tokens.json
+            data/llm_usage.json
+            data/llm_usage_*.json
+            data/source_*_usage.json
+            config/channels.en.yaml
+            config/channels.es.yaml
+            config/cross_promo.yaml
+            config/settings.yaml
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Notify on failure
         if: failure()
