@@ -1,0 +1,19 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/08-travel-esim.png",
+  "file": "/private/tmp/cf-kalshi/docs/assets/pins/08-travel-esim.png",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Travel eSIM: internet abroad without roaming bills",
+    "description": "How travel eSIMs work, how to install one before flying, and when they beat airport SIM cards. Ad · affiliate link",
+    "alt_text": "Travel eSIM: internet abroad without roaming bills",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/01-travel-esim.png"
+    },
+    "image": "https://valdislavn-spec.github.io/content-factory/assets/pins/08-travel-esim.png",
+    "link": "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html"
+  }
+}

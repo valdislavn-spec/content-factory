@@ -33,3 +33,19 @@ pins:
     program: compensair
     sub_id: pin_insurance
     partner_url: https://compensair.tpk.ro/4klXfGpD
+  "08-travel-esim":
+    program: saily
+    sub_id: pin_esim
+    partner_url: https://saily.tpk.ro/r5oQ96LR
+  "09-car-rental-no-surprises":
+    program: localrent
+    sub_id: pin_car
+    partner_url: https://localrent.tpk.ro/ZZ36vFV4
+  "10-airport-transfer":
+    program: kiwitaxi
+    sub_id: pin_transfer
+    partner_url: https://kiwitaxi.tpk.ro/xmQYmqIl
+  "11-skip-the-line":
+    program: klook
+    sub_id: pin_tickets
+    partner_url: https://klook.tpk.ro/xqUojI5K

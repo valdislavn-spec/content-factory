@@ -1,0 +1,19 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/09-car-rental-no-surprises.png",
+  "file": "/private/tmp/cf-kalshi/docs/assets/pins/09-car-rental-no-surprises.png",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Car rental deals: how to avoid hidden fees",
+    "description": "Car rental in Europe: excess insurance, fuel policy, deposit holds and the booking window that saves the most. Ad · affiliate link",
+    "alt_text": "Car rental deals: how to avoid hidden fees",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/02-car-rental-no-surprises.png"
+    },
+    "image": "https://valdislavn-spec.github.io/content-factory/assets/pins/09-car-rental-no-surprises.png",
+    "link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html"
+  }
+}

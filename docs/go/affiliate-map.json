@@ -19,14 +19,24 @@
     "partner_url": "https://compensair.tpk.ro/4klXfGpD",
     "hub_link": "https://valdislavn-spec.github.io/content-factory/go/04-travel-insurance-mistakes.html"
   },
-  "klook-tours": {
-    "program": "Klook",
-    "partner_url": "https://klook.tpk.ro/xqUojI5K",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/klook-tours.html"
-  },
-  "saily-esim": {
-    "program": "Saily",
+  "08-travel-esim": {
+    "program": "saily",
     "partner_url": "https://saily.tpk.ro/r5oQ96LR",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/saily-esim.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html"
+  },
+  "09-car-rental-no-surprises": {
+    "program": "localrent",
+    "partner_url": "https://localrent.tpk.ro/ZZ36vFV4",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html"
+  },
+  "10-airport-transfer": {
+    "program": "kiwitaxi",
+    "partner_url": "https://kiwitaxi.tpk.ro/xmQYmqIl",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/10-airport-transfer.html"
+  },
+  "11-skip-the-line": {
+    "program": "klook",
+    "partner_url": "https://klook.tpk.ro/xqUojI5K",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html"
   }
 }

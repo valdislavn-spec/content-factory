@@ -117,3 +117,61 @@ pins:
     title: "NFL picks by the numbers"
     description: "Weekly NFL numbers: injury impact, line movement and what prediction markets price for each game. 18+."
     link: ""
+
+  # ---------- TRAVEL (affiliate) ----------
+  - niche: travel
+    headline: "Travel eSIM"
+    subtitle: "Stay online abroad — no roaming bills"
+    bullets:
+      - "Install before you fly"
+      - "Keep your number active"
+      - "From $4.99 per trip"
+    cta: "Get an eSIM"
+    image_prompt: "Smartphone with travel eSIM app screen on a table next to a passport and sunglasses, bright travel photography, copy space at the top"
+    accent: "#3B82F6"
+    title: "Travel eSIM: internet abroad without roaming bills"
+    description: "How travel eSIMs work, how to install one before flying, and when they beat airport SIM cards."
+    link: "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html"
+
+  - niche: travel
+    headline: "Car rental, no surprises"
+    subtitle: "What to check before you book"
+    bullets:
+      - "Insurance excess: read the fine print"
+      - "Full-to-full fuel policy"
+      - "Book 2–3 weeks ahead"
+    cta: "Compare cars"
+    image_prompt: "Open car door with keys on a scenic coastal road at sunset, travel photography, space for text at the top"
+    accent: "#8B5CF6"
+    title: "Car rental deals: how to avoid hidden fees"
+    description: "Car rental in Europe: excess insurance, fuel policy, deposit holds and the booking window that saves the most."
+    link: "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html"
+
+  - niche: travel
+    headline: "Airport transfer"
+    subtitle: "Fixed price instead of taxi roulette"
+    bullets:
+      - "Meet & greet at arrivals"
+      - "Price fixed before you fly"
+      - "Cancel up to 24h ahead"
+    cta: "Book a transfer"
+    image_prompt: "Driver holding a welcome sign at an airport arrivals hall, shallow depth of field, warm lighting, copy space"
+    accent: "#F59E0B"
+    title: "Airport transfers: book a fixed price, skip the taxi queue"
+    description: "How to book a reliable airport transfer: fixed prices, meet-and-greet, luggage and late-flight cover."
+    link: "https://valdislavn-spec.github.io/content-factory/go/10-airport-transfer.html"
+
+  - niche: travel
+    headline: "Skip the line"
+    subtitle: "Tickets for the sights worth it"
+    bullets:
+      - "Colosseum & Vatican: timed entry"
+      - "City passes: only if you plan 3+ sights"
+      - "Book 2–4 weeks ahead"
+    cta: "Get tickets"
+    image_prompt: "Ancient Roman amphitheatre with tourists at golden hour, cinematic travel photo, space for headline text"
+    accent: "#EF4444"
+    title: "Skip-the-line tickets: which attractions are worth it"
+    description: "Timed-entry tickets vs city passes: where skip-the-line actually saves hours, and where it is a waste of money."
+    link: "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html"
+
