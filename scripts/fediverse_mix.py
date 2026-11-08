@@ -592,6 +592,83 @@ def mastodon_publish(text: str, image: Optional[Image.Image] = None, timeout: fl
         return None
 
 
+def pixelfed_publish(text: str, image: Optional[Image.Image] = None, timeout: float = 90.0) -> Optional[str]:
+    """Дублирует пост в Pixelfed (PIXELFED_BASE_URL/PIXELFED_TOKEN)."""
+    base = (os.environ.get("PIXELFED_BASE_URL", "") or "").strip().rstrip("/")
+    token = (os.environ.get("PIXELFED_TOKEN", "") or "").strip()
+    if not base or not token:
+        return None
+    media_ids: List[str] = []
+    if image is not None:
+        # pixelfed.au: крупные картинки иногда обрывают обработку — пробуем
+        # несколько уменьшений, пока один из вариантов не загрузится.
+        max_width = int(os.environ.get("PIXELFED_MAX_WIDTH", "450") or 450)
+        for width in (max_width, 320, 280):
+            if width > max_width:
+                continue
+            width = min(width, image.width)
+            resized = image.copy()
+            if width < image.width:
+                resized = image.resize((width, max(1, int(image.height * width / image.width))), Image.LANCZOS)
+            buffer = io.BytesIO()
+            resized.convert("RGB").save(buffer, format="JPEG", quality=80)
+            payload = buffer.getvalue()
+            for attempt in range(2):
+                boundary = "----contentfactory{}".format(int(time.time() * 1000) + attempt)
+                body = b"".join([
+                    ("--%s\r\n" % boundary).encode(),
+                    b'Content-Disposition: form-data; name="file"; filename="card.jpg"\r\n',
+                    b"Content-Type: image/jpeg\r\n\r\n",
+                    payload,
+                    ("\r\n--%s--\r\n" % boundary).encode(),
+                ])
+                request = urllib.request.Request(
+                    base + "/api/v1/media",
+                    data=body,
+                    headers={
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "multipart/form-data; boundary=" + boundary,
+                        "Accept": "application/json",
+                        "User-Agent": "content-factory-fediverse/1.0",
+                    },
+                    method="POST",
+                )
+                try:
+                    with urllib.request.urlopen(request, timeout=45.0) as response:
+                        data = json.loads(response.read().decode("utf-8", "replace") or "{}")
+                    if data.get("id"):
+                        media_ids = [str(data["id"])]
+                        break
+                except Exception as exc:  # noqa: BLE001
+                    log.warning("Pixelfed media upload failed (%dpx, try %d): %s", width, attempt + 1, exc)
+            if media_ids:
+                break
+        if not media_ids:
+            log.warning("Pixelfed: media upload failed at all sizes; skipping post")
+            return None
+    status_payload: Dict[str, Any] = {"status": text, "visibility": "public"}
+    if media_ids:
+        status_payload["media_ids"] = media_ids
+    request = urllib.request.Request(
+        base + "/api/v1/statuses",
+        data=json.dumps(status_payload).encode(),
+        headers={
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "content-factory-fediverse/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8", "replace") or "{}")
+        return str(data.get("url") or data.get("uri") or data.get("id") or "")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Pixelfed publish failed: %s", exc)
+        return None
+
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fediverse content mix (crypto/AI/travel)")
     parser.add_argument("--config", default="config/fediverse_mix.yaml")
@@ -672,6 +749,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     print("mastodon:", mast_url)
                 else:
                     print("mastodon: skipped/failed")
+            if (config.get("crosspost") or {}).get("pixelfed") and image is not None:
+                px_url = pixelfed_publish(text, image)
+                if px_url:
+                    print("pixelfed:", px_url)
+                else:
+                    print("pixelfed: skipped/failed")
         except Exception as exc:  # noqa: BLE001
             print("publish failed:", type(exc).__name__, exc)
             return 1

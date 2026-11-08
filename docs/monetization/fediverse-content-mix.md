@@ -60,6 +60,13 @@ Atlas Obscura, Travel Daily Media, Travelpayouts Blog
 max_age_hours, max_feeds, max_candidates). Локальные копии:
 `data/outbox/fediverse/`.
 
+## Дублирование: Mastodon + Pixelfed
+
+Каждый пост уходит в Akkoma и дублируется в **Mastodon**
+(@amazing_Brave007@mastodon.social) и **Pixelfed**
+(@hoopy0007@pixelfed.au) — с картинкой и ссылками
+(`crosspost.mastodon`, `crosspost.pixelfed` в конфиге).
+
 ## Mastodon-дублирование
 
 Каждый fediverse-пост дублируется в **Mastodon** (@amazing_Brave007@mastodon.social),

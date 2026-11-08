@@ -36,12 +36,14 @@ Pixelfed — если пойдут фото-посты.
 
 ## Дополнительные аккаунты: статус (08.11.2026)
 
-- **Pixelfed (pixelfed.social)**: регистрация открыта (`registrations: true`,
-  approval не нужен), но форма защищена **hCaptcha** — автоматически не пройти.
-  Нужна ручная регистрация (2 минуты): name/username/email/password, 16+.
-  После регистрации — Settings → Applications → создать приложение (scopes
-  `read write`) и прислать access token: добавлю Pixelfed-публикатор
-  (карточки-картинки уже генерируются).
+- **Pixelfed: подключено** — аккаунт **@hoopy0007@pixelfed.au** (создан
+  08.11.2026, email подтверждён). API-токен получен через OAuth-приложение
+  `content-factory-publisher`; посты дублируются автоматически
+  (`crosspost.pixelfed: true`). pixelfed.social отпал из-за hCaptcha.
+  Особенность pixelfed.au: загрузка изображений >~15 КБ иногда обрывается,
+  поэтому скрипт уменьшает карточку до ~320px (fallback 450→320→280) —
+  картинка в посте есть, но небольшая. Секреты: `PIXELFED_BASE_URL`,
+  `PIXELFED_TOKEN` (в GitHub и `.env`).
 - **GoToSocial**: открытые инстансы есть (напр. `problematisch.jetzt`,
   signups open), но GTS **всегда требует одобрения админом**; API-регистрация
   возвращает 401 (только веб-форма). Можно подать заявку вручную/через браузер —

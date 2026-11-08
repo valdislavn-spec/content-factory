@@ -38,5 +38,8 @@ jobs:
           AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
           AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
           TRAVEL_AFFILIATE_URL: ${{ secrets.TRAVEL_AFFILIATE_URL }}
+          PIXELFED_BASE_URL: ${{ secrets.PIXELFED_BASE_URL }}
+          PIXELFED_TOKEN: ${{ secrets.PIXELFED_TOKEN }}
+          PIXELFED_MAX_WIDTH: "320"
         run: |
           python scripts/fediverse_mix.py --once ${{ github.event.inputs.topic && format('--topic {0}', github.event.inputs.topic) || '' }}
