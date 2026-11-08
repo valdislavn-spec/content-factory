@@ -69,3 +69,16 @@ entries:
       - |
         Las criptomonedas se mueven al ritmo de la IA: modelos, chips, energía y regulación. La parte de inteligencia artificial en español está en nuestro canal hermano:
         → https://t.me/WORLDNews0007
+
+  - source: crypto-news
+    enabled: true
+    target: ai-news
+    url: https://t.me/AINEWS0007
+    weight: 2
+    texts:
+      - |
+        <b>AI News</b> — the AI stories that actually matter: model releases, chips, policy and the companies building them. Daily, no hype.
+        → https://t.me/AINEWS0007
+      - |
+        From GPT releases to GPU deals and AI regulation — <b>AI News</b> covers the business of AI every day.
+        → https://t.me/AINEWS0007
