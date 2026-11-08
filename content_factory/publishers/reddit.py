@@ -103,8 +103,11 @@ class RedditPublisher(SocialPublisher):
 
     @classmethod
     def _title_and_text(cls, post: GeneratedPost, channel: ChannelConfig) -> Tuple[str, str]:
+        meta_title = str((getattr(post, "meta", {}) or {}).get("reddit_title") or "").strip()
         plain = cls._plain_text(post)
         lines = [line for line in plain.splitlines() if line.strip()]
+        if meta_title:
+            return meta_title[:MAX_TITLE], truncate(plain, MAX_TEXT - 60, suffix="…")
         # Заголовок — первая содержательная строка (для дайджеста пропускаем
         # короткую шапку «Resumen · дата»), иначе первая строка.
         title = ""
