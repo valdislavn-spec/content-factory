@@ -112,3 +112,13 @@ CLI-вариант:
 - Tavily `api.tavily.com` отдаёт 403, Google News RSS — таймаут; Bing News RSS
   работает и используется как fallback;
 - в GitHub Actions (US) Tavily/Google доступны без ограничений.
+
+## Reclaim.ai (тайм-блокинг задач)
+
+| Способ | Что это |
+|---|---|
+| **Нативный hosted MCP** | `https://api.app.reclaim.ai/api/mcp`, OAuth-вход в браузере |
+| **Наш `reclaim-mcp`** | `tools/reclaim_mcp.py` — stdlib MCP: tasks/events, `RECLAIM_API_KEY` |
+| **Community** | `npx reclaim-mcp` (aaron-nunley), `uvx reclaim-mcp-server` (universalamateur) |
+
+Подробности, конфиг DSH и синхронизация задач `[CF]`: [docs/reclaim.md](reclaim.md).
