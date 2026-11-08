@@ -222,6 +222,6 @@ $7 за натив 24 ч (CPM ~$35), закреп $10, неделя $28.
 | Каталог | Отправлено | Статус/детали |
 |---|---:|---|
 | **TGMania** (tgmania.com) | 6/6 | ✅ AI News подтверждён («Channel Submitted!»); остальные 5 отправлены пачкой, форма несколько раз показала «Channel Submitted!» — pending review 24–48 ч |
-| **TelegramRankings** | 5/6 | ✅ AI News, US Sports, ES AI, ES Crypto — «Channel submitted successfully». HOOPY0007 подан ранее. ⚠️ ES Sports: форма заполнена, финальное подтверждение не получено (закончились кредиты Firecrawl) — повторить |
+| **TelegramRankings** | 6/6 | ✅ HOOPY0007 ранее; AI News, US Sports, ES AI, ES Crypto, ES Sports — «Channel submitted successfully» (ES Sports повторно 08.11.2026). Pending review |
 
-Повтор ES Sports: `https://telegramrankings.com/submit`, username `SPORTSAnalytics007`, category sports, language es, contact не нужен.
+Повтор ES Sports не нужен — отправлен 08.11.2026, подтверждение «Channel submitted successfully».
