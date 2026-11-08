@@ -78,6 +78,9 @@ class RedditPublisher(SocialPublisher):
             "grant_type": "password",
             "username": creds["username"],
             "password": creds["password"],
+            # /api/submit требует submit; identity нужен, если будем проверять
+            # аккаунт через /api/v1/me.
+            "scope": "submit,read,identity",
         }
         headers = {
             "Authorization": "Basic {}".format(basic),
