@@ -143,3 +143,30 @@ def test_non_travel_pin_keeps_hub(monkeypatch):
     pin["slug"] = "05-bitcoin-at-100k"
     text = build_text(pin, CHANNEL_X, HUB, CONFIG)
     assert HUB in text
+
+
+def test_cta_rotates_by_day():
+    config = dict(CONFIG)
+    config["niches"] = {"travel": dict(CONFIG["niches"]["travel"])}
+    config["niches"]["travel"]["cta_variants"] = ["Full guide:", "Save this:", "Plan the trip:"]
+    texts = {build_text(PIN, CHANNEL_BSKY, HUB, config, day) for day in (0, 1, 2)}
+    assert len(texts) == 3
+
+
+def test_alt_text_in_assets():
+    pin = dict(PIN)
+    pin["image_url"] = "https://example.com/a.png"
+    pin["alt_text"] = "Travel guide cover"
+    assert build_assets(pin, True)[0]["image"]["altText"] == "Travel guide cover"
+    assert "altText" not in build_assets(pin, False)[0]["image"]
+
+
+def test_partner_line_for_crypto(monkeypatch):
+    monkeypatch.setattr("scripts.buffer_queue.shorten_url", lambda url: url)
+    config = dict(CONFIG)
+    config["niche_partners"] = {"crypto": "https://links.example/r/bingx"}
+    pin = dict(PIN)
+    pin["niche"] = "crypto"
+    pin["slug"] = "05-bitcoin-at-100k"
+    text = build_text(pin, CHANNEL_X, HUB, config)
+    assert "Ad: https://links.example/r/bingx" in text

@@ -52,11 +52,14 @@ DEFAULT_STYLE = {
 }
 
 
-def _style(config: dict, niche: str) -> dict:
+def _style(config: dict, niche: str, day_index: int = 0) -> dict:
     style = dict(DEFAULT_STYLE)
     styles = (config or {}).get("niches") or {}
     if niche and isinstance(styles.get(niche), dict):
         style.update(styles[niche])
+    variants = [str(v) for v in (style.get("cta_variants") or []) if str(v).strip()]
+    if variants:
+        style["cta"] = variants[day_index % len(variants)]
     return style
 
 
@@ -151,12 +154,16 @@ def channel_link(config: dict, niche: str) -> str:
     return str(niche_links.get(niche) or links.get("channel_default") or "")
 
 
-def build_assets(pin: dict) -> list:
-    """Картинка статьи (пина) для Buffer: assets=[{image:{url}}]."""
+def build_assets(pin: dict, alt_text: bool = False) -> list:
+    """Картинка статьи (пина) для Buffer: assets=[{image:{url[, altText]}}]."""
     image = str(pin.get("image_url") or "").strip()
     if not image.startswith(("http://", "https://")):
         return []
-    return [{"image": {"url": image}}]
+    payload = {"url": image}
+    alt = str(pin.get("alt_text") or "").strip()
+    if alt_text and alt:
+        payload["altText"] = alt
+    return [{"image": payload}]
 
 
 def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
@@ -174,36 +181,38 @@ def _fit(hook: str, benefit: str, footer: str, limit: int) -> str:
     return clip(hook, max(20, room)) + "\n\n" + footer
 
 
-def _link_lines(article: str, channel: str) -> str:
+def _link_lines(article: str, channel: str, partner: str = "", label: str = "") -> str:
     lines = []
     if article:
         lines.append("Guide: " + article)
     if channel:
         lines.append("Telegram: " + channel)
+    if partner:
+        lines.append((label or "Ad:") + " " + partner)
     return " · ".join(lines)
 
 
-def build_x(pin: dict, link: str, style: dict, limit: int = 280, channel: str = "") -> str:
+def build_x(pin: dict, link: str, style: dict, limit: int = 280, channel: str = "", partner: str = "", partner_label: str = "") -> str:
     """X: хук в первой строке, 0 хэштегов, короткие ссылки (статья + канал)."""
     disclosure = " Ad" if pin.get("affiliate") else ""
     hook = _hook(pin.get("title") or "", 120)
-    footer = (_link_lines(link, channel) + disclosure).strip()
+    footer = (_link_lines(link, channel, partner, partner_label) + disclosure).strip()
     benefit = _first_sentence(pin.get("description") or "", 120)
     return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
 
 
-def build_bluesky(pin: dict, link: str, style: dict, limit: int = 300, channel: str = "") -> str:
+def build_bluesky(pin: dict, link: str, style: dict, limit: int = 300, channel: str = "", partner: str = "", partner_label: str = "") -> str:
     """Bluesky: хук с эмодзи, 1–3 хэштега, короткие ссылки статья + канал."""
     disclosure = " Ad" if pin.get("affiliate") else ""
     emoji = str(style.get("emoji") or "").strip()
     tags = _tags(style, 3)
     hook = (emoji + " " + _hook(pin.get("title") or "", 120)).strip()
-    footer = (_link_lines(link, channel) + disclosure + (" " + tags if tags else "")).strip()
+    footer = (_link_lines(link, channel, partner, partner_label) + disclosure + (" " + tags if tags else "")).strip()
     benefit = _first_sentence(pin.get("description") or "", 120)
     return clip(_fit(hook, benefit, footer, limit), limit, keep_lines=True)
 
 
-def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000, channel: str = "") -> str:
+def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000, channel: str = "", partner: str = "", partner_label: str = "") -> str:
     """Facebook: хук <80 симв., пункты, вопрос, статья + канал, 0–2 тега."""
     disclosure = " Ad" if pin.get("affiliate") else ""
     emoji = str(style.get("emoji") or "").strip()
@@ -216,17 +225,17 @@ def build_facebook(pin: dict, link: str, style: dict, limit: int = 1000, channel
         parts.append(bullets)
     if question:
         parts.append(question)
-    parts.append(_link_lines(link, channel) + disclosure)
+    parts.append(_link_lines(link, channel, partner, partner_label) + disclosure)
     if tags:
         parts.append(tags)
     return clip("\n\n".join(parts), limit, keep_lines=True)
 
 
-def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None) -> str:
+def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None, day_index: int = 0) -> str:
     service = str(channel.get("service") or "")
     limit = int(channel.get("max_chars") or 280)
     niche = str(pin.get("niche") or "")
-    style = _style(config or {}, niche)
+    style = _style(config or {}, niche, day_index)
     links_config = (config or {}).get("links") or {}
     shorten = bool(links_config.get("shorten", False))
     utm = channel.get("utm") or {}
@@ -237,12 +246,16 @@ def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None) -> s
     tg_link = channel_link(config, niche)
     # t.me-ссылки и так короткие — сокращаем только длинные.
     tg_channel = _short(tg_link, shorten) if len(tg_link) > 40 else tg_link
+    partners = (config or {}).get("niche_partners") or {}
+    partner = str(partners.get(niche) or "").strip()
+    partner = _short(partner, shorten) if partner else ""
+    partner_label = str((config or {}).get("partner_label") or "Ad:")
     if service in ("twitter", "x"):
-        return build_x(pin, article, style, limit, tg_channel)
+        return build_x(pin, article, style, limit, tg_channel, partner, partner_label)
     if service == "bluesky":
-        return build_bluesky(pin, article, style, limit, tg_channel)
+        return build_bluesky(pin, article, style, limit, tg_channel, partner, partner_label)
     if service == "facebook":
-        return build_facebook(pin, article, style, limit, tg_channel)
+        return build_facebook(pin, article, style, limit, tg_channel, partner, partner_label)
     title_part = clip(pin.get("title") or "", 90)
     description_part = clip(pin.get("description") or "", max(20, limit - len(title_part) - len(article) - 10))
     return clip(title_part + "\n\n" + description_part + "\n\n" + _link_lines(article, tg_channel), limit)
@@ -318,9 +331,10 @@ def main(argv=None) -> int:
     slug_link = hub_url
     if slug in affiliate_slugs:
         slug_link = "%s/go/%s.html" % (hub_url.rstrip("/"), slug)
-    assets = build_assets(pin)
+    day_index = now.timetuple().tm_yday
+    assets = build_assets(pin, bool(config.get("assets_alt_text")))
     for channel in channels:
-        text = build_text(pin, channel, slug_link, config)
+        text = build_text(pin, channel, slug_link, config, day_index)
         record = {
             "date": day,
             "service": channel.get("service"),

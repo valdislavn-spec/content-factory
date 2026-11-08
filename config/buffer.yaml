@@ -8,6 +8,13 @@ hub_url: https://valdislavn-spec.github.io/content-factory/
 links:
   shorten: true                 # TinyURL: длинные ссылки → одно короткое слово
   channel_default: https://t.me/HOOPY0007
+
+# A/B CTA: варианты чередуются по дню (для замера кликов по UTM/шортлинкам).
+# Партнёрская строка (Ad) для ниш, где уже есть оффер.
+assets_alt_text: true           # передавать altText в Buffer (если API принимает)
+partner_label: "Ad:"
+niche_partners:
+  crypto: https://links-tracker.valdislav-n.workers.dev/r/bingx-crypto-news
 niche_channels:
   travel: https://t.me/HOOPY0007
   crypto: https://t.me/HOOPY0007
@@ -20,21 +27,25 @@ niches:
     emoji: "🧳"
     hashtags: ["#travel", "#budgettravel"]
     cta: "Full guide:"
+    cta_variants: ["Full guide:", "Save this:", "Plan the trip:"]
     question: "Which city is on your list this year?"
   crypto:
     emoji: "₿"
     hashtags: ["#bitcoin", "#crypto"]
     cta: "Live odds:"
+    cta_variants: ["Live odds:", "See the numbers:", "Check the odds:"]
     question: "Would you take the other side of this trade?"
   ai:
     emoji: "🤖"
     hashtags: ["#AI", "#productivity"]
     cta: "Full guide:"
+    cta_variants: ["Full guide:", "Try these:", "Save the list:"]
     question: "Which workflow would you automate first?"
   sports:
     emoji: "🏈"
     hashtags: ["#NFL", "#sports"]
     cta: "The numbers:"
+    cta_variants: ["The numbers:", "See the data:", "Weekly picks:"]
     question: "Who do you like this week?"
 # один пин в день, дальше — очередь Buffer (addToQueue)
 mode: addToQueue
