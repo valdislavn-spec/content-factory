@@ -477,7 +477,7 @@ content-factory/
 | [promo/catalog-package.md](docs/promo/catalog-package.md) | карточки для каталогов: описания 120–200, категории, ключевые слова; [promo/vp-outreach.md](docs/promo/vp-outreach.md) — ВП-шаблоны и трекер |
 | [promo/email-newsletter-free.md](docs/promo/email-newsletter-free.md) | бесплатные email-рассылки: GitHub-проекты (Listmonk, Ghost, Keila), free-тарифы Brevo/Resend/Mailgun/SendPulse, сбор адресов и сценарии запуска |
 | [promo/email-digest-setup.md](docs/promo/email-digest-setup.md) | недельный email-дайджест: форма подписки (Cloudflare Worker + KV), Brevo-списки EN/ES, секреты, double opt-in и запуск workflow |
-| [promo/reddit-api-setup.md](docs/promo/reddit-api-setup.md) | Reddit Data API: где взять client_id/secret, Responsible Builder Policy, регистрация и одобрение, готовый текст заявки, секреты и проверка (reddit-check) |
+| [promo/reddit-api-setup.md](docs/promo/reddit-api-setup.md) | Reddit Data API: где была кнопка create another app, почему приём заявок закрыт с 31.10.2026, Devvit как единственный путь для новых проектов, что делать с legacy-публикатором |
 | [plan.md](docs/plan.md) | чек-лист запуска на 7 дней и дорожная карта |
 | [free-cloud.md](docs/free-cloud.md) | бесплатные облачные варианты: сбор новостей, LLM, хостинг, автопостинг, рецепты Oracle/GitHub Actions/Apps Script/n8n |
 | [legal.md](docs/legal.md) | авторские права, ToS, дисклеймеры, ответственность |
