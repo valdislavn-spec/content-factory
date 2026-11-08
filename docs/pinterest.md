@@ -109,3 +109,19 @@ production — `code 3` до одобрения.
 
 `PINTEREST_API_BASE` (Repository variable) переключает базу API в паблишере и
 скриптах.
+
+## OAuth-flow (когда приложение одобрено)
+
+Если Product-limited тестовый токен не подходит, можно получить пользовательский
+токен через OAuth2:
+
+1. Configure → **Redirect URIs** → добавить `http://localhost:8085/callback`.
+2. Запустить:
+   ```bash
+   python scripts/pinterest_oauth.py --client-id 1636122 --client-secret <APP_SECRET>
+   ```
+3. Браузер откроет авторизацию Pinterest; после подтверждения скрипт поймает
+   redirect на localhost, обменяет код на токен и сохранит `.pinterest-token.json`
+   (access + refresh token).
+
+Требуется **App secret** (Configure → App secret) и одобренный доступ приложения.
