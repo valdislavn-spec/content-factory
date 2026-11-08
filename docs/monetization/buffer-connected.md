@@ -153,3 +153,13 @@ https://facebook.com/865322629989875_122148500589054089
 Тематика: Bitcoin quantum-resistance, US Treasury/MEXC, OpenAI $11B, NFL refs;
 ссылки — короткие is.gd-алиасы каналов. Запланированы 9 постов на 17:16/19:16/21:16 UTC
 (3 сети × 3 слота) + напоминания 17:05/19:05/21:05 для обновления новостей.
+
+
+### Обновление слота 17:16 UTC (17:05)
+Перед публикацией тексты обновлены свежими новостями через `editPost`:
+- Bluesky `6af09261562f2e6de9c6efd1` — 245 зн., status scheduled
+- X `6af0926151492b796e46154b` — 130 зн., status scheduled
+- Facebook `6af09262d6bbae6fa1f6f5d8` — 408 зн., status scheduled (потребовался metadata.facebook.type=post)
+
+Темы: Bitcoin quantum-resistance, AI chip stocks/bubble, OpenAI $11B, Cowboys inactives.
+Следующее обновление — 19:05 UTC (слот 19:16).
