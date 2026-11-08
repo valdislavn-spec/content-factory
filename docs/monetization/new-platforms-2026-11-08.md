@@ -41,3 +41,23 @@ LeadBit — hCaptcha, CoinW — капча) или **email-код**. Автом�
 - **Writesonic** — аккаунт + заявка pending.
 - **MyLead** — вход выполнен (Vald001), реф-ссылка есть.
 - **Travelpayouts, N1, KissMyAds** — сбросы/пропуски/удаление (см. реестр).
+
+## BingX — статус на 08.11.2026 (вечер)
+
+Пользователь залогинен в BingX (аккаунт создан, письма о входе пришли).
+Анкета affiliate-программы открыта и заполнена:
+- Name: Vladislav Naryzhny
+- Contact: valdislav.n@gmail.com; Telegram: @HOOPY0007
+- Country/Region: Russian (выбрано через поиск; для BingX корректно, т.к. US не обслуживается)
+- Language: English
+- Promo Platforms: Telegram (вкл.), Account/Link: https://t.me/HOOPY0007, Followers: 3700
+- Описание: Telegram-сеть (EN/ES), лендинг + Tumblr, план размещения ссылок BingX, UTM/GA4.
+
+Не подтверждено: отправка анкеты. В форме есть блок **Upload (JPG/PNG ≤2MB) —
+подтверждение аудитории**; без скриншота статистики анкета, вероятно, не уходит.
+Окно BingX осталось открытым (мешал попап Language/Currency — закрыть крестиком).
+
+Следующие шаги:
+1. Закрыть попап Language/Currency в окне.
+2. Приложить скриншот статистики канала (t.me/HOOPY0007, ~3.7k) в Upload.
+3. Нажать «Join Our Program» и проверить статус (Partner Hub / уведомления / письмо).
