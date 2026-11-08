@@ -1,0 +1,47 @@
+# Ротация постов для Fediverse (Akkoma): крипто/трейдинг → AI×трейдинг → travel-реклама.
+# Скрипт: scripts/fediverse_mix.py; workflow: .github/workflows/fediverse-mix.yml
+enabled: true
+state_path: data/fediverse_mix_state.json
+rotation: [crypto, ai, travel]      # по одному посту на тему по кругу
+telegram_crypto: https://t.me/HOOPY0007
+telegram_ai: https://t.me/AINEWS0007
+travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default
+travel_disclosure: "Ad · travel partner · prices vary."
+
+crypto_headlines:
+  - "BTC holds above $76k as traders watch ETF flows and the next macro signal."
+  - "Crypto markets are grinding higher: what the last 24h says about positioning."
+  - "Volatility is back on the menu — here is where BTC, ETH and SOL stand."
+  - "Traders are watching the same levels: BTC support, ETH rotation, SOL momentum."
+
+ai_angles:
+  - "AI agents are moving from chat to trading desks: LLM research, sentiment scans and automated strategies."
+  - "The new crypto edge may be AI: faster research, broader monitoring, fewer missed signals."
+  - "AI + trading is not about magic bots — it is about compressing research time and enforcing risk limits."
+  - "Models do not replace discipline: AI finds patterns, traders still manage risk."
+
+templates:
+  crypto: |
+    📈 {headline}
+
+    Markets (BingX): {market_line}
+
+    US crypto news → {telegram_crypto}
+
+    #Bitcoin #Crypto #Trading
+  ai: |
+    🤖 {ai_angle}
+
+    The catch: a model is only as good as its data and risk limits. AI adds speed — discipline still wins.
+
+    AI + crypto coverage → {telegram_ai}
+
+    #AI #Crypto #Trading
+  travel: |
+    ✈️ Travel season is back — flights, hotels and city breaks are moving fast.
+
+    Plan the next trip with our travel partner: {travel_link}
+
+    {travel_disclosure}
+
+    #Travel #Deals

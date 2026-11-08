@@ -1,0 +1,41 @@
+name: Fediverse content mix
+
+on:
+  schedule:
+    # 3 поста в сутки: крипто → AI → travel (ротация по state-файлу)
+    - cron: "17 2,10,18 * * *"
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "crypto / ai / travel (пусто = по ротации)"
+        required: false
+        default: ""
+
+concurrency:
+  group: fediverse-mix
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Restore rotation state
+        uses: actions/cache@v4
+        with:
+          path: data/fediverse_mix_state.json
+          key: fediverse-mix-state-${{ github.run_id }}
+          restore-keys: |
+            fediverse-mix-state-
+      - name: Post next topic
+        env:
+          AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
+          AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+        run: |
+          python scripts/fediverse_mix.py --once ${{ github.event.inputs.topic && format('--topic {0}', github.event.inputs.topic) || '' }}
