@@ -159,7 +159,7 @@ channels:
   market_line:
     enabled: true
     coins: [bitcoin, ethereum, solana]
-    kalshi_series: KXBTC
+    kalshi_series: [KXBTCMAX100, KXBTCABOVE100BY, KXBTCABOVE85BY, KXBTC]
   topics:
   - bitcoin
   - ethereum

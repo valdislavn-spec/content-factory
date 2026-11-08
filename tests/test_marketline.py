@@ -58,6 +58,30 @@ def test_insert_before_hashtags():
     assert insert_before_hashtags(text, "") == text
 
 
+def test_kalshi_line_prefers_price_target_market():
+    seen = []
+
+    def markets_fetcher(ticker: str):
+        seen.append(ticker)
+        if ticker == "KXBTCMAX100":
+            return [
+                {
+                    "ticker": "KXBTCMAX100-26-DEC",
+                    "title": "When will Bitcoin cross $100k again?",
+                    "yes_sub_title": "Before January 2027",
+                    "yes_bid_dollars": "0.12",
+                    "volume_fp": "40000",
+                }
+            ]
+        return KALSHI_MARKETS
+
+    from content_factory.integrations.marketline import kalshi_btc_line
+
+    line = kalshi_btc_line(("KXBTCMAX100", "KXBTC"), markets_fetcher=markets_fetcher)
+    assert line == "Kalshi: Before January 2027 — 12¢"
+    assert "KXBTCMAX100" in seen
+
+
 def test_build_market_line_with_cache(tmp_path: Path):
     calls = {"prices": 0, "kalshi": 0}
 
@@ -70,7 +94,7 @@ def test_build_market_line_with_cache(tmp_path: Path):
         return KALSHI_MARKETS
 
     cache = tmp_path / "marketline.json"
-    config = {"enabled": True, "coins": ["bitcoin", "ethereum"], "kalshi_series": "KXBTC"}
+    config = {"enabled": True, "coins": ["bitcoin", "ethereum"], "kalshi_series": ["KXBTC"]}
     line = build_market_line(config, price_fetcher=price_fetcher, markets_fetcher=markets_fetcher, cache_path=cache)
     assert "BTC $75,861" in line
     assert "Kalshi: $75,800 to 75,899.99 — 73¢" in line

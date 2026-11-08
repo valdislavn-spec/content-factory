@@ -92,28 +92,65 @@ def fetch_crypto_prices(
     return data if isinstance(data, dict) else {}
 
 
+_INTERESTING_TITLE_WORDS = (
+    "bitcoin", "btc", "above", "below", "exceed", "cross", "hit", "over", "under", "reach",
+)
+
+
+def _interesting_btc_market(markets: Sequence[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Pick a liquid price-target BTC market (not the boring intraday range)."""
+    from .kalshi import market_volume, yes_price_cents
+
+    best: Optional[Dict[str, Any]] = None
+    best_volume = 0.0
+    for market in markets:
+        title = str(market.get("title") or "").strip()
+        subtitle = str(market.get("yes_sub_title") or "").strip()
+        haystack = (title + " " + subtitle).lower()
+        if not any(word in haystack for word in ("bitcoin", "btc")):
+            continue
+        if not any(word in haystack for word in _INTERESTING_TITLE_WORDS[2:]):
+            continue
+        price = yes_price_cents(market)
+        volume = market_volume(market)
+        if price is None or not (1 <= price <= 99) or volume <= 0:
+            continue
+        if volume > best_volume:
+            best, best_volume = market, volume
+    return best
+
+
 def kalshi_btc_line(
-    series_ticker: str = "KXBTC",
+    series_tickers: Sequence[str] | str = ("KXBTCMAX100", "KXBTCABOVE100BY", "KXBTCABOVE85BY", "KXBTC"),
     timeout: float = 10.0,
     markets_fetcher: Optional[Callable[[str], List[Dict[str, Any]]]] = None,
 ) -> str:
-    """Top-liquidity market of a Kalshi BTC series as a short line part."""
+    """Short Kalshi line: a liquid BTC price-target market, else top-volume one."""
+    if isinstance(series_tickers, str):
+        series_tickers = (series_tickers,)
+    tickers = [str(t).strip() for t in series_tickers if str(t).strip()]
+    if not tickers:
+        return ""
 
     def _default_fetch(ticker: str) -> List[Dict[str, Any]]:
         from .kalshi import KalshiClient
 
         return KalshiClient().markets(status="open", limit=100, series_ticker=ticker)
 
-    try:
-        markets = (markets_fetcher or _default_fetch)(series_ticker)
-    except Exception:  # noqa: BLE001 - best effort
+    fetch = markets_fetcher or _default_fetch
+    collected: List[Dict[str, Any]] = []
+    for ticker in tickers:
+        try:
+            collected.extend(fetch(ticker))
+        except Exception:  # noqa: BLE001 - best effort
+            continue
+    if not collected:
         return ""
-    if not markets:
-        return ""
-    from .kalshi import market_volume, yes_price_cents, close_date
+    from .kalshi import market_volume, yes_price_cents
 
-    markets = sorted(markets, key=market_volume, reverse=True)
-    market = markets[0]
+    market = _interesting_btc_market(collected)
+    if market is None:
+        market = sorted(collected, key=market_volume, reverse=True)[0]
     subtitle = str(market.get("yes_sub_title") or "").strip()
     price = yes_price_cents(market)
     if not subtitle or price is None:
@@ -180,7 +217,12 @@ def build_market_line(
     if not isinstance(config, dict) or not config.get("enabled"):
         return ""
     coins = tuple(str(c).strip() for c in (config.get("coins") or DEFAULT_COINS) if str(c).strip())
-    series = str(config.get("kalshi_series") or "").strip()
+    raw_series = config.get("kalshi_series") or ""
+    if isinstance(raw_series, str):
+        series_list = [raw_series.strip()] if raw_series.strip() else []
+    else:
+        series_list = [str(item).strip() for item in raw_series if str(item).strip()]
+    series = ",".join(series_list)
     path = cache_path or _cache_path()
     cache = _read_cache(path, ttl)
     key = "|".join(coins) + "|" + series
@@ -192,7 +234,7 @@ def build_market_line(
         prices = fetch_crypto_prices(coins, fetcher=price_fetcher)
     except Exception:  # noqa: BLE001 - best effort
         prices = {}
-    extra = kalshi_btc_line(series, markets_fetcher=markets_fetcher) if series else ""
+    extra = kalshi_btc_line(series_list, markets_fetcher=markets_fetcher) if series_list else ""
     line = format_market_line(prices, coins=coins, extra=extra)
     if line:
         _write_cache(path, {"key": key, "line": line, "ts": int(time.time())})
