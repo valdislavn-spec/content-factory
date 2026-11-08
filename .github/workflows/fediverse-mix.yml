@@ -2,8 +2,8 @@ name: Fediverse content mix
 
 on:
   schedule:
-    # 3 поста в сутки: крипто → AI → travel (ротация по state-файлу)
-    - cron: "17 2,10,18 * * *"
+    # 2 поста в сутки: крипто → AI → travel (ротация по state-файлу)
+    - cron: "17 10,18 * * *"
   workflow_dispatch:
     inputs:
       topic:

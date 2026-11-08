@@ -17,8 +17,8 @@ crypto/trading → AI×trading → travel-реклама → повтор
 
 Конфиг: [`config/fediverse_mix.yaml`](../../config/fediverse_mix.yaml).
 Скрипт: [`scripts/fediverse_mix.py`](../../scripts/fediverse_mix.py).
-Автопостинг: `.github/workflows/fediverse-mix.yml` — 3 раза в сутки
-(02:17, 10:17, 18:17 UTC), state ротации кэшируется между запусками.
+Автопостинг: `.github/workflows/fediverse-mix.yml` — **2 раза в сутки**
+(10:17 и 18:17 UTC), state ротации кэшируется между запусками.
 
 ## Как смешивать трейдинг, крипто и AI
 
