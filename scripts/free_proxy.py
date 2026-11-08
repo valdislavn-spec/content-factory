@@ -220,10 +220,16 @@ def command_setup(args: argparse.Namespace) -> int:
             time.sleep(1.0)
             if process.poll() is not None:
                 continue
-            x_code = curl("https://x.com", TEST_PORT)
-            t_code = curl("https://t.me", TEST_PORT)
-            log("[{}] {}:{} x={} t={}".format(index, node["host"], node["port"], x_code, t_code))
-            if x_code not in ("000", "") and t_code not in ("000", ""):
+            codes = {
+                "x": curl("https://x.com", TEST_PORT),
+                "t": curl("https://t.me", TEST_PORT),
+                "y": curl("https://www.youtube.com", TEST_PORT),
+            }
+            log("[{}] {}:{} x={} t={} y={}".format(
+                index, node["host"], node["port"], codes["x"], codes["t"], codes["y"]))
+            ok_count = sum(1 for value in codes.values() if value not in ("000", ""))
+            # требуем минимум 2 из 3 (x.com обязателен: ради него всё и делается)
+            if codes["x"] not in ("000", "") and ok_count >= 2:
                 best = node
                 break
         finally:

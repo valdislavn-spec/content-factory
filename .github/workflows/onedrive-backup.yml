@@ -7,7 +7,9 @@ name: onedrive-backup
 
 on:
   schedule:
-    - cron: "15 4 * * *"   # 04:15 UTC ежедневно
+    # два слота: GitHub иногда задерживает/пропускает cron под нагрузкой
+    - cron: "15 4 * * *"    # 04:15 UTC
+    - cron: "15 16 * * *"   # 16:15 UTC (резерв)
   workflow_dispatch:
 
 permissions:

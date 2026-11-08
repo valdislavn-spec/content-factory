@@ -40,18 +40,31 @@ def log(message: str) -> None:
     print(line, flush=True)
 
 
-def proxy_ok(port: int, timeout: int = 10) -> bool:
-    """Проверка, что SOCKS отвечает и x.com доступен."""
-    try:
-        result = subprocess.run(
-            ["curl", "-s", "-x", "socks5h://127.0.0.1:{}".format(port),
-             "-m", str(timeout), "-o", "/dev/null", "-w", "%{http_code}", "https://x.com"],
-            capture_output=True, text=True, timeout=timeout + 5,
-        )
-        code = (result.stdout or "").strip()
-        return code not in ("", "000")
-    except (subprocess.SubprocessError, OSError):
-        return False
+HEALTH_URLS = (
+    "https://x.com",
+    "https://t.me",
+    "https://www.youtube.com",
+)
+
+
+def proxy_ok(port: int, timeout: int = 8) -> bool:
+    """Проверка SOCKS по нескольким сайтам: нужно минимум 2 из 3."""
+    ok = 0
+    for url in HEALTH_URLS:
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "-x", "socks5h://127.0.0.1:{}".format(port),
+                 "-m", str(timeout), "-o", "/dev/null", "-w", "%{http_code}", url],
+                capture_output=True, text=True, timeout=timeout + 4,
+            )
+            code = (result.stdout or "").strip()
+            if code not in ("", "000"):
+                ok += 1
+        except (subprocess.SubprocessError, OSError):
+            continue
+    if ok < 2:
+        log("health-check: {} из {} сайтов".format(ok, len(HEALTH_URLS)))
+    return ok >= 2
 
 
 def ensure_config(port: int) -> bool:
