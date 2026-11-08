@@ -26,7 +26,7 @@
 | **Akkoma** (@hoopy0007) | те же endpoints | `AKKOMA_BASE_URL`, `AKKOMA_TOKEN` |
 | **Buffer** (X / Bluesky / Facebook) | GraphQL `createPost` + `assets[image.url]`, в очередь | `BUFFER_API_KEY` |
 | **Tumblr** | legacy photo post (`source`=URL) | `TUMBLR_*` (5 секретов) |
-| **Pinterest** | `POST /v5/pins` (board авто-создаётся) | `PINTEREST_ACCESS_TOKEN` (+ опц. `PINTEREST_BOARD_ID`) |
+| **Pinterest** | `POST /v5/pins` (board авто-создаётся) | `PINTEREST_ACCESS_TOKEN` (+ опц. `PINTEREST_BOARD_ID`); сейчас токен возвращает 401 — нужен refresh |
 
 Каждая подпись содержит:
 - описание канала и 3 пункта;

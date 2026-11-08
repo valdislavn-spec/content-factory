@@ -17,9 +17,13 @@ on:
       platforms:
         description: "Платформы через запятую: mastodon,akkoma,buffer,tumblr,pinterest"
         required: false
-        default: "mastodon,akkoma,buffer,tumblr,pinterest"
+        default: "mastodon,akkoma,buffer,tumblr"
       channels:
         description: "Только эти каналы (через запятую; пусто = все 6)"
+        required: false
+        default: ""
+      buffer_services:
+        description: "Фильтр Buffer: twitter,bluesky,facebook (пусто = все)"
         required: false
         default: ""
       commit_cards:
@@ -100,6 +104,9 @@ jobs:
           FLAGS="--platforms '${{ github.event.inputs.platforms }}'"
           if [ -n "${{ github.event.inputs.channels }}" ]; then
             FLAGS="$FLAGS --channels '${{ github.event.inputs.channels }}'"
+          fi
+          if [ -n "${{ github.event.inputs.buffer_services }}" ]; then
+            FLAGS="$FLAGS --buffer-services '${{ github.event.inputs.buffer_services }}'"
           fi
           if [ "${{ github.event.inputs.publish }}" = "live" ]; then
             FLAGS="$FLAGS --live"

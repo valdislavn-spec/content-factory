@@ -222,7 +222,7 @@ def _publish_akkoma(row: Dict[str, Any], image: Path, dry_run: bool) -> Dict[str
         return {"ok": False, "error": str(exc)}
 
 
-def _publish_buffer(rows: List[Dict[str, Any]], dry_run: bool) -> List[Dict[str, Any]]:
+def _publish_buffer(rows: List[Dict[str, Any]], dry_run: bool, services: Optional[set] = None) -> List[Dict[str, Any]]:
     try:
         from content_factory.integrations.buffer import BufferClient, BufferError
     except Exception as exc:  # noqa: BLE001
@@ -245,6 +245,7 @@ def _publish_buffer(rows: List[Dict[str, Any]], dry_run: bool) -> List[Dict[str,
             }
             for channel in channels
             if str(channel.get("service") or "").lower() in {"twitter", "x", "bluesky", "facebook"}
+            and (not services or str(channel.get("service") or "").lower() in services)
         ]
     service_map = {
         "twitter": "x",
@@ -262,13 +263,17 @@ def _publish_buffer(rows: List[Dict[str, Any]], dry_run: bool) -> List[Dict[str,
         caption_key = service_map.get(service)
         if not caption_key:
             continue
+        if services and service not in services:
+            continue
         for row in rows:
             text = _clip(row["captions"].get(caption_key) or "", 600)
+            metadata = {"facebook": {"type": "post"}} if service == "facebook" else None
             try:
                 post = client.create_post(
                     str(channel.get("id")),
                     text,
                     mode="addToQueue",
+                    metadata=metadata,
                     assets=[{"image": {"url": row["image_url"]}}],
                 )
                 results.append(
@@ -424,6 +429,11 @@ def parse_args(argv=None) -> argparse.Namespace:
         default="mastodon,akkoma,buffer,tumblr,pinterest",
         help="Платформы через запятую",
     )
+    parser.add_argument(
+        "--buffer-services",
+        default="",
+        help="Фильтр сетей Buffer: twitter,bluesky,facebook (пусто = все)",
+    )
     parser.add_argument("--live", action="store_true", help="Реальная публикация (иначе dry-run)")
     return parser.parse_args(argv)
 
@@ -449,6 +459,11 @@ def main(argv=None) -> int:
         return 2
 
     platforms = [item.strip().lower() for item in str(args.platforms or "").split(",") if item.strip()]
+    buffer_services = {
+        item.strip().lower()
+        for item in str(getattr(args, "buffer_services", "") or "").split(",")
+        if item.strip()
+    }
     dry_run = not args.live
     image_dir = manifest_path.parent
     report: Dict[str, Any] = {
@@ -484,7 +499,7 @@ def main(argv=None) -> int:
                 ))
             report["results"][platform] = results
         elif platform == "buffer":
-            results = _publish_buffer(rows, dry_run)
+            results = _publish_buffer(rows, dry_run, buffer_services or None)
             report["results"]["buffer"] = results
             for result in results[:12]:
                 print("  buffer: {} {} {}".format(
