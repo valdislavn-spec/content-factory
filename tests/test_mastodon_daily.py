@@ -87,6 +87,25 @@ class DailyTests(unittest.TestCase):
         self.assertEqual(calls[2]["reply_to"], "id-2")
         self.assertEqual(len(results), 3)
 
+    def test_split_llm_text_by_separators(self):
+        raw = "First part text.\n---\nSecond part text.\n---\nThird part text."
+        parts = daily.split_llm_text(raw)
+        self.assertEqual(len(parts), 3)
+
+    def test_split_llm_text_paragraphs_packed(self):
+        raw = "Para one sentence.\n\nPara two sentence.\n\nPara three sentence."
+        parts = daily.split_llm_text(raw)
+        self.assertGreaterEqual(len(parts), 2)
+        for part in parts:
+            self.assertLessEqual(len(part), daily.MAX_PART + 1)
+
+    def test_split_llm_text_single_blob_packs_sentences(self):
+        raw = " ".join(["This is a sentence about the topic."] * 40)
+        parts = daily.split_llm_text(raw)
+        self.assertGreaterEqual(len(parts), 3)
+        for part in parts:
+            self.assertLessEqual(len(part), daily.MAX_PART + 1)
+
     def test_state_skip_logic(self):
         with mock.patch.object(daily, "_state_get", return_value={"value": "2026-11-08:0"}):
             self.assertTrue(daily._already_done(date(2026, 11, 8), 0))
