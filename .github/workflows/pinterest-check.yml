@@ -1,0 +1,41 @@
+name: pinterest-check
+
+# Проверка Pinterest API v5: токен, список досок, опционально тестовый пин.
+on:
+  workflow_dispatch:
+    inputs:
+      post:
+        description: "true = создать тестовый пин"
+        required: true
+        default: "false"
+        type: choice
+        options: ["true", "false"]
+      board_id:
+        description: "board id для теста (пусто = из secrets)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_BOARD_ID: ${{ inputs.board_id || secrets.PINTEREST_BOARD_ID }}
+      PINTEREST_IMAGE_URL: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_NEWS }}
+      PINTEREST_LINK: ${{ vars.PINTEREST_LINK }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check Pinterest
+        run: |
+          if [ "${{ inputs.post }}" = "true" ]; then
+            python scripts/pinterest_check.py --post --link "$PINTEREST_LINK"
+          else
+            python scripts/pinterest_check.py
+          fi

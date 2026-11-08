@@ -80,6 +80,16 @@ jobs:
       X_API_SECRET: ${{ secrets.X_API_SECRET }}
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      # Pinterest — API v5, публичный URL обложки из docs/assets/pinterest/
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+      PINTEREST_LINK: ${{ vars.PINTEREST_LINK }}
+      PINTEREST_IMAGE_URL_CRYPTO_NEWS: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_NEWS }}
+      PINTEREST_IMAGE_URL_AI_NEWS: ${{ vars.PINTEREST_IMAGE_URL_AI_NEWS }}
+      PINTEREST_IMAGE_URL_SPORT_NEWS: ${{ vars.PINTEREST_IMAGE_URL_SPORT_NEWS }}
+      PINTEREST_IMAGE_URL_CRYPTO_ES: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_ES }}
+      PINTEREST_IMAGE_URL_TECH_AI_ES: ${{ vars.PINTEREST_IMAGE_URL_TECH_AI_ES }}
+      PINTEREST_IMAGE_URL_FUTBOL_ES: ${{ vars.PINTEREST_IMAGE_URL_FUTBOL_ES }}
       VK_GROUP_ID: ${{ secrets.VK_GROUP_ID }}
 
       # --- Бесплатные соцсети (кросспостинг) ----------------------------

@@ -62,8 +62,12 @@ class PinterestPublisher(SocialPublisher):
             "board_id": board_id,
             "title": title,
             "description": text,
+            "alt_text": title,
             "media_source": {"source_type": "image_url", "url": image_url},
         }
+        link = self._env(channel, "PINTEREST_LINK") or str(getattr(channel, "public_url", "") or "").strip()
+        if link:
+            payload["link"] = link
         try:
             data = http_json(
                 API_URL,
