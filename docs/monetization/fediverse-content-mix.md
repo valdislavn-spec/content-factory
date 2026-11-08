@@ -60,6 +60,18 @@ Atlas Obscura, Travel Daily Media, Travelpayouts Blog
 max_age_hours, max_feeds, max_candidates). Локальные копии:
 `data/outbox/fediverse/`.
 
+## Mastodon-дублирование
+
+Каждый fediverse-пост дублируется в **Mastodon** (@amazing_Brave007@mastodon.social),
+если заданы `MASTODON_BASE_URL`/`MASTODON_TOKEN` (`crosspost.mastodon: true`).
+Публикация идёт через `/api/v1/statuses`; ссылки вырезаются при
+`MASTODON_NO_LINKS=1` (правило mastodon.social для новых аккаунтов).
+
+Ограничение: токен имеет scopes `read:accounts, write:statuses` — **без
+`write:media`**, поэтому картинка в Mastodon не прикрепляется (текст уходит).
+Чтобы включить картинки: перевыпустить токен приложения с scope `write:media`
+(или авторизовать новое приложение) и добавить/обновить `MASTODON_TOKEN`.
+
 ## Ручной запуск
 
 ```bash

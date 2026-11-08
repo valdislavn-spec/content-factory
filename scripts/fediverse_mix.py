@@ -514,6 +514,79 @@ def publish(status: str, media_ids: Optional[List[str]] = None, timeout: float =
         return json.loads(response.read().decode("utf-8", "replace") or "{}")
 
 
+def _multipart_body(image: Image.Image, field: str = "file") -> Tuple[bytes, str]:
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    payload = buffer.getvalue()
+    boundary = "----contentfactory{}".format(int(time.time() * 1000))
+    body = b"".join([
+        ("--%s\r\n" % boundary).encode(),
+        ('Content-Disposition: form-data; name="%s"; filename="card.png"\r\n' % field).encode(),
+        b"Content-Type: image/png\r\n\r\n",
+        payload,
+        ("\r\n--%s--\r\n" % boundary).encode(),
+    ])
+    return body, boundary
+
+
+def _strip_urls(text: str) -> str:
+    return re.sub(r"https?://\S+", "", text).rstrip()
+
+
+def mastodon_publish(text: str, image: Optional[Image.Image] = None, timeout: float = 30.0) -> Optional[str]:
+    """Дублирует пост в Mastodon (если заданы MASTODON_BASE_URL/MASTODON_TOKEN)."""
+    base = (os.environ.get("MASTODON_BASE_URL", "") or "").strip().rstrip("/")
+    token = (os.environ.get("MASTODON_TOKEN", "") or "").strip()
+    if not base or not token:
+        return None
+    body_text = text
+    if str(os.environ.get("MASTODON_NO_LINKS", "") or "").strip().lower() in {"1", "true", "yes", "on"}:
+        body_text = _strip_urls(body_text)
+    media_ids: List[str] = []
+    if image is not None:
+        body, boundary = _multipart_body(image)
+        request = urllib.request.Request(
+            base + "/api/v2/media",
+            data=body,
+            headers={
+                "Authorization": "Bearer " + token,
+                "Content-Type": "multipart/form-data; boundary=" + boundary,
+                "Accept": "application/json",
+                "User-Agent": "content-factory-fediverse/1.0",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8", "replace") or "{}")
+            media_id = str(data.get("id") or "")
+            if media_id:
+                media_ids = [media_id]
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Mastodon media upload failed: %s", exc)
+    payload = {"status": body_text, "visibility": "public", "language": "en"}
+    if media_ids:
+        payload["media_ids"] = media_ids
+    request = urllib.request.Request(
+        base + "/api/v1/statuses",
+        data=json.dumps(payload).encode(),
+        headers={
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "content-factory-fediverse/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8", "replace") or "{}")
+        return str(data.get("url") or data.get("id") or "")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Mastodon publish failed: %s", exc)
+        return None
+
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fediverse content mix (crypto/AI/travel)")
     parser.add_argument("--config", default="config/fediverse_mix.yaml")
@@ -583,6 +656,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     print("media upload failed (posting text only):", type(exc).__name__, exc)
             result = publish(text, media_ids)
             print("published:", result.get("url") or result.get("id"))
+            if (config.get("crosspost") or {}).get("mastodon"):
+                mast_url = mastodon_publish(text, image)
+                if mast_url:
+                    print("mastodon:", mast_url)
+                else:
+                    print("mastodon: skipped/failed")
         except Exception as exc:  # noqa: BLE001
             print("publish failed:", type(exc).__name__, exc)
             return 1
