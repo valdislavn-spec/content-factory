@@ -23,6 +23,10 @@ jobs:
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+      # GA4: сервисный аккаунт (JSON) и id ресурса — секция «GA4» в отчёте.
+      GA4_SA_JSON: ${{ secrets.GA4_SA_JSON }}
+      GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID || '508543679' }}
+      GA4_MEASUREMENT_ID: ${{ vars.GA4_MEASUREMENT_ID || 'G-LC39S1FD7B' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

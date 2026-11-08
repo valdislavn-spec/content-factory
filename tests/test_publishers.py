@@ -245,13 +245,14 @@ class DryRunPublisherTests(PublisherTestCase):
 # ---------------------------------------------------------------------------
 class PublisherRegistryTests(PublisherTestCase):
     def test_available_publishers(self) -> None:
-        self.assertEqual(available_publishers(), ["dryrun", "facebook", "linkedin", "medium", "telegram", "vk", "x"])
+        self.assertEqual(available_publishers(), ["dryrun", "facebook", "linkedin", "medium", "telegram", "tumblr", "vk", "x"])
         self.assertIn("telegram", publisher_classes())
         self.assertIn("vk", publisher_classes())
         self.assertIn("x", publisher_classes())
         self.assertIn("facebook", publisher_classes())
         self.assertIn("linkedin", publisher_classes())
         self.assertIn("medium", publisher_classes())
+        self.assertIn("tumblr", publisher_classes())
         self.assertIn("dryrun", publisher_classes())
 
     def test_dry_run_always_returns_dry_run(self) -> None:

@@ -36,7 +36,7 @@ from .nlp.analyzer import analyze_cluster
 from .nlp.generator import generate_digest, generate_post
 from .nlp.llm import get_llm
 from .integrations.dify_posts import build_post_generator
-from .publishers import get_publisher
+from .publishers import Publisher, get_publisher
 from .sources import get_adapter
 from .storage import Storage
 from .utils import (
@@ -276,6 +276,14 @@ def quality_issues(post: GeneratedPost, channel: ChannelConfig, settings: Settin
 # ---------------------------------------------------------------------------
 
 
+def _publisher_ready(publisher: Publisher, channel: ChannelConfig):
+    """(ok, причина) для опциональных публикаторов: check(channel) или check()."""
+    try:
+        return publisher.check(channel)  # type: ignore[call-arg]
+    except TypeError:
+        return publisher.check()
+
+
 def publish_post(
     post: GeneratedPost,
     channel: ChannelConfig,
@@ -289,6 +297,12 @@ def publish_post(
     for name in names:
         try:
             publisher = get_publisher(name, settings)
+            # Опциональные соцсети (Tumblr и будущие) без кредов — просто пропуск.
+            if not effective_dry_run and getattr(publisher, "optional", False):
+                ready, reason = _publisher_ready(publisher, channel)
+                if not ready:
+                    log.info("Публикатор %s для «%s» не настроен — пропуск (%s)", name, channel.id, reason)
+                    continue
             result = publisher.publish(post, channel, settings)
         except Exception as exc:  # публикатор не должен ронять конвейер
             result = PublishResult(

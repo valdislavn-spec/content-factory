@@ -3,6 +3,7 @@
 Реестр публикаторов:
     get_publisher("telegram", settings) -> TelegramPublisher
     get_publisher("vk", settings)       -> VKPublisher
+    get_publisher("tumblr", settings)   -> TumblrPublisher   (опциональный)
     get_publisher("dryrun", settings)   -> DryRunPublisher
 
 Ключевое правило безопасности: если settings.dry_run истинно, get_publisher
@@ -25,6 +26,7 @@ from .facebook import FacebookPublisher
 from .linkedin import LinkedInPublisher
 from .medium import MediumPublisher
 from .telegram import TelegramPublisher
+from .tumblr import TumblrPublisher
 from .vk import VKPublisher
 from .x import XPublisher
 
@@ -37,6 +39,7 @@ __all__ = [
     "FacebookPublisher",
     "LinkedInPublisher",
     "MediumPublisher",
+    "TumblrPublisher",
     "TELEGRAM_MESSAGE_LIMIT",
     "VK_MESSAGE_LIMIT",
     "split_html_message",
@@ -52,6 +55,7 @@ _REGISTRY: Dict[str, Type[Publisher]] = {
     "facebook": FacebookPublisher,
     "linkedin": LinkedInPublisher,
     "medium": MediumPublisher,
+    "tumblr": TumblrPublisher,
     "dryrun": DryRunPublisher,
 }
 
@@ -66,6 +70,7 @@ _ALIASES = {
     "x.com": "x",
     "fb": "facebook",
     "li": "linkedin",
+    "tumblr.com": "tumblr",
 }
 
 

@@ -192,6 +192,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     append_snapshot(history_path(settings), snapshot)
 
     markdown = format_markdown(snapshot)
+    ga4_summary: Dict[str, Any] = {}
+    try:
+        from content_factory.analytics.ga4 import (
+            format_markdown_section,
+            format_telegram_line,
+            landing_summary,
+        )
+
+        ga4_summary = landing_summary(days=7)
+        ga4_section = format_markdown_section(ga4_summary)
+        if ga4_section:
+            markdown = markdown.rstrip() + "\n" + ga4_section + "\n"
+    except Exception as exc:  # GA4 не должен ронять отчёт
+        print("GA4: %s" % exc, file=sys.stderr)
     reports_dir = settings.reports_dir
     reports_dir.mkdir(parents=True, exist_ok=True)
     report_path = reports_dir / "growth-{}.md".format(now.strftime("%Y-%m-%d"))
@@ -203,6 +217,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Отчёт: %s" % report_path, file=sys.stderr)
 
     telegram_text = format_telegram(snapshot)
+    try:
+        ga4_line = format_telegram_line(ga4_summary)  # type: ignore[name-defined]
+    except Exception:
+        ga4_line = ""
+    if ga4_line:
+        telegram_text = telegram_text.rstrip() + "\n\n" + ga4_line
     if args.send:
         return _send_telegram(telegram_text)
     print(telegram_text, file=sys.stderr)
