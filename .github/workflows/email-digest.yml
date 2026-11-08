@@ -86,7 +86,11 @@ jobs:
           request = urllib.request.Request(
               url,
               data=json.dumps(payload).encode(),
-              headers={"Content-Type": "application/json", "Origin": "https://valdislavn-spec.github.io"},
+              headers={
+                  "Content-Type": "application/json",
+                  "Origin": "https://valdislavn-spec.github.io",
+                  "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36",
+              },
               method="POST",
           )
           with urllib.request.urlopen(request, timeout=30) as response:
