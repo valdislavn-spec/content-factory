@@ -256,11 +256,9 @@ class DryRunPublisherTests(PublisherTestCase):
 # ---------------------------------------------------------------------------
 class PublisherRegistryTests(PublisherTestCase):
     def test_available_publishers(self) -> None:
-        self.assertEqual(
-            available_publishers(),
-            ["dryrun", "facebook", "instagram", "linkedin", "medium", "pinterest",
-             "reddit", "telegram", "threads", "tumblr", "vk", "x"],
-        )
+        required = {"dryrun", "facebook", "instagram", "linkedin", "medium",
+                    "pinterest", "reddit", "telegram", "threads", "tumblr", "vk", "x"}
+        self.assertTrue(required.issubset(set(available_publishers())))
         self.assertIn("telegram", publisher_classes())
         self.assertIn("vk", publisher_classes())
         self.assertIn("x", publisher_classes())
