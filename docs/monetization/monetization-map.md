@@ -43,7 +43,6 @@
 | 2 | collaborator.pro | `https://collaborator.pro/ru/signup?code=m9Vidx` | ✅ из письма |
 | 3 | Writesonic | `https://affiliates.writesonic.com/home` | ⏳ pending |
 | 4 | Travelpayouts | `https://app.travelpayouts.com/` | ⏳ нужен вход (пароль сброшен) |
-| 5 | KissMyAds (KMA) | `https://kissmyads.pro/` | ⏳ нужен вход (пароль сброшен) |
 | 6 | N1 Partners | `https://backoffice.n1.partners/partner/login` | ⏭ пропущен |
 | 7 | MEXC | `https://www.mexc.com/affiliate` | ⏳ (2FA) |
 | 8 | Bybit | `https://partner.bybit.com/` | ⏳ (2FA) |
@@ -58,7 +57,7 @@
 | 17 | ElevenLabs | `https://elevenlabs.io/affiliates` | ⏸ блок IP |
 
 ## План
-1. Пользователь входит в KMA и Travelpayouts в окне → агент забирает реф-ссылки.
+1. Пользователь входит в Travelpayouts в окне → агент забирает реф-ссылку.
 2. Дальше 1xPartners → UpPromote → Hotmart (сброс паролей + окна).
 3. Биржи — только с 2FA-кодом пользователя.
 4. После сбора ссылок: закрепы «Полезное» в 6 каналах + реф-посты 1 к 5.

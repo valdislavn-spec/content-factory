@@ -8,7 +8,6 @@
 | Сервис | Тип | Признак в почте |
 |---|---|---|
 | **Admitad** | CPA-сеть | ежедневные письма + ярлык «Atmitad» |
-| **KMA (kma.biz)** | CPA-сеть | «Подтверждение регистрации на kma.biz» |
 | **MyLead** | CPA-сеть (VPN: NordVPN/Surfshark/Proton) | «5 new VPN and security campaigns…» |
 | **Travelpayouts** | CPA-сеть | письма по проектам |
 | **N1 Partners** | гемблинг/беттинг CPA | письмо про IO и Bank Transfer payouts |
@@ -155,4 +154,4 @@ OKX, Coinbase, Gate.io, BingX, Phemex, AI-инструменты (ElevenLabs/Des
 
 Вывод: для US-региона нужен **резидентный VPN (US)** и **рабочий e-mail на домене**;
 без них доступны только: Writesonic (pending), программы в существующих сетях
-(Admitad/KMA/MyLead/N1) и RU-доступные биржи (BingX/Toobit/CoinW — но это RU-регион).
+(Admitad/MyLead/N1) и RU-доступные биржи (BingX/Toobit/CoinW — но это RU-регион).

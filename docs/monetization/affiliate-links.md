@@ -8,7 +8,6 @@
 | Сервис | Кабинет / вход | Сайт | Доступ из РФ |
 |---|---|---|---|
 | **Admitad** | https://account.admitad.com/ | https://www.admitad.com/ · https://www.admitad.ru/ | ⚠️ |
-| **KMA → KissMyAds** | вход на сайте (кнопка «Войти») | https://kissmyads.pro/ (kma.biz редиректит сюда) | ✅ |
 | **MyLead** | https://pub.mylead.global/ | https://mylead.global/ | ⚠️ через прокси |
 | **Travelpayouts** | https://passport.travelpayouts.com/ → кабинет https://app.travelpayouts.com/ | https://www.travelpayouts.com/ | ✅ |
 | **N1 Partners** | вход по кнопке в шапке | https://n1.partners/ | ✅ |
