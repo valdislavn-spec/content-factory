@@ -112,3 +112,12 @@ CLI-вариант:
 - Tavily `api.tavily.com` отдаёт 403, Google News RSS — таймаут; Bing News RSS
   работает и используется как fallback;
 - в GitHub Actions (US) Tavily/Google доступны без ограничений.
+
+## Leonardo.ai (генерация изображений)
+
+| Способ | Что это |
+|---|---|
+| **Нативный hosted MCP** | `https://mcp.leonardo.ai/v1/mcp`, header `API-Key` |
+| **Наш `leonardo-mcp`** | `tools/leonardo_mcp.py` — stdlib MCP: generate/poll/download/models |
+
+Подробности и конфиг DSH: [docs/leonardo.md](leonardo.md).
