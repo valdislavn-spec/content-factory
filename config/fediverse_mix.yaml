@@ -9,6 +9,15 @@ travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default
 travel_disclosure: "Ad · travel partner · prices vary."
 
 # Красивые обложки: график BTC для крипто, AI-карточка, travel-карточка
+# Картинки из статей: свежие RSS-новости каналов → og:image/media.
+# Если картинки нет — рисуем свою карточку (image ниже).
+article_images:
+  enabled: true
+  channels_config: config/channels.en.yaml
+  max_age_hours: 48
+  max_feeds: 4
+  max_candidates: 6
+
 image:
   enabled: true
   width: 1200

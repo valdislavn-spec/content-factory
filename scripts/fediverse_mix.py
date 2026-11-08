@@ -16,10 +16,14 @@ import io
 import json
 import logging
 import os
+import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -73,7 +77,17 @@ def market_line(client: Optional[BingXClient] = None) -> str:
     return " · ".join(parts)
 
 
-def build_post(config: Dict[str, Any], topic: str, index: int) -> Tuple[str, Dict[str, Any]]:
+def _with_credit(text: str, article: Optional[Dict[str, Any]]) -> str:
+    if not article:
+        return text
+    credit = "📷 Photo: {} — {}".format(article.get("source", ""), article.get("link", ""))
+    parts = text.rstrip().split("\n\n#", 1)
+    if len(parts) == 2:
+        return parts[0].rstrip() + "\n\n" + credit + "\n\n#" + parts[1]
+    return text.rstrip() + "\n\n" + credit
+
+
+def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional[Dict[str, Any]] = None) -> Tuple[str, Dict[str, Any]]:
     templates = config.get("templates") or {}
     template = str(templates.get(topic) or "").strip()
     if not template:
@@ -87,7 +101,7 @@ def build_post(config: Dict[str, Any], topic: str, index: int) -> Tuple[str, Dic
     meta: Dict[str, Any] = {}
     if topic == "crypto":
         headlines = config.get("crypto_headlines") or ["Crypto markets update."]
-        values["headline"] = headlines[index % len(headlines)]
+        values["headline"] = (article or {}).get("title") or headlines[index % len(headlines)]
         values["market_line"] = market_line()
         meta["headline"] = values["headline"]
         meta["market"] = values["market_line"]
@@ -98,9 +112,10 @@ def build_post(config: Dict[str, Any], topic: str, index: int) -> Tuple[str, Dic
             meta["klines"] = []
     if topic == "ai":
         angles = config.get("ai_angles") or ["AI and trading are converging."]
-        values["ai_angle"] = angles[index % len(angles)]
+        values["ai_angle"] = (article or {}).get("title") or angles[index % len(angles)]
         meta["angle"] = values["ai_angle"]
-    return template.format(**values), meta
+    meta["article"] = article or {}
+    return _with_credit(template.format(**values), article), meta
 
 
 def publish(status: str, timeout: float = 30.0) -> Dict[str, Any]:
@@ -173,6 +188,168 @@ def _gradient(width: int, height: int, top: Tuple[int, int, int], bottom: Tuple[
 def _footer(draw: ImageDraw.ImageDraw, width: int, height: int, text: str) -> None:
     font = _font(24)
     draw.text((60, height - 64), text, font=font, fill=MUTED)
+
+
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36"
+
+
+def _http_get(url: str, timeout: float = 15.0) -> Tuple[int, bytes, str]:
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return response.status, response.read(), response.headers.get("content-type", "")
+
+
+def _rss_items(xml_text: str) -> List[Dict[str, str]]:
+    items: List[Dict[str, str]] = []
+    try:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError:
+        return items
+    for node in root.iter():
+        if node.tag.split("}")[-1] != "item" and node.tag.split("}")[-1] != "entry":
+            continue
+        raw = ET.tostring(node, encoding="unicode")
+        data: Dict[str, str] = {"raw": raw}
+        for child in node:
+            name = child.tag.split("}")[-1]
+            if name in ("title", "link", "pubDate", "published", "updated", "description", "summary"):
+                text = (child.text or "").strip()
+                if name == "link" and not text:
+                    text = child.attrib.get("href", "")
+                data.setdefault(name, text)
+        items.append(data)
+    return items
+
+
+_IMAGE_RE = re.compile(r'(?:media:content|media:thumbnail|enclosure)[^>]*?url="([^"]+)"', re.I)
+_IMG_TAG_RE = re.compile(r'<img[^>]+src="([^"]+)"', re.I)
+_OG_IMAGE_RE = re.compile(r'<meta[^>]+(?:property|name)="(?:og:image|twitter:image)"[^>]+content="([^"]+)"', re.I)
+
+
+def _item_image_url(item: Dict[str, str]) -> str:
+    raw = item.get("raw", "")
+    for match in _IMAGE_RE.finditer(raw):
+        url = match.group(1)
+        if re.search(r"\.(jpg|jpeg|png|webp|avif)(\?|$)", url, re.I):
+            return url
+    match = _IMG_TAG_RE.search(item.get("description", "") or raw)
+    if match:
+        return match.group(1)
+    return ""
+
+
+def _og_image(html: str) -> str:
+    match = _OG_IMAGE_RE.search(html)
+    return match.group(1) if match else ""
+
+
+def _parse_pub(item: Dict[str, str]) -> Optional[datetime]:
+    for key in ("pubDate", "published", "updated"):
+        value = item.get(key)
+        if not value:
+            continue
+        for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%a, %d %b %Y %H:%M:%S %Z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%SZ"):
+            try:
+                return datetime.strptime(value.replace("GMT", "+0000"), fmt)
+            except ValueError:
+                continue
+    return None
+
+
+def _download_image(url: str, max_bytes: int = 8 * 1024 * 1024) -> Optional[Image.Image]:
+    try:
+        status, data, content_type = _http_get(url, timeout=20.0)
+        if status != 200 or len(data) > max_bytes:
+            return None
+        if content_type and "image" not in content_type and not url.lower().split("?")[0].endswith((".jpg", ".jpeg", ".png", ".webp")):
+            return None
+        return Image.open(io.BytesIO(data)).convert("RGB")
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _cover(image: Image.Image, width: int = WIDTH, height: int = HEIGHT) -> Image.Image:
+    ratio = max(width / image.width, height / image.height)
+    resized = image.resize((max(1, int(image.width * ratio)), max(1, int(image.height * ratio))), Image.LANCZOS)
+    left = max(0, (resized.width - width) // 2)
+    top = max(0, (resized.height - height) // 2)
+    return resized.crop((left, top, left + width, top + height))
+
+
+def _topic_feeds(topic: str, config: Dict[str, Any]) -> List[str]:
+    article_config = config.get("article_images") or {}
+    override = (article_config.get("feeds") or {}).get(topic) or []
+    if override:
+        return [str(u) for u in override if str(u).strip()]
+    channel_ids = {"crypto": "crypto-news", "ai": "ai-news"}
+    channel_id = channel_ids.get(topic)
+    if not channel_id:
+        return []
+    path = Path(str(article_config.get("channels_config") or "config/channels.en.yaml"))
+    if not path.is_absolute():
+        path = ROOT / path
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001
+        return []
+    channels = data.get("channels") if isinstance(data, dict) else []
+    for channel in channels or []:
+        if channel.get("id") != channel_id:
+            continue
+        feeds = []
+        for source in channel.get("sources") or []:
+            if str(source.get("type") or "").lower() != "rss":
+                continue
+            url = str(source.get("url") or "").strip()
+            if url:
+                feeds.append(url)
+        limit = int(article_config.get("max_feeds") or 4)
+        return feeds[:limit]
+    return []
+
+
+def find_article(topic: str, config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Свежая статья с картинкой: {title, link, source, image}."""
+    article_config = config.get("article_images") or {}
+    if article_config.get("enabled") is False:
+        return None
+    max_age_hours = float(article_config.get("max_age_hours") or 48)
+    max_candidates = int(article_config.get("max_candidates") or 6)
+    now = datetime.now(timezone.utc)
+    for feed in _topic_feeds(topic, config):
+        try:
+            _, body, _ = _http_get(feed, timeout=15.0)
+            items = _rss_items(body.decode("utf-8", "replace"))
+        except Exception:  # noqa: BLE001
+            continue
+        source = urllib.parse.urlparse(feed).netloc
+        checked = 0
+        for item in items:
+            published = _parse_pub(item)
+            if published is not None:
+                if published.tzinfo is None:
+                    published = published.replace(tzinfo=timezone.utc)
+                if (now - published).total_seconds() > max_age_hours * 3600:
+                    continue
+            link = str(item.get("link") or "").strip()
+            title = str(item.get("title") or "").strip()
+            if not link or not title:
+                continue
+            image_url = _item_image_url(item)
+            if not image_url:
+                try:
+                    _, page, _ = _http_get(link, timeout=25.0)
+                    image_url = _og_image(page.decode("utf-8", "replace"))
+                except Exception:  # noqa: BLE001
+                    image_url = ""
+            checked += 1
+            if image_url:
+                image = _download_image(image_url)
+                if image is not None and image.width >= 500:
+                    return {"title": title, "link": link, "source": source, "image": _cover(image)}
+            if checked >= max_candidates:
+                break
+    return None
 
 
 def make_crypto_card(headline: str, market: str, klines: Optional[List[Dict[str, Any]]] = None) -> Image.Image:
@@ -367,7 +544,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for step in range(total):
         topic = args.topic or rotation[(index + step) % len(rotation)]
         try:
-            text, meta = build_post(config, topic, index + step)
+            article = find_article(topic, config) if topic in ("crypto", "ai") else None
+            if article:
+                print("article:", article.get("title", "")[:90], "|", article.get("source", ""))
+            text, meta = build_post(config, topic, index + step, article)
         except (ValueError, KeyError) as exc:
             print("build error:", exc)
             return 1
@@ -375,7 +555,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if args.dry_run:
             continue
         try:
-            image = build_card(
+            image = (meta.get("article") or {}).get("image") or build_card(
                 topic,
                 config,
                 meta.get("headline", ""),
