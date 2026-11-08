@@ -147,3 +147,27 @@ python scripts/mastodon_profile.py             # применить
 - через 1–2 недели активности (заполнен профиль, подтверждён email, есть
   фолловеры/бусты): выставить `MASTODON_NO_LINKS=0` — ссылки вернутся в посты;
 - GitHub variable: Settings → Secrets and variables → Actions → Variables.
+## 12. Ежедневный длинный обзор (thread)
+
+Раз в день публикуется **thread из 3–5 постов** (каждый ≤500 символов) —
+лонгрид по теме дня с акцентом на Telegram-канал.
+
+- темы чередуются по дате: **AI → Crypto → Sports**;
+- в конце — приглашение в канал (`Telegram: @AINEWS0007` и т.п.);
+- при `MASTODON_NO_LINKS=1` ссылки вырезаются, хэштеги остаются;
+- защита от дублей: repository variable `MASTODON_LAST_THREAD` (дата:слот).
+
+```bash
+python scripts/mastodon_daily.py --dry-run      # показать thread
+python scripts/mastodon_daily.py --apply        # опубликовать
+python scripts/mastodon_daily.py --apply --slot 1   # второй пост дня
+python scripts/mastodon_daily.py --apply --channel crypto-news --date 2026-11-10
+```
+
+Автоматизация: `.github/workflows/mastodon-daily.yml`
+- cron **13:17 UTC ежедневно** (16:17 МСК) — 1 обзор в день;
+- ручной запуск `dry-run`/`live` из Actions;
+- чтобы было 2 поста в день — добавить второй cron (`17 19 * * *`) и `--slot 1`.
+
+После прогрева аккаунта (1–2 недели) выставить `MASTODON_NO_LINKS=0` — в
+thread вернутся ссылки на каналы и сайт.
