@@ -216,3 +216,12 @@ $7 за натив 24 ч (CPM ~$35), закреп $10, неделя $28.
 - **TelegramDir**: ✅ все 6 отправлены; повторно подавать не нужно.
 - **TelegramRankings**: `https://telegramrankings.com/submit` — обязателен username; остальное опционально; HOOPY0007 не дублировать.
 - **TGMania**: `https://tgmania.com/submit` — шаг 1 username, шаг 2 категория (Crypto & Finance / Technology / News), шаг 3 детали; ревью 24–48 ч.
+
+## Партия 5 (08.11.2026): TGMania + TelegramRankings
+
+| Каталог | Отправлено | Статус/детали |
+|---|---:|---|
+| **TGMania** (tgmania.com) | 6/6 | ✅ AI News подтверждён («Channel Submitted!»); остальные 5 отправлены пачкой, форма несколько раз показала «Channel Submitted!» — pending review 24–48 ч |
+| **TelegramRankings** | 5/6 | ✅ AI News, US Sports, ES AI, ES Crypto — «Channel submitted successfully». HOOPY0007 подан ранее. ⚠️ ES Sports: форма заполнена, финальное подтверждение не получено (закончились кредиты Firecrawl) — повторить |
+
+Повтор ES Sports: `https://telegramrankings.com/submit`, username `SPORTSAnalytics007`, category sports, language es, contact не нужен.
