@@ -6,10 +6,9 @@
 #    AINEWS0007           -1004351191643  ИИ
 #    HOOPY0007            -1003891468537  крипто/блокчейн
 #
-#  Пост раз в 5 часов в каждый канал: 5 слотов/сутки (локальное время US Eastern, UTC-5).
-#  Слоты: 00:00, 05:00, 10:00, 15:00, 20:00 (местное; + минутный сдвиг на канал).
-#  Каждый пост — подробная сводка всех новостей за 5 часов: digest до 4000 символов,
-#  первая тройка новостей — с LLM-аналитикой.
+#  Пост раз в 90 минут в каждый канал: 16 слотов/сутки (UTC), 48 постов/сутки.
+#  Слоты: 00:00, 01:30, 03:00, 04:30, 06:00, 07:30, 09:00, 10:30, 12:00,
+#         13:30, 15:00, 16:30, 18:00, 19:30, 21:00, 22:30.
 #
 #  Источники: RSS + API (World News / newsdata / Currents) с daily_limit;
 #  для US-спорта — ESPN JSON API (type: espn, без ключа, UA браузера).
@@ -22,7 +21,6 @@ channels:
   title: US Sports News
   description: "NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis.\n🌐 Network: AI News @AINEWS0007 · Crypto & Blockchain @HOOPY0007"
   telegram_chat_id: '-1003802742871'
-  publisher_ids: [telegram, tumblr]
   language: en
   topics:
   - nfl
@@ -169,17 +167,27 @@ channels:
   - interactive
   - digest
   schedule:
-  - "00:10"
-  - "05:10"
-  - "10:10"
-  - "15:10"
-  - "20:10"
+  - "01:20"
+  - "03:40"
+  - "07:00"
+  - "08:00"
+  - "09:00"
+  - "10:20"
+  - "12:00"
+  - "13:00"
+  - "17:00"
+  - "18:00"
+  - "19:00"
+  - "20:00"
+  - "21:00"
+  - "22:00"
+  - "23:00"
   posts_per_day: 15
   min_relevance: 0.18
   timezone_offset: -5
-  max_post_chars: 4000
+  max_post_chars: 1800
   cta: "Share this post with a friend — it helps the channel grow."
-  night_max_chars: 2600
+  night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:
     story: 30
@@ -197,7 +205,6 @@ channels:
   title: AI News
   description: "AI for a US audience: models, products, policy and the companies building them.\n🌐 Network: Crypto & Blockchain @HOOPY0007 · US Sports News @SPORTNews0007"
   telegram_chat_id: '-1004351191643'
-  publisher_ids: [telegram, tumblr]
   language: en
   topics:
   - artificial intelligence
@@ -319,17 +326,27 @@ channels:
   - interactive
   - digest
   schedule:
-  - "00:20"
-  - "05:20"
-  - "10:20"
-  - "15:20"
-  - "20:20"
+  - "01:30"
+  - "03:50"
+  - "07:10"
+  - "08:10"
+  - "09:10"
+  - "10:30"
+  - "12:10"
+  - "13:10"
+  - "17:10"
+  - "18:10"
+  - "19:10"
+  - "20:10"
+  - "21:10"
+  - "22:10"
+  - "23:10"
   posts_per_day: 15
   min_relevance: 0.18
   timezone_offset: -5
-  max_post_chars: 4000
+  max_post_chars: 1800
   cta: "Share this post with a friend — it helps the channel grow."
-  night_max_chars: 2600
+  night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:
     story: 30
@@ -347,7 +364,6 @@ channels:
   title: Crypto & Blockchain
   description: "US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain.\n🌐 Network: AI News @AINEWS0007 · US Sports News @SPORTNews0007"
   telegram_chat_id: '-1003891468537'
-  publisher_ids: [telegram, tumblr]
   language: en
   topics:
   - bitcoin
@@ -469,17 +485,27 @@ channels:
   - interactive
   - digest
   schedule:
-  - "00:30"
-  - "05:30"
-  - "10:30"
-  - "15:30"
-  - "20:30"
+  - "01:40"
+  - "04:00"
+  - "07:20"
+  - "08:20"
+  - "09:20"
+  - "10:40"
+  - "12:20"
+  - "13:20"
+  - "17:20"
+  - "18:20"
+  - "19:20"
+  - "20:20"
+  - "21:20"
+  - "22:20"
+  - "23:20"
   posts_per_day: 15
   min_relevance: 0.18
   timezone_offset: -5
-  max_post_chars: 4000
+  max_post_chars: 1800
   cta: "Share this post with a friend — it helps the channel grow."
-  night_max_chars: 2600
+  night_max_chars: 900
   night_window: 23:00-07:00
   content_mix:
     story: 30

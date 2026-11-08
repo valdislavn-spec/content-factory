@@ -44,7 +44,7 @@ log = logging.getLogger("content_factory.cli")
 
 
 def _print_channel_table(channels: list, settings: Settings) -> None:
-    print(f"{'ID':<18} {'Тема':<26} {'Источники':>9} {'Расписание (местное)':<24} Публикация")
+    print(f"{'ID':<18} {'Тема':<26} {'Источники':>9} {'Расписание (МСК)':<24} Публикация")
     print("-" * 110)
     for channel in channels:
         enabled_sources = sum(1 for source in channel.sources if source.enabled)

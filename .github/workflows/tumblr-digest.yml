@@ -1,0 +1,64 @@
+name: tumblr-digest
+
+# Подробный дайджест новостей ТОЛЬКО в Tumblr — каждые 5 часов.
+# Telegram-конвейер (content-factory.yml) не затрагивается: у него своё расписание.
+# Требует secrets: TUMBLR_CONSUMER_KEY, TUMBLR_CONSUMER_SECRET,
+# TUMBLR_OAUTH_TOKEN, TUMBLR_OAUTH_TOKEN_SECRET, TUMBLR_BLOG.
+# Дневной лимит — settings.publishers.tumblr.daily_limit (5 постов).
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"          # 00,05,10,15,20 UTC = 03,08,13,18,23 MSK
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: "Окно новостей, часов"
+        required: true
+        default: "5"
+      limit:
+        description: "Сколько новостей в дайджесте"
+        required: true
+        default: "12"
+      live:
+        description: "true = реально опубликовать в Tumblr"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TUMBLR_CONSUMER_KEY: ${{ secrets.TUMBLR_CONSUMER_KEY }}
+      TUMBLR_CONSUMER_SECRET: ${{ secrets.TUMBLR_CONSUMER_SECRET }}
+      TUMBLR_OAUTH_TOKEN: ${{ secrets.TUMBLR_OAUTH_TOKEN }}
+      TUMBLR_OAUTH_TOKEN_SECRET: ${{ secrets.TUMBLR_OAUTH_TOKEN_SECRET }}
+      TUMBLR_BLOG: ${{ secrets.TUMBLR_BLOG }}
+      NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
+      WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }}
+      CURRENTS_API_KEY: ${{ secrets.CURRENTS_API_KEY }}
+      GDELT_CLOUD_API_KEY: ${{ secrets.GDELT_CLOUD_API_KEY }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build Tumblr digest (and publish on schedule/live)
+        run: |
+          flags=""
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.live }}" = "true" ]; then
+            flags="--live"
+          fi
+          python scripts/tumblr_digest.py \
+            --hours "${{ inputs.hours || '5' }}" \
+            --limit "${{ inputs.limit || '12' }}" $flags

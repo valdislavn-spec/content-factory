@@ -79,14 +79,18 @@
 
 ## Tumblr в облаке (GitHub Actions)
 
-Автопостинг по расписанию идёт из `content-factory.yml`. Секреты репозитория:
-`TUMBLR_CONSUMER_KEY`, `TUMBLR_CONSUMER_SECRET`, `TUMBLR_OAUTH_TOKEN`,
-`TUMBLR_OAUTH_TOKEN_SECRET`, `TUMBLR_BLOG` (Settings → Secrets and variables →
-Actions). В `config/channels.en.yaml` и `config/channels.es.yaml` включено
-`publisher_ids: [telegram, tumblr]` — посты кросспостятся в Tumblr автоматически.
+Tumblr подключён отдельным каналом: **подробный дайджест новостей раз в 5 часов**
+(`.github/workflows/tumblr-digest.yml`, cron `0 */5 * * *` = 00/05/10/15/20 UTC,
+03/08/13/18/23 МСК). Telegram-конвейер (`content-factory.yml`) при этом не
+затрагивается — у Telegram своё расписание и свои настройки.
 
-- Текст: plain-text из Telegram-поста (HTML снимается), лимит **12 000 символов**,
-  хэштеги → теги Tumblr, в конце ссылка на Telegram-канал; пер-канальный блог
-  задаётся `TUMBLR_BLOG_<CHANNEL_ID>`.
-- Секреты добавлены 2026-11-07; первый облачный прогон с ними — run `42431211988`.
+- Секреты репозитория: `TUMBLR_CONSUMER_KEY`, `TUMBLR_CONSUMER_SECRET`,
+  `TUMBLR_OAUTH_TOKEN`, `TUMBLR_OAUTH_TOKEN_SECRET`, `TUMBLR_BLOG`.
+- Скрипт: `scripts/tumblr_digest.py` — собирает свежие новости EN-каналов
+  (crypto/AI/sports) за 5 часов, формирует подробный дайджест: каждая новость
+  с 2–3 предложениями сути, источником и ссылкой + блок аналитики
+  (распределение по темам, топ-источники, ключевые слова, главная новость),
+  публикует через `TumblrPublisher` (OAuth 1.0a). Дневной лимит — 5 постов.
+- Публикатор Tumblr остаётся в реестре и может быть включён в `publisher_ids`
+  любого канала, но по умолчанию каналы постят только в Telegram.
 
