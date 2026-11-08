@@ -255,6 +255,8 @@ def main(argv=None) -> int:
     parser.add_argument("--config", default=str(ROOT / "config" / "buffer.yaml"))
     parser.add_argument("--pins", default=str(ROOT / "docs" / "assets" / "pins"))
     parser.add_argument("--live", action="store_true", help="create posts (default: dry-run)")
+    parser.add_argument("--services", default="", help="фильтр сетей через запятую (twitter,bluesky,facebook)")
+    parser.add_argument("--mode", default="", help="override mode: addToQueue/shareNow/customScheduled")
     parser.add_argument("--date", default="", help="override day (YYYY-MM-DD) for rotation/log")
     parser.add_argument("--report", default=str(ROOT / "data" / "reports"))
     parser.add_argument("--require-affiliate", dest="require_affiliate", action="store_true", default=True,
@@ -267,6 +269,11 @@ def main(argv=None) -> int:
     org_id = str(config.get("organization_id") or "")
     mode = str(config.get("mode") or "addToQueue")
     channels = config.get("channels") or []
+    wanted = [part.strip().lower() for part in str(args.services or "").split(",") if part.strip()]
+    if wanted:
+        channels = [c for c in channels if str(c.get("service") or "").lower() in wanted]
+    if args.mode:
+        mode = str(args.mode)
 
     pin_files = [p for p in sorted(Path(args.pins).glob("*.json")) if p.name != "index.json"]
     affiliate_slugs = set()

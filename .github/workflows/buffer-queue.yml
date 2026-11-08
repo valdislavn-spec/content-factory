@@ -13,6 +13,14 @@ on:
         default: "false"
         type: choice
         options: ["false", "true"]
+      services:
+        description: "сети через запятую (пусто = все): twitter,bluesky,facebook"
+        required: false
+        default: ""
+      mode:
+        description: "override: addToQueue / shareNow (пусто = из конфига)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -33,7 +41,7 @@ jobs:
       - name: Queue daily pin
         run: |
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.live }}" = "true" ]; then
-            python scripts/buffer_queue.py --live
+            python scripts/buffer_queue.py --live --services "${{ inputs.services }}" --mode "${{ inputs.mode }}"
           else
             python scripts/buffer_queue.py
           fi

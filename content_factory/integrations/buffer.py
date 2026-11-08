@@ -87,7 +87,7 @@ class BufferClient:
     CREATE_POST = """
 mutation CreatePost($input: CreatePostInput!) {
   createPost(input: $input) {
-    ... on PostActionSuccess { post { id text dueAt status } }
+    ... on PostActionSuccess { post { id text dueAt status externalLink } }
     ... on MutationError { message }
   }
 }
