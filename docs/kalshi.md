@@ -37,6 +37,21 @@
 3. Включить live: `dry_run=false` вручную или дождаться расписания.
 4. При необходимости поменять каналы/ключевые слова в `config/kalshi.yaml`.
 
+## MCP-коннектор (ассистент)
+
+Kalshi отдаёт MCP по адресу `https://api.elections.kalshi.com/mcp`
+(Streamable HTTP). С этой машины Kalshi блокируется CloudFront (403), поэтому
+подключение идёт через Cloudflare Worker-релей
+`https://kalshi-mcp-proxy.valdislav-n.workers.dev/mcp`
+(исходник — `infra/kalshi-mcp-proxy/`).
+
+В DSH профиле (`~/.dsh/profiles/desktop/cordis.patch.yml`) добавлен entry
+`kalshi-mcp` с `serverName: kalshi`; инструменты видны как
+`mcp__kalshi__search_markets`, `mcp__kalshi__get_event_odds` и т.д.
+Публичные рыночные инструменты работают без аккаунта. OAuth (портфель и
+price-alerts) клиент DSH не поддерживает — для этих данных используйте REST
+клиент с API-ключом.
+
 ## Приватные данные (опционально)
 
 1. Kalshi → Account & security → API Keys → Create Key (Ed25519).
