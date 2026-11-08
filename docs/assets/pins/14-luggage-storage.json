@@ -1,0 +1,18 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/14-luggage-storage.png",
+  "file": "/private/tmp/cf-kalshi/docs/assets/pins/14-luggage-storage.png",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Luggage storage: explore the city hands-free",
+    "description": "Where to leave bags between check-out and your flight: prices, stations and booking tips. https://valdislavn-spec.github.io/content-factory/go/14-luggage-storage.html",
+    "alt_text": "Luggage storage: explore the city hands-free",
+    "link": "https://valdislavn-spec.github.io/content-factory/go/14-luggage-storage.html",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/03-luggage-storage.png"
+    }
+  }
+}

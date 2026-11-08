@@ -45,6 +45,18 @@ pins:
     program: kiwitaxi
     sub_id: pin_transfer
     partner_url: https://kiwitaxi.tpk.ro/xmQYmqIl
+  "12-tours-and-experiences":
+    program: klook
+    sub_id: pin_tours
+    partner_url: https://klook.tpk.ro/xqUojI5K
+  "13-car-rental-booking-window":
+    program: economybookings
+    sub_id: pin_car2
+    partner_url: https://economybookings.tpk.ro/FI2DAtBO
+  "14-luggage-storage":
+    program: radicalstorage
+    sub_id: pin_luggage
+    partner_url: https://radicalstorage.tpk.ro/XilIfuay
   "11-skip-the-line":
     program: klook
     sub_id: pin_tickets

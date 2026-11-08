@@ -34,6 +34,21 @@
     "partner_url": "https://kiwitaxi.tpk.ro/xmQYmqIl",
     "hub_link": "https://valdislavn-spec.github.io/content-factory/go/10-airport-transfer.html"
   },
+  "12-tours-and-experiences": {
+    "program": "klook",
+    "partner_url": "https://klook.tpk.ro/xqUojI5K",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/12-tours-and-experiences.html"
+  },
+  "13-car-rental-booking-window": {
+    "program": "economybookings",
+    "partner_url": "https://economybookings.tpk.ro/FI2DAtBO",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/13-car-rental-booking-window.html"
+  },
+  "14-luggage-storage": {
+    "program": "radicalstorage",
+    "partner_url": "https://radicalstorage.tpk.ro/XilIfuay",
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/14-luggage-storage.html"
+  },
   "11-skip-the-line": {
     "program": "klook",
     "partner_url": "https://klook.tpk.ro/xqUojI5K",

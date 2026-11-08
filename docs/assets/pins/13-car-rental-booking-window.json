@@ -1,0 +1,18 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/13-car-rental-booking-window.png",
+  "file": "/private/tmp/cf-kalshi/docs/assets/pins/13-car-rental-booking-window.png",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Car rental: when to book and how to avoid fees",
+    "description": "Booking windows, fuel policy and excess cover: how to rent a car without hidden fees. https://valdislavn-spec.github.io/content-factory/go/13-car-rental-booking-window.html",
+    "alt_text": "Car rental: when to book and how to avoid fees",
+    "link": "https://valdislavn-spec.github.io/content-factory/go/13-car-rental-booking-window.html",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/02-car-rental-window.png"
+    }
+  }
+}
