@@ -1,0 +1,60 @@
+name: onedrive-backup
+
+# Бэкап облачных данных проекта (репозиторий, ветка growth-reports, артефакты
+# последних успешных запусков workflows) в OneDrive через Microsoft Graph API.
+# Работает независимо от локального Mac. rclone-конфиг — в секрете
+# RCLONE_CONF_B64 (base64 от data/rclone.conf).
+
+on:
+  schedule:
+    - cron: "15 4 * * *"   # 04:15 UTC ежедневно
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: onedrive-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout (full history for growth-reports branch)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install rclone
+        run: |
+          curl -sL https://downloads.rclone.org/rclone-current-linux-amd64.zip -o /tmp/rclone.zip
+          unzip -q /tmp/rclone.zip -d /tmp/rclone-unpack
+          sudo install -m 755 "$(find /tmp/rclone-unpack -name rclone -type f | head -1)" /usr/local/bin/rclone
+          rclone version | head -1
+
+      - name: Restore rclone config
+        env:
+          RCLONE_CONF_B64: ${{ secrets.RCLONE_CONF_B64 }}
+        run: |
+          if [ -z "$RCLONE_CONF_B64" ]; then
+            echo "::error::секрет RCLONE_CONF_B64 не задан"
+            exit 1
+          fi
+          mkdir -p "$HOME/.config/rclone"
+          printf '%s' "$RCLONE_CONF_B64" | base64 -d > "$HOME/.config/rclone/rclone.conf"
+          chmod 600 "$HOME/.config/rclone/rclone.conf"
+          rclone lsd onedrive: | head -5
+
+      - name: Run cloud backup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ONEDRIVE_BACKUP_REMOTE: onedrive:ServerBackups
+        run: python scripts/cloud_backup.py --runs 3 --keep-days 30

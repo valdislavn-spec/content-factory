@@ -72,8 +72,22 @@ tar -xzf content-factory-backup-<дата>.tar.gz
 # .env вернуть отдельно (в бэкап не входит — секреты)
 ```
 
-## Вариант GitHub Actions
+## GitHub Actions (работает даже при выключенном Mac)
 
-Раннер ходит в Graph без блокировок: можно выгружать архив в OneDrive из
-workflow. Понадобится `rclone.conf` (с токеном) в GitHub Secrets —
-скажи, подготовлю workflow.
+Workflow [`.github/workflows/onedrive-backup.yml`](../.github/workflows/onedrive-backup.yml)
+запускается **ежедневно в 04:15 UTC** (и вручную через workflow_dispatch):
+
+1. Кладёт `repo.tar.gz` (снимок HEAD) и `growth-reports.tar.gz` (ветка отчётов).
+2. Скачивает zip-артефакты последних 3 успешных запусков `content-factory.yml`
+   и `growth-report.yml` (outbox, reports, логи, Markdown+raw JSON).
+3. Пакует в `server-backup-YYYYmmdd-HHMMSS.tar.gz` + `.sha256`.
+4. Выгружает в `onedrive:ServerBackups/` через rclone (Graph API).
+5. Держит в облаке последние 30 дней (`--min-age 30d`).
+
+Секреты репозитория:
+- `RCLONE_CONF_B64` — base64 от `data/rclone.conf` (уже добавлен).
+- Стандартный `GITHUB_TOKEN` workflow (права `actions: read`) для скачивания
+  артефактов.
+
+Проверить: Actions → **onedrive-backup** → Run workflow; результат —
+`onedrive:ServerBackups/server-backup-*.tar.gz`.
