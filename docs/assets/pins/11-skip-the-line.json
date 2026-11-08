@@ -7,13 +7,12 @@
   "pin": {
     "board_id": "<BOARD_ID>",
     "title": "Skip-the-line tickets: which attractions are worth it",
-    "description": "Timed-entry tickets vs city passes: where skip-the-line actually saves hours, and where it is a waste of money. Ad · affiliate link",
+    "description": "Timed-entry tickets vs city passes: where skip-the-line actually saves hours, and where it is a waste of money. Ad · affiliate link https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html",
     "alt_text": "Skip-the-line tickets: which attractions are worth it",
+    "link": "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html",
     "media_source": {
       "source_type": "image_url",
       "url": "https://valdislavn-spec.github.io/content-factory/04-skip-the-line.png"
-    },
-    "image": "https://valdislavn-spec.github.io/content-factory/assets/pins/11-skip-the-line.png",
-    "link": "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html"
+    }
   }
 }
