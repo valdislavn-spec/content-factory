@@ -1,28 +1,46 @@
 name: backup
 
-# Еженедельный бэкап состояния (SQLite, слоты, outbox) + конфигов, чтобы
-# потеря кэша GitHub не убила историю. Плюс алерт в Telegram при ошибке.
+# Ежедневный бэкап состояния (SQLite, слоты, outbox) + конфигов.
+# Важно: берём ИМЕННО кэш последнего успешного запуска content-factory,
+# а не restore-key «cf-state-» (он иногда возвращает старый кэш).
 on:
   schedule:
-    - cron: "0 4 * * 0"
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Restore state cache
+
+      - name: Find latest successful content-factory run
+        id: latest
+        run: |
+          set -e
+          RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/content-factory.yml/runs?per_page=10&status=completed" \
+            --jq '[.workflow_runs[] | select(.conclusion=="success")][0].id')
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::не найден успешный запуск content-factory"
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "cache_key=cf-state-$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "selected run $RUN_ID"
+
+      - name: Restore exact state cache
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -32,10 +50,48 @@ jobs:
             data/llm_cache.sqlite3
             data/llm_tokens.json
             data/llm_usage.json
+            data/llm_usage_*.json
             data/source_*_usage.json
-          key: cf-state-backup-${{ github.run_id }}
+          key: ${{ steps.latest.outputs.cache_key }}
           restore-keys: |
             cf-state-
+
+      - name: Fallback to latest state artifact
+        if: always()
+        run: |
+          if [ ! -f data/factory.sqlite3 ]; then
+            echo "cache miss — пробуем artifact content-factory-state"
+            gh run download "${{ steps.latest.outputs.run_id }}" -n content-factory-state -D /tmp/cf-state || true
+            if [ -d /tmp/cf-state/data ]; then
+              cp -R /tmp/cf-state/data/. data/
+            fi
+          fi
+
+      - name: Verify backup freshness
+        run: |
+          python - <<'PY'
+          import sqlite3, datetime, sys
+          from pathlib import Path
+          db = Path("data/factory.sqlite3")
+          if not db.exists():
+              print("::error::factory.sqlite3 отсутствует")
+              sys.exit(1)
+          con = sqlite3.connect(db)
+          last = con.execute("select max(created_at) from posts").fetchone()[0]
+          print("last_post_created_at:", last)
+          if not last:
+              print("::error::в базе нет постов")
+              sys.exit(1)
+          ts = datetime.datetime.fromisoformat(str(last).replace("Z", "+00:00"))
+          if ts.tzinfo is None:
+              ts = ts.replace(tzinfo=datetime.timezone.utc)
+          age_h = (datetime.datetime.now(datetime.timezone.utc) - ts).total_seconds() / 3600
+          print(f"age_hours: {age_h:.1f}")
+          if age_h > 24:
+              print("::warning::база старше 24 часов — проверь кэш/состояние")
+          con.close()
+          PY
+
       - name: Upload backup
         uses: actions/upload-artifact@v4
         with:
@@ -44,12 +100,20 @@ jobs:
             data/factory.sqlite3
             data/schedule_state.json
             data/schedule_state_es.json
+            data/llm_usage.json
+            data/llm_usage_*.json
+            data/source_*_usage.json
             data/outbox
             config/channels.en.yaml
             config/channels.es.yaml
+            config/cross_promo.yaml
             config/settings.yaml
+            config/pinned
+            .github/workflows/content-factory.yml
+            .github/workflows/cross-promo.yml
           if-no-files-found: warn
           retention-days: 90
+
       - name: Notify on failure
         if: failure()
         run: |
