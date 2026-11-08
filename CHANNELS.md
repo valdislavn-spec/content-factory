@@ -3,6 +3,9 @@
 Telegram-каналы проекта (3 EN + 3 ES). Единая ссылка-хаб для био внешних
 площадок: **https://valdislavn-spec.github.io/content-factory/**
 
+Добровольная поддержка проекта (DonationAlerts):
+**https://www.donationalerts.com/r/vladislavNoname**
+
 ## English
 
 | Канал | Ссылка |

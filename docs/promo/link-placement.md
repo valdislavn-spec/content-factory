@@ -42,6 +42,20 @@
 - Обновление: workflow `edit-pinned` (после фикса chat_id берётся из
   `TELEGRAM_CHAT_ID_*`, поэтому работают и ES-каналы).
 
+### Добровольная поддержка (DonationAlerts)
+
+Публичная страница доната: **https://www.donationalerts.com/r/vladislavNoname**
+(не dashboard!). Добавлена 08.11.2026:
+
+- в **описания всех 6 каналов** (Telegram About, Bot API `setChatDescription`);
+- в **закрепы всех 6 каналов** (новый закреп через Bot API + `pinChatMessage`);
+- на **лендинг-хаб** `docs/index.html`;
+- в `content-factory/config/support.yaml` — автоматический CTA в постах
+  с UTM (`utm_source=telegram`, `utm_medium=post`, `utm_campaign=voluntary_support`,
+  `utm_content=<канал>`).
+
+Ничего не закрывает: контент остаётся бесплатным, это только добровольные донаты.
+
 ### Telegram — кросс-промо-посты
 
 `config/cross_promo.yaml`, workflow `cross-promo` (Вт/Пт 15:00 UTC):
@@ -129,7 +143,8 @@ python scripts/edit_pinned.py --language es --dry-run
 | Reddit | профиль + закреп в профиле | хаб; в сабах — только по правилам | ☐ |
 | Личный Telegram | био + закреп в личном канале | @-упоминания каналов | ☐ (нужна сессия аккаунта) |
 | Каталоги | карточки каналов | `docs/promo/catalog-package.md` | ☑ TeleJoiner — 6 live; ☑ besttelegramchannels — поданы; ☐ остальные (нужен Telegram-вход/email; GruposLatAm — форма 404) |
-| Email / подпись | подпись писем | хаб-ссылка | ☐ |
+| DonationAlerts | описания/закрепы/хаб | публичная страница доната | ☑ сделано 08.11.2026 |
+| Email / подпись | подпись писем | хаб-ссылка + DonationAlerts | ☐ |
 | GitHub profile | README профиля | хаб + 6 ссылок | ☑ сделано 08.11.2026 |
 | GitHub (поле website профиля) | ссылка в профиле | хаб | ☐ токен не может менять профиль — вручную 1 минута |
 
@@ -184,6 +199,8 @@ All → https://valdislavn-spec.github.io/content-factory/
 - [x] 6 гео-лендингов каналов (US/LatAm/Испания) + sitemap + IndexNow
 - [x] бесплатный каталог besttelegramchannels.com — все 6 каналов поданы (модерация)
 - [x] гео-каталог TeleJoiner.com — все 6 каналов опубликованы (US / Mexico, EN/ES)
+- [x] DonationAlerts в описаниях, закрепах и на хабе (08.11.2026)
+- [ ] DonationAlerts в TikTok/YouTube/X/Instagram/VK bio (нужен аккаунт)
 - [ ] TikTok bio
 - [ ] YouTube ссылки
 - [ ] X bio + закреп-твит
