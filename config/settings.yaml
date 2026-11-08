@@ -326,6 +326,12 @@ publishers:
     enabled: true            # LINKEDIN_ACCESS_TOKEN/LINKEDIN_AUTHOR_URN
   medium:
     enabled: true            # MEDIUM_TOKEN
+  threads:
+    enabled: true            # THREADS_USER_ID/THREADS_ACCESS_TOKEN
+  instagram:
+    enabled: true            # INSTAGRAM_USER_ID/TOKEN + INSTAGRAM_IMAGE_URL
+  pinterest:
+    enabled: true            # PINTEREST_ACCESS_TOKEN/PINTEREST_BOARD_ID + PINTEREST_IMAGE_URL
   dryrun:
     enabled: true
 

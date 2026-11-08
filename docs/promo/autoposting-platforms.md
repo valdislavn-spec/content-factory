@@ -21,12 +21,12 @@
 | **Bluesky** | AT Protocol | `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD` | текст | ✅ реализован, нужен app password |
 | **Mastodon** | Mastodon API | `MASTODON_BASE_URL`, `MASTODON_TOKEN` | текст | ✅ реализован, нужен токен |
 | **Discord** | Webhook | `DISCORD_WEBHOOK_URL` | текст | ✅ реализован, нужен webhook |
-| **Instagram** | Graph API | `IG_USER_ID`, `IG_ACCESS_TOKEN` + публичный URL фото | фото+подпись | 🔲 нужен хостинг картинок |
-| **Threads** | Graph API | `THREADS_USER_ID`, `THREADS_ACCESS_TOKEN` | текст | 🔲 могу добавить (30 мин) |
+| **Instagram** | Graph API | `INSTAGRAM_USER_ID`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_IMAGE_URL` | фото+подпись | ✅ реализован, нужны токен и публичный URL картинки |
+| **Threads** | Graph API | `THREADS_USER_ID`, `THREADS_ACCESS_TOKEN` | текст | ✅ реализован, нужны токен |
 | **Reddit** | OAuth2 script app | `REDDIT_CLIENT_ID/SECRET/USERNAME/PASSWORD/SUBREDDIT` | self-пост | ✅ реализован, нужны ключи |
 | **YouTube** | Data API v3 | OAuth2 Google (`YOUTUBE_CLIENT_ID/SECRET/REFRESH_TOKEN`) | видео | 🔲 только видео, нужен OAuth |
 | **TikTok** | Content Posting API | app + токен (после ревью) | видео | 🔲 нужен ревью приложения |
-| **Pinterest** | API v5 | `PINTEREST_TOKEN` + URL картинки | пины | 🔲 нужен хостинг картинок |
+| **Pinterest** | API v5 | `PINTEREST_ACCESS_TOKEN`, `PINTEREST_BOARD_ID`, `PINTEREST_IMAGE_URL` | пины | ✅ реализован, нужны токен и публичный URL картинки |
 | **Tumblr** | API v2, OAuth 1.0a | `TUMBLR_CONSUMER_KEY`, `TUMBLR_CONSUMER_SECRET`, `TUMBLR_OAUTH_TOKEN`, `TUMBLR_OAUTH_TOKEN_SECRET`, `TUMBLR_BLOG` | текст до 12 000 символов | ✅ реализован и подключён (`vlad-007`), автопостинг из GitHub Actions |
 
 ## Как получить ключи (коротко)

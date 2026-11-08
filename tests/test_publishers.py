@@ -21,9 +21,12 @@ from content_factory.models import ChannelConfig, GeneratedPost, SourceConfig
 from content_factory.publishers import (
     DryRunPublisher,
     FacebookPublisher,
+    InstagramPublisher,
     LinkedInPublisher,
     MediumPublisher,
+    PinterestPublisher,
     TelegramPublisher,
+    ThreadsPublisher,
     VKPublisher,
     XPublisher,
     available_publishers,
@@ -50,6 +53,14 @@ _ENV_KEYS = (
     "LINKEDIN_ACCESS_TOKEN",
     "LINKEDIN_AUTHOR_URN",
     "MEDIUM_TOKEN",
+    "THREADS_USER_ID",
+    "THREADS_ACCESS_TOKEN",
+    "INSTAGRAM_USER_ID",
+    "INSTAGRAM_ACCESS_TOKEN",
+    "INSTAGRAM_IMAGE_URL",
+    "PINTEREST_ACCESS_TOKEN",
+    "PINTEREST_BOARD_ID",
+    "PINTEREST_IMAGE_URL",
 )
 
 
@@ -245,7 +256,11 @@ class DryRunPublisherTests(PublisherTestCase):
 # ---------------------------------------------------------------------------
 class PublisherRegistryTests(PublisherTestCase):
     def test_available_publishers(self) -> None:
-        self.assertEqual(available_publishers(), ["dryrun", "facebook", "linkedin", "medium", "reddit", "telegram", "tumblr", "vk", "x"])
+        self.assertEqual(
+            available_publishers(),
+            ["dryrun", "facebook", "instagram", "linkedin", "medium", "pinterest",
+             "reddit", "telegram", "threads", "tumblr", "vk", "x"],
+        )
         self.assertIn("telegram", publisher_classes())
         self.assertIn("vk", publisher_classes())
         self.assertIn("x", publisher_classes())
@@ -649,6 +664,95 @@ class MediumPublisherTests(PublisherTestCase):
         self.assertTrue(result.ok, result.error)
         self.assertEqual(result.url, "https://medium.com/p/1")
         self.assertEqual(len(calls), 2)
+
+
+class ThreadsPublisherTests(PublisherTestCase):
+    def test_post_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post()
+        payloads = []
+
+        def fake_urlopen(request, timeout=None):
+            payloads.append(dict(urllib.parse.parse_qsl(request.data.decode("utf-8"))))
+            return FakeResponse({"id": "container-1"} if len(payloads) == 1 else {"id": "post-1"})
+
+        env = {"THREADS_USER_ID": "123", "THREADS_ACCESS_TOKEN": "tok"}
+        with mock.patch.dict(os.environ, env), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = ThreadsPublisher(settings).publish(post, channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(payloads[0]["media_type"], "TEXT")
+        self.assertEqual(payloads[1]["creation_id"], "container-1")
+
+    def test_missing_creds(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        with mock.patch("urllib.request.urlopen", side_effect=AssertionError("сеть не ожидалась")):
+            result = ThreadsPublisher(settings).publish(self.make_post(), channel, settings)
+        self.assertFalse(result.ok)
+        self.assertIn("не настроен", result.error)
+
+
+class InstagramPublisherTests(PublisherTestCase):
+    def test_missing_image_url(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        env = {"INSTAGRAM_USER_ID": "123", "INSTAGRAM_ACCESS_TOKEN": "tok"}
+        with mock.patch.dict(os.environ, env):
+            result = InstagramPublisher(settings).publish(self.make_post(), channel, settings)
+        self.assertFalse(result.ok)
+        self.assertIn("картинки", result.error)
+
+    def test_post_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        env = {"INSTAGRAM_USER_ID": "123", "INSTAGRAM_ACCESS_TOKEN": "tok",
+               "INSTAGRAM_IMAGE_URL": "https://example.com/card.png"}
+        calls = []
+
+        def fake_urlopen(request, timeout=None):
+            calls.append(request.full_url)
+            return FakeResponse({"id": "media-1"})
+
+        with mock.patch.dict(os.environ, env), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = InstagramPublisher(settings).publish(self.make_post(), channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(len(calls), 2)
+
+
+class PinterestPublisherTests(PublisherTestCase):
+    def test_post_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        env = {"PINTEREST_ACCESS_TOKEN": "tok", "PINTEREST_BOARD_ID": "42",
+               "PINTEREST_IMAGE_URL": "https://example.com/card.png"}
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return FakeResponse({"id": "pin-1"})
+
+        with mock.patch.dict(os.environ, env), mock.patch(
+            "content_factory.publishers.social.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = PinterestPublisher(settings).publish(self.make_post(), channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(captured["body"]["board_id"], "42")
+        self.assertEqual(captured["body"]["media_source"]["source_type"], "image_url")
+        self.assertIn("pin-1", result.url)
+
+    def test_missing_image(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        env = {"PINTEREST_ACCESS_TOKEN": "tok", "PINTEREST_BOARD_ID": "42"}
+        with mock.patch.dict(os.environ, env):
+            result = PinterestPublisher(settings).publish(self.make_post(), channel, settings)
+        self.assertFalse(result.ok)
+        self.assertIn("картинки", result.error)
 
 
 class SplitHtmlMessageTests(unittest.TestCase):

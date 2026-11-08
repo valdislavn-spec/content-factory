@@ -24,8 +24,11 @@ from .base import (
 from .dryrun import DryRunPublisher
 from .facebook import FacebookPublisher
 from .linkedin import LinkedInPublisher
+from .instagram import InstagramPublisher
 from .medium import MediumPublisher
+from .pinterest import PinterestPublisher
 from .reddit import RedditPublisher
+from .threads import ThreadsPublisher
 from .telegram import TelegramPublisher
 from .tumblr import TumblrPublisher
 from .vk import VKPublisher
@@ -42,6 +45,9 @@ __all__ = [
     "MediumPublisher",
     "RedditPublisher",
     "TumblrPublisher",
+    "ThreadsPublisher",
+    "InstagramPublisher",
+    "PinterestPublisher",
     "TELEGRAM_MESSAGE_LIMIT",
     "VK_MESSAGE_LIMIT",
     "split_html_message",
@@ -59,6 +65,9 @@ _REGISTRY: Dict[str, Type[Publisher]] = {
     "medium": MediumPublisher,
     "reddit": RedditPublisher,
     "tumblr": TumblrPublisher,
+    "threads": ThreadsPublisher,
+    "instagram": InstagramPublisher,
+    "pinterest": PinterestPublisher,
     "dryrun": DryRunPublisher,
 }
 
@@ -76,6 +85,11 @@ _ALIASES = {
     "tumblr.com": "tumblr",
     "r": "reddit",
     "reddit.com": "reddit",
+    "threads.net": "threads",
+    "ig": "instagram",
+    "instagram.com": "instagram",
+    "pin": "pinterest",
+    "pinterest.com": "pinterest",
 }
 
 
