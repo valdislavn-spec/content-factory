@@ -361,6 +361,32 @@ class PriceAlertEngine:
             channels = [c for c in channels if c.id in allowed]
         return channels
 
+    def _maybe_affiliate(self, text: str, channel: ChannelConfig) -> str:
+        """Добавляет реферальную строку в алерт 1 раз в N алертов канала."""
+        affiliate = getattr(channel, "affiliate", None)
+        if not isinstance(affiliate, dict) or not affiliate.get("enabled"):
+            # fallback: общий блок affiliate в config/price_alerts.yaml
+            affiliate = self.config.get("affiliate")
+        if not isinstance(affiliate, dict) or not affiliate.get("enabled"):
+            return text
+        try:
+            every_n = int(self.config.get("affiliate_every_n") or 3)
+        except (TypeError, ValueError):
+            every_n = 3
+        counters = self.state.setdefault("affiliate_counters", {})
+        try:
+            count = int(counters.get(channel.id) or 0)
+        except (TypeError, ValueError):
+            count = 0
+        counters[channel.id] = count + 1
+        if every_n > 1 and count % every_n != 0:
+            return text
+        from .integrations.affiliate import build_affiliate_line
+        from .integrations.marketline import insert_before_hashtags
+
+        line = build_affiliate_line(affiliate, language=channel.language, channel_id=channel.id)
+        return insert_before_hashtags(text, line) if line else text
+
     def run_once(self) -> List[PublishResult]:
         if not self.rules:
             return []
@@ -372,7 +398,7 @@ class PriceAlertEngine:
         results: List[PublishResult] = []
         for alert in alerts:
             for channel in self._target_channels(alert):
-                text = format_alert(alert, channel.language)
+                text = self._maybe_affiliate(format_alert(alert, channel.language), channel)
                 post = GeneratedPost(
                     id="alert-{}-{}".format(
                         str(alert["symbol"]).replace("/", "-").lower(),

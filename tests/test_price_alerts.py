@@ -147,3 +147,35 @@ def test_engine_run_once_publishes_and_persists(tmp_path: Path) -> None:
     assert engine.run_once() == []
     saved = json.loads((tmp_path / "state.json").read_text())
     assert saved["prices"]["BTC/USDT"]["price"] == 78300.0
+
+
+def test_affiliate_line_every_n_alerts(tmp_path: Path) -> None:
+    settings = SimpleNamespace(root=tmp_path, dry_run=True)
+    channel = _channel("crypto-news", "en")
+    channel.affiliate = {
+        "enabled": True,
+        "link": "https://bingxdao.com/invite/WYYEGK/",
+        "every_n_posts": 3,
+    }
+    publisher = FakePublisher()
+    engine = PriceAlertEngine(
+        settings,
+        {"channels": ["crypto-news"], "affiliate_every_n": 3, "state_path": str(tmp_path / "s.json")},
+        price_fetcher=lambda symbol: {"price": 76000, "percent_change": 0.0},
+        publisher_factory=lambda name, s: publisher,
+        channels=[channel],
+        state_path=tmp_path / "s.json",
+        dry_run=True,
+    )
+    base = "🚀 BTC broke above $78,000 — now $78,100.00.\n\n#Bitcoin #BTC"
+    first = engine._maybe_affiliate(base, channel)  # noqa: SLF001
+    second = engine._maybe_affiliate(base, channel)  # noqa: SLF001
+    third = engine._maybe_affiliate(base, channel)  # noqa: SLF001
+    fourth = engine._maybe_affiliate(base, channel)  # noqa: SLF001
+    assert "bingxdao.com/invite/WYYEGK" in first
+    assert "affiliate link" in first.lower() or "ad" in first.lower()
+    assert "bingxdao.com/invite/WYYEGK" not in second
+    assert "bingxdao.com/invite/WYYEGK" not in third
+    assert "bingxdao.com/invite/WYYEGK" in fourth
+    # хештеги остаются в конце
+    assert fourth.strip().endswith("#Bitcoin #BTC")

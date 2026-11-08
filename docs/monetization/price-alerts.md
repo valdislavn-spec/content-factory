@@ -95,3 +95,21 @@ bash scripts/install_price_alerts_schedule.sh --uninstall
 - Алерты не заменяют обычный контент-план: максимум 2–4 алерта в день на канал,
   cooldown это ограничивает.
 - Не является инвестиционной рекомендацией; футер об этом напоминает.
+
+## Реферальная строка в алертах
+
+К алертам добавляется рефералка BingX **1 раз в 3 алерта** (на канал) с
+маркировкой «ad · affiliate link» и гео-дисклеймером; хештеги остаются в конце.
+Настройка — в `config/price_alerts.yaml`:
+
+```yaml
+affiliate_every_n: 3
+affiliate:
+  enabled: true
+  link: "https://bingxdao.com/invite/WYYEGK/"
+  disclaimer: "Ad · affiliate link. Not available in the US, UK, …"
+```
+
+Можно переопределить на конкретном канале блоком `affiliate:` в
+`config/channels.*.yaml` (как в обычных постах). После одобрения Affiliate
+Program замените `link` на 50%-ную affiliate-ссылку.
