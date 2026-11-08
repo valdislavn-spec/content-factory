@@ -155,6 +155,11 @@ channels:
   description: "Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados y tecnología blockchain.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Sports News @SPORTSAnalytics007"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_CRYPTO_ES (GitHub Secret)
   language: es
+  # Живая строка рынка в конце каждого поста
+  market_line:
+    enabled: true
+    coins: [bitcoin, ethereum, solana]
+    kalshi_series: KXBTC
   topics:
   - bitcoin
   - ethereum

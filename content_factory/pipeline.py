@@ -315,6 +315,18 @@ def publish_post(
     effective_dry_run: bool,
 ) -> List[PublishResult]:
     """Публикует пост во все соцсети канала; ошибки фиксируются в результате."""
+    # Живая строка рынка для крипто-каналов: BTC/ETH + опционально Kalshi.
+    try:
+        market_line_config = getattr(channel, "market_line", None)
+        if isinstance(market_line_config, dict) and market_line_config.get("enabled"):
+            from .integrations.marketline import build_market_line, insert_before_hashtags
+
+            line = build_market_line(market_line_config)
+            if line:
+                post.text = insert_before_hashtags(post.text, line)
+                post.meta["market_line"] = line
+    except Exception:  # noqa: BLE001 - market line не должна мешать публикации
+        log.debug("Не удалось добавить строку рынка для %s", channel.id, exc_info=True)
     names = ["dryrun"] if effective_dry_run else list(channel.publisher_ids)
     results: List[PublishResult] = []
     for name in names:
