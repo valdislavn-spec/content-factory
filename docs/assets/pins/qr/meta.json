@@ -1,0 +1,26 @@
+[
+ {
+  "slug": "bali-budget-qr",
+  "file": "docs/assets/pins/qr/bali-budget-qr.png",
+  "url": "https://is.gd/BaliTrip",
+  "headline": "Bali on a budget"
+ },
+ {
+  "slug": "dubai-weekend-qr",
+  "file": "docs/assets/pins/qr/dubai-weekend-qr.png",
+  "url": "https://is.gd/DubaiTrip",
+  "headline": "Dubai weekend"
+ },
+ {
+  "slug": "winter-sun-qr",
+  "file": "docs/assets/pins/qr/winter-sun-qr.png",
+  "url": "https://is.gd/Flights",
+  "headline": "3 winter escapes"
+ },
+ {
+  "slug": "europe-under-300-qr",
+  "file": "docs/assets/pins/qr/europe-under-300-qr.png",
+  "url": "https://is.gd/EuropeTrip",
+  "headline": "Europe under $300"
+ }
+]
