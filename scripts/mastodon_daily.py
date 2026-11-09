@@ -148,43 +148,6 @@ def _no_links() -> bool:
         "1", "true", "yes", "on"}
 
 
-def split_llm_text(raw: str) -> List[str]:
-    """Нарезает LLM-текст на части: --- / абзацы / предложения ≤ MAX_PART."""
-    raw = (raw or "").strip()
-    if not raw:
-        return []
-    by_sep = [part.strip() for part in re.split(r"(?m)^\s*-{3,}\s*$", raw) if part.strip()]
-    if len(by_sep) >= 2:
-        return by_sep
-    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", raw) if part.strip()]
-    if len(paragraphs) >= 2:
-        chunks: List[str] = []
-        current = ""
-        for paragraph in paragraphs:
-            candidate = (current + "\n\n" + paragraph).strip() if current else paragraph
-            if len(candidate) > MAX_PART and current:
-                chunks.append(current)
-                current = paragraph
-            else:
-                current = candidate
-        if current:
-            chunks.append(current)
-        return chunks
-    sentences = [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", raw) if sentence.strip()]
-    chunks = []
-    current = ""
-    for sentence in sentences:
-        candidate = (current + " " + sentence).strip() if current else sentence
-        if len(candidate) > MAX_PART and current:
-            chunks.append(current)
-            current = sentence
-        else:
-            current = candidate
-    if current:
-        chunks.append(current)
-    return chunks
-
-
 def clean_part(text: str, strip_links: Optional[bool] = None) -> str:
     text = normalize_space(strip_html(text or ""))
     if strip_links is None:
@@ -241,8 +204,8 @@ def build_with_llm(channel: Any, topic: Dict[str, str], articles: List[Any],
                            handle=_handle(channel) or "@our_channel",
                            hashtags=topic["hashtags"])
     raw = llm.generate(prompt, system=system, max_tokens=1200, temperature=0.4)
-    chunks = [clean_part(part) for part in split_llm_text(raw)]
-    chunks = [chunk for chunk in chunks if len(chunk) >= 60][:MAX_PARTS]
+    chunks = [clean_part(part) for part in re.split(r"(?m)^\s*---\s*$", raw or "") if part.strip()]
+    chunks = [chunk for chunk in chunks if len(chunk) >= 80][:MAX_PARTS]
     if len(chunks) < 2:
         return []
     if "#" not in chunks[-1]:
@@ -257,15 +220,7 @@ def prepare_thread(channel: Any, topic: Dict[str, str], articles: List[Any],
     parts = build_with_llm(channel, topic, articles, settings)
     if not parts:
         parts = build_fallback(channel, topic, articles)
-    parts = [part for part in parts if part][:MAX_PARTS]
-    if parts:
-        handle = _handle(channel)
-        joined = " ".join(parts)
-        if handle and handle not in joined:
-            parts[-1] = clean_part(f"{parts[-1]} Telegram: {handle}")
-        if "#" not in parts[-1]:
-            parts[-1] = clean_part(f"{parts[-1]} {topic['hashtags']}")
-    return parts
+    return [part for part in parts if part][:MAX_PARTS]
 
 
 def _api_base() -> str:
@@ -319,7 +274,7 @@ def _http_json(url: str, payload: Dict[str, Any], headers: Optional[Dict[str, st
 
 
 def post_status(text: str, reply_to: str = "", base: str = "", token: str = "") -> Dict[str, Any]:
-    """Пост/ответ в Mastodon-совместимую сеть."""
+    """Пост/ответ в Mastodon-совместимую сеть (Mastodon/Pleroma/Akkoma/GTS/Friendica)."""
     base = (base or _api_base()).rstrip("/")
     token = token or _api_token()
     if not token:
@@ -332,7 +287,7 @@ def post_status(text: str, reply_to: str = "", base: str = "", token: str = "") 
 
 
 def post_misskey(text: str, reply_to: str = "", host: str = "", token: str = "") -> Dict[str, Any]:
-    """Пост/ответ в Misskey (replyId продолжает thread)."""
+    """Пост/ответ в Misskey (replyId для продолжения thread)."""
     host = re.sub(r"^https?://", "", (host or _env("MISSKEY_HOST")).rstrip("/"))
     token = token or _env("MISSKEY_TOKEN")
     if not host or not token:
@@ -345,8 +300,8 @@ def post_misskey(text: str, reply_to: str = "", host: str = "", token: str = "")
     return {"id": note.get("id"), "url": note.get("url") or f"https://{host}/notes/{note.get('id')}"}
 
 
-def publish_thread(parts: List[str], apply: bool,
-                   network: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
+def publish_thread(parts: List[str], apply: bool, network: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
+    """Публикует thread в одну сеть (по умолчанию — Mastodon из env)."""
     results: List[Dict[str, Any]] = []
     reply_to = ""
     for text in parts:
@@ -364,12 +319,14 @@ def publish_thread(parts: List[str], apply: bool,
     return results
 
 
-def publish_all_networks(parts: List[str], apply: bool, only: str = "") -> Dict[str, Any]:
+def publish_all_networks(parts: List[str], apply: bool,
+                         only: str = "") -> Dict[str, Any]:
     """Публикует thread во все настроенные сети (или только в `only`)."""
     networks = configured_networks()
     if only:
         networks = [n for n in networks if n["name"] == only]
     if not networks:
+        # без кредов — обычный dry-run в Mastodon-формате
         return {"networks": {}, "dry_run": not apply,
                 "results": publish_thread(parts, False)}
     out: Dict[str, Any] = {"networks": {}, "dry_run": not apply}
@@ -381,7 +338,7 @@ def publish_all_networks(parts: List[str], apply: bool, only: str = "") -> Dict[
                 "url": next((r.get("url") for r in result if r.get("url")), ""),
                 "results": result,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001 - одна сеть не ломает остальные
             out["networks"][network["name"]] = {"ok": False, "error": str(exc)}
     return out
 
@@ -446,8 +403,7 @@ def main() -> int:
     parser.add_argument("--slot", type=int, default=0, help="0 = первый пост дня, 1 = второй")
     parser.add_argument("--date", default="", help="YYYY-MM-DD (по умолчанию сегодня UTC)")
     parser.add_argument("--force", action="store_true", help="игнорировать проверку дубля")
-    parser.add_argument("--network", default="",
-                        help="только одна сеть: mastodon|pleroma|akkoma|gotosocial|friendica|misskey")
+    parser.add_argument("--network", default="", help="только одна сеть: mastodon|pleroma|akkoma|gotosocial|friendica|misskey")
     args = parser.parse_args()
     settings = Settings.load()
     day = date.fromisoformat(args.date) if args.date else datetime.now(timezone.utc).date()
@@ -474,6 +430,17 @@ def main() -> int:
     networks_ok = {
         name: data for name, data in (result.get("networks") or {}).items() if data.get("ok")
     }
+    networks_failed = {
+        name: data for name, data in (result.get("networks") or {}).items() if not data.get("ok")
+    }
+    if apply and not networks_ok:
+        print(
+            "ОШИБКА: ни одна сеть не приняла thread: "
+            + json.dumps(networks_failed, ensure_ascii=False)[:500]
+        )
+        return 1
+    if apply and networks_failed:
+        print("ПРЕДУПРЕЖДЕНИЕ: часть сетей не приняла thread: " + ", ".join(sorted(networks_failed)))
     if apply and networks_ok:
         _state_set(f"{day.isoformat()}:{args.slot}")
         for name, data in networks_ok.items():
