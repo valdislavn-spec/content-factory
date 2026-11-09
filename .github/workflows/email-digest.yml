@@ -1,140 +1,63 @@
 name: email-digest
 
-# Еженедельный email-дайджест для EN/ES-подписчиков.
-# - по умолчанию (расписание) отправляет живое письмо через Brevo;
-# - ручной запуск по умолчанию dry-run: HTML/text сохраняются в артефакт;
-# - если BREVO_API_KEY не задан, рассылка не уходит, а workflow остаётся зелёным
-#   (данные для письма всё равно собираются).
-#
-# Нужные секреты: BREVO_API_KEY, BREVO_LIST_ID_EN, BREVO_LIST_ID_ES,
-# EMAIL_FROM, EMAIL_FROM_NAME (см. docs/promo/email-digest-setup.md).
+# Еженедельный email-дайджест постов контент-фабрики.
+# Без SMTP-секретов работает в dry-run и сохраняет .eml артефактом.
 
 on:
   schedule:
-    # Вторник 14:00 UTC: утро США (10:00 ET) и утро ЛатАм (08:00 UTC−6)
-    - cron: "0 14 * * 2"
+    - cron: "17 8 * * 1"   # понедельник 08:17 UTC
   workflow_dispatch:
     inputs:
-      language:
-        description: "Язык письма"
-        required: true
-        default: "all"
-        type: choice
-        options: ["all", "en", "es"]
-      send:
-        description: "dry-run = только файлы, live = отправить через Brevo"
+      mode:
+        description: "Режим"
         required: true
         default: "dry-run"
         type: choice
-        options: ["dry-run", "live"]
-      smoke_test:
-        description: "Проверить форму подписки (Cloudflare Worker + KV)"
-        required: false
-        default: false
-        type: boolean
+        options: ["dry-run", "send"]
+
+permissions:
+  contents: read
 
 concurrency:
   group: email-digest
   cancel-in-progress: false
 
-permissions:
-  contents: read
-
 jobs:
   digest:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     env:
-      TZ: Europe/Moscow
-      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-      BREVO_LIST_ID_EN: ${{ secrets.BREVO_LIST_ID_EN }}
-      BREVO_LIST_ID_ES: ${{ secrets.BREVO_LIST_ID_ES }}
+      EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
+      EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT || '587' }}
+      EMAIL_SMTP_USER: ${{ secrets.EMAIL_SMTP_USER }}
+      EMAIL_SMTP_PASSWORD: ${{ secrets.EMAIL_SMTP_PASSWORD }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-      EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
-      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      SUBSCRIBE_WORKER_URL: https://cf-subscribe.valdislav-n.workers.dev/
-      SUBSCRIBE_KV_NAMESPACE: 422c94623a2a4b88941bd86178429ba8
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      EMAIL_SUBJECT_PREFIX: ${{ vars.EMAIL_SUBJECT_PREFIX || '' }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      # Посты/метрики: берём последний кэш состояния конвейера (если он есть).
-      - name: Restore pipeline SQLite cache
-        uses: actions/cache@v4
-        with:
-          path: data/factory.sqlite3
-          key: cf-state-${{ github.run_id }}
-          restore-keys: |
-            cf-state-
-
-      - name: Smoke-test subscription worker (manual only)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.smoke_test == 'true' }}
         run: |
-          python - <<'PY'
-          import json, os, urllib.request
-
-          url = os.environ["SUBSCRIBE_WORKER_URL"]
-          payload = {"email": "smoke-test@example.com", "language": "en", "topics": ["crypto"], "consent": True}
-          request = urllib.request.Request(
-              url,
-              data=json.dumps(payload).encode(),
-              headers={
-                  "Content-Type": "application/json",
-                  "Origin": "https://valdislavn-spec.github.io",
-                  "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36",
-              },
-              method="POST",
-          )
-          with urllib.request.urlopen(request, timeout=30) as response:
-              body = response.read().decode()
-          print("worker answer:", body)
-          data = json.loads(body)
-          assert data.get("ok") is True, data
-
-          # убрать тестовый адрес из KV
-          account = os.environ["CF_ACCOUNT_ID"]
-          namespace = os.environ["SUBSCRIBE_KV_NAMESPACE"]
-          token = os.environ["CF_API_TOKEN"]
-          delete = urllib.request.Request(
-              f"https://api.cloudflare.com/client/v4/accounts/{account}/storage/kv/namespaces/{namespace}/values/sub:smoke-test@example.com",
-              headers={"Authorization": f"Bearer {token}"},
-              method="DELETE",
-          )
-          with urllib.request.urlopen(delete, timeout=30) as response:
-              print("cleanup:", response.status)
-          PY
-
-      - name: Build and (optionally) send digest
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build/send digest
         run: |
-          LANG="${{ github.event.inputs.language || 'all' }}"
-          MODE="${{ github.event.inputs.send || 'dry-run' }}"
-          SEND_FLAG=""
-          if [ "$MODE" = "live" ]; then SEND_FLAG="--send"; fi
-          if [ "${{ github.event_name }}" = "schedule" ]; then SEND_FLAG="--send"; fi
-          if [ -z "$BREVO_API_KEY" ]; then
-            echo "::warning::BREVO_API_KEY не задан — рассылка не отправляется, сохраняю письма в артефакт."
-            SEND_FLAG=""
+          ARG=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.mode }}" = "send" ]; then
+            ARG="--send"
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ -n "$EMAIL_SMTP_PASSWORD" ]; then
+            ARG="--send"
           fi
-          python scripts/email_digest.py --language "$LANG" --out exports/email-digest $SEND_FLAG | tee digest.log
-          {
-            echo "### Email digest"
-            echo '```'
-            tail -n 40 digest.log
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
+          python scripts/email_digest.py $ARG --days 7
       - name: Upload digest artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: email-digest-${{ github.run_id }}
-          path: exports/email-digest
+          name: email-digest
+          path: data/outbox/email
+          if-no-files-found: ignore
           retention-days: 14

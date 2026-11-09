@@ -1,106 +1,83 @@
-"""Тесты email-дайджеста: сбор, рендер, payload Brevo."""
+"""Тесты email-дайджеста (без сети/SMTP)."""
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from content_factory.config import Settings, load_network_channels
-from content_factory.integrations.email_digest import (
-    build_brevo_payload,
-    collect_items,
-    render,
-)
-from content_factory.models import GeneratedPost
-from content_factory.storage import Storage
+import scripts.email_digest as digest
 
 
-UNIQUE_TITLES = {
-    "crypto-news": ["Bitcoin ETF inflows hit a new record", "SEC approves new crypto custody rules"],
-    "ai-news": ["OpenAI releases a new reasoning model", "NVIDIA unveils faster AI chips"],
-    "sport-news": ["NFL Week 10 injury report", "NBA trade deadline rumors"],
-    "tech-ai-es": ["Nueva IA en español para empresas", "Startup española recauda ronda"],
-    "crypto-es": ["Bitcoin supera un nuevo máximo", "Ethereum se prepara para una actualización"],
-    "futbol-es": ["LaLiga: resultados de la jornada", "Mercado de fichajes en Argentina"],
-}
+POSTS = [
+    {"channel_id": "ai-news", "format": "story", "created_at": "2026-11-09T08:00:00+00:00",
+     "status": "published", "text": "<b>OpenAI ships GPT-5</b> — bigger context window."},
+    {"channel_id": "crypto-news", "format": "analysis", "created_at": "2026-11-08T12:00:00+00:00",
+     "status": "published", "text": "Bitcoin ETFs saw record inflows this week."},
+]
 
 
-class EmailDigestTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.settings = Settings.load()
+class DigestBuildTests(unittest.TestCase):
+    def test_subject_and_body(self):
+        result = digest.build_digest(POSTS, days=7)
+        self.assertIn("Content Factory Digest", result["subject"])
+        self.assertIn("Content Factory", result["html"])
+        self.assertIn("OpenAI ships GPT-5", result["text"])
+        self.assertIn("Bitcoin ETFs", result["html"])
+        self.assertIn("ai-news", result["html"])
 
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.storage = Storage(Path(self.tmp.name) / "factory.sqlite3")
-        self.channels = load_network_channels(self.settings)
+    def test_message_headers(self):
+        data = digest.build_digest(POSTS, days=3)
+        message = digest.make_message(data, "from@example.com", ["a@example.com", "b@example.com"])
+        self.assertEqual(message["From"], "from@example.com")
+        self.assertEqual(message["To"], "a@example.com, b@example.com")
+        self.assertIn("Content Factory Digest", message["Subject"])
+        self.assertTrue(message.is_multipart())
 
-    def tearDown(self):
-        self.storage.close()
-        self.tmp.cleanup()
+    def test_save_eml_dry_run(self):
+        data = digest.build_digest(POSTS)
+        message = digest.make_message(data, "from@example.com", ["a@example.com"])
+        with tempfile.TemporaryDirectory() as tmp:
+            original = digest.OUT_DIR
+            digest.OUT_DIR = Path(tmp)
+            try:
+                path = digest.save_eml(message)
+                self.assertTrue(path.is_file())
+                self.assertIn(b"Content Factory Digest", path.read_bytes())
+            finally:
+                digest.OUT_DIR = original
 
-    def _save_posts(self, language: str, per_channel: int = 2):
-        for channel in [c for c in self.channels if c.language == language]:
-            for index in range(per_channel):
-                post = GeneratedPost(
-                    id=f"{channel.id}-{index}",
-                    channel_id=channel.id,
-                    cluster_id=f"cluster-{channel.id}-{index}",
-                    format="story",
-                    text=(
-                        f"<b>{channel.title}: {UNIQUE_TITLES[channel.id][index]}</b>\n\n"
-                        f"Details about {UNIQUE_TITLES[channel.id][index]} with facts, numbers and context for readers. "
-                        "More in the linked source."
-                    ),
-                    hashtags=["#Test"],
-                    sources=[{"title": "Source", "url": f"https://example.com/{channel.id}/{index}", "source": "Example"}],
-                )
-                self.storage.save_post(post, status="published")
 
-    def test_collect_items_for_english(self):
-        self._save_posts("en")
-        items = collect_items(self.settings, self.storage, "en", days=7, allow_preview=False)
-        self.assertEqual(len(items), 6)
-        self.assertEqual({item.channel_id for item in items}, {"crypto-news", "ai-news", "sport-news"})
-        self.assertTrue(all(item.url.startswith("https://t.me/") for item in items))
+class SendTests(unittest.TestCase):
+    def test_missing_smtp_returns_error(self):
+        with mock.patch.dict(os.environ, {"EMAIL_SMTP_HOST": "", "EMAIL_SMTP_USER": "",
+                                          "EMAIL_SMTP_PASSWORD": ""}):
+            ok = True
+            try:
+                digest.send_message(digest.make_message(digest.build_digest(POSTS),
+                                                        "f@e.com", ["t@e.com"]),
+                                    "", 587, "", "")
+            except Exception:
+                ok = False
+            self.assertFalse(ok)
 
-    def test_render_contains_channels_and_links(self):
-        self._save_posts("es")
-        items = collect_items(self.settings, self.storage, "es", days=7, allow_preview=False)
-        digest = render(items, self.settings, "es")
-        self.assertIn("Resumen semanal", digest.text)
-        self.assertIn("t.me/", digest.html)
-        self.assertIn("unsubscribe", digest.html)
-        self.assertIn("historias de la semana", digest.subject)
+    def test_send_message_uses_smtp(self):
+        data = digest.build_digest(POSTS)
+        message = digest.make_message(data, "from@example.com", ["to@example.com"])
+        server = mock.MagicMock()
+        with mock.patch.object(digest.smtplib, "SMTP", return_value=server) as smtp:
+            server.__enter__.return_value = server
+            digest.send_message(message, "smtp.example.com", 587, "user", "pass")
+        smtp.assert_called_once_with("smtp.example.com", 587, timeout=30)
+        server.starttls.assert_called_once()
+        server.login.assert_called_once_with("user", "pass")
+        server.send_message.assert_called_once()
 
-    def test_brevo_payload(self):
-        self._save_posts("en", per_channel=1)
-        items = collect_items(self.settings, self.storage, "en", days=7, allow_preview=False)
-        digest = render(items, self.settings, "en")
-        payload = build_brevo_payload(
-            digest,
-            sender_email="digest@example.com",
-            sender_name="Content Factory",
-            list_id=42,
-        )
-        self.assertEqual(payload["recipients"]["listIds"], [42])
-        self.assertEqual(payload["sender"]["email"], "digest@example.com")
-        self.assertIn("subject", payload)
-        self.assertIn("htmlContent", payload)
 
-    def test_duplicate_titles_are_removed(self):
-        channel = next(c for c in self.channels if c.language == "en")
-        for index in range(3):
-            post = GeneratedPost(
-                id=f"dup-{index}",
-                channel_id=channel.id,
-                cluster_id="dup",
-                format="story",
-                text="<b>Same headline about OpenAI GPT-5 release</b>\n\nSame body text with enough characters to pass.",
-                sources=[{"url": f"https://example.com/dup-{index}", "title": "x", "source": "x"}],
-            )
-            self.storage.save_post(post, status="published")
-        items = collect_items(self.settings, self.storage, "en", days=7, allow_preview=False)
-        titles = [item.title for item in items]
-        self.assertEqual(len(titles), len(set(titles)))
+class EmptyPostsTests(unittest.TestCase):
+    def test_build_digest_without_posts(self):
+        result = digest.build_digest([], days=7)
+        self.assertIn("Дайджест за 7 дн.", result["html"])
+        self.assertIn("Отписаться", result["text"])
 
 
 if __name__ == "__main__":
