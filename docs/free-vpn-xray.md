@@ -113,3 +113,47 @@ bash scripts/install_proxy_schedule.sh --uninstall  # удалить
   `start` (конфиг уже сохранён).
 - Для фонового автозапуска можно добавить launchd-агент (как у бэкапа) —
   скажи, сделаю.
+
+## Системный прокси на macOS (настроено 09.11.2026)
+
+Прокси поднят в двух режимах и включён системно для Wi-Fi:
+
+| Что | Адрес | Назначение |
+|---|---|---|
+| SOCKS5 | `127.0.0.1:1080` | curl `--socks5-hostname`, Telegram, старые клиенты |
+| HTTP | `127.0.0.1:1081` | системный прокси macOS, Chrome/Safari, Playwright |
+| Системный HTTP/HTTPS-прокси Wi-Fi | `127.0.0.1:1081` | включён (`networksetup`) |
+| Автозапуск | launchd `com.contentfactory.free-proxy` | поднимает Xray при входе и после падения |
+
+**Управление:**
+
+```bash
+bash scripts/mac_vpn.sh status    # состояние + проверка 6 сайтов
+bash scripts/mac_vpn.sh on        # запустить Xray и включить системный прокси
+bash scripts/mac_vpn.sh off       # выключить системный прокси (Xray остаётся)
+bash scripts/mac_vpn.sh test      # проверить сайты через HTTP-прокси
+bash scripts/mac_vpn.sh restart   # перезапустить Xray
+```
+
+**Bypass-лист** (идут напрямую, мимо публичной ноды): локальные сети, банки
+(Сбер/Т-Банк/ВТБ/Альфа/Газпромбанк/Райффайзен), госуслуги/налог/mos.ru,
+маркетплейсы (WB/Ozon), Яндекс/Мейл/Авито/VK/OK, GitHub CDN, Cloudflare Workers.
+Остальной трафик — через ноду.
+
+**Проверено после настройки:**
+- `t.me`, `api.telegram.org`, `oauth.telegram.org`, `bsky.app`,
+  `admin.adminhub.tools`, `x.com` — 200/302 через прокси (6/6);
+- Telegram Bot API работает **с этой машины**: `getMe` → ok (бот `@Novyi0007Bot`),
+  `getChatMemberCount` по каналам — ok;
+- Chromium (Playwright) использует системный прокси: `t.me` открылся, AdminHub
+  загрузился (можно входить через Telegram OIDC);
+- автозапуск: агент `com.contentfactory.free-proxy` загружен (PID в `launchctl list`).
+
+**Важно:**
+- Нода публичная: оператор видит домены/время (TLS содержимое не раскрывает).
+  Банковские/госуслуги — в bypass; не вводите пароли на сторонних сайтах
+  без необходимости.
+- `scripts/free_proxy.py setup` теперь сохраняет HTTP-inbound (порт socks+1),
+  чтобы ротация ноды не ломала системный прокси.
+- Отключить всё: `bash scripts/mac_vpn.sh off` + выгрузить агент:
+  `launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.contentfactory.free-proxy.plist`.

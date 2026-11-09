@@ -165,10 +165,16 @@ def outbound(node: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def build_config(node: Dict[str, Any], socks_port: int) -> Dict[str, Any]:
+    """SOCKS + HTTP inbound: HTTP нужен для системного прокси macOS (127.0.0.1:1081)."""
+    http_port = socks_port + 1
     return {
         "log": {"loglevel": "error"},
-        "inbounds": [{"listen": "127.0.0.1", "port": socks_port, "protocol": "socks",
-                      "settings": {"udp": False}}],
+        "inbounds": [
+            {"listen": "127.0.0.1", "port": socks_port, "protocol": "socks",
+             "settings": {"udp": False}},
+            {"listen": "127.0.0.1", "port": http_port, "protocol": "http",
+             "settings": {}},
+        ],
         "outbounds": [outbound(node)],
     }
 
