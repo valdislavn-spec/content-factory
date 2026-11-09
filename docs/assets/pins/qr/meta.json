@@ -22,5 +22,23 @@
   "file": "docs/assets/pins/qr/europe-under-300-qr.png",
   "url": "https://is.gd/EuropeTrip",
   "headline": "Europe under $300"
+ },
+ {
+  "slug": "travel-esim-qr",
+  "file": "docs/assets/pins/qr/travel-esim-qr.png",
+  "url": "https://is.gd/ESimDeal",
+  "headline": "Travel eSIM"
+ },
+ {
+  "slug": "car-rental-qr",
+  "file": "docs/assets/pins/qr/car-rental-qr.png",
+  "url": "https://is.gd/CarRental",
+  "headline": "Car rental, no surprises"
+ },
+ {
+  "slug": "flight-compensation-qr",
+  "file": "docs/assets/pins/qr/flight-compensation-qr.png",
+  "url": "https://is.gd/Compensair",
+  "headline": "Flight delayed?"
  }
 ]
