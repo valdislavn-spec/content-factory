@@ -51,14 +51,6 @@ niches:
 mode: addToQueue
 
 channels:
-  - service: bluesky
-    name: BRAVE
-    channel_id: 6ae8d9bae29c69a1713c812f
-    max_chars: 300
-    utm:
-      utm_source: bsky
-      utm_medium: social
-      utm_campaign: daily_pin
   - service: twitter
     name: NValdislav
     channel_id: 6951b346457dae6a34bd5e32
@@ -99,6 +91,5 @@ schedule:
   timezone: UTC
   horizon_days: 3
   times:
-    bluesky: ["10:00", "17:00"]
     twitter: ["09:00", "18:00"]
     facebook: ["11:00", "19:00"]
