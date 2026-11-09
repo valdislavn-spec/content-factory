@@ -150,7 +150,30 @@ def partner_url(slug: str) -> str:
     return ""
 
 
-def article_link(pin: dict, hub_url: str) -> str:
+ARTICLE_BY_SLUG = {
+    "01-europe-for-under-300": "/travel/europe-under-300.html",
+    "02-bali-on-a-budget": "/travel/bali-budget.html",
+    "03-48-hours-in-rome": "/travel/rome-48-hours.html",
+    "08-travel-esim": "/travel/travel-esim.html",
+    "09-car-rental-no-surprises": "/travel/car-rental-europe.html",
+    "10-airport-transfer": "/travel/airport-transfer-guide.html",
+    "11-skip-the-line": "/travel/skip-the-line-tickets-guide.html",
+    "12-tours-and-experiences": "/travel/skip-the-line-tickets-guide.html",
+    "13-car-rental-booking-window": "/travel/car-rental-europe.html",
+    "14-luggage-storage": "/travel/luggage-storage-guide.html",
+}
+
+
+def content_link(pin: dict, hub_url: str) -> str:
+    """SEO/article URL for the pin topic (traffic to hub)."""
+    slug = str(pin.get("slug") or "").strip()
+    article = ARTICLE_BY_SLUG.get(slug)
+    if article:
+        return hub_url.rstrip("/") + article
+    return ""
+
+
+def article_link(pin: dict, hub_url: str, day_index: int = 0) -> str:
     """Ссылка на статью/гайд пина.
 
     Для travel-пинов — сразу партнёрская ссылка Travelpayouts (как в
@@ -160,6 +183,12 @@ def article_link(pin: dict, hub_url: str) -> str:
     slug = str(pin.get("slug") or "").strip()
     if pin.get("article_url"):
         return str(pin["article_url"])
+    # Traffic mix: every other post sends readers to the hub article (SEO/traffic),
+    # the rest go straight to the partner link (commission).
+    if int(day_index or 0) % 2 == 1:
+        seo = content_link(pin, hub_url)
+        if seo:
+            return seo
     if str(pin.get("niche") or "") == "travel":
         affiliate = partner_url(slug)
         if affiliate:
@@ -265,9 +294,12 @@ def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None, day_
     links_config = (config or {}).get("links") or {}
     shorten = bool(links_config.get("shorten", False))
     utm = channel.get("utm") or {}
-    article = article_link(pin, hub_url)
+    article = article_link(pin, hub_url, day_index)
     if utm.get("utm_source"):
-        article = hub_link(article, {"utm_source": utm.get("utm_source")})
+        params = {"utm_source": utm.get("utm_source"), "utm_medium": "social"}
+        if "/travel/" in article or article.rstrip("/") == hub_url.rstrip("/"):
+            params["utm_campaign"] = "traffic"
+        article = hub_link(article, params)
     article = _short(article, shorten)
     tg_link = channel_link(config, niche)
     # t.me-ссылки и так короткие — сокращаем только длинные.
