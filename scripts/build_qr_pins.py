@@ -118,6 +118,26 @@ def render(pin: dict, out_dir: Path) -> Path:
         draw.text((64, y), line, font=sub, fill=(214, 224, 240))
         y += 50
 
+    # decorative destination scene (sun + horizon + palm silhouette)
+    scene_top = max(y + 30, 760)
+    cx, cy, r = W - 210, scene_top + 120, 120
+    for k in range(8, 0, -1):
+        rr = int(r * k / 8)
+        alpha = int(38 * (9 - k) / 8)
+        draw.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill=(accent[0], accent[1], accent[2], alpha) if False else tuple(int(accent[i] * (0.38 + 0.07 * (8 - k))) for i in range(3)))
+    draw.rectangle((0, scene_top + 300, W, scene_top + 312), fill=tuple(int(c * 0.55) for c in accent))
+    # palm silhouette bottom left of scene
+    px0, py0 = 250, scene_top + 300
+    draw.line([(px0, py0), (px0 + 26, py0 - 180)], fill=(8, 12, 20), width=20)
+    for ang, dx, dy in [(-70, -120, -40), (-30, -70, -80), (10, 40, -90), (50, 110, -50), (90, 130, 10)]:
+        draw.line([(px0 + 26, py0 - 180), (px0 + 26 + dx, py0 - 180 + dy)], fill=(8, 12, 20), width=14)
+    # dashed flight path + plane
+    path_y = scene_top + 180
+    for xx in range(330, 700, 44):
+        draw.line([(xx, path_y), (min(xx + 22, 700), path_y)], fill=(210, 220, 235), width=4)
+    # plane triangle
+    draw.polygon([(700, path_y - 16), (740, path_y), (700, path_y + 16), (706, path_y)], fill=(240, 244, 250))
+
     # QR block bottom-left
     qr = segno.make(pin["url"], error="m")
     buf = io.BytesIO()
