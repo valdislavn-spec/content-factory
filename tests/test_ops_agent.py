@@ -100,6 +100,18 @@ class OpsAgentTests(unittest.TestCase):
         big = {"channels": [{"id": "x" * 100} for _ in range(100)]}
         self.assertLessEqual(len(compact_data(big, limit=200)), 200)
 
+    def test_compact_data_structured_growth(self) -> None:
+        data = fake_data()
+        data["growth"] = {
+            "totals": {"subscribers": 100, "subscribers_delta": 5},
+            "channels": [
+                {"id": "ai-news", "subscribers": 5, "avg_views": 2, "er": 0.1, "posts_24h": 10}
+            ],
+        }
+        compact = compact_data(data)
+        self.assertIn("ai-news", compact)
+        self.assertIn("всего 100", compact)
+
     def test_compact_data_keeps_all_tools(self) -> None:
         compact = compact_data(fake_data())
         self.assertIn("ai-news", compact)
@@ -177,6 +189,22 @@ class OpsToolsTests(unittest.TestCase):
         prompt = tools_prompt()
         for name in TOOLS:
             self.assertIn(name, prompt)
+
+    def test_growth_tool_returns_structured_json(self) -> None:
+        class Result:
+            returncode = 0
+            stdout = (
+                '{"totals":{"subscribers":100},'
+                '"channels":[{"id":"ai-news","subscribers":5,"avg_views":2,'
+                '"er":0.0,"posts_24h":10}]}'
+            )
+            stderr = ""
+
+        import content_factory.agents.tools as tools_module
+
+        with mock.patch.object(tools_module.subprocess, "run", return_value=Result()):
+            data = call_tool("growth", {"limit": 5})
+        self.assertEqual(data["channels"][0]["id"], "ai-news")
 
     def test_unknown_tool_returns_error(self) -> None:
         self.assertIn("error", call_tool("missing", {}))

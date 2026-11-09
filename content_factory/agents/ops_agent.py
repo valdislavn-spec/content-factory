@@ -87,6 +87,30 @@ def compact_data(data: Dict[str, Any], limit: int = 1900) -> str:
         return result[:8]
 
     growth = data.get("growth") or {}
+    growth_text = ""
+    if isinstance(growth, dict) and isinstance(growth.get("channels"), list):
+        totals = growth.get("totals") or {}
+        parts = []
+        for channel in growth["channels"][:8]:
+            if not isinstance(channel, dict):
+                continue
+            er = channel.get("er")
+            parts.append(
+                "{}:{} подп., {} просм, ER {}, {} постов".format(
+                    channel.get("id"),
+                    channel.get("subscribers"),
+                    channel.get("avg_views"),
+                    "{}%".format(round(float(er) * 100)) if isinstance(er, (int, float)) else "—",
+                    channel.get("posts_24h"),
+                )
+            )
+        growth_text = "всего {} подп. ({:+d}); {}".format(
+            totals.get("subscribers"),
+            int(totals.get("subscribers_delta") or 0),
+            "; ".join(parts),
+        )
+    elif isinstance(growth, dict):
+        growth_text = str(growth.get("summary") or "")[-900:]
     health = data.get("health") or []
     distribution = data.get("distribution") or {}
     budget = data.get("budget") or {}
@@ -96,7 +120,7 @@ def compact_data(data: Dict[str, Any], limit: int = 1900) -> str:
             row.get("id") if isinstance(row, dict) else str(row)[:40]
             for row in (data.get("channels") or [])
         ],
-        "growth": str(growth.get("summary") or "")[-900:] if isinstance(growth, dict) else "",
+        "growth": growth_text,
         "health": rows(health, "name", "status"),
         "distribution": rows(distribution.get("platforms") or [], "platform", "last"),
         "budget": {"tokens": (budget.get("tokens") if isinstance(budget, dict) else {}) or {}},

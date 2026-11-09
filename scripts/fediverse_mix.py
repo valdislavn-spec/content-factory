@@ -736,25 +736,38 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         print("media uploaded:", media_id)
                 except Exception as exc:  # noqa: BLE001
                     print("media upload failed (posting text only):", type(exc).__name__, exc)
-            result = publish(text, media_ids)
-            print("published:", result.get("url") or result.get("id"))
-            if (config.get("crosspost") or {}).get("mastodon"):
-                crosspost_cfg = config.get("crosspost") or {}
+            error = None
+            pixelfed_done = False
+            try:
+                result = publish(text, media_ids)
+                print("published (primary):", result.get("url") or result.get("id"))
+            except Exception as exc:  # noqa: BLE001 - основной инстанс мог умереть
+                error = exc
+                print("primary publish failed:", type(exc).__name__, exc)
+            if error is not None:
+                # Аварийный путь: пост не должен теряться из-за мёртвого инстанса.
+                px_url = pixelfed_publish(text, image)
+                if px_url:
+                    print("fallback pixelfed:", px_url)
+                    pixelfed_done = True
+                else:
+                    mast_url = mastodon_publish(text, image)
+                    if mast_url:
+                        print("fallback mastodon:", mast_url)
+                    else:
+                        print("all publishers failed")
+                        return 1
+            crosspost_cfg = config.get("crosspost") or {}
+            if crosspost_cfg.get("mastodon"):
                 mast_url = mastodon_publish(
                     text,
                     image,
                     strip_links=crosspost_cfg.get("mastodon_strip_links"),
                 )
-                if mast_url:
-                    print("mastodon:", mast_url)
-                else:
-                    print("mastodon: skipped/failed")
-            if (config.get("crosspost") or {}).get("pixelfed") and image is not None:
+                print("mastodon:", mast_url or "skipped/failed")
+            if crosspost_cfg.get("pixelfed") and image is not None and not pixelfed_done:
                 px_url = pixelfed_publish(text, image)
-                if px_url:
-                    print("pixelfed:", px_url)
-                else:
-                    print("pixelfed: skipped/failed")
+                print("pixelfed:", px_url or "skipped/failed")
         except Exception as exc:  # noqa: BLE001
             print("publish failed:", type(exc).__name__, exc)
             return 1

@@ -58,13 +58,25 @@ def tool_channels(_args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def tool_growth(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Запускает growth_report без отправки и отдаёт последние строки сводки."""
+    """Запускает growth_report и отдаёт структурные метрики (JSON) по каналам."""
     limit = int(args.get("limit") or 10)
-    cmd = [sys.executable, str(ROOT / "scripts" / "growth_report.py"), "--quiet", "--limit", str(limit)]
+    cmd = [
+        sys.executable,
+        str(ROOT / "scripts" / "growth_report.py"),
+        "--json",
+        "--limit",
+        str(limit),
+    ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=180, cwd=str(ROOT))
     except (OSError, subprocess.SubprocessError) as exc:
         return {"error": type(exc).__name__}
+    try:
+        data = json.loads((result.stdout or "").strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        data = None
+    if isinstance(data, dict) and isinstance(data.get("channels"), list):
+        return {"ok": result.returncode == 0, "totals": data.get("totals") or {}, "channels": data["channels"]}
     summary = (result.stderr or "").strip().splitlines()
     return {"ok": result.returncode == 0, "summary": "\n".join(summary[-14:])[:1400]}
 

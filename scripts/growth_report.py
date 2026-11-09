@@ -139,6 +139,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=20, help="Сколько постов брать из превью")
     parser.add_argument("--timeout", type=float, default=20.0, help="Таймаут сетевых запросов, сек")
     parser.add_argument("--quiet", action="store_true", help="Не печатать Markdown в stdout")
+    parser.add_argument("--json", action="store_true", help="Печатать компактный JSON вместо Markdown")
     return parser.parse_args(argv)
 
 
@@ -212,7 +213,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     report_path.write_text(markdown, encoding="utf-8")
     raw_path = _write_raw_posts(reports_dir, now, channels, previews, usernames, subscribers)
     print("Raw: %s" % raw_path, file=sys.stderr)
-    if not args.quiet:
+    if args.json:
+        print(json.dumps(_compact_snapshot(snapshot), ensure_ascii=False))
+    elif not args.quiet:
         print(markdown)
     print("Отчёт: %s" % report_path, file=sys.stderr)
 
@@ -227,6 +230,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return _send_telegram(telegram_text)
     print(telegram_text, file=sys.stderr)
     return 0
+
+
+def _compact_snapshot(snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    """Сжатая версия снимка для агента/скриптов: тоталы + метрики каналов."""
+    channels = []
+    for row in snapshot.get("channels") or []:
+        channels.append(
+            {
+                "id": row.get("id"),
+                "title": row.get("title"),
+                "username": row.get("username"),
+                "status": row.get("status"),
+                "subscribers": row.get("subscribers"),
+                "delta": row.get("subscribers_delta"),
+                "avg_views": row.get("avg_views"),
+                "er": row.get("engagement_rate"),
+                "posts_24h": row.get("posts_24h"),
+            }
+        )
+    return {"totals": snapshot.get("totals") or {}, "channels": channels}
 
 
 def _chat_ids(channels: Sequence[ChannelConfig], usernames: Dict[str, str]) -> Dict[str, str]:
