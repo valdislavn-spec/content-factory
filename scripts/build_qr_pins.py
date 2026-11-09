@@ -54,6 +54,33 @@ PINS = [
         "url": "https://is.gd/EuropeTrip",
         "accent": (196, 92, 120),
     },
+    {
+        "slug": "travel-esim-qr",
+        "niche": "TRAVEL ESSENTIAL",
+        "headline": "Travel eSIM",
+        "subtitle": "Install before you fly — mobile data in 200+ countries, from a few dollars",
+        "cta": "Scan or visit is.gd/ESimDeal",
+        "url": "https://is.gd/ESimDeal",
+        "accent": (120, 90, 240),
+    },
+    {
+        "slug": "car-rental-qr",
+        "niche": "TRAVEL ESSENTIAL",
+        "headline": "Car rental, no surprises",
+        "subtitle": "Local renters, clear fuel policy and excess cover — book before you fly",
+        "cta": "Scan or visit is.gd/CarRental",
+        "url": "https://is.gd/CarRental",
+        "accent": (240, 120, 60),
+    },
+    {
+        "slug": "flight-compensation-qr",
+        "niche": "TRAVEL MONEY",
+        "headline": "Flight delayed?",
+        "subtitle": "You may be owed up to €600 — check your flight in 2 minutes",
+        "cta": "Scan or visit is.gd/Compensair",
+        "url": "https://is.gd/Compensair",
+        "accent": (60, 200, 190),
+    },
 ]
 
 
