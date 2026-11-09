@@ -16,7 +16,7 @@ import os
 import sys
 import re
 import urllib.parse
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -323,6 +323,74 @@ def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None, day_
     return clip(title_part + "\n\n" + description_part + "\n\n" + _link_lines(article, tg_channel), limit)
 
 
+
+SCHEDULED_QUERY = """
+query Scheduled($org: OrganizationId!, $channels: [ChannelId!], $first: Int!, $after: String) {
+  posts(input: {organizationId: $org, filter: {channelIds: $channels, status: [scheduled]}},
+        first: $first, after: $after) {
+    edges { node { id channelId dueAt status } }
+    pageInfo { hasNextPage endCursor }
+  }
+}
+"""
+
+
+def fetch_scheduled_nodes(client, org_id, channel_ids):
+    """Все запланированные посты каналов (для расписания/очистки)."""
+    nodes = []
+    after = None
+    for _ in range(5):
+        data = client.gql(
+            SCHEDULED_QUERY,
+            {"org": org_id, "channels": channel_ids, "first": 100, "after": after},
+        )
+        posts = data.get("posts") or {}
+        for edge in posts.get("edges") or []:
+            node = edge.get("node") or {}
+            if node:
+                nodes.append(node)
+        page = posts.get("pageInfo") or {}
+        if not page.get("hasNextPage"):
+            break
+        after = page.get("endCursor")
+        if not after:
+            break
+    return nodes
+
+
+def schedule_slots(service, config, now):
+    """Слоты публикации на horizon_days вперёд (UTC) по конфигу."""
+    schedule = config.get("schedule") or {}
+    times = [str(item) for item in ((schedule.get("times") or {}).get(service) or [])]
+    horizon = int(schedule.get("horizon_days") or 3)
+    slots = []
+    for day_offset in range(horizon):
+        current_date = (now + timedelta(days=day_offset)).date()
+        for index, hhmm in enumerate(times):
+            try:
+                hour, minute = [int(part) for part in hhmm.split(":", 1)]
+            except (TypeError, ValueError):
+                continue
+            slot = datetime(
+                current_date.year, current_date.month, current_date.day,
+                hour, minute, tzinfo=timezone.utc,
+            )
+            if slot <= now + timedelta(minutes=30):
+                continue
+            slots.append((slot, index))
+    return slots
+
+
+def slot_key(slot):
+    return slot.strftime("%Y-%m-%d %H:%M")
+
+
+def pin_for_slot(pin_files, slot, slot_index=0, service=""):
+    """Разные пины для слотов и сетей (ротация без повторов подряд)."""
+    service_shift = sum(ord(char) for char in str(service)) % max(1, len(pin_files))
+    return pin_files[(slot.timetuple().tm_yday * 7 + slot_index + service_shift) % len(pin_files)]
+
+
 def main(argv=None) -> int:
     import yaml
 
@@ -335,6 +403,8 @@ def main(argv=None) -> int:
     parser.add_argument("--date", default="", help="override day (YYYY-MM-DD) for rotation/log")
     parser.add_argument("--report", default=str(ROOT / "data" / "reports"))
     parser.add_argument("--state", default="", help="файл состояния (антиповтор/история)")
+    parser.add_argument("--schedule", action="store_true", help="режим расписания: customScheduled по слотам")
+    parser.add_argument("--clear-scheduled", action="store_true", help="удалить все scheduled посты и выйти")
     parser.add_argument("--require-affiliate", dest="require_affiliate", action="store_true", default=True,
                         help="block live publishing for pins without a Travelpayouts redirect")
     parser.add_argument("--allow-no-affiliate", dest="require_affiliate", action="store_false")
@@ -367,6 +437,95 @@ def main(argv=None) -> int:
         return 1
     now = datetime.now(timezone.utc)
     day = args.date or now.strftime("%Y-%m-%d")
+
+    wanted_services = {part.strip() for part in str(args.services or "").split(",") if part.strip()}
+    if wanted_services:
+        channels = [channel for channel in channels if str(channel.get("service")) in wanted_services]
+    channel_ids = [str(channel.get("channel_id")) for channel in channels]
+    client = BufferClient.from_env()
+    scheduled_nodes = []
+    if client.configured():
+        scheduled_nodes = fetch_scheduled_nodes(client, org_id, channel_ids)
+    else:
+        print("buffer: BUFFER_API_KEY не задан — только план (dry-run)")
+
+    if args.clear_scheduled:
+        if not client.configured():
+            print("clear: нужен BUFFER_API_KEY")
+            return 1
+        deleted = 0
+        for node in scheduled_nodes:
+            post_id = str(node.get("id") or "")
+            if not post_id:
+                continue
+            try:
+                client.delete_post(post_id)
+                deleted += 1
+            except BufferError as error:  # noqa: PERF203
+                print("delete FAIL:", str(error)[:160])
+        print("clear: удалено scheduled-постов:", deleted)
+        return 0
+
+    if args.schedule:
+        scheduled_keys = {}
+        for node in scheduled_nodes:
+            cid = str(node.get("channelId") or "")
+            due = str(node.get("dueAt") or "")
+            if cid and due:
+                scheduled_keys.setdefault(cid, set()).add(due[:16].replace("T", " "))
+        created = 0
+        skipped = 0
+        errors = []
+        for channel in channels:
+            service = str(channel.get("service") or "")
+            cid = str(channel.get("channel_id") or "")
+            for slot, slot_index in schedule_slots(service, config, now):
+                key = slot_key(slot)
+                if key in scheduled_keys.get(cid, set()):
+                    skipped += 1
+                    continue
+                pin_file = pin_for_slot(pin_files, slot, slot_index, service)
+                sidecar = json.loads(pin_file.read_text(encoding="utf-8"))
+                payload = sidecar.get("pin") or {}
+                pin = {
+                    "slug": pin_file.stem,
+                    "title": payload.get("title") or sidecar.get("title") or "",
+                    "description": payload.get("description") or sidecar.get("description") or "",
+                    "niche": sidecar.get("niche") or payload.get("niche") or "",
+                    "alt_text": payload.get("alt_text") or sidecar.get("alt_text") or "",
+                    "image_url": sidecar.get("image_url") or payload.get("media_source", {}).get("url") or "",
+                    "article_url": sidecar.get("article_url") or "",
+                    "affiliate": bool(sidecar.get("affiliate") or payload.get("link")),
+                }
+                if not (pin["title"] and pin["description"] and str(pin["image_url"]).startswith("http")):
+                    errors.append("quality: " + pin_file.name)
+                    print("quality: skip", pin_file.stem)
+                    continue
+                slug_link = hub_url
+                if pin["slug"] in affiliate_slugs:
+                    slug_link = "%s/go/%s.html" % (hub_url.rstrip("/"), pin["slug"])
+                text = build_text(pin, channel, slug_link, config)
+                assets = build_assets(pin, bool(config.get("assets_alt_text")))
+                print("plan:", service, slot.strftime("%Y-%m-%dT%H:%MZ"), "|", pin_file.name, "|", len(text), "chars")
+                if not args.live:
+                    continue
+                try:
+                    post = client.create_post(
+                        cid,
+                        text,
+                        mode="customScheduled",
+                        due_at=slot.strftime("%Y-%m-%dT%H:%M:00.000Z"),
+                        metadata=channel.get("metadata"),
+                        assets=assets or None,
+                    )
+                    created += 1
+                    print("scheduled:", service, "->", post.get("dueAt"), post.get("id"))
+                except BufferError as error:
+                    errors.append(str(error))
+                    print("FAIL:", service, slot.strftime("%H:%M"), str(error)[:200])
+        print("schedule: created=%d skipped=%d errors=%d" % (created, skipped, len(errors)))
+        return 0 if not errors else 1
+
     start = now.timetuple().tm_yday % len(pin_files)
 
     # Quality-гейт: только хорошие посты — курируемый список пинов, без

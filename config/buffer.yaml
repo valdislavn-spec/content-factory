@@ -90,3 +90,15 @@ quality:
   min_text: 80
   require_image: true
 state_path: data/buffer_state.json
+
+# Расписание постов в Buffer (UTC). Режим --schedule ставит посты с
+# customScheduled на эти слоты — независимо от Buffer-овского queue schedule.
+# Число слотов в день × horizon_days должно укладываться в лимит Free-плана
+# (10 запланированных постов на канал).
+schedule:
+  timezone: UTC
+  horizon_days: 3
+  times:
+    bluesky: ["10:00", "17:00"]
+    twitter: ["09:00", "18:00"]
+    facebook: ["11:00", "19:00"]
