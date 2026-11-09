@@ -12,12 +12,13 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from content_factory.agents.ops_agent import (  # noqa: E402
     _extract_json,
+    build_client,
     heuristic_summary,
     run_agent,
 )
 from content_factory.agents.tools import TOOLS, call_tool, tools_prompt  # noqa: E402
 from content_factory.config import Settings  # noqa: E402
-from content_factory.nlp.llm import LLMClient  # noqa: E402
+from content_factory.nlp.llm import FallbackLLMClient, LLMClient  # noqa: E402
 
 
 class ScriptedLLM(LLMClient):
@@ -126,3 +127,32 @@ class OpsToolsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OpsClientTests(unittest.TestCase):
+    def test_build_client_without_gemini_uses_pollinations(self) -> None:
+        import os
+
+        settings = Settings.load(load_env=False)
+        saved = os.environ.pop("GEMINI_API_KEY", None)
+        try:
+            client = build_client(settings)
+        finally:
+            if saved is not None:
+                os.environ["GEMINI_API_KEY"] = saved
+        self.assertTrue(client.available)
+        self.assertEqual(client.name, "pollinations")
+
+    def test_fallback_client_skips_failed_provider(self) -> None:
+        class Failing(LLMClient):
+            def __init__(self):
+                super().__init__(name="failing", available=True, config={})
+
+            def _generate(self, prompt, system, max_tokens, temperature):
+                raise RuntimeError("quota")
+
+        good = ScriptedLLM(['{"action":"finish","args":{"text":"ok"}}'])
+        client = FallbackLLMClient([Failing(), good])
+        self.assertTrue(client.available)
+        self.assertIn("ok", client.generate("prompt"))
+        self.assertEqual(client.name, "scripted")

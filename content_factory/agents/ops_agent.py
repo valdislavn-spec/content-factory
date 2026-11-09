@@ -22,7 +22,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from ..config import Settings
-from ..nlp.llm import LLMClient, _build_llm
+from ..nlp.llm import FallbackLLMClient, LLMClient, OpenAICompatibleLLM, _build_llm
+from ..utils import env
 from .tools import TOOLS, call_tool, tools_prompt
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,12 +57,30 @@ def _extract_json(text: str) -> Optional[Dict[str, Any]]:
 
 
 def build_client(settings: Settings, model: str = "gemini") -> LLMClient:
-    """Gemini (бесплатный AI Studio) → Pollinations (без ключа) → что дали."""
-    client = _build_llm(model or "gemini", settings)
-    if client.available:
-        return client
-    fallback = _build_llm("pollinations", settings)
-    return fallback if fallback.available else client
+    """Gemini (AI Studio) → второй Gemini-проект → Pollinations (без ключа).
+
+    Два разных проекта дают независимые бесплатные лимиты; если квота первого
+    кончилась (HTTP 429), агент продолжает на втором, затем на Pollinations.
+    """
+    chain: List[LLMClient] = [_build_llm(model or "gemini", settings)]
+    if model in ("gemini", "") and (env("GEMINI_API_KEY_ALT", "") or "").strip():
+        chain.append(
+            OpenAICompatibleLLM(
+                {
+                    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+                    "api_key_env": "GEMINI_API_KEY_ALT",
+                    "model": "gemini-3.6-flash",
+                    "timeout": 120,
+                }
+            )
+        )
+    chain.append(_build_llm("pollinations", settings))
+    usable = [client for client in chain if client.available]
+    if not usable:
+        return chain[0]
+    if len(usable) == 1:
+        return usable[0]
+    return FallbackLLMClient(usable)
 
 
 def run_agent(
@@ -116,7 +135,8 @@ def heuristic_summary(
         lines.append("Каналов: {}".format(len(channels)))
     health = tool_runner("health", {})
     if isinstance(health, list) and health:
-        bad = [run for run in health if str(run.get("status")) not in ("success", "completed")]
+        ok = ("success", "completed", "queued", "in_progress", "waiting", "requested", "")
+        bad = [run for run in health if str(run.get("status", "")) not in ok]
         lines.append("Последние запуски Actions: {}, проблемных: {}".format(len(health), len(bad)))
         if bad:
             lines.append("Проблемы: " + ", ".join(str(item.get("name")) for item in bad[:3]))
