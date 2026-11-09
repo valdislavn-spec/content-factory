@@ -39,7 +39,8 @@ class FilterTimezoneTest(unittest.TestCase):
             published_at=datetime(2026, 11, 8, 13, 0, tzinfo=timezone.utc),
             text="bitcoin text",
         )
-        result = filter_articles(channel, [naive, aware], settings)
+        fixed_now = datetime(2026, 11, 8, 13, 30, tzinfo=timezone.utc)
+        result = filter_articles(channel, [naive, aware], settings, now=fixed_now)
         self.assertEqual(len(result), 2)
 
 
