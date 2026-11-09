@@ -1,180 +1,157 @@
 #!/usr/bin/env python3
-"""Email-дайджест постов контент-фабрики через бесплатный SMTP.
+"""Собрать еженедельный email-дайджест и (опционально) отправить через Brevo.
 
-Без зависимостей: smtplib + EmailMessage из stdlib.
+    # безопасный прогон: HTML/text/JSON в exports/email-digest, ничего не шлём
+    ./.venv/bin/python scripts/email_digest.py --language all
 
-    python scripts/email_digest.py                 # dry-run: .eml в data/outbox/email
-    python scripts/email_digest.py --send          # отправить через SMTP
-    python scripts/email_digest.py --send --days 3 --to a@b.c,d@e.f
+    # реальная отправка (нужны BREVO_API_KEY, BREVO_LIST_ID_EN/ES, EMAIL_FROM)
+    ./.venv/bin/python scripts/email_digest.py --language en --send
 
-Env (бесплатные варианты):
-    Gmail SMTP:      EMAIL_SMTP_HOST=smtp.gmail.com  PORT=587
-                     EMAIL_SMTP_USER=you@gmail.com  EMAIL_SMTP_PASSWORD=<app password>
-    Brevo (300/день): EMAIL_SMTP_HOST=smtp-relay.brevo.com PORT=587
-    Mailjet (200/день): EMAIL_SMTP_HOST=in-v3.mailjet.com PORT=587
-Общие: EMAIL_FROM, EMAIL_TO (через запятую), EMAIL_SUBJECT_PREFIX.
+Данные: SQLite завода (telegram_posts / posts), fallback — публичное t.me/s.
+Без ``--send`` письма только сохраняются в файлы.
 """
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import os
-import smtplib
-import ssl
 import sys
 from datetime import datetime, timezone
-from email.message import EmailMessage
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from content_factory.config import Settings  # noqa: E402
+from content_factory.integrations.email_digest import (  # noqa: E402
+    collect_items,
+    render,
+    send_brevo_campaign,
+)
+from content_factory.models import utcnow  # noqa: E402
 from content_factory.storage import Storage  # noqa: E402
-from content_factory.utils import strip_html  # noqa: E402
 
-OUT_DIR = ROOT / "data" / "outbox" / "email"
-
-
-def _env(name: str) -> str:
-    return (os.environ.get(name, "") or "").strip()
+LANGUAGES = {"en": "en", "es": "es"}
+LIST_ENV = {"en": "BREVO_LIST_ID_EN", "es": "BREVO_LIST_ID_ES"}
 
 
-def _plain(text: str, limit: int = 320) -> str:
-    text = strip_html(text or "")
-    text = " ".join(text.split())
-    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
-
-
-def build_digest(posts: List[Dict[str, Any]], days: int = 7) -> Dict[str, str]:
-    """Собирает HTML и plain-text версии дайджеста из постов storage."""
-    by_channel: Dict[str, List[Dict[str, Any]]] = {}
-    for post in posts:
-        by_channel.setdefault(str(post.get("channel_id") or "?"), []).append(post)
-
-    today = datetime.now(timezone.utc).strftime("%d.%m.%Y")
-    subject = f"Content Factory Digest — {today}"
-
-    html_parts = [
-        "<!doctype html><html><head><meta charset='utf-8'>"
-        f"<meta name='viewport' content='width=device-width,initial-scale=1'><title>{subject}</title></head>",
-        "<body style='margin:0;padding:0;background:#0b1220;color:#e8f4ff;"
-        "font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif'>",
-        "<div style='max-width:640px;margin:0 auto;padding:24px'>",
-        "<div style='font-size:13px;letter-spacing:2px;color:#38e8ff;text-transform:uppercase'>"
-        "Content Factory</div>",
-        f"<h1 style='font-size:26px;margin:8px 0 4px'>Дайджест за {days} дн.</h1>",
-        "<p style='color:#8fb3c9;margin:0 0 20px'>AI · Crypto · Sports — коротко и по делу.</p>",
-    ]
-    text_parts = [f"Content Factory Digest — {today}", f"Посты за {days} дн.", ""]
-
-    for channel_id, channel_posts in sorted(by_channel.items()):
-        html_parts.append(
-            f"<h2 style='font-size:15px;color:#38e8ff;text-transform:uppercase;"
-            f"letter-spacing:1px;margin:22px 0 8px'>{html.escape(channel_id)}</h2>"
-        )
-        text_parts.append(f"== {channel_id} ==")
-        for post in channel_posts[:6]:
-            body = _plain(post.get("text") or "")
-            created = str(post.get("created_at") or "")[:16].replace("T", " ")
-            meta = str(post.get("format") or "post")
-            html_parts.append(
-                "<div style='background:#121c2e;border:1px solid #1f3350;border-radius:10px;"
-                "padding:12px 14px;margin:8px 0'>"
-                f"<div style='font-size:11px;color:#6f8da6'>{html.escape(meta)} · {html.escape(created)}</div>"
-                f"<div style='font-size:14px;line-height:1.45;margin-top:4px'>{html.escape(body)}</div></div>"
-            )
-            text_parts.append(f"- [{meta}] {body}")
-        text_parts.append("")
-
-    html_parts.append(
-        "<p style='color:#6f8da6;font-size:12px;margin-top:24px'>Вы получили письмо, потому что "
-        "подписаны на дайджест Content Factory. Отписаться ответом на письмо.</p>"
-        "</div></body></html>"
+def parse_args(argv=None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Еженедельный email-дайджест каналов")
+    parser.add_argument("--language", choices=["en", "es", "all"], default="all")
+    parser.add_argument("--days", type=float, default=7.0, help="Окно постов, дней")
+    parser.add_argument("--per-channel", type=int, default=2, help="Сколько постов на канал")
+    parser.add_argument("--limit", type=int, default=6, help="Сколько новостей в письме")
+    parser.add_argument("--out", default="exports/email-digest", help="Каталог для HTML/text")
+    parser.add_argument(
+        "--send",
+        action="store_true",
+        help="Отправить кампанию через Brevo (по умолчанию только сохранить файлы)",
     )
-    text_parts.append("Отписаться — ответом на письмо.")
-    return {"subject": subject, "html": "".join(html_parts), "text": "\n".join(text_parts)}
+    parser.add_argument("--db", default="", help="Путь к SQLite (по умолчанию data/factory.sqlite3)")
+    parser.add_argument(
+        "--no-preview",
+        action="store_true",
+        help="Не ходить в t.me/s, если в БД нет постов (для офлайн-проверок)",
+    )
+    return parser.parse_args(argv)
 
 
-def make_message(digest: Dict[str, str], sender: str, recipients: List[str]) -> EmailMessage:
-    message = EmailMessage()
-    message["Subject"] = _env("EMAIL_SUBJECT_PREFIX") + digest["subject"]
-    message["From"] = sender
-    message["To"] = ", ".join(recipients)
-    message.set_content(digest["text"])
-    message.add_alternative(digest["html"], subtype="html")
-    return message
-
-
-def save_eml(message: EmailMessage, suffix: str = "digest") -> Path:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    path = OUT_DIR / f"{suffix}-{stamp}.eml"
-    path.write_bytes(message.as_bytes())
-    return path
-
-
-def send_message(message: EmailMessage, host: str, port: int, user: str, password: str,
-                 use_tls: bool = True, timeout: int = 30) -> None:
-    context = ssl.create_default_context()
-    with smtplib.SMTP(host, int(port), timeout=timeout) as server:
-        if use_tls:
-            server.starttls(context=context)
-        if user:
-            server.login(user, password)
-        server.send_message(message)
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--days", type=int, default=7)
-    parser.add_argument("--limit", type=int, default=60)
-    parser.add_argument("--to", default="", help="через запятую; по умолчанию EMAIL_TO")
-    parser.add_argument("--send", action="store_true", help="реально отправить через SMTP")
-    args = parser.parse_args()
-
+def main(argv=None) -> int:
+    args = parse_args(argv)
     settings = Settings.load()
-    with Storage(settings.db_path) as storage:
-        posts = storage.get_posts(days=args.days, limit=args.limit)
-    posts = [post for post in posts if post.get("status") in {"published", "generated", "ok"}]
-    if not posts:
-        print("Нет постов для дайджеста — выходим.")
-        return 0
+    db_path = Path(args.db) if args.db else settings.db_path
+    if not db_path.is_absolute():
+        db_path = settings.root / db_path
+    out_dir = Path(args.out)
+    if not out_dir.is_absolute():
+        out_dir = settings.root / out_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    digest = build_digest(posts, days=args.days)
-    sender = _env("EMAIL_FROM") or _env("EMAIL_SMTP_USER")
-    recipients = [value.strip() for value in (args.to or _env("EMAIL_TO")).split(",") if value.strip()]
-    if not sender or not recipients:
-        print("Укажите EMAIL_FROM и EMAIL_TO (или --to).")
-        return 2
-    message = make_message(digest, sender, recipients)
-
-    if not args.send:
-        path = save_eml(message)
-        print(json.dumps({"dry_run": True, "eml": str(path), "recipients": recipients,
-                          "subject": digest["subject"], "posts": len(posts)},
-                         ensure_ascii=False, indent=2))
-        return 0
-
-    host = _env("EMAIL_SMTP_HOST")
-    port = int(_env("EMAIL_SMTP_PORT") or 587)
-    user = _env("EMAIL_SMTP_USER")
-    password = _env("EMAIL_SMTP_PASSWORD")
-    if not host or not user or not password:
-        print("SMTP не настроен: EMAIL_SMTP_HOST/EMAIL_SMTP_USER/EMAIL_SMTP_PASSWORD (см. docs/email.md).")
-        return 2
+    languages = [args.language] if args.language in LANGUAGES else list(LANGUAGES)
+    storage = Storage(db_path)
+    result: dict = {"generated": [], "sent": [], "errors": []}
     try:
-        send_message(message, host, port, user, password)
-    except Exception as exc:  # noqa: BLE001
-        print(f"Ошибка отправки: {exc}")
-        return 1
-    print(json.dumps({"sent": True, "host": host, "recipients": recipients,
-                      "subject": digest["subject"], "posts": len(posts)},
-                     ensure_ascii=False, indent=2))
-    return 0
+        for language in languages:
+            try:
+                items = collect_items(
+                    settings,
+                    storage,
+                    language,
+                    days=args.days,
+                    per_channel=args.per_channel,
+                    max_items=args.limit,
+                    allow_preview=not args.no_preview,
+                )
+            except Exception as exc:  # noqa: BLE001
+                result["errors"].append(f"{language}: collect: {exc}")
+                continue
+            digest = render(items, settings, language, now=utcnow())
+            stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            html_path = out_dir / f"{language}-{stamp}.html"
+            text_path = out_dir / f"{language}-{stamp}.txt"
+            json_path = out_dir / f"{language}-{stamp}.json"
+            html_path.write_text(digest.html, encoding="utf-8")
+            text_path.write_text(digest.text, encoding="utf-8")
+            json_path.write_text(
+                json.dumps(
+                    {
+                        "language": language,
+                        "subject": digest.subject,
+                        "period": [digest.period_start, digest.period_end],
+                        "items": [item.__dict__ for item in digest.items],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            result["generated"].append(
+                {"language": language, "items": len(digest.items), "html": str(html_path)}
+            )
+            print(
+                f"[{language}] новостей {len(digest.items)}; тема: {digest.subject}; "
+                f"файл: {html_path}"
+            )
+            if not args.send:
+                continue
+            api_key = os.getenv("BREVO_API_KEY", "").strip()
+            list_id_raw = os.getenv(LIST_ENV[language], "").strip()
+            sender_email = os.getenv("EMAIL_FROM", "").strip()
+            sender_name = os.getenv("EMAIL_FROM_NAME", "Content Factory").strip()
+            missing = [
+                name
+                for name, value in (
+                    ("BREVO_API_KEY", api_key),
+                    (LIST_ENV[language], list_id_raw),
+                    ("EMAIL_FROM", sender_email),
+                )
+                if not value
+            ]
+            if missing:
+                result["errors"].append(f"{language}: не заданы {', '.join(missing)}")
+                continue
+            try:
+                sent = send_brevo_campaign(
+                    digest,
+                    api_key=api_key,
+                    sender_email=sender_email,
+                    sender_name=sender_name,
+                    list_id=int(list_id_raw),
+                )
+                result["sent"].append({"language": language, **sent})
+                print(f"[{language}] кампания Brevo #{sent.get('id')} отправлена")
+            except Exception as exc:  # noqa: BLE001
+                result["errors"].append(f"{language}: send: {exc}")
+                print(f"[{language}] ошибка отправки: {exc}", file=sys.stderr)
+    finally:
+        storage.close()
+
+    summary = out_dir / "summary.json"
+    summary.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Итог: {summary}")
+    return 1 if result["errors"] else 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())
