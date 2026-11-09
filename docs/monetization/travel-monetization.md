@@ -145,3 +145,18 @@ Benable-списки (аккаунт Huk007):
 Pinterest: готов `docs/pinterest-import-qr.csv` (Title, Media URL, Link, Description,
 board «Travel ideas») — импортировать через Pinterest Bulk create pins.
 Скрипт генерации: `scripts/build_qr_pins.py` (Pillow+segno, рендер в Docker).
+
+## QR-пины travel-essentials (09.11.2026)
+
+Сгенерированы и опубликованы (Benable + CSV для Pinterest) ещё 3 пина:
+
+| Пин | Партнёрка | Ссылка (QR) | Список Benable |
+|---|---|---|---|
+| Travel eSIM | Saily (`saily.tpk.ro/r5oQ96LR`) | is.gd/ESimDeal | Travel essentials I actually use |
+| Car rental, no surprises | Localrent (`localrent.tpk.ro/ZZ36vFV4`) | is.gd/CarRental | Travel essentials I actually use |
+| Flight delayed? up to €600 | Compensair (`compensair.tpk.ro/4klXfGpD`) | is.gd/Compensair | Travel essentials (через хаб `go/04-travel-insurance-mistakes.html`) |
+
+Benable «Travel essentials I actually use» — 15 items (добавлены карточки eSIM, аренды авто,
+insurance/compensation; остальные пины: Europe under $300, 3 winter escapes).
+Всего QR-пинов: 7 (`assets/pins/qr/`), CSV для Pinterest: `docs/pinterest-import-qr.csv`
+(7 строк: Media URL + Link + Description).
