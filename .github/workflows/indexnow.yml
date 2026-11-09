@@ -6,6 +6,7 @@ on:
     paths:
       - "docs/sitemap.xml"
       - "docs/travel/**"
+      - "docs/flights/**"
       - ".github/workflows/indexnow.yml"
   workflow_dispatch:
 
