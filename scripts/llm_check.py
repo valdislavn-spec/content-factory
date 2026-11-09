@@ -44,6 +44,19 @@ def probe(client, prompt=PROMPT, max_tokens=300):
         return {"ok": False, "error": (type(exc).__name__ + ": " + str(exc))[:400]}
 
 
+def groq_models(timeout=25):
+    token = (os.environ.get("GROQ_API_KEY") or "").strip()
+    if not token:
+        return []
+    request = urllib.request.Request(
+        "https://api.groq.com/openai/v1/models",
+        headers={"Authorization": "Bearer " + token, "User-Agent": "content-factory-llm-check"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        catalog = json.load(response)
+    return [item.get("id") for item in catalog.get("data") or [] if item.get("id")]
+
+
 def free_openrouter_models(timeout=25):
     token = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
     if not token:
@@ -107,6 +120,37 @@ def main() -> int:
             "working": working,
             "candidates": candidates[:12],
         }
+
+    # Groq: модель могла быть снята — ищем живую чат-модель в каталоге.
+    if not results.get("groq", {}).get("ok"):
+        try:
+            ids = groq_models()
+        except Exception as exc:  # noqa: BLE001
+            ids = []
+            results["groq_catalog"] = {"error": str(exc)[:200]}
+        if ids:
+            preferred = [i for i in ids if any(k in i for k in ("llama", "gpt-oss", "qwen", "mixtral"))]
+            working = []
+            for model in preferred[:10]:
+                client = OpenAICompatibleLLM(
+                    {
+                        "base_url": "https://api.groq.com/openai/v1",
+                        "api_key_env": "GROQ_API_KEY",
+                        "model": model,
+                        "timeout": 60,
+                    }
+                )
+                if not client.available:
+                    break
+                outcome = probe(client, max_tokens=args.max_tokens)
+                if outcome.get("ok"):
+                    working.append(model)
+            results["groq_probe"] = {
+                "catalog": len(ids),
+                "working": working,
+                "candidates": preferred[:10],
+                "sample": ids[:25],
+            }
 
     print(json.dumps(results, ensure_ascii=False, indent=2))
     bad = [name for name, item in results.items() if isinstance(item, dict) and item.get("ok") is False]
