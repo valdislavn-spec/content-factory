@@ -1,0 +1,31 @@
+name: brevo-check
+
+# Проверка Brevo API из GitHub Actions: account, senders, lists.
+# Нужен секрет BREVO_API_KEY. Если Brevo блокирует IP — workflow покажет 401.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check Brevo
+        run: |
+          python scripts/brevo_check.py | tee brevo-check.log
+          {
+            echo "### Brevo check"
+            echo '```'
+            cat brevo-check.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
