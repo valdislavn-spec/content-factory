@@ -57,7 +57,7 @@ flowchart LR
 |---|---|---|
 | Источники и тренды | `content_factory/trends.py`, RSS-конфиги каналов | найти сюжеты и трендовые темы под каждый канал |
 | Генерация + SEO | `content_factory/nlp/generator.py`, `config/channels*.yaml` | посты с ключевыми словами, хештегами, CTA |
-| Расписание и публикация | `content_factory/scheduler.py`, `pipeline.py`, `.github/workflows/content-factory.yml` | 6 каналов × 5 постов/сутки по слотам |
+| Расписание и публикация | `content_factory/scheduler.py`, `pipeline.py`, `.github/workflows/content-factory.yml` | 6 каналов × 15 постов/сутки по слотам |
 | LLM-слой | `content_factory/nlp/llm.py`, `config/settings.yaml` | гибрид по этапам + автопереключение по лимитам |
 | «Мозг» премиум-качества | `../mcp-content-factory` | LangGraph-роли, критик, редактура, RAG-фактчек |
 | Аналитика | `content_factory/analytics/*`, `scripts/growth_report.py` | подписчики, просмотры, ER, топ-посты |
@@ -66,8 +66,8 @@ flowchart LR
 ## Расписание и объём
 
 - 3 EN-канала (`config/channels.en.yaml`) + 3 ES (`config/channels.es.yaml`).
-- У каждого канала `schedule` (5 слотов) и `posts_per_day: 5`
-  → **30 постов в сутки** (раз в 4 часа, днём).
+- У каждого канала `schedule` (15 слотов) и `posts_per_day: 15`
+  → **90 постов в сутки**.
 - Время слотов — локальное для канала (`timezone_offset` −5 для EN, −6 для ES);
   демон публикует, когда наступает слот.
 - Production: `.github/workflows/content-factory.yml` (Cloudflare Worker

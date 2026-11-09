@@ -14,7 +14,7 @@ pipeline:
     - config/channels.en.yaml
     - config/channels.es.yaml
   # 6 каналов × 15 постов/сутки (см. posts_per_day в channels*.yaml)
-  expected_posts_per_day: 30
+  expected_posts_per_day: 90
   # Кто публикует по расписанию: content_factory daemon --once
   # (локально/cron) или .github/workflows/content-factory.yml (production).
   schedule_mode: daemon

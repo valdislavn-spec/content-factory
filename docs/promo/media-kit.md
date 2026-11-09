@@ -6,8 +6,8 @@
 
 | Ветка | Каналы | Язык/регион | Публикация |
 |---|---|---|---|
-| EN | US Sports News, AI News, Crypto & Blockchain | English / US | 5 постов/сутки, каждые 4 часа (06–22), пики 10–14, 18–22 |
-| ES | ES AI News, ES Crypto, ES Sports | Español / LatAm (MX, AR, CO) | 5 постов/сутки, каждые 4 часа (локальное время UTC-6) |
+| EN | US Sports News, AI News, Crypto & Blockchain | English / US | 15 постов/сутки, 90–105 мин, пики 08–09, 12–13, 18–22 |
+| ES | ES AI News, ES Crypto, ES Sports | Español / LatAm (MX, AR, CO) | 15 постов/сутки, локальное время UTC-6 |
 
 Форматы: story, analysis, interactive, digest; фото-карточки бренда, блок трендов,
 кросс-ссылки внутри сети. Проверка слотов — каждые 22 минуты (GitHub Actions).
