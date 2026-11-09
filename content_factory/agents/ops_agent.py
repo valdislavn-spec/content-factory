@@ -37,8 +37,11 @@ SYSTEM = (
 
 
 def build_client(settings: Settings, model: str = "gemini") -> LLMClient:
-    """Gemini-проект №1 → Gemini-проект №2 (своя квота) → Pollinations (без ключа)."""
-    chain = [_build_llm(model or "gemini", settings)]
+    """Pollinations (без ключа) → Gemini-проект №1 → Gemini-проект №2 (своя квота)."""
+    # Pollinations первым: бесплатный, без «thinking»-токенов (у Gemini 3.x
+    # reasoning съедает max_tokens и длинная сводка обрезается).
+    chain = [_build_llm("pollinations", settings)]
+    chain.append(_build_llm(model or "gemini", settings))
     if model in ("gemini", "") and (env("GEMINI_API_KEY_ALT", "") or "").strip():
         for alt_model in ("gemini-3.5-flash", "gemini-3.6-flash"):
             chain.append(
@@ -51,7 +54,6 @@ def build_client(settings: Settings, model: str = "gemini") -> LLMClient:
                     }
                 )
             )
-    chain.append(_build_llm("pollinations", settings))
     usable = [client for client in chain if client.available]
     if not usable:
         return chain[0]
