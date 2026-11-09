@@ -13,3 +13,6 @@ __pycache__/
 
 # сгенерированные изображения
 assets/generated/
+
+# сгенерированные брендовые шаблоны (регенерируются scripts/brand_templates.py)
+assets/brand/

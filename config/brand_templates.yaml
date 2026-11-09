@@ -1,0 +1,71 @@
+# Брендовые шаблоны для всех соцсетей + партнёрские ссылки.
+# Рендер: PYTHONPATH=/tmp/segno <DSH python> scripts/brand_templates.py --all
+# (PIL/segno есть только в DSH-python; в .venv Pillow сломана подписью macOS).
+
+brand:
+  name: "Content Factory"
+  tagline: "AI · Crypto · Sports"
+  colors:
+    bg1: "#070f1a"
+    bg2: "#10233c"
+    ink: "#eaf7ff"
+    mute: "#8fb3c9"
+    cyan: "#38e8ff"
+  fonts:
+    headline: "assets/fonts/PlayfairDisplay.ttf"
+    body: "assets/fonts/Inter.ttf"
+
+partners:
+  file: "config/affiliates.yaml"
+  status: "ready"          # только ready-партнёрки попадают в шаблоны
+  disclosure: "Advertising / affiliate link. We may earn a commission if you sign up. No guaranteed returns."
+
+topics:
+  ai:
+    label: "AI"
+    emoji: "🤖"
+    accent: "#38e8ff"
+    headline: "AI moves fast.\nWe make sense of it."
+    subtitle: "Models, funding and policy — explained in plain language, with sources."
+    cta: "Read the channel"
+  crypto:
+    label: "CRYPTO"
+    emoji: "🪙"
+    accent: "#ffb84d"
+    headline: "Crypto without\nthe hype."
+    subtitle: "Bitcoin, regulation and market structure — what actually happened."
+    cta: "Read the channel"
+  sports:
+    label: "SPORTS"
+    emoji: "🏆"
+    accent: "#46e6a0"
+    headline: "The numbers\nbehind the game."
+    subtitle: "Scores, trades and the business of sport — context over hot takes."
+    cta: "Read the channel"
+
+# Сетки и layouts: wide (баннеры), square, portrait (посты/пины), story (вертикаль)
+networks:
+  - {key: telegram_post,     label: "Telegram post",     size: [1080, 1350], layout: portrait}
+  - {key: telegram_cover,    label: "Telegram cover",    size: [1280, 640],  layout: wide}
+  - {key: instagram_square,  label: "Instagram square",  size: [1080, 1080], layout: square}
+  - {key: instagram_portrait, label: "Instagram post",   size: [1080, 1350], layout: portrait}
+  - {key: instagram_story,   label: "Instagram story",   size: [1080, 1920], layout: story}
+  - {key: x_post,            label: "X / Twitter",       size: [1200, 675],  layout: wide}
+  - {key: facebook_post,     label: "Facebook",          size: [1200, 630],  layout: wide}
+  - {key: linkedin_post,     label: "LinkedIn",          size: [1200, 627],  layout: wide}
+  - {key: mastodon_post,     label: "Mastodon",          size: [1200, 675],  layout: wide}
+  - {key: bluesky_post,      label: "Bluesky",           size: [1200, 675],  layout: wide}
+  - {key: threads_post,      label: "Threads",           size: [1080, 1350], layout: portrait}
+  - {key: pinterest_pin,     label: "Pinterest pin",     size: [1000, 1500], layout: portrait}
+  - {key: tiktok_cover,      label: "TikTok cover",      size: [1080, 1920], layout: story}
+  - {key: youtube_thumb,     label: "YouTube thumbnail", size: [1280, 720],  layout: wide}
+  - {key: og_image,          label: "OG image",          size: [1200, 630],  layout: wide}
+  - {key: discord_embed,     label: "Discord embed",     size: [1200, 630],  layout: wide}
+
+qr:
+  enabled: true
+  size: 168
+  border: 2
+
+output:
+  dir: "assets/brand"
