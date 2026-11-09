@@ -146,12 +146,12 @@ llm:
       # Из РФ недоступен (403 Cloudflare) — нужен VPN / GitHub Actions.
       base_url: https://api.groq.com/openai/v1
       api_key_env: GROQ_API_KEY
-      model: llama-3.3-70b-versatile
+      model: openai/gpt-oss-120b
     openrouter:
       # Из РФ 403 «Access denied by security policy» — нужен VPN / GitHub Actions.
       base_url: https://openrouter.ai/api/v1
       api_key_env: OPENROUTER_API_KEY
-      model: meta-llama/llama-3.3-70b-instruct:free
+      model: nvidia/nemotron-3.5-super-vl:free
       headers:
         HTTP-Referer: https://t.me
         X-Title: content-factory
@@ -217,6 +217,9 @@ llm:
       base_url: https://text.pollinations.ai/openai
       api_key_env: ""
       model: openai
+      extra_body:
+        reasoning_effort: low
+      max_tokens: 900
   # Бесплатные лимиты LLM (Dify Sandbox = 200 message credits).
   # Общий жёсткий потолок запросов на все провайдеры (0 = выключен): после него
   # завод уходит в extractive. Лимиты отдельных провайдеров — в provider_limits:
