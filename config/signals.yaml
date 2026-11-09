@@ -1,0 +1,48 @@
+# Авто-сигналы по крипте → отдельный Telegram-канал (SIGNAL CRYPTO / @BESTsignal0007).
+# Данные — публичные REST API бирж, без ключей. Публикация — Bot API.
+enabled: true
+channel_env: TELEGRAM_CHAT_ID_CRYPTO_SIGNALS
+state_path: data/signals_state.json
+
+pairs:
+  - BTC/USDT
+  - ETH/USDT
+  - SOL/USDT
+
+# entry — таймфрейм входа, trend — фильтр старшего ТФ
+timeframes:
+  entry: "15m"
+  trend: "1h"
+
+# Все биржи, которые у нас есть (партнёрки/аккаунты). Публичные данные.
+exchanges:
+  - bingx
+  - bitget
+  - mexc
+  - coinbase
+  - cryptocom
+  - kraken
+
+candles: 300
+min_confirmations: 2        # сколько бирж должны подтвердить направление
+cooldown_minutes: 90        # не чаще одного сигнала по паре+направлению
+max_signals_per_run: 2
+
+strategy:
+  ema_fast: 20
+  ema_slow: 50
+  ema_trend: 200
+  rsi_period: 14
+  rsi_long: [45, 72]
+  rsi_short: [28, 55]
+  atr_period: 14
+  sl_atr: 1.2               # стоп = 1.2 * ATR
+  tp_atr: 2.0               # тейк = 2.0 * ATR (R:R ≈ 1.67)
+  volume_mult: 1.1          # объём > среднего*1.1
+
+affiliates:
+  - name: BingX
+    url: "https://bingxdao.com/invite/WYYEGK/"
+    note: "Ad · affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong."
+
+disclaimer: "Not financial advice. Crypto is volatile — risk of loss."
