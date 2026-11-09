@@ -1,0 +1,52 @@
+name: tg-health
+
+# Еженедельная проверка здоровья Telegram-бота и аккаунта.
+# Bot-режим: без секретов кроме TELEGRAM_BOT_TOKEN (уже настроен).
+# User-режим (по желанию): добавьте секреты TG_API_ID, TG_API_HASH, TG_SESSION
+# (StringSession из workflow tg-session) — тогда проверятся @SpamBot, сессии и 2FA.
+on:
+  schedule:
+    - cron: "15 7 * * 1"   # каждый понедельник 07:15 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install pyyaml || true
+          pip install -r requirements-optional.txt || true
+
+      - name: Run health check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION: ${{ secrets.TG_SESSION }}
+          TG_SESSION_STRING: ${{ secrets.TG_SESSION_STRING }}
+          TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+        run: |
+          DATE=$(date -u +%F)
+          python scripts/tg_account_health.py --mode auto --proxy "" \
+            --out "docs/reports/tg-health-$DATE.md" || true
+
+      - name: Commit report
+        run: |
+          git config user.name "content-factory-bot"
+          git config user.email "content-factory-bot@users.noreply.github.com"
+          git add docs/reports/tg-health-*.md || true
+          git diff --cached --quiet && echo "no changes" || git commit -m "report(tg-health): $(date -u +%F)"
+          git push || true

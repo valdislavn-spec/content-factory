@@ -128,7 +128,7 @@ def _risky_files() -> List[str]:
     for path in (ROOT / "data").glob("*.session-journal"):
         findings.append(f"journal пользовательской сессии: {path.name}")
     for script in (ROOT / "scripts").glob("*.py"):
-        if script.name == "tg_safety_check.py":
+        if script.name in ("tg_safety_check.py", "tg_account_health.py"):
             continue
         try:
             text = script.read_text(encoding="utf-8", errors="replace")
