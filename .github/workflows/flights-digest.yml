@@ -28,7 +28,7 @@ jobs:
         run: |
           git config user.name "dsh-agent"
           git config user.email "dsh-agent@users.noreply.github.com"
-          git add docs/flights data/flights
+          git add docs/flights
           if git diff --cached --quiet; then
             echo "no changes"
             exit 0
