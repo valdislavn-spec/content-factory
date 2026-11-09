@@ -70,9 +70,11 @@ mastodon.social для новых аккаунтов подписи без вн�
 **Buffer** — 18 постов в очереди (6 Bluesky, 6 X, 6 Facebook), разойдутся по
 слотам Buffer; картинки берутся с публичных URL, текст адаптирован под лимиты.
 
-**Pinterest** — токен `PINTEREST_ACCESS_TOKEN` возвращает 401 (истёк/отозван):
-пины не созданы. Карточки уже в формате Pinterest (1000×1500), payloads лежат в
-`docs/assets/channel-cards/<channel>.json`; после обновления токена запустите
+**Pinterest** — API пока недоступен: приложение Depseek007 на trial-ревью,
+токены read-only и API отвечает `401 code 3`. 09.11.2026 6 пинов загружены
+**через Business Hub → Массовое создание пинов** (CSV) в доску Travel ideas;
+создание занимает ~2 часа. CSV: [pinterest-channel-cards.csv](../pinterest-channel-cards.csv).
+После одобрения Trial/Production и scope `pins:write` включим API-постинг
 workflow с `platforms: pinterest`.
 
 ![Crypto & Blockchain card](../assets/channel-cards/crypto-news.png)

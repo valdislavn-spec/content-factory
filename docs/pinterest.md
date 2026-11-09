@@ -64,6 +64,34 @@ Actions → **pinterest-check** → Run workflow:
 либо использовать ручной постинг через `pinterest-check` (2–4 пина в день
 достаточно; больше Pinterest считает спамом).
 
+## Статус на 09.11.2026 (проверено)
+
+- Приложение **Depseek007** (App ID `1636122`): **Trial access на рассмотрении**,
+  App secret недоступен.
+- Кнопка **«Создать маркер»** в Configure генерирует токен, но он **read-only**
+  (`pins:read`, `boards:read`, `user_accounts:read`, `ads:read`, `catalogs:read`)
+  и живёт **24 часа**.
+- Любой запрос к `api.pinterest.com/v5` с этим токеном возвращает
+  `401 code 3 "Your application consumer type is not supported"` — API
+  недоступен до одобрения Trial/Production доступа Pinterest.
+- **Рабочий обход без API:** Business Hub → *Массовое создание пинов* →
+  CSV. 09.11.2026 так загружены 6 карточек Telegram-каналов в доску
+  **Travel ideas** (Pinterest подтвердил: «Файл загружен, создание пинов ~2 часа»).
+  CSV лежит в [pinterest-channel-cards.csv](pinterest-channel-cards.csv)
+  (колонки: Title, Media URL, Pinterest board, Thumbnail, Description, Link,
+  Publish date, Keywords; картинки — `assets/channel-cards/*.png`).
+
+### Чтобы включить API-постинг
+
+1. Дождаться/получить одобрение **Trial access** (или Production) в
+   developers.pinterest.com; при отказе — писать в поддержку Pinterest.
+2. В приложении добавить scopes **`pins:write`**, **`boards:write`**
+   (для создания пинов/досок) и заново сгенерировать токен.
+3. Обновить секреты: `PINTEREST_ACCESS_TOKEN`, `PINTEREST_BOARD_ID`
+   (ID доски можно взять из `GET /v5/boards` после одобрения).
+4. Запустить `channel-cards` с `platforms: pinterest` — пины уйдут через
+   API v5.
+
 ## Ограничения
 
 - Pinterest API требует OAuth-токен: без него постинг невозможен (поэтому
