@@ -1,0 +1,8 @@
+# Брендовые пины для Pinterest (GitHub Pages). Автогенерация build_brand_pages.py
+channels:
+  ai-news: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/ai-news-ai-mylead.png'
+  crypto-es: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/crypto-es-crypto-bingx.png'
+  crypto-news: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/crypto-news-crypto-bingx.png'
+  futbol-es: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/futbol-es-sports-collaborator.png'
+  sport-news: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/sport-news-sports-mylead.png'
+  tech-ai-es: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/tech-ai-es-ai-collaborator.png'

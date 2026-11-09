@@ -1,0 +1,17 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/brand/sport-news-sports-mylead.png",
+  "file": "docs/assets/pins/brand/sport-news-sports-mylead.png",
+  "niche": "sports",
+  "affiliate": true,
+  "disclosure": "Advertising / affiliate link.",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "The numbers behind the game.",
+    "description": "Scores, trades and the business of sport — context over hot takes. Advertising / affiliate link. Telegram: NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis.\n🌐 Network: AI News @AINEWS0007 · Crypto & Blockchain @HOOPY0007",
+    "alt_text": "The numbers behind the game.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/brand/sport-news-sports-mylead.png"
+    }
+  }
+}

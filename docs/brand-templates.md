@@ -109,3 +109,31 @@ PYTHONPATH=/tmp/segno $DSHPY scripts/brand_templates.py \
 Для остальных сетей шаблоны генерируются вручную/скриптом
 (`scripts/brand_templates.py --network pinterest_pin ...`) — автоматическая
 привязка к Pinterest/OG-превью в планах.
+## GitHub Pages: брендовые пины и OG-превью
+
+`scripts/build_brand_pages.py` генерирует пины и OG-картинки прямо в `docs/`
+(их отдаёт GitHub Pages), а не только локально:
+
+```bash
+# брендовые Pinterest-пины (PNG+JSON) + манифест config/pinterest_brand_urls.yaml
+python scripts/build_brand_pages.py --pins
+
+# OG-превью для хаба и страниц каналов + meta og:image/twitter:image
+python scripts/build_brand_pages.py --og
+
+# всё сразу — этот вызов добавлен в workflow pins-generate
+python scripts/build_brand_pages.py --all
+```
+
+- пины: `docs/assets/pins/brand/<channel>-<topic>-<partner>.png` + `.json`
+  (готовый payload `POST /v5/pins`, `affiliate: true` → подхватывается
+  `scripts/post_pins.py --only-affiliate`);
+- манифест `config/pinterest_brand_urls.yaml` — публикатор Pinterest берёт
+  URL брендового пина канала, если не задан `PINTEREST_IMAGE_URL[_CHANNEL]`;
+- OG: `docs/assets/og/<page>.png`, в HTML добавляются `og:image`, `twitter:image`
+  и `twitter:card=summary_large_image`;
+- Pages база: `https://valdislavn-spec.github.io/content-factory`.
+
+Workflow `pins-generate` (ежедневно) после генерации обычных пинов запускает
+`build_brand_pages.py --all` и коммитит `docs/assets/pins`, `docs/assets/og`,
+изменённые HTML и манифест.

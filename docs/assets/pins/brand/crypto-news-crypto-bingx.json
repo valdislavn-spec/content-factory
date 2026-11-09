@@ -1,0 +1,17 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/brand/crypto-news-crypto-bingx.png",
+  "file": "docs/assets/pins/brand/crypto-news-crypto-bingx.png",
+  "niche": "crypto",
+  "affiliate": true,
+  "disclosure": "Advertising / affiliate link.",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Crypto without the hype.",
+    "description": "Bitcoin, regulation and market structure — what actually happened. Advertising / affiliate link. Telegram: US crypto news: Bitcoin, Ethereum, markets, regulation and blockchain.\n🌐 Network: AI News @AINEWS0007 · US Sports News @SPORTNews0007",
+    "alt_text": "Crypto without the hype.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/brand/crypto-news-crypto-bingx.png"
+    }
+  }
+}

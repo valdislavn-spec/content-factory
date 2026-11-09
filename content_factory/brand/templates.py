@@ -207,15 +207,54 @@ def render(spec: Dict[str, Any], out_dir: Optional[Path] = None) -> Path:
     # акцентная линия
     draw.rectangle((margin, margin + int(body_size * 2.6), margin + int(width * 0.12), margin + int(body_size * 2.6) + 5), fill=accent)
 
-    # headline: подбираем кегль
-    headline = spec["headline"]
-    lines: List[str] = headline.split("\n")
-    while head_size > int(body_size * 1.3):
+    # область текста: для wide с QR оставляем место справа под QR
+    partner = spec.get("partner")
+    qr_size = int((spec.get("qr") or {}).get("size") or 168)
+    qr_enabled = bool((spec.get("qr") or {}).get("enabled", True)) and bool(partner)
+    qr_card = int(qr_size * 1.12)
+    text_width = width - 2 * margin
+    if layout == "wide" and qr_enabled:
+        text_width = max(int(width * 0.45), width - 2 * margin - qr_card - margin)
+
+    max_head_lines = {"wide": 2, "square": 2, "portrait": 3, "story": 3}[layout]
+    max_sub_lines = {"wide": 2, "square": 2, "portrait": 3, "story": 3}[layout]
+
+    def wrap_text(raw: str, text_font: Any, max_width: int, max_lines: int) -> List[str]:
+        words = str(raw or "").replace("\n", " ").split()
+        lines_out: List[str] = []
+        current_line = ""
+        for word in words:
+            candidate = (current_line + " " + word).strip()
+            if draw.textlength(candidate, font=text_font) <= max_width or not current_line:
+                current_line = candidate
+            else:
+                lines_out.append(current_line)
+                current_line = word
+                if len(lines_out) >= max_lines:
+                    break
+        if current_line and len(lines_out) < max_lines:
+            lines_out.append(current_line)
+        if len(lines_out) == max_lines and words:
+            joined_len = len(" ".join(lines_out).split())
+            if joined_len < len(words):
+                lines_out[-1] = lines_out[-1].rstrip() + "…"
+        return lines_out
+
+    # headline: подбираем кегль и переносим строки
+    headline = str(spec["headline"] or "")
+    head_max_h = int(height * (0.34 if layout == "wide" else 0.30))
+    lines: List[str] = []
+    while head_size > int(body_size * 1.1):
         hfont = font(head_font_path, head_size, 800)
-        fits = all(draw.textlength(line, font=hfont) <= width - 2 * margin for line in lines)
-        if fits:
+        candidate_lines = wrap_text(headline, hfont, text_width, max_head_lines)
+        total_h = int(head_size * 1.12) * len(candidate_lines)
+        if candidate_lines and total_h <= head_max_h:
+            lines = candidate_lines
             break
         head_size -= 4
+    if not lines:
+        hfont = font(head_font_path, head_size, 800)
+        lines = wrap_text(headline, hfont, text_width, max_head_lines)
     hfont = font(head_font_path, head_size, 800)
     hline = int(head_size * 1.12)
     block_h = hline * len(lines)
@@ -223,21 +262,13 @@ def render(spec: Dict[str, Any], out_dir: Optional[Path] = None) -> Path:
     for index, line in enumerate(lines):
         draw.text((margin, start_y + index * hline), line, font=hfont, fill=ink)
 
-    # subtitle (перенос по словам)
+    # subtitle: перенос с ограничением по ширине (и высоте)
     sub_font = font(body_font_path, body_size, 400)
-    words = spec["subtitle"].split()
-    current = ""
+    sub_lines = wrap_text(spec["subtitle"], sub_font, text_width, max_sub_lines)
     sub_y = start_y + block_h + int(body_size * 1.1)
-    for word in words:
-        candidate = (current + " " + word).strip()
-        if draw.textlength(candidate, font=sub_font) > width - 2 * margin and current:
-            draw.text((margin, sub_y), current, font=sub_font, fill=mute)
-            sub_y += int(body_size * 1.45)
-            current = word
-        else:
-            current = candidate
-    if current:
-        draw.text((margin, sub_y), current, font=sub_font, fill=mute)
+    for line in sub_lines:
+        draw.text((margin, sub_y), line, font=sub_font, fill=mute)
+        sub_y += int(body_size * 1.45)
 
     # партнёрский блок + QR
     partner = spec.get("partner")

@@ -11,7 +11,8 @@
 """
 from __future__ import annotations
 
-from typing import Tuple
+from pathlib import Path
+from typing import Optional, Tuple
 
 from ..config import Settings
 from ..utils import env
@@ -28,9 +29,29 @@ class PinterestPublisher(SocialPublisher):
     """Публикатор пина в Pinterest."""
 
     name = "pinterest"
+    _ROOT = Path(__file__).resolve().parents[2]
+    _MANIFEST = _ROOT / "config" / "pinterest_brand_urls.yaml"
 
-    def _image_url(self, channel: ChannelConfig) -> str:
-        return self._env(channel, "PINTEREST_IMAGE_URL")
+    def _manifest_url(self, channel: ChannelConfig) -> str:
+        """URL брендового пина с GitHub Pages (config/pinterest_brand_urls.yaml)."""
+        try:
+            import yaml
+
+            data = yaml.safe_load(self._MANIFEST.read_text(encoding="utf-8")) or {}
+            value = str((data.get("channels") or {}).get(str(channel.id)) or "").strip()
+            return value if value.startswith(("http://", "https://")) else ""
+        except Exception:  # noqa: BLE001 - манифест опционален
+            return ""
+
+    def _image_url(self, channel: ChannelConfig, post: Optional[GeneratedPost] = None) -> str:
+        env_url = self._env(channel, "PINTEREST_IMAGE_URL")
+        if env_url:
+            return env_url
+        if post is not None:
+            meta_url = str((getattr(post, "meta", {}) or {}).get("pinterest_image_url") or "").strip()
+            if meta_url.startswith(("http://", "https://")):
+                return meta_url
+        return self._manifest_url(channel)
 
     def check(self, channel: ChannelConfig = None) -> Tuple[bool, str]:
         if channel is None:
@@ -51,7 +72,7 @@ class PinterestPublisher(SocialPublisher):
         ok, detail = self.check(channel)
         if not ok:
             return self._result(post, channel, ok=False, error="Pinterest не настроен: {}".format(detail))
-        image_url = self._image_url(channel)
+        image_url = self._image_url(channel, post)
         if not image_url:
             return self._result(
                 post, channel, ok=False,
