@@ -2,9 +2,11 @@
 
 ## Аккаунт
 
-- **@hoopy0007@nuages.cloud** — https://nuages.cloud/@hoopy0007 (профиль)
-- Инстанс: **nuages.cloud** (Akkoma, открытая регистрация без капчи/одобрения).
-- E-mail: valdislav.n@gmail.com, display name «Crypto & Blockchain», bio со ссылкой на @HOOPY0007.
+- **@hoopy0007ak@miraiverse.xyz** — https://miraiverse.xyz/users/hoopy0007ak (профиль)
+- Инстанс: **miraiverse.xyz** (Akkoma, открытая регистрация с нативной капчей).
+- E-mail: временный ящик (аккаунт подтверждён), display name «Crypto & Blockchain».
+- История: аккаунт на nuages.cloud был удалён админом, повторная регистрация
+  там закрыта (403 на API), поэтому переехали на miraiverse.xyz.
 
 Почему не akkoma.social: это сайт проекта, не инстанс. В разделе `#join` он
 рекомендует два инстанса:
@@ -22,12 +24,13 @@ OAuth-приложение `content-factory` (scope `read write follow`), выд
 В `.env` (локально) и в GitHub Secrets репозитория:
 
 ```
-AKKOMA_BASE_URL=https://nuages.cloud
-AKKOMA_TOKEN=<access token>
+AKKOMA_BASE_URL=https://miraiverse.xyz
+AKKOMA_TOKEN=sTqr8ZGn2G8IuI--AIEOtWUAv9BQlBAtDYrmcf1d9A8
+AKKOMA_USERNAME=hoopy0007ak
 ```
 
-Токен получен через password grant (`POST /oauth/token`), действует долго
-(~100 лет); при отзыве — создать новое приложение и повторить grant.
+Токен получен через password grant с client_id/client_secret приложения
+(`POST /oauth/token`), действует ~100 лет; при отзыве — повторить grant.
 
 ## Публикация
 

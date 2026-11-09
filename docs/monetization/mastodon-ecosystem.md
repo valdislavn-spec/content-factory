@@ -1,6 +1,6 @@
 # Mastodon / Fediverse: что ещё можно подключить (08.11.2026)
 
-Аккаунт: **@amazing_Brave007@mastodon.social** (плюс Akkoma @hoopy0007@nuages.cloud).
+Аккаунт: **@Yeti01@mastodon.social** (рабочий, 09.11.2026; плюс Akkoma @hoopy0007ak@miraiverse.xyz).
 Ниже — каналы роста/автоматизации, которые даёт Mastodon и Fediverse.
 
 ## Мосты в другие сети
@@ -48,7 +48,7 @@ Pixelfed — если пойдут фото-посты.
   signups open), но GTS **всегда требует одобрения админом**; API-регистрация
   возвращает 401 (только веб-форма). Можно подать заявку вручную/через браузер —
   аккаунт будет в статусе pending. Приоритет ниже, чем Pixelfed.
-- Альтернативы без captcha: **Akkoma** (уже есть @hoopy0007@nuages.cloud),
+- Альтернативы без captcha: **Akkoma** (уже есть @hoopy0007ak@miraiverse.xyz),
   **Friendica/Pleroma** — можно завести отдельные аккаунты при необходимости.
 
 ## Следующие шаги

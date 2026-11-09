@@ -1,6 +1,6 @@
 # Fediverse: контент-микс (крипто → AI → travel)
 
-Аккаунт: **@hoopy0007@nuages.cloud** (Akkoma). Постим по одной теме за раз, по
+Аккаунт: **@hoopy0007ak@miraiverse.xyz** (Akkoma). Постим по одной теме за раз, по
 кругу, с travel-рекламой каждый третий пост.
 
 ## Ротация
@@ -63,13 +63,13 @@ max_age_hours, max_feeds, max_candidates). Локальные копии:
 ## Дублирование: Mastodon + Pixelfed
 
 Каждый пост уходит в Akkoma и дублируется в **Mastodon**
-(@amazing_Brave007@mastodon.social) и **Pixelfed**
+(@Yeti01@mastodon.social) и **Pixelfed**
 (@hoopy0007@pixelfed.au) — с картинкой и ссылками
 (`crosspost.mastodon`, `crosspost.pixelfed` в конфиге).
 
 ## Mastodon-дублирование
 
-Каждый fediverse-пост дублируется в **Mastodon** (@amazing_Brave007@mastodon.social),
+Каждый fediverse-пост дублируется в **Mastodon** (@Yeti01@mastodon.social),
 если заданы `MASTODON_BASE_URL`/`MASTODON_TOKEN` (`crosspost.mastodon: true`).
 Публикация идёт через `/api/v1/statuses`; ссылки вырезаются при
 `MASTODON_NO_LINKS=1` (правило mastodon.social для новых аккаунтов).
