@@ -1,5 +1,5 @@
 # Buffer: дублирование дневного пина в подключённые соцсети.
-# Free plan = 3 канала: Bluesky, X (twitter), Facebook.
+# Buffer: X (twitter) + Facebook. Bluesky публикуется напрямую (AT Protocol).
 # Ключ: BUFFER_API_KEY (Buffer → Settings → API).
 organization_id: 68d276b0ab330eddbacc2da8
 hub_url: https://valdislavn-spec.github.io/content-factory/
