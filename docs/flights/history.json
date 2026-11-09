@@ -1,0 +1,188 @@
+{
+  "MOW": {
+    "KZN": {
+      "price": 3188,
+      "at": "2026-11-09T21:07",
+      "city": "KZN"
+    },
+    "UFA": {
+      "price": 3310,
+      "at": "2026-11-09T21:07",
+      "city": "UFA"
+    },
+    "LED": {
+      "price": 3388,
+      "at": "2026-11-09T21:07",
+      "city": "St. Petersburg"
+    },
+    "KUF": {
+      "price": 4000,
+      "at": "2026-11-09T21:07",
+      "city": "KUF"
+    },
+    "MSQ": {
+      "price": 4485,
+      "at": "2026-11-09T21:07",
+      "city": "Minsk"
+    },
+    "SVX": {
+      "price": 4632,
+      "at": "2026-11-09T21:07",
+      "city": "SVX"
+    },
+    "MRV": {
+      "price": 5388,
+      "at": "2026-11-09T21:07",
+      "city": "MRV"
+    },
+    "AER": {
+      "price": 6235,
+      "at": "2026-11-09T21:07",
+      "city": "Sochi"
+    },
+    "KGD": {
+      "price": 7104,
+      "at": "2026-11-09T21:07",
+      "city": "Kaliningrad"
+    },
+    "KRR": {
+      "price": 7258,
+      "at": "2026-11-09T21:07",
+      "city": "KRR"
+    },
+    "AYT": {
+      "price": 8050,
+      "at": "2026-11-09T21:07",
+      "city": "Antalya"
+    },
+    "MCX": {
+      "price": 9532,
+      "at": "2026-11-09T21:07",
+      "city": "Makhachkala"
+    }
+  },
+  "ALA": {
+    "CIT": {
+      "price": 6089,
+      "at": "2026-11-09T21:07",
+      "city": "CIT"
+    },
+    "NQZ": {
+      "price": 7543,
+      "at": "2026-11-09T21:07",
+      "city": "NQZ"
+    },
+    "AKX": {
+      "price": 9369,
+      "at": "2026-11-09T21:07",
+      "city": "AKX"
+    },
+    "SCO": {
+      "price": 12093,
+      "at": "2026-11-09T21:07",
+      "city": "SCO"
+    },
+    "GUW": {
+      "price": 12128,
+      "at": "2026-11-09T21:07",
+      "city": "GUW"
+    },
+    "TAS": {
+      "price": 13688,
+      "at": "2026-11-09T21:07",
+      "city": "Tashkent"
+    },
+    "IZM": {
+      "price": 14385,
+      "at": "2026-11-09T21:07",
+      "city": "IZM"
+    },
+    "IST": {
+      "price": 15821,
+      "at": "2026-11-09T21:07",
+      "city": "Istanbul"
+    },
+    "NCU": {
+      "price": 16571,
+      "at": "2026-11-09T21:07",
+      "city": "NCU"
+    },
+    "DYU": {
+      "price": 17586,
+      "at": "2026-11-09T21:07",
+      "city": "Dushanbe"
+    },
+    "OVB": {
+      "price": 17725,
+      "at": "2026-11-09T21:07",
+      "city": "OVB"
+    },
+    "AYT": {
+      "price": 17806,
+      "at": "2026-11-09T21:07",
+      "city": "Antalya"
+    }
+  },
+  "MSQ": {
+    "MOW": {
+      "price": 4413,
+      "at": "2026-11-09T21:07",
+      "city": "MOW"
+    },
+    "LED": {
+      "price": 6182,
+      "at": "2026-11-09T21:07",
+      "city": "St. Petersburg"
+    },
+    "KUF": {
+      "price": 8086,
+      "at": "2026-11-09T21:07",
+      "city": "KUF"
+    },
+    "KZN": {
+      "price": 11146,
+      "at": "2026-11-09T21:07",
+      "city": "KZN"
+    },
+    "AER": {
+      "price": 13246,
+      "at": "2026-11-09T21:07",
+      "city": "Sochi"
+    },
+    "SVX": {
+      "price": 14041,
+      "at": "2026-11-09T21:07",
+      "city": "SVX"
+    },
+    "KGD": {
+      "price": 14599,
+      "at": "2026-11-09T21:07",
+      "city": "Kaliningrad"
+    },
+    "EVN": {
+      "price": 21904,
+      "at": "2026-11-09T21:07",
+      "city": "Yerevan"
+    },
+    "IST": {
+      "price": 28927,
+      "at": "2026-11-09T21:07",
+      "city": "Istanbul"
+    },
+    "TAS": {
+      "price": 29398,
+      "at": "2026-11-09T21:07",
+      "city": "Tashkent"
+    },
+    "BAK": {
+      "price": 29735,
+      "at": "2026-11-09T21:07",
+      "city": "BAK"
+    },
+    "DXB": {
+      "price": 29872,
+      "at": "2026-11-09T21:07",
+      "city": "Dubai"
+    }
+  }
+}

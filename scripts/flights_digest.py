@@ -14,7 +14,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -35,6 +37,12 @@ DRIVE = '''  <!-- Travelpayouts Drive -->
     })();
   </script>
 '''
+
+ORIGINS = {
+    "MOW": {"slug": "", "name": "Moscow", "page": "docs/flights/index.html"},
+    "ALA": {"slug": "almaty", "name": "Almaty", "page": "docs/flights/almaty/index.html"},
+    "MSQ": {"slug": "minsk", "name": "Minsk", "page": "docs/flights/minsk/index.html"},
+}
 
 CITY_NAMES = {
     "IST": "Istanbul", "AYT": "Antalya", "EVN": "Yerevan", "TAS": "Tashkent", "DYU": "Dushanbe",
@@ -119,7 +127,66 @@ def convert_links(client_links, items, currency_origin: str) -> dict:
     return by_dest
 
 
-def render_page(rows: list, origin: str, updated: str) -> str:
+def load_history(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def save_history(path: Path, origin: str, rows: list) -> dict:
+    data = load_history(path)
+    origin_data = data.get(origin) or {}
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M")
+    for row in rows:
+        origin_data[row["destination"]] = {"price": row["price"], "at": now, "city": row["city"]}
+    data[origin] = origin_data
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return origin_data
+
+
+def find_drops(previous: dict, rows: list, min_drop: float = 0.15) -> list:
+    drops = []
+    for row in rows:
+        prev = previous.get(row["destination"])
+        if not prev:
+            continue
+        prev_price = int(prev.get("price") or 0)
+        if prev_price <= 0:
+            continue
+        drop = (prev_price - row["price"]) / prev_price
+        if drop >= min_drop:
+            drops.append({**row, "previous_price": prev_price, "drop_pct": round(drop * 100)})
+    drops.sort(key=lambda d: -d["drop_pct"])
+    return drops
+
+
+def notify_telegram(drops: list, origin: str, public: str) -> None:
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat = (os.environ.get("TELEGRAM_CHAT_ID_TRAVEL") or os.environ.get("TELEGRAM_CHAT_ID") or "").strip()
+    if not token or not chat:
+        print("telegram: token/chat not set, skip")
+        return
+    if not drops:
+        return
+    lines = ["✈️ Цены на билеты упали из %s:" % ORIGINS.get(origin, {}).get("name", origin)]
+    for drop in drops[:5]:
+        lines.append("• %s — %d ₽ (-%d%%) %s" % (drop["city"], drop["price"], drop["drop_pct"], drop["link"]))
+    lines.append("Все билеты: %s/flights/" % public.rstrip("/"))
+    payload = json.dumps({"chat_id": chat, "text": "\n".join(lines), "disable_web_page_preview": True}).encode()
+    request = urllib.request.Request("https://api.telegram.org/bot%s/sendMessage" % token, data=payload,
+        headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            print("telegram alert:", response.status)
+    except Exception as error:  # noqa: BLE001
+        print("telegram error:", str(error)[:120])
+
+
+def render_page(rows: list, origin: str, updated: str, drops: list = None, public: str = PUB) -> str:
     table = []
     for row in rows:
         table.append(
@@ -136,20 +203,41 @@ def render_page(rows: list, origin: str, updated: str) -> str:
         "name": f"Cheapest flights from {origin}", "url": f"{PUB}/flights/",
         "numberOfItems": len(rows),
     })
+    city_name = ORIGINS.get(origin, {}).get("name", origin)
+    slug = ORIGINS.get(origin, {}).get("slug", "")
+    canonical = f"{public}/flights/" + (slug + "/" if slug else "")
+    nav = f'<p style="margin:0 0 18px"><a href="{public}/" style="color:#2563eb;text-decoration:none">← All channels</a> · <a href="{public}/travel/" style="color:#2563eb;text-decoration:none">Travel guides</a>'
+    nav += f' · <a href="{public}/flights/" style="color:#2563eb;text-decoration:none">Moscow</a>'
+    nav += f' · <a href="{public}/flights/almaty/" style="color:#2563eb;text-decoration:none">Almaty</a>'
+    nav += f' · <a href="{public}/flights/minsk/" style="color:#2563eb;text-decoration:none">Minsk</a></p>'
+    drops = drops or []
+    drops_html = ""
+    if drops:
+        drops_html = (
+            '<h2 style="font-size:22px;margin:0 0 10px">📉 Price drops today</h2>'
+            '<ul style="margin:0 0 22px;padding-left:20px;color:#374151">'
+            + "".join(
+                f'<li><a href="{d["link"]}" style="color:#2563eb">{d["city"]}</a> — {d["price"]:,} ₽ '.replace(",", " ")
+                + f'(было {d["previous_price"]:,} ₽, −{d["drop_pct"]}%)</li>'.replace(",", " ")
+                for d in drops[:8]
+            )
+            + "</ul>"
+        )
     return "\n".join([
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
-        f'<title>Cheapest flights from {origin} — deals updated daily</title>',
-        f'<meta name="description" content="Cheapest round-trip flights from {origin}: live Aviasales deals with dates, airlines and prices. Updated daily.">',
-        f'<link rel="canonical" href="{PUB}/flights/">',
+        f'<title>Cheapest flights from {city_name} — deals updated daily</title>',
+        f'<meta name="description" content="Cheapest round-trip flights from {city_name}: live Aviasales deals with dates, airlines and prices. Updated daily.">',
+        f'<link rel="canonical" href="{canonical}">',
         '<meta name="robots" content="index,follow">',
         f'<script type="application/ld+json">{schema}</script>',
         DRIVE + '</head>',
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fff">',
         '<div style="max-width:860px;margin:0 auto;padding:32px 20px 60px">',
-        f'<p style="margin:0 0 18px"><a href="{PUB}/" style="color:#2563eb;text-decoration:none">← All channels</a> · <a href="{PUB}/travel/" style="color:#2563eb;text-decoration:none">Travel guides</a></p>',
+        nav,
         '<p style="color:#6b7280;font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px">Flight deals</p>',
-        f'<h1 style="font-size:32px;margin:0 0 10px">Cheapest flights from {origin}</h1>',
+        f'<h1 style="font-size:32px;margin:0 0 10px">Cheapest flights from {city_name}</h1>',
         f'<p style="color:#6b7280;margin:0 0 22px">Updated {updated} · prices in RUB · round-trip unless noted · via Aviasales</p>',
+        drops_html,
         '<table style="width:100%;border-collapse:collapse;font-size:15px">',
         '<thead><tr style="text-align:left;color:#6b7280;font-size:13px;text-transform:uppercase">'
         '<th style="padding:8px 12px">Destination</th><th style="padding:8px 12px">Dates</th>'
@@ -168,7 +256,10 @@ def main(argv=None) -> int:
     parser.add_argument("--origin", default="MOW")
     parser.add_argument("--currency", default="rub")
     parser.add_argument("--top", type=int, default=12)
-    parser.add_argument("--page", default=str(ROOT / "docs" / "flights" / "index.html"))
+    parser.add_argument("--page", default="")
+    parser.add_argument("--history", default=str(ROOT / "docs" / "flights" / "history.json"))
+    parser.add_argument("--min-drop", type=float, default=0.15)
+    parser.add_argument("--notify", action="store_true", help="send Telegram alert for price drops")
     parser.add_argument("--snapshot", default=str(ROOT / "data" / "flights" / "latest.json"))
     args = parser.parse_args(argv)
 
@@ -210,10 +301,21 @@ def main(argv=None) -> int:
     rows = build_rows(items, partner_links)
     updated = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
 
-    page_path = Path(args.page)
+    history_path = Path(args.history)
+    previous = load_history(history_path).get(args.origin.upper()) or {}
+    drops = find_drops(previous, rows, min_drop=args.min_drop)
+    save_history(history_path, args.origin.upper(), rows)
+
+    origin_meta = ORIGINS.get(args.origin.upper(), {})
+    page_path = Path(args.page or ROOT / origin_meta.get("page", "docs/flights/index.html"))
     page_path.parent.mkdir(parents=True, exist_ok=True)
-    page_path.write_text(render_page(rows, args.origin.upper(), updated), encoding="utf-8")
-    print("page:", page_path)
+    page_path.write_text(render_page(rows, args.origin.upper(), updated, drops), encoding="utf-8")
+    print("page:", page_path, "| drops:", len(drops))
+    if drops:
+        for drop in drops[:5]:
+            print("  DROP %-14s %d -> %d ₽ (-%d%%)" % (drop["city"], drop["previous_price"], drop["price"], drop["drop_pct"]))
+    if args.notify:
+        notify_telegram(drops, args.origin.upper(), PUB)
 
     snapshot = Path(args.snapshot)
     snapshot.parent.mkdir(parents=True, exist_ok=True)
