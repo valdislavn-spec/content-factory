@@ -11,6 +11,19 @@ telegram_crypto: https://t.me/HOOPY0007
 telegram_ai: https://t.me/AINEWS0007
 travel_link: https://links-tracker.valdislav-n.workers.dev/r/travel-default
 travel_disclosure: "Ad · travel partner · prices vary."
+# Реальные авиа-офферы (Travelpayouts prices API) вместо generic-рекламы
+travel_deals:
+  enabled: true
+  api_token_env: TRAVELPAYOUTS_TOKEN
+  origins: [NYC, LAX, MIA, ORD]
+  origins_es: [MAD, BCN, MEX, BUE]
+  currency: usd
+  limit: 30
+  max_days_ahead: 90
+  min_price: 40
+  marker: "674170"
+  tracker_code: travel-deal
+
 travel_offers:
   - name: "Aviasales"
     cta: "Compare flight deals"

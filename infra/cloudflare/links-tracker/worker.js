@@ -73,6 +73,35 @@ export default {
       const record = JSON.parse(raw);
       if (record.active === false) return new Response("Link disabled", { status: 404 });
 
+      // Bots and link-preview crawlers do not run JavaScript: only real
+      // browsers reach the affiliate URL and only they count as clicks.
+      if (request.method === "HEAD") {
+        return new Response("", { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      const target = JSON.stringify(String(record.target || ""));
+      const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Opening partner…</title>
+<style>body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0f1420;color:#eef3f8;
+display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:24px;text-align:center}
+a{color:#f7931a;font-weight:600;word-break:break-all}p{opacity:.8;font-size:14px}</style></head>
+<body><div><p>Redirecting to our travel partner…</p><p><a id="go" href="#">Continue →</a></p></div>
+<script>
+(async()=>{try{await fetch("/c/${code}",{method:"POST",keepalive:true});}catch(e){}
+const u=${target};document.getElementById("go").href=u;location.replace(u);})();
+</script></body></html>`;
+      return new Response(html, {
+        status: 200,
+        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+      });
+    }
+
+    if (path.startsWith("/c/")) {
+      if (request.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
+      const code = slug(path.slice(3));
+      const raw = await env.LINKS.get("link:" + code);
+      if (!raw) return new Response("", { status: 404 });
+      const record = JSON.parse(raw);
       const now = new Date();
       const day = now.toISOString().slice(0, 10);
       const statsKey = "stats:" + code;
@@ -87,8 +116,7 @@ export default {
         for (const d of days.slice(0, days.length - 60)) delete stats.days[d];
       }
       await env.LINKS.put(statsKey, JSON.stringify(stats));
-
-      return Response.redirect(record.target, 302);
+      return new Response(null, { status: 204 });
     }
 
     if (path === "/stats") {

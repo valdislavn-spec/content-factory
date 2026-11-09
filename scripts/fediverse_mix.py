@@ -87,7 +87,7 @@ def _with_credit(text: str, article: Optional[Dict[str, Any]]) -> str:
     return text.rstrip() + "\n\n" + credit
 
 
-def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional[Dict[str, Any]] = None) -> Tuple[str, Dict[str, Any]]:
+def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional[Dict[str, Any]] = None, deal: Optional[Dict[str, Any]] = None) -> Tuple[str, Dict[str, Any]]:
     templates = config.get("templates") or {}
     template = str(templates.get(topic) or "").strip()
     if not template:
@@ -95,16 +95,22 @@ def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional
     offers = [o for o in (config.get("travel_offers") or []) if isinstance(o, dict) and o.get("link")]
     offer = offers[index % len(offers)] if offers else {}
     travel_link = (os.environ.get("TRAVEL_AFFILIATE_URL", "") or "").strip() or offer.get("link") or config.get("travel_link", "")
+    if deal:
+        tracker_base = (os.environ.get("LINK_TRACKER_BASE", "") or "").strip().rstrip("/")
+        code = str(deal.get("tracker_code") or "travel-deal")
+        travel_link = (tracker_base + "/r/" + code) if tracker_base else str(deal.get("link") or travel_link)
     values: Dict[str, Any] = {
         "telegram_crypto": config.get("telegram_crypto", ""),
         "telegram_ai": config.get("telegram_ai", ""),
         "travel_link": travel_link,
         "travel_disclosure": config.get("travel_disclosure", "Ad · partner link."),
         "travel_headline": (article or {}).get("title") or (config.get("travel_headlines") or ["Travel season is back — flights, hotels and city breaks are moving fast."])[index % len(config.get("travel_headlines") or [1])],
-        "travel_cta": str(offer.get("cta") or "Plan the next trip"),
+        "travel_cta": str((deal or {}).get("cta") or offer.get("cta") or "Plan the next trip"),
     }
     meta: Dict[str, Any] = {}
-    if topic == "travel" and article:
+    if topic == "travel" and deal:
+        values["travel_headline"] = str(deal.get("headline") or values["travel_headline"])
+    elif topic == "travel" and article:
         values["travel_headline"] = article.get("title") or values["travel_headline"]
     if topic == "crypto":
         headlines = config.get("crypto_headlines") or ["Crypto markets update."]
@@ -122,6 +128,7 @@ def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional
         values["ai_angle"] = (article or {}).get("title") or angles[index % len(angles)]
         meta["angle"] = values["ai_angle"]
     meta["article"] = article or {}
+    meta["deal"] = deal or {}
     return _with_credit(template.format(**values), article), meta
 
 
@@ -449,6 +456,139 @@ def _decor_travel(draw: ImageDraw.ImageDraw) -> None:
     draw.polygon([(1000, 300), (940, 280), (960, 310)], fill=(240, 244, 248))
 
 
+CITY_NAMES = {
+    "ATL": "Atlanta", "ORL": "Orlando", "MIA": "Miami", "DFW": "Dallas", "DTT": "Detroit",
+    "IST": "Istanbul", "LON": "London", "PAR": "Paris", "ROM": "Rome", "BCN": "Barcelona",
+    "MAD": "Madrid", "LIS": "Lisbon", "BER": "Berlin", "AMS": "Amsterdam", "DXB": "Dubai",
+    "BKK": "Bangkok", "TYO": "Tokyo", "SIN": "Singapore", "MEX": "Mexico City", "CUN": "Cancun",
+    "BUE": "Buenos Aires", "SAO": "Sao Paulo", "BOG": "Bogota", "LIM": "Lima", "SCL": "Santiago",
+    "LAX": "Los Angeles", "NYC": "New York", "ORD": "Chicago", "SFO": "San Francisco",
+    "SEA": "Seattle", "BOS": "Boston", "DEN": "Denver", "LAS": "Las Vegas", "HNL": "Honolulu",
+    "YTO": "Toronto", "YVR": "Vancouver", "MOW": "Moscow", "LED": "St. Petersburg",
+}
+
+
+def _http_json(url: str, timeout: float = 25.0) -> Optional[Dict[str, Any]]:
+    try:
+        _, body, _ = _http_get(url, timeout=timeout)
+        data = json.loads(body.decode("utf-8", "replace"))
+        return data if isinstance(data, dict) else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def fetch_travel_deal(topic: str, config: Dict[str, Any], index: int = 0) -> Optional[Dict[str, Any]]:
+    """Дешёвый билет из Travelpayouts prices API -> headline + deep link."""
+    deal_cfg = config.get("travel_deals") or {}
+    if deal_cfg.get("enabled") is False:
+        return None
+    token = (os.environ.get(str(deal_cfg.get("api_token_env") or "TRAVELPAYOUTS_TOKEN"), "") or "").strip()
+    if not token:
+        return None
+    origins = [str(o) for o in (deal_cfg.get("origins_es" if topic.endswith("-es") else "origins") or deal_cfg.get("origins") or ["NYC"])]
+    limit = int(deal_cfg.get("limit") or 30)
+    max_days = int(deal_cfg.get("max_days_ahead") or 90)
+    min_price = float(deal_cfg.get("min_price") or 40)
+    currency = str(deal_cfg.get("currency") or "usd")
+    now = datetime.now(timezone.utc)
+    deals: List[Dict[str, Any]] = []
+    for origin in origins:
+        url = "https://api.travelpayouts.com/v2/prices/latest?" + urllib.parse.urlencode(
+            {"origin": origin, "currency": currency, "limit": limit, "token": token}
+        )
+        data = _http_json(url)
+        for item in (data or {}).get("data") or []:
+            try:
+                depart = datetime.strptime(str(item.get("depart_date")), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                continue
+            days = (depart - now).days
+            if days < 1 or days > max_days:
+                continue
+            value = float(item.get("value") or 0)
+            dest = str(item.get("destination") or "")
+            if value < min_price or not dest or dest == origin:
+                continue
+            deals.append({
+                "origin": origin, "dest": dest,
+                "origin_name": CITY_NAMES.get(origin, origin),
+                "dest_name": CITY_NAMES.get(dest, dest),
+                "price": int(round(value)), "currency": currency.upper(),
+                "depart_date": item.get("depart_date"), "return_date": item.get("return_date"),
+                "gate": item.get("gate") or "",
+            })
+        time.sleep(0.4)
+    if not deals:
+        return None
+    deals.sort(key=lambda d: (d["price"], d["depart_date"]))
+    chosen = deals[index % min(len(deals), 5)] if index else deals[0]
+    try:
+        depart = datetime.strptime(chosen["depart_date"], "%Y-%m-%d")
+    except (TypeError, ValueError):
+        return None
+
+    def _fmt(value: str) -> str:
+        try:
+            return datetime.strptime(str(value), "%Y-%m-%d").strftime("%b %-d")
+        except (TypeError, ValueError):
+            return str(value)
+
+    route = "{}{}{}1".format(chosen["origin"], depart.strftime("%d%m"), chosen["dest"])
+    marker = str(deal_cfg.get("marker") or "674170")
+    chosen["link"] = "https://www.aviasales.com/search/{}?marker={}".format(route, marker)
+    dates = _fmt(chosen.get("depart_date") or "")
+    if chosen.get("return_date"):
+        dates += "–" + _fmt(chosen["return_date"])
+    chosen["headline"] = "{} → {} from ${} round trip · {}".format(
+        chosen["origin_name"], chosen["dest_name"], chosen["price"], dates
+    )
+    chosen["cta"] = "Compare flights"
+    chosen["tracker_code"] = str(deal_cfg.get("tracker_code") or "travel-deal")
+    return chosen
+
+
+def upsert_tracker_link(code: str, target: str, label: str) -> bool:
+    base = (os.environ.get("LINK_TRACKER_BASE", "") or "").strip().rstrip("/")
+    token = (os.environ.get("LINK_TRACKER_ADMIN_TOKEN", "") or "").strip()
+    if not base or not token or not target:
+        return False
+    payload = json.dumps({
+        "code": code, "target": target, "channel": "akkoma",
+        "network": "travelpayouts", "label": label[:80],
+    }).encode()
+    request = urllib.request.Request(
+        base + "/admin/links", data=payload,
+        headers={"content-type": "application/json", "x-token": token, "User-Agent": "content-factory-fediverse/1.0"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return response.status == 200
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def make_deal_card(deal: Dict[str, Any]) -> Image.Image:
+    img = _gradient(WIDTH, HEIGHT, (18, 52, 66), (12, 26, 30))
+    draw = ImageDraw.Draw(img)
+    accent = ACCENTS["travel"]
+    draw.rectangle([0, 0, 14, HEIGHT], fill=accent)
+    draw.text((60, 70), "FLIGHT DEAL", font=_font(34, bold=True), fill=accent)
+    draw.line([(60, 128), (280, 128)], fill=accent, width=4)
+    title_font = _font(64, bold=True)
+    y = 180
+    for line in _wrap("{} to {}".format(deal["origin_name"], deal["dest_name"]), title_font, WIDTH - 120, draw):
+        draw.text((60, y), line, font=title_font, fill=FG)
+        y += 78
+    draw.text((60, y + 10), "from ${}".format(deal["price"]), font=_font(84, bold=True), fill=accent)
+    dates = str(deal.get("depart_date") or "")
+    if deal.get("return_date"):
+        dates += " – " + str(deal.get("return_date"))
+    draw.text((60, HEIGHT - 150), "Round trip · " + dates, font=_font(28), fill=MUTED)
+    _footer(draw, WIDTH, HEIGHT, "Travel partner · tracked link")
+    return img
+
+
 def build_card(topic: str, config: Dict[str, Any], headline: str, market: str, angle: str, klines: Optional[List[Dict[str, Any]]] = None) -> Optional[Image.Image]:
     image_config = config.get("image") or {}
     if image_config.get("enabled") is False:
@@ -703,10 +843,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for step in range(total):
         topic = args.topic or rotation[(index + step) % len(rotation)]
         try:
-            article = find_article(topic, config)
+            deal = fetch_travel_deal(topic, config, index + step) if topic.startswith("travel") else None
+            if deal:
+                upsert_tracker_link(
+                    str(deal.get("tracker_code") or "travel-deal"),
+                    str(deal.get("link") or ""),
+                    "{} → {} ${} {}".format(deal.get("origin_name"), deal.get("dest_name"), deal.get("price"), deal.get("depart_date")),
+                )
+                print("deal:", deal.get("headline"))
+            article = find_article(topic, config) if not deal else None
             if article:
                 print("article:", article.get("title", "")[:90], "|", article.get("source", ""))
-            text, meta = build_post(config, topic, index + step, article)
+            text, meta = build_post(config, topic, index + step, article, deal)
         except (ValueError, KeyError) as exc:
             print("build error:", exc)
             return 1
@@ -714,14 +862,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if args.dry_run:
             continue
         try:
-            image = (meta.get("article") or {}).get("image") or build_card(
-                topic,
-                config,
-                meta.get("headline", ""),
-                meta.get("market", ""),
-                meta.get("angle", ""),
-                meta.get("klines"),
-            )
+            deal_meta = meta.get("deal") or {}
+            if deal_meta:
+                image = make_deal_card(deal_meta)
+            else:
+                image = (meta.get("article") or {}).get("image") or build_card(
+                    topic,
+                    config,
+                    meta.get("headline", ""),
+                    meta.get("market", ""),
+                    meta.get("angle", ""),
+                    meta.get("klines"),
+                )
             if image is not None:
                 image_path = ROOT / "data" / "outbox" / "fediverse" / "card-{}.png".format(int(time.time()))
                 image_path.parent.mkdir(parents=True, exist_ok=True)

@@ -41,5 +41,8 @@ jobs:
           PIXELFED_BASE_URL: ${{ secrets.PIXELFED_BASE_URL }}
           PIXELFED_TOKEN: ${{ secrets.PIXELFED_TOKEN }}
           PIXELFED_MAX_WIDTH: "320"
+          TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+          LINK_TRACKER_BASE: ${{ secrets.LINK_TRACKER_BASE }}
+          LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
         run: |
           python scripts/fediverse_mix.py --once ${{ github.event.inputs.topic && format('--topic {0}', github.event.inputs.topic) || '' }}
