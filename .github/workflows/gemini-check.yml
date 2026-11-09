@@ -1,6 +1,6 @@
 name: gemini-check
 
-# Разовая проверка, что секрет GEMINI_API_KEY живой и Gemini API отвечает
+# Проверка, что секрет GEMINI_API_KEY живой, и реальная генерация идёт
 # с раннера GitHub Actions (из РФ API недоступен — 400 location not supported).
 on:
   workflow_dispatch:
@@ -24,13 +24,14 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import re
           import urllib.error
           import urllib.request
 
           raw = os.environ.get("GEMINI_API_KEY") or ""
           key = raw.strip()
-          print("secret diagnostics: len=%s stripped_len=%s whitespace=%s newlines=%s"
-                % (len(raw), len(key), any(ch.isspace() for ch in raw), raw.count("\n")))
+          print("secret diagnostics: len=%s stripped_len=%s whitespace=%s"
+                % (len(raw), len(key), any(ch.isspace() for ch in raw)))
           if not key:
               raise SystemExit("GEMINI_API_KEY secret is empty")
 
@@ -44,15 +45,28 @@ jobs:
                   with urllib.request.urlopen(request, timeout=60) as response:
                       return json.load(response)
               except urllib.error.HTTPError as exc:
-                  body = exc.read()[:400].decode("utf-8", "replace")
+                  body = exc.read()[:500].decode("utf-8", "replace")
                   raise SystemExit("Gemini HTTP {}: {}".format(exc.code, body))
 
           models = call("https://generativelanguage.googleapis.com/v1beta/models?key=" + key)
           names = [m.get("name", "").split("/")[-1] for m in models.get("models") or []]
-          flash = [n for n in names if "flash" in n and "embedding" not in n and "image" not in n]
-          if not flash:
-              raise SystemExit("no flash model in: {}".format(names[:10]))
-          model = flash[0]
+          flash = [
+              n for n in names
+              if "flash" in n and "embedding" not in n and "image" not in n and "live" not in n
+          ]
+          print("flash models:", flash)
+
+          def version(name):
+              match = re.search(r"gemini-(\d+)\.(\d+)-flash", name)
+              if not match:
+                  return (0, 0, 0)
+              lite = 0 if "lite" not in name else -1
+              return (int(match.group(1)), int(match.group(2)), lite)
+
+          candidates = [n for n in flash if re.search(r"gemini-\d+\.\d+-flash", n)]
+          if not candidates:
+              raise SystemExit("no versioned flash model in: {}".format(flash))
+          model = max(candidates, key=version)
           print("Gemini models OK, using:", model)
 
           answer = call(
@@ -62,6 +76,6 @@ jobs:
           )
           text = (answer.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")).strip()
           if not text:
-              raise SystemExit("empty response: {}".format(json.dumps(answer)[:400]))
+              raise SystemExit("empty response: {}".format(json.dumps(answer)[:500]))
           print("Gemini generation OK, response:", text)
           PY
