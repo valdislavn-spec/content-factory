@@ -1,0 +1,89 @@
+name: free-models-check
+
+# Разведка бесплатных OpenAI-совместимых провайдеров с раннера Actions:
+# без регистрации (Pollinations) и на встроенном github.token (GitHub Models).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: free-models-check
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Probe free providers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          def post(url, payload, headers=None, timeout=30):
+              data = json.dumps(payload).encode()
+              hdrs = {"Content-Type": "application/json", "User-Agent": "content-factory-free-check"}
+              hdrs.update(headers or {})
+              request = urllib.request.Request(url, data=data, headers=hdrs)
+              with urllib.request.urlopen(request, timeout=timeout) as response:
+                  return json.load(response)
+
+          msgs = [{"role": "user", "content": "Reply with the single word: OK"}]
+          results = []
+
+          def probe(name, url, model, headers=None):
+              try:
+                  data = post(url, {"model": model, "messages": msgs, "max_tokens": 20}, headers)
+                  text = data["choices"][0]["message"]["content"]
+                  results.append((name, "OK", str(text).strip()[:40]))
+              except urllib.error.HTTPError as exc:
+                  results.append((name, "HTTP %s" % exc.code, exc.read()[:160].decode("utf-8", "replace")))
+              except Exception as exc:  # noqa: BLE001
+                  results.append((name, type(exc).__name__, str(exc)[:160]))
+
+          # 1) Pollinations — без ключа
+          probe("pollinations/openai", "https://text.pollinations.ai/openai", "openai")
+
+          # 2) GitHub Models — на встроенном github.token (permissions: models: read)
+          gh = (os.environ.get("GH_TOKEN") or "").strip()
+          if gh:
+              for base in ("https://models.github.ai/inference/chat/completions",
+                           "https://models.inference.ai.azure.com/chat/completions"):
+                  for model in ("openai/gpt-4o-mini", "gpt-4o-mini", "openai/gpt-4.1-mini"):
+                      probe("gh/%s/%s" % (base.split("/")[2], model), base, model,
+                            {"Authorization": "Bearer " + gh})
+          else:
+              results.append(("github-models", "SKIP", "no token"))
+
+          # 3) OpenRouter — free-модели по ключу
+          orkey = (os.environ.get("OPENROUTER_API_KEY") or "").strip()
+          if orkey:
+              try:
+                  request = urllib.request.Request(
+                      "https://openrouter.ai/api/v1/models",
+                      headers={"Authorization": "Bearer " + orkey, "User-Agent": "content-factory-free-check"},
+                  )
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      catalog = json.load(response)
+                  free = [m.get("id") for m in catalog.get("data") or []
+                          if str((m.get("pricing") or {}).get("prompt")) in ("0", "0.0", "0.00")]
+                  results.append(("openrouter-catalog", "free models: %s" % len(free), ", ".join(free[:5])))
+                  if free:
+                      probe("openrouter/%s" % free[0], "https://openrouter.ai/api/v1/chat/completions",
+                            free[0], {"Authorization": "Bearer " + orkey})
+              except Exception as exc:  # noqa: BLE001
+                  results.append(("openrouter", type(exc).__name__, str(exc)[:160]))
+
+          print("=== FREE PROVIDER PROBE ===")
+          for name, status, detail in results:
+              print("%-46s %-8s %s" % (name, status, detail))
+          PY
