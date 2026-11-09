@@ -27,7 +27,7 @@ import urllib.request
 import uuid
 from typing import Any, Dict, Optional
 
-from ..utils import env, normalize_space
+from ..utils import DEFAULT_USER_AGENT, env, normalize_space
 from .budget import DailyBudget
 from .llm_cache import LLMCache, make_key
 from .tokens import configure as configure_tokens
@@ -87,7 +87,13 @@ def _post_json(
     if not url:
         raise LLMError("пустой URL запроса")
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    request_headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    request_headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        # Cloudflare-провайдеры (Groq/Cohere/OpenRouter) режут запросы без
+        # браузерного User-Agent (Error 1010) — шлём как обычный клиент.
+        "User-Agent": DEFAULT_USER_AGENT,
+    }
     if headers:
         request_headers.update(headers)
     request = urllib.request.Request(url, data=body, headers=request_headers, method="POST")
@@ -266,6 +272,8 @@ class OpenAICompatibleLLM(LLMClient):
         self.model = str((config or {}).get("model") or "qwen3.5:9b")
         self.api_key_env = str((config or {}).get("api_key_env") or "OPENAI_COMPAT_API_KEY")
         self.api_key = env(self.api_key_env, "") or ""
+        # Доп. поля тела запроса (reasoning_effort, thinking budget и т.п.).
+        self.extra_body = dict((config or {}).get("extra_body") or {})
 
     def _generate(
         self,
@@ -286,6 +294,8 @@ class OpenAICompatibleLLM(LLMClient):
         }
         if max_tokens:
             payload["max_tokens"] = int(max_tokens)
+        if self.extra_body:
+            payload.update(self.extra_body)
         headers = dict((self.config.get("headers") or {}))
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
