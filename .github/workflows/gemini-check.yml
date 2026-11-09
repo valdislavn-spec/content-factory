@@ -1,7 +1,7 @@
 name: gemini-check
 
-# Проверка: секрет GEMINI_API_KEY живой, модели доступны, работает и нативная
-# generateContent, и OpenAI-совместимый endpoint (его использует контент-завод).
+# Проверка: секрет GEMINI_API_KEY живой, Gemini отвечает и через нативный
+# generateContent, и через OpenAI-совместимый endpoint (его использует завод).
 on:
   workflow_dispatch:
 
@@ -15,16 +15,15 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - name: Gemini API (models, generateContent, openai-compat)
+      - name: Gemini API checks
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python3 - <<'PY'
           import json
           import os
-          import time
           import urllib.error
           import urllib.request
 
@@ -35,76 +34,63 @@ jobs:
           if not key:
               raise SystemExit("GEMINI_API_KEY secret is empty")
 
-          def call(url, payload=None, timeout=90):
+          def call(url, payload=None, timeout=25, headers=None):
               data = json.dumps(payload).encode() if payload is not None else None
-              headers = {"User-Agent": "content-factory-gemini-check"}
+              hdrs = {"User-Agent": "content-factory-gemini-check"}
+              hdrs.update(headers or {})
               if data is not None:
-                  headers["Content-Type"] = "application/json"
-              request = urllib.request.Request(url, data=data, headers=headers)
+                  hdrs["Content-Type"] = "application/json"
+              request = urllib.request.Request(url, data=data, headers=hdrs)
               with urllib.request.urlopen(request, timeout=timeout) as response:
                   return json.load(response)
 
-          models = call("https://generativelanguage.googleapis.com/v1beta/models?key=" + key)
+          models = call("https://generativelanguage.googleapis.com/v1beta/models?key=" + key, timeout=30)
           names = [m.get("name", "").split("/")[-1] for m in models.get("models") or []]
-          preferred = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash",
-                       "gemini-3.5-flash", "gemini-3.8-flash-lite", "gemini-3.5-flash-lite"]
+          print("models OK:", len(names))
+          preferred = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.7-flash",
+                       "gemini-3.8-flash", "gemini-3.5-flash-lite"]
           candidates = [n for n in preferred if n in names]
           if not candidates:
               candidates = [n for n in names if "flash" in n and "embedding" not in n][:5]
-          print("Gemini models OK; candidates:", candidates)
+          print("candidates:", candidates)
 
-          def native(model):
-              url = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s" % (model, key)
-              payload = {"contents": [{"parts": [{"text": "Reply with the single word: OK"}]}]}
-              answer = call(url, payload)
-              text = (answer.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")).strip()
-              if not text:
-                  raise RuntimeError("empty native response")
-              return text
-
-          def openai_compat(model):
-              url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
-              payload = {"model": model, "messages": [{"role": "user", "content": "Reply with the single word: OK"}]}
-              headers = {"Authorization": "Bearer " + key, "Content-Type": "application/json"}
-              request = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers)
-              with urllib.request.urlopen(request, timeout=90) as response:
-                  answer = json.load(response)
-              return (answer.get("choices", [{}])[0].get("message", {}).get("content", "") or "").strip()
-
-          native_ok = None
+          native_model = None
           for model in candidates:
-              for attempt in range(3):
-                  try:
-                      text = native(model)
-                      print("native generateContent OK (%s): %s" % (model, text))
-                      native_ok = model
-                      break
-                  except urllib.error.HTTPError as exc:
-                      body = exc.read()[:300].decode("utf-8", "replace")
-                      print("native %s attempt %s: HTTP %s %s" % (model, attempt + 1, exc.code, body))
-                      time.sleep(2 + attempt * 3)
-                  except Exception as exc:  # noqa: BLE001
-                      print("native %s attempt %s: %s" % (model, attempt + 1, exc))
-                      time.sleep(2 + attempt * 3)
-              if native_ok:
-                  break
-          if not native_ok:
-              raise SystemExit("no model answered generateContent")
-
-          compat_ok = None
-          for model in [native_ok] + [c for c in candidates if c != native_ok]:
               try:
-                  text = openai_compat(model)
-                  print("OpenAI-compatible OK (%s): %s" % (model, text))
-                  compat_ok = model
+                  url = ("https://generativelanguage.googleapis.com/v1beta/models/"
+                         + model + ":generateContent?key=" + key)
+                  answer = call(url, {"contents": [{"parts": [{"text": "Reply with the single word: OK"}]}]}, timeout=30)
+                  text = (answer.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")).strip()
+                  print("native OK (%s): %s" % (model, text))
+                  native_model = model
                   break
               except urllib.error.HTTPError as exc:
-                  body = exc.read()[:300].decode("utf-8", "replace")
-                  print("openai-compat %s: HTTP %s %s" % (model, exc.code, body))
+                  print("native %s: HTTP %s %s" % (model, exc.code, exc.read()[:200].decode("utf-8", "replace")))
+              except Exception as exc:  # noqa: BLE001
+                  print("native %s: %s" % (model, exc))
+          if not native_model:
+              raise SystemExit("native generateContent failed on all candidates")
+
+          compat_model = None
+          for model in [native_model] + [c for c in candidates if c != native_model]:
+              try:
+                  url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+                  answer = call(
+                      url,
+                      {"model": model, "messages": [{"role": "user", "content": "Reply with the single word: OK"}]},
+                      timeout=30,
+                      headers={"Authorization": "Bearer " + key},
+                  )
+                  text = (answer.get("choices", [{}])[0].get("message", {}).get("content", "") or "").strip()
+                  print("openai-compat OK (%s): %s" % (model, text))
+                  compat_model = model
+                  break
+              except urllib.error.HTTPError as exc:
+                  print("openai-compat %s: HTTP %s %s" % (model, exc.code, exc.read()[:200].decode("utf-8", "replace")))
               except Exception as exc:  # noqa: BLE001
                   print("openai-compat %s: %s" % (model, exc))
-          if not compat_ok:
+          if not compat_model:
               raise SystemExit("OpenAI-compatible endpoint failed")
 
-          print("RESULT: key OK, native model=%s, openai-compat model=%s" % (native_ok, compat_ok))
+          print("RESULT: key OK; native=%s; openai-compat=%s" % (native_model, compat_model))
           PY
