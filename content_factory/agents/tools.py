@@ -145,6 +145,7 @@ DISTRIBUTION_WORKFLOWS = (
     ("tumblr-digest", "Tumblr"),
     ("pins-generate", "Pinterest"),
     ("vp-outreach", "ВП-аутрич"),
+    ("buffer-queue", "Buffer"),
 )
 
 

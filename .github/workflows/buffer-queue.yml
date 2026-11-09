@@ -38,6 +38,14 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Ensure data dir
+        run: mkdir -p data
+      - name: Restore queue state
+        uses: actions/cache@v4
+        with:
+          path: data/buffer_state.json
+          key: buffer-state-${{ github.run_id }}
+          restore-keys: buffer-state-
       - name: Queue daily pin
         run: |
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.live }}" = "true" ]; then

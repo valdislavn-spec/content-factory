@@ -16,7 +16,7 @@ import os
 import sys
 import re
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -334,6 +334,7 @@ def main(argv=None) -> int:
     parser.add_argument("--mode", default="", help="override mode: addToQueue/shareNow/customScheduled")
     parser.add_argument("--date", default="", help="override day (YYYY-MM-DD) for rotation/log")
     parser.add_argument("--report", default=str(ROOT / "data" / "reports"))
+    parser.add_argument("--state", default="", help="файл состояния (антиповтор/история)")
     parser.add_argument("--require-affiliate", dest="require_affiliate", action="store_true", default=True,
                         help="block live publishing for pins without a Travelpayouts redirect")
     parser.add_argument("--allow-no-affiliate", dest="require_affiliate", action="store_false")
@@ -366,18 +367,52 @@ def main(argv=None) -> int:
         return 1
     now = datetime.now(timezone.utc)
     day = args.date or now.strftime("%Y-%m-%d")
-    index = now.timetuple().tm_yday % len(pin_files)
+    start = now.timetuple().tm_yday % len(pin_files)
 
-    slug = pin_files[index].stem
-    pin_is_affiliate = slug in affiliate_slugs
-    if args.live and args.require_affiliate and not pin_is_affiliate:
-        print("skip: pin %s has no Travelpayouts affiliate link (docs/go/%s.html) — publishing blocked" % (slug, slug))
+    # Quality-гейт: только хорошие посты — курируемый список пинов, без
+    # повторов, с картинкой и непустыми title/description.
+    quality = config.get("quality") or {}
+    allowed = {str(item) for item in (quality.get("allowed_slugs") or []) if str(item).strip()}
+    repeat_days = int(quality.get("repeat_after_days") or 14)
+    require_image = bool(quality.get("require_image", True))
+    state_path = Path(args.state or (ROOT / str(config.get("state_path") or "data/buffer_state.json")))
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        state = {}
+    chosen = None
+    for offset in range(len(pin_files)):
+        candidate = pin_files[(start + offset) % len(pin_files)]
+        candidate_slug = candidate.stem
+        if allowed and candidate_slug not in allowed:
+            print("quality: skip %s — не входит в курируемый список" % candidate_slug)
+            continue
+        previous = str(state.get(candidate_slug) or "")[:10]
+        if previous:
+            try:
+                if (date.fromisoformat(day) - date.fromisoformat(previous)).days < repeat_days:
+                    print("quality: skip %s — уже публиковался %s" % (candidate_slug, previous))
+                    continue
+            except ValueError:
+                pass
+        candidate_sidecar = json.loads(candidate.read_text(encoding="utf-8"))
+        candidate_payload = candidate_sidecar.get("pin") or {}
+        if not (candidate_payload.get("title") and candidate_payload.get("description")):
+            print("quality: skip %s — пустые title/description" % candidate_slug)
+            continue
+        candidate_image = candidate_sidecar.get("image_url") or candidate_payload.get("media_source", {}).get("url") or ""
+        if require_image and not str(candidate_image).startswith("http"):
+            print("quality: skip %s — нет картинки" % candidate_slug)
+            continue
+        chosen = (candidate, candidate_sidecar, candidate_payload)
+        break
+    if chosen is None:
+        print("quality: нет подходящего пина на %s (повторы/качество) — очередь не пополняем" % day)
         return 0
-
-    sidecar = json.loads(pin_files[index].read_text(encoding="utf-8"))
-    pin_payload = sidecar.get("pin") or {}
+    pin_file, sidecar, pin_payload = chosen
+    slug = pin_file.stem
     pin = {
-        "slug": pin_files[index].stem,
+        "slug": slug,
         "title": pin_payload.get("title") or sidecar.get("title") or "",
         "description": pin_payload.get("description") or sidecar.get("description") or "",
         "niche": sidecar.get("niche") or pin_payload.get("niche") or "",
@@ -386,7 +421,7 @@ def main(argv=None) -> int:
         "article_url": sidecar.get("article_url") or "",
         "affiliate": bool(sidecar.get("affiliate") or pin_payload.get("link")),
     }
-    print("pin:", pin_files[index].name, "| date:", day, "| channels:", len(channels))
+    print("pin:", pin_file.name, "| date:", day, "| channels:", len(channels))
 
     client = BufferClient.from_env() if args.live else BufferClient(token="preview")
     results = []
@@ -427,8 +462,13 @@ def main(argv=None) -> int:
                     print("link:", post.get("externalLink"))
                 print("queued:", channel.get("service"), "->", post.get("dueAt"))
             except BufferError as error:
-                record["error"] = str(error)
-                print("FAIL:", channel.get("service"), error)
+                message = str(error)
+                if "limit" in message.lower():
+                    record["skipped"] = "limit"
+                    print("queue full:", channel.get("service"), message[:160])
+                    continue
+                record["error"] = message
+                print("FAIL:", channel.get("service"), message)
         else:
             record["ok"] = True
             print("--- %s (%d chars) ---\n%s" % (channel.get("service"), len(text), text))
@@ -439,9 +479,13 @@ def main(argv=None) -> int:
     report_dir = Path(args.report)
     report_dir.mkdir(parents=True, exist_ok=True)
     report = report_dir / ("buffer-queue-%s.json" % day)
-    report.write_text(json.dumps({"pin": pin_files[index].name, "results": results}, ensure_ascii=False, indent=2), encoding="utf-8")
+    report.write_text(json.dumps({"pin": pin_file.name, "results": results}, ensure_ascii=False, indent=2), encoding="utf-8")
+    if args.live and any(item.get("ok") for item in results):
+        state[slug] = day
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        state_path.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
     print("report:", report)
-    return 0 if all(item["ok"] for item in results) else 1
+    return 0 if all(item.get("ok") or item.get("skipped") for item in results) else 1
 
 
 if __name__ == "__main__":

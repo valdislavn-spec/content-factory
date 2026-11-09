@@ -78,3 +78,15 @@ channels:
     metadata:
       facebook:
         type: post
+
+# Quality-гейт: в очередь попадают только хорошие (отобранные) посты.
+quality:
+  allowed_slugs:
+    - 01-europe-for-under-300
+    - 02-bali-on-a-budget
+    - 03-48-hours-in-rome
+    - 04-travel-insurance-mistakes
+  repeat_after_days: 14
+  min_text: 80
+  require_image: true
+state_path: data/buffer_state.json
