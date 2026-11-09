@@ -160,3 +160,22 @@ Benable «Travel essentials I actually use» — 15 items (добавлены к
 insurance/compensation; остальные пины: Europe under $300, 3 winter escapes).
 Всего QR-пинов: 7 (`assets/pins/qr/`), CSV для Pinterest: `docs/pinterest-import-qr.csv`
 (7 строк: Media URL + Link + Description).
+
+## Редизайн пинов v2 — по best practices Pinterest 2026 (09.11.2026)
+
+Источник практик: [Pin design 2026 — verified](https://github.com/social-media-skills/skills/blob/main/skills/pinterest-pin-design/references/pin-design-2026-reality.md)
+(2:3 1000×1500; ≤6 слов крупным bold-оверлеем; текст в верхней трети;
+5–8% поля; бренд НЕ в правом нижнем углу; lifestyle/outcome imagery;
+свежие пины = новый дизайн, а не репін).
+
+Что изменено в v2 (`assets/pins/qr-v2/`, скрипт `scripts/build_qr_pins_v2.py`):
+- светлая редакционная палитра (крем/чернила) вместо тёмного градиента;
+- крупный Playfair-заголовок ≤6 слов + ключевик в оверлее и в title;
+- keyword-пилюля справа сверху, бренд «VALDISLAV · TRAVEL NOTES» слева сверху;
+- иллюстративная сцена-«фото» (исход/пейзаж), а не стерильный фон;
+- QR и короткая ссылка — слева снизу (не под иконками Pinterest справа снизу);
+- CTA-кнопка «Find flights →», дисклеймер «Ad · affiliate link»;
+- поля ~6%, критичное не у краёв.
+
+CSV обновлён на v2: `docs/pinterest-import-qr.csv` (7 строк, Media URL → `/assets/pins/qr-v2/...`).
+Старые v1 остаются в `/assets/pins/qr/` (для A/B и «fresh pins» — это разные дизайны одного URL).

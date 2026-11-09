@@ -1,0 +1,44 @@
+[
+ {
+  "slug": "bali-budget-qr",
+  "file": "docs/assets/pins/qr-v2/bali-budget-qr.png",
+  "url": "https://is.gd/BaliTrip",
+  "alias": "is.gd/BaliTrip"
+ },
+ {
+  "slug": "dubai-weekend-qr",
+  "file": "docs/assets/pins/qr-v2/dubai-weekend-qr.png",
+  "url": "https://is.gd/DubaiTrip",
+  "alias": "is.gd/DubaiTrip"
+ },
+ {
+  "slug": "winter-sun-qr",
+  "file": "docs/assets/pins/qr-v2/winter-sun-qr.png",
+  "url": "https://is.gd/Flights",
+  "alias": "is.gd/Flights"
+ },
+ {
+  "slug": "europe-under-300-qr",
+  "file": "docs/assets/pins/qr-v2/europe-under-300-qr.png",
+  "url": "https://is.gd/EuropeTrip",
+  "alias": "is.gd/EuropeTrip"
+ },
+ {
+  "slug": "travel-esim-qr",
+  "file": "docs/assets/pins/qr-v2/travel-esim-qr.png",
+  "url": "https://is.gd/ESimDeal",
+  "alias": "is.gd/ESimDeal"
+ },
+ {
+  "slug": "car-rental-qr",
+  "file": "docs/assets/pins/qr-v2/car-rental-qr.png",
+  "url": "https://is.gd/CarRental",
+  "alias": "is.gd/CarRental"
+ },
+ {
+  "slug": "flight-compensation-qr",
+  "file": "docs/assets/pins/qr-v2/flight-compensation-qr.png",
+  "url": "https://is.gd/Compensair",
+  "alias": "is.gd/Compensair"
+ }
+]
