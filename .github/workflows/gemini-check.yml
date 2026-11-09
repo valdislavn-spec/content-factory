@@ -27,7 +27,10 @@ jobs:
           import urllib.error
           import urllib.request
 
-          key = (os.environ.get("GEMINI_API_KEY") or "").strip()
+          raw = os.environ.get("GEMINI_API_KEY") or ""
+          key = raw.strip()
+          print("secret diagnostics: len=%s stripped_len=%s whitespace=%s newlines=%s"
+                % (len(raw), len(key), any(ch.isspace() for ch in raw), raw.count("\n")))
           if not key:
               raise SystemExit("GEMINI_API_KEY secret is empty")
 
@@ -44,15 +47,9 @@ jobs:
                   body = exc.read()[:400].decode("utf-8", "replace")
                   raise SystemExit("Gemini HTTP {}: {}".format(exc.code, body))
 
-          models = call(
-              "https://generativelanguage.googleapis.com/v1beta/models?key=" + key
-          )
+          models = call("https://generativelanguage.googleapis.com/v1beta/models?key=" + key)
           names = [m.get("name", "").split("/")[-1] for m in models.get("models") or []]
-          flash = [
-              name
-              for name in names
-              if "flash" in name and "embedding" not in name and "image" not in name
-          ]
+          flash = [n for n in names if "flash" in n and "embedding" not in n and "image" not in n]
           if not flash:
               raise SystemExit("no flash model in: {}".format(names[:10]))
           model = flash[0]
@@ -60,18 +57,10 @@ jobs:
 
           answer = call(
               "https://generativelanguage.googleapis.com/v1beta/models/"
-              + model
-              + ":generateContent?key="
-              + key,
+              + model + ":generateContent?key=" + key,
               {"contents": [{"parts": [{"text": "Reply with the single word: OK"}]}]},
           )
-          text = (
-              answer.get("candidates", [{}])[0]
-              .get("content", {})
-              .get("parts", [{}])[0]
-              .get("text", "")
-              .strip()
-          )
+          text = (answer.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")).strip()
           if not text:
               raise SystemExit("empty response: {}".format(json.dumps(answer)[:400]))
           print("Gemini generation OK, response:", text)
