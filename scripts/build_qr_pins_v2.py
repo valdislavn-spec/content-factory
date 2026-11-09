@@ -100,7 +100,9 @@ def render(pin, out_dir):
     ctext=pin["cta"]+"  \u2192"; cw=draw.textlength(ctext,font=cta)
     draw.rounded_rectangle((64+186+40,1358,64+186+40+cw+56,1428),radius=35,fill=INK)
     draw.text((64+186+40+28,1376),ctext,font=cta,fill=CREAM)
-    draw.text((64,1468),"Ad \u00b7 affiliate link \u00b7 prices change",font=tiny,fill=MUTED)
+    link_font=ImageFont.truetype(inter,26)
+    draw.text((64,1440),"Book: https://"+pin["alias"],font=link_font,fill=INK)
+    draw.text((64,1476),"Ad \u00b7 affiliate link \u00b7 prices change",font=tiny,fill=MUTED)
     out_dir.mkdir(parents=True,exist_ok=True)
     path=out_dir/f"{pin['slug']}.png"; img.save(path,"PNG"); return path
 
