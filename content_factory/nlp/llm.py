@@ -917,6 +917,13 @@ _NAMED_PROVIDERS: Dict[str, Dict[str, str]] = {
         "api_key_env": "OPENAI_API_KEY",
         "model": "gpt-4o-mini",
     },
+    "gemini": {
+        # Google Gemini через OpenAI-совместимый endpoint (AI Studio key).
+        # Из РФ недоступен (400 location not supported) — работает в Actions/VPN.
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "api_key_env": "GEMINI_API_KEY",
+        "model": "gemini-2.5-flash",
+    },
 }
 
 

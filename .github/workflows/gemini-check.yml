@@ -1,0 +1,78 @@
+name: gemini-check
+
+# Разовая проверка, что секрет GEMINI_API_KEY живой и Gemini API отвечает
+# с раннера GitHub Actions (из РФ API недоступен — 400 location not supported).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: gemini-check
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call Gemini API (models + generateContent)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          key = (os.environ.get("GEMINI_API_KEY") or "").strip()
+          if not key:
+              raise SystemExit("GEMINI_API_KEY secret is empty")
+
+          def call(url, payload=None):
+              data = json.dumps(payload).encode() if payload is not None else None
+              headers = {"User-Agent": "content-factory-gemini-check"}
+              if data is not None:
+                  headers["Content-Type"] = "application/json"
+              request = urllib.request.Request(url, data=data, headers=headers)
+              try:
+                  with urllib.request.urlopen(request, timeout=60) as response:
+                      return json.load(response)
+              except urllib.error.HTTPError as exc:
+                  body = exc.read()[:400].decode("utf-8", "replace")
+                  raise SystemExit("Gemini HTTP {}: {}".format(exc.code, body))
+
+          models = call(
+              "https://generativelanguage.googleapis.com/v1beta/models?key=" + key
+          )
+          names = [m.get("name", "").split("/")[-1] for m in models.get("models") or []]
+          flash = [
+              name
+              for name in names
+              if "flash" in name and "embedding" not in name and "image" not in name
+          ]
+          if not flash:
+              raise SystemExit("no flash model in: {}".format(names[:10]))
+          model = flash[0]
+          print("Gemini models OK, using:", model)
+
+          answer = call(
+              "https://generativelanguage.googleapis.com/v1beta/models/"
+              + model
+              + ":generateContent?key="
+              + key,
+              {"contents": [{"parts": [{"text": "Reply with the single word: OK"}]}]},
+          )
+          text = (
+              answer.get("candidates", [{}])[0]
+              .get("content", {})
+              .get("parts", [{}])[0]
+              .get("text", "")
+              .strip()
+          )
+          if not text:
+              raise SystemExit("empty response: {}".format(json.dumps(answer)[:400]))
+          print("Gemini generation OK, response:", text)
+          PY
