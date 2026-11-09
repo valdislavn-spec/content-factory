@@ -923,6 +923,12 @@ _NAMED_PROVIDERS: Dict[str, Dict[str, str]] = {
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
         "api_key_env": "GEMINI_API_KEY",
         "model": "gemini-3.6-flash",
+    },    "pollinations": {
+        # Pollinations: бесплатный OpenAI-совместимый шлюз, ключ не нужен.
+        # Анонимный лимит ~1 запрос в 3 секунды; для постов этого хватает.
+        "base_url": "https://text.pollinations.ai/openai",
+        "api_key_env": "",
+        "model": "openai",
     },
 }
 
