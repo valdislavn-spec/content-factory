@@ -15,6 +15,9 @@ jobs:
     timeout-minutes: 5
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TRAVELPAYOUTS_API_TOKEN: ${{ secrets.TRAVELPAYOUTS_API_TOKEN }}
+      TRAVELPAYOUTS_MARKER: ${{ secrets.TRAVELPAYOUTS_MARKER }}
+      TRAVELPAYOUTS_TRS: ${{ secrets.TRAVELPAYOUTS_TRS }}
       TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
       ALERT_GITHUB_TOKEN: ${{ secrets.ALERT_GITHUB_TOKEN }}
     steps:

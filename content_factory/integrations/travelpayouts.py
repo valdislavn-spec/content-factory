@@ -19,11 +19,13 @@ from __future__ import annotations
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
 
 API_URL = "https://api.travelpayouts.com/links/v1/create"
+FINANCE_URL = "https://api.travelpayouts.com/finance/v2"
 MAX_LINKS = 10
 
 
@@ -84,6 +86,45 @@ class TravelpayoutsClient:
             raise TravelpayoutsError("%s: %s" % (type(error).__name__, error)) from error
         result = data.get("result") or {}
         return list(result.get("links") or [])
+
+
+    # ------------------------------------------------------------------
+    # Финансы: баланс, следующая выплата, история выплат
+    # ------------------------------------------------------------------
+    def _finance(self, method: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        if not self.token:
+            raise TravelpayoutsError("Travelpayouts: нет API-токена")
+        url = FINANCE_URL + "/" + method
+        if params:
+            url += "?" + urllib.parse.urlencode(params)
+        request = urllib.request.Request(
+            url,
+            headers={
+                "X-Access-Token": self.token,
+                "Accept": "application/json",
+                "User-Agent": "content-factory-travelpayouts/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                return json.loads(response.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as error:
+            raise TravelpayoutsError("HTTP %s: %s" % (error.code, error.read()[:300])) from error
+        except Exception as error:  # noqa: BLE001
+            raise TravelpayoutsError("%s: %s" % (type(error).__name__, error)) from error
+
+    def balance(self) -> Dict[str, str]:
+        """Текущий баланс: {"usd": "...", "eur": "...", "rub": "..."}."""
+        return dict((self._finance("get_user_balance").get("balance") or {}))
+
+    def next_payout(self) -> Dict[str, str]:
+        """Сумма следующей выплаты по валютам."""
+        return dict((self._finance("get_user_next_payout").get("next_payout") or {}))
+
+    def payments(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """История выплат (список)."""
+        data = self._finance("get_user_payments", {"limit": int(limit)})
+        return list(data or [])
 
 
 def partner_url(converted: Dict[str, Any], original: str) -> str:

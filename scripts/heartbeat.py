@@ -106,6 +106,39 @@ def llm_usage_line() -> str:
     return line
 
 
+def travelpayouts_line() -> str:
+    """Баланс Travelpayouts + число подключённых программ."""
+    try:
+        import yaml
+    except Exception:
+        pass
+    token = os.environ.get("TRAVELPAYOUTS_API_TOKEN", "").strip()
+    if not token:
+        return "Travelpayouts: нет токена"
+    programs = 0
+    try:
+        import yaml
+
+        data = yaml.safe_load(open("config/affiliate_links.yaml", encoding="utf-8")) or {}
+        programs = len((data.get("programs") or {}))
+    except Exception:  # noqa: BLE001
+        programs = 0
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from content_factory.integrations.travelpayouts import TravelpayoutsClient
+
+        client = TravelpayoutsClient(
+            token=token,
+            marker=os.environ.get("TRAVELPAYOUTS_MARKER", "").strip(),
+            trs=os.environ.get("TRAVELPAYOUTS_TRS", "597672"),
+        )
+        balance = client.balance().get("usd", "0")
+        payout = client.next_payout().get("usd", "0")
+        return "Travelpayouts: $" + str(balance) + " · к выплате $" + str(payout) + " · программ " + str(programs)
+    except Exception as error:  # noqa: BLE001
+        return "Travelpayouts: ошибка " + type(error).__name__
+
+
 def main() -> int:
     token = os.environ.get("ALERT_GITHUB_TOKEN", "").strip()
     now = datetime.now(timezone.utc)
@@ -130,6 +163,7 @@ def main() -> int:
         lines.append("ALERT_GITHUB_TOKEN не задан — статус без деталей")
     lines.append(subscribers_line())
     lines.append(llm_usage_line())
+    lines.append(travelpayouts_line())
     text = "\n".join(lines)
     print(text)
     script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "notify_telegram.py")
