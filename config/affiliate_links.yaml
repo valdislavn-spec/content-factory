@@ -1,0 +1,37 @@
+marker: '674170'
+trs: 597672
+generated_by: scripts/tp_all_links.py
+programs:
+  aviasales:
+    brand_url: https://www.aviasales.com/
+    partner_url: https://aviasales.tpk.ro/2ZW95Xpf
+  tiqets:
+    brand_url: https://www.tiqets.com/
+    partner_url: https://tiqets.tpk.ro/ia533rks
+  klook:
+    brand_url: https://www.klook.com/
+    partner_url: https://klook.tpk.ro/v1zmjFuk
+  saily:
+    brand_url: https://saily.com/
+    partner_url: https://saily.tpk.ro/hQujMoYq
+  airalo:
+    brand_url: https://www.airalo.com/
+    partner_url: https://airalo.tpk.ro/nGPgTNDu
+  yesim:
+    brand_url: https://yesim.app/
+    partner_url: https://yesim.tpk.ro/aU7AT4LC
+  kiwitaxi:
+    brand_url: https://kiwitaxi.com/
+    partner_url: https://kiwitaxi.tpk.ro/EuN6AoPO
+  compensair:
+    brand_url: https://compensair.com/
+    partner_url: https://compensair.tpk.ro/yhsBLUP1
+  airhelp:
+    brand_url: https://www.airhelp.com/
+    partner_url: https://airhelp.tpk.ro/WbJKruUg
+  welcomepickups:
+    brand_url: https://www.welcomepickups.com/
+    partner_url: https://tpk.ro/a66T8gV7
+  wegotrip:
+    brand_url: https://wegotrip.com/
+    partner_url: https://wegotrip.tpk.ro/JpsOLmuW

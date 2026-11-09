@@ -108,6 +108,28 @@ def _short(url: str, enabled: bool) -> str:
     return shorten_url(url)
 
 
+_TP_PROGRAMS_CACHE: list = []
+
+
+def tp_programs() -> list:
+    """Все подключённые программы Travelpayouts (config/affiliate_links.yaml)."""
+    if not _TP_PROGRAMS_CACHE:
+        path = ROOT / "config" / "affiliate_links.yaml"
+        try:
+            import yaml as _yaml
+
+            data = _yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            programs = data.get("programs") or {}
+            _TP_PROGRAMS_CACHE.extend(
+                str(item.get("partner_url") or "").strip()
+                for item in programs.values()
+                if isinstance(item, dict) and item.get("partner_url")
+            )
+        except Exception:  # noqa: BLE001
+            pass
+    return _TP_PROGRAMS_CACHE
+
+
 _PARTNER_CACHE: dict = {}
 
 
@@ -252,7 +274,11 @@ def build_text(pin: dict, channel: dict, hub_url: str, config: dict = None, day_
     tg_channel = _short(tg_link, shorten) if len(tg_link) > 40 else tg_link
     partners = (config or {}).get("niche_partners") or {}
     partner = str(partners.get(niche) or "").strip()
-    partner = _short(partner, shorten) if partner else ""
+    if niche == "travel":
+        programs = tp_programs()
+        if programs:
+            partner = programs[day_index % len(programs)]
+    partner = _short(partner, shorten) if partner and len(partner) > 40 else partner
     partner_label = str((config or {}).get("partner_label") or "Ad:")
     if service in ("twitter", "x"):
         return build_x(pin, article, style, limit, tg_channel, partner, partner_label)

@@ -171,3 +171,19 @@ def test_partner_line_for_crypto(monkeypatch):
     pin["slug"] = "05-bitcoin-at-100k"
     text = build_text(pin, CHANNEL_X, HUB, config)
     assert "Ad: https://links.example/r/bingx" in text
+
+
+def test_travel_ad_rotates_all_programs(monkeypatch):
+    monkeypatch.setattr("scripts.buffer_queue.shorten_url", lambda url: url)
+    monkeypatch.setattr(
+        "scripts.buffer_queue.tp_programs",
+        lambda: ["https://a.tpk.ro/1", "https://b.tpk.ro/2", "https://c.tpk.ro/3"],
+    )
+    config = dict(CONFIG)
+    config["niches"] = {"travel": dict(CONFIG["niches"]["travel"])}
+    text0 = build_text(PIN, CHANNEL_X, HUB, config, day_index=0)
+    text1 = build_text(PIN, CHANNEL_X, HUB, config, day_index=1)
+    text2 = build_text(PIN, CHANNEL_X, HUB, config, day_index=2)
+    assert "Ad: https://a.tpk.ro/1" in text0
+    assert "Ad: https://b.tpk.ro/2" in text1
+    assert "Ad: https://c.tpk.ro/3" in text2
