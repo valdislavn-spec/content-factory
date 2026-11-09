@@ -26,12 +26,22 @@ jobs:
         run: python scripts/flights_digest.py --origin MOW --top 12
       - name: Commit page
         run: |
-          if git diff --quiet docs/flights data/flights; then
-            echo "no changes"
-            exit 0
-          fi
           git config user.name "dsh-agent"
           git config user.email "dsh-agent@users.noreply.github.com"
           git add docs/flights data/flights
+          if git diff --cached --quiet; then
+            echo "no changes"
+            exit 0
+          fi
           git commit -m "chore(flights): daily cheap flights digest"
-          git push
+          git pull --rebase origin main || true
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "pushed on attempt $attempt"
+              exit 0
+            fi
+            sleep 5
+            git pull --rebase origin main || true
+          done
+          echo "push failed after retries"
+          exit 1
