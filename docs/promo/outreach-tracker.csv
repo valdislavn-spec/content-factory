@@ -1,22 +1,14 @@
 partner,channel_url,region,subs,avg_views,contact,status,offer,date_contacted,date_posted,our_post_url,their_post_url,subs_delta_48h,notes
-@utoday_en,https://t.me/utoday_en,EN,4380,70,,prospect,1:1 post,,,,,,
-@cryptodotnews,https://t.me/cryptodotnews,EN,5690,61,,prospect,1:1 post,,,,,,
-@web3newsfeed,https://t.me/web3newsfeed,EN,11700,65,,prospect,1:1 post,,,,,,
-@the_block_crypto,https://t.me/the_block_crypto,EN,24300,316,,prospect,2 their posts / 1 ours,,,,,,
+@utoday_en,https://t.me/utoday_en,EN,4380,70,@GlebOrsi,prospect,1:1 post,,,,,,U.Today BD (gleb.orsi@u.today); alt @eugene_utoday / eugene.ster@u.today
+@cryptodotnews,https://t.me/cryptodotnews,EN,5690,61,sales@crypto.news,prospect,1:1 post,,,,,,official ad inquiries
+@web3newsfeed,https://t.me/web3newsfeed,EN,11700,65,contact@hashtagweb3.com,prospect,1:1 post,,,,,,Hashtag Web3 team; TG @web3jobs_rep; group @hashtagweb3
+@the_block_crypto,https://t.me/the_block_crypto,EN,24300,316,https://www.theblock.co/contact,prospect,2 their posts / 1 ours,,,,,,official contact form; no public email
 @bitcoinnews,https://t.me/bitcoinnews,EN,12400,52,@LukaGrantTG,prospect,1:1 or 2:1,,,,,,
-@tipsanalistas,https://t.me/tipsanalistas,ES,,18269,,prospect,1:1 or paid $3-8,,,,,,
-@jotabet01,https://t.me/jotabet01,ES,,,,prospect,1:1 or paid $3-8,,,,,,
-@Goolal90,https://t.me/Goolal90,ES,10500,277,@YanSierraFCB,prospect,1:1 or paid $3-8,,,,,,
-@lapremier,https://t.me/lapremier,ES,,,,prospect,1:1 or paid $3-8,,,,,,
-@apuestasnbaess,https://t.me/apuestasnbaess,ES,,,,prospect,1:1 or paid $3-8,,,,,,
-@prodatabasexpert,https://t.me/prodatabasexpert,ES,,,,prospect,1:1 or paid $3-8,,,,,,
-@stakeanalistasbets,https://t.me/stakeanalistasbets,ES,,,,prospect,1:1 or paid $3-8,,,,,,
-@sbganalitica,https://t.me/sbganalitica,ES,,5093,@sbganalitic,prospect,1:1 or paid $3-8,,,,,,
-@justhodling,https://t.me/justhodling,EN,3670,239,,prospect,1:1 (RU/UA audience — optional),,,,,,
-@officer_cia,https://t.me/officer_cia,EN,,1278,@officercia,prospect,paid test $10-20,,,,,,
-@cryptodep,https://t.me/cryptodep,EN,,1602,@Cryptodepchat / @kupermanA,prospect,paid test $10-20,,,,,,
-@cryptodiffer,https://t.me/cryptodiffer,EN,,2964,@natecryptodiffer,prospect,paid test $15-30,,,,,,
-@defillama_tg,https://t.me/defillama_tg,EN,,2296,,prospect,paid test $15-30,,,,,,
-@incrypted_headlines,https://t.me/incrypted_headlines,EN,,3082,@IncryptedContactBot,prospect,paid test $15-30,,,,,,
-@cryptoquant_official,https://t.me/cryptoquant_official,EN,,5493,@cryptoquant_alert,prospect,paid test $20-40,,,,,,
-@TheWolfOfYourStreet,https://t.me/TheWolfOfYourStreet,EN,,1357,@Max_Grishko,prospect,paid test $10-20,,,,,,
+@tipsanalistas,https://t.me/tipsanalistas,ES,,18269,@JoseSancha,prospect,1:1 or paid $3-8,,,,,,owner contact from channel description
+@jotabet01,https://t.me/jotabet01,ES,,,@jotabet007,prospect,1:1 or paid $3-8,,,,,,premium/info channel; owner contact not explicit
+@Goolal90,https://t.me/Goolal90,ES,10500,277,@blaugranasiempre,prospect,1:1 or paid $3-8,,,,,,publicidad contact in description
+@lapremier,https://t.me/lapremier,ES,,,@debatelapremier,prospect,1:1 or paid $3-8,,,,,,linked discussion chat (probably admin team)
+@apuestasnbaess,https://t.me/apuestasnbaess,ES,,,,invalid,1:1 or paid $3-8,,,,,,username not found via Bot API; re-scan needed
+@prodatabasexpert,https://t.me/prodatabasexpert,ES,,,,invalid,1:1 or paid $3-8,,,,,,username not found via Bot API/search; re-scan needed
+@stakeanalistasbets,https://t.me/+2Av29uwZ69lhYTE5,ES,,,@Rafaanalista,prospect,1:1 or paid $3-8,,,,,,closed channel; ID 1772965686; contact from description
+@sbganalitica,https://t.me/sbganalitica,ES,,5093,@sbganalitic,prospect,1:1 or paid $3-8,,,,,,alt @kalexeev (cooperation/ads)
