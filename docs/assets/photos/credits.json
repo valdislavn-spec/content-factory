@@ -1,0 +1,51 @@
+{
+ "bali": {
+  "file": "docs/assets/photos/bali.jpg",
+  "query": "Bali rice terrace",
+  "license": "CC BY 4.0",
+  "author": "Philip Nalangan",
+  "source": "https://commons.wikimedia.org/wiki/File%3ATegallalang_Rice_Terraces_Bali.jpg"
+ },
+ "dubai": {
+  "file": "docs/assets/photos/dubai.jpg",
+  "query": "Dubai skyline",
+  "license": "CC BY-SA 4.0",
+  "author": "Stefano Vigorelli",
+  "source": "https://commons.wikimedia.org/wiki/File%3ADubai_skyline%2C_Dubai_UAE.jpg"
+ },
+ "lisbon": {
+  "file": "docs/assets/photos/lisbon.jpg",
+  "query": "Lisbon tram",
+  "license": "CC BY-SA 4.0",
+  "author": "Berthold Werner",
+  "source": "https://commons.wikimedia.org/wiki/File%3ALisbon_BW_2018-10-03_13-34-55.jpg"
+ },
+ "europe": {
+  "file": "docs/assets/photos/europe.jpg",
+  "query": "Rome Colosseum",
+  "license": "CC0",
+  "author": "Wilfredor",
+  "source": "https://commons.wikimedia.org/wiki/File%3AColosseum_of_Rome_and_Roman_forum.jpg"
+ },
+ "esim": {
+  "file": "docs/assets/photos/esim.jpg",
+  "query": "airport terminal traveller phone",
+  "license": "CC BY-SA 3.0",
+  "author": "Dragfyre",
+  "source": "https://commons.wikimedia.org/wiki/File%3ADN_Int%27l_Airport_Jetstar_Check-in.jpg"
+ },
+ "car": {
+  "file": "docs/assets/photos/car.jpg",
+  "query": "coastal road car",
+  "license": "Public domain",
+  "author": "",
+  "source": "https://commons.wikimedia.org/wiki/File%3ARambla_de_la_ciudad_de_Mercedes_-_01929FMHGE.tif"
+ },
+ "flight": {
+  "file": "docs/assets/photos/flight.jpg",
+  "query": "airport departure board",
+  "license": "CC BY-SA 3.0",
+  "author": "Tiia Monto",
+  "source": "https://commons.wikimedia.org/wiki/File%3ADeparture_board_at_Geneva_Airport.jpg"
+ }
+}
