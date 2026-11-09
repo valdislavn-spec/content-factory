@@ -1,0 +1,156 @@
+# Партнёрские (affiliate) ссылки по каналам — единый реестр.
+#
+# Статусы программ:
+#   ready          — ссылка есть, можно ставить (только такие попадают в блоки)
+#   pending        — заявка/аккаунт в процессе, ссылки ещё нет
+#   awaiting_login — аккаунт есть, нужен вход (2FA/капча/SSO) и генерация ссылки
+#   blocked        — нельзя (гео/санкции/требования)
+#
+# Правила: 1 партнёрский блок на 5 обычных постов, в каждом блоке — раскрытие
+# «реклама / advertising», 18+ для спортивных каналов. Без обещаний доходности.
+
+disclosure:
+  en: "Advertising / affiliate link. We may earn a commission if you sign up. No guaranteed returns."
+  es: "Publicidad / enlace de afiliado. Podemos recibir una comisión si te registras. Sin rendimientos garantizados."
+  age_18: "18+"
+
+rules:
+  affiliate_every: 5          # один партнёрский блок на столько обычных постов
+
+programs:
+  mylead:
+    title: "MyLead"
+    kind: "network_referral"
+    status: ready
+    url: "https://mylead.global/r/dJ67Qo"
+    commission: "5% от заработка приглашённого"
+    note: "реферальная ссылка CPA-сети (VPN, crypto, gambling офферы)"
+  collaborator:
+    title: "Collaborator.pro"
+    kind: "network_referral"
+    status: ready
+    url: "https://collaborator.pro/ru/signup?code=m9Vidx"
+    commission: "реферальная программа площадки"
+    note: "реферальная ссылка площадки рекламодателей"
+  writesonic:
+    title: "Writesonic"
+    kind: "affiliate"
+    status: pending
+    url: ""
+    commission: "20–30%"
+    note: "AI-writing; заявка pending"
+  bitget:
+    title: "Bitget"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "40% старт → до 50% RevShare"
+    note: "проверено 09.11: 100+ подписчиков, заявка ≤24 ч; US ограничен"
+  mexc:
+    title: "MEXC"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "до 70% RevShare (lifetime)"
+    note: "проверено 09.11: 500+ подписчиков, 2 акции/мес, заявка 3 дня; US ограничен"
+  kraken:
+    title: "Kraken"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "CPA/RevShare"
+    note: "US-доступная биржа; через Impact"
+  onexbet:
+    title: "1xBet"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "CPA $20–150 / RevShare"
+    age_restricted: true
+    note: "беттинг, 18+, гео-ограничения"
+  n1partners:
+    title: "N1 Partners"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "CPA/RevShare"
+    age_restricted: true
+    note: "iGaming CPA, 18+"
+  hotmart:
+    title: "Hotmart"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "до 50–70% (курсы)"
+    note: "ES/LatAm курсы; нужен вход"
+  bingx:
+    title: "BingX"
+    kind: "affiliate"
+    status: blocked
+    url: ""
+    commission: "до 50% RevShare"
+    note: "US/Canada/UK/SG/NL/HK запрещены → для EN-канала не подходит"
+  elevenlabs:
+    title: "ElevenLabs"
+    kind: "affiliate"
+    status: blocked
+    url: ""
+    commission: "20–30%"
+    note: "блок по IP/санкциям"
+
+  kraken:
+    title: "Kraken"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "до 50% RevShare, USDC ежемесячно"
+    note: "проверено 09.11: US-совместим, заявка ≤5 дней; Impact или in-house"
+  crypto_com:
+    title: "Crypto.com"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "до 50% комиссий, lifetime, ежедневно USDC"
+    note: "проверено 09.11: US-совместим, sub-affiliates; заявка"
+  coinbase:
+    title: "Coinbase"
+    kind: "affiliate"
+    status: awaiting_login
+    url: ""
+    commission: "50% торговых комиссий первые 3 мес"
+    note: "проверено 09.11: через Impact, PayPal/банк; US/EU-условия"
+  jasper:
+    title: "Jasper"
+    kind: "affiliate"
+    status: pending
+    url: ""
+    commission: "25–30% × 12 мес [вторично]"
+    note: "AI-writing, через PartnerStack; заявка"
+
+channels:
+  crypto-news:
+    language: en
+    utm_source: tg_crypto_en
+    programs: [mylead, collaborator, bitget, mexc, kraken, crypto_com, coinbase]
+  ai-news:
+    language: en
+    utm_source: tg_ai_en
+    programs: [mylead, collaborator, writesonic, jasper]
+  sport-news:
+    language: en
+    utm_source: tg_sport_en
+    age_restricted: true
+    programs: [mylead, collaborator, onexbet, n1partners]
+  crypto-es:
+    language: es
+    utm_source: tg_crypto_es
+    programs: [mylead, collaborator, bitget, mexc, hotmart]
+  tech-ai-es:
+    language: es
+    utm_source: tg_ai_es
+    programs: [mylead, collaborator, writesonic, jasper, hotmart]
+  futbol-es:
+    language: es
+    utm_source: tg_sport_es
+    age_restricted: true
+    programs: [mylead, collaborator, onexbet, n1partners, hotmart]
