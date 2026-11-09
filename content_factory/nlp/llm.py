@@ -922,7 +922,7 @@ _NAMED_PROVIDERS: Dict[str, Dict[str, str]] = {
         # Из РФ недоступен (400 location not supported) — работает в Actions/VPN.
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
         "api_key_env": "GEMINI_API_KEY",
-        "model": "gemini-3.8-flash",
+        "model": "gemini-3.6-flash",
     },
 }
 
