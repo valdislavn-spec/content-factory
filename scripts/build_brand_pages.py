@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 PAGES_BASE = "https://valdislavn-spec.github.io/content-factory"
+BOARDS_FILE = ROOT / "config" / "pinterest_boards.yaml"
 PINS_DIR = ROOT / "docs" / "assets" / "pins" / "brand"
 OG_DIR = ROOT / "docs" / "assets" / "og"
 MANIFEST = ROOT / "config" / "pinterest_brand_urls.yaml"
@@ -55,6 +56,18 @@ def _channels(settings) -> Dict[str, Any]:
         except Exception:  # noqa: BLE001
             continue
     return result
+
+
+def channel_boards() -> Dict[str, str]:
+    """channel_id → board_id Pinterest (config/pinterest_boards.yaml)."""
+    import yaml
+
+    try:
+        data = yaml.safe_load(BOARDS_FILE.read_text(encoding="utf-8")) or {}
+        raw = data.get("channels") or {}
+        return {str(key): str(value) for key, value in raw.items() if str(value).strip()}
+    except Exception:  # noqa: BLE001
+        return {}
 
 
 def _ready_partners() -> List[Dict[str, Any]]:
@@ -118,6 +131,7 @@ def build_pins() -> int:
     brand_config = templates.load_config()
     PINS_DIR.mkdir(parents=True, exist_ok=True)
     manifest: Dict[str, str] = {}
+    boards = channel_boards()
     with Storage(settings.db_path) as storage:
         for index, (channel_id, channel) in enumerate(sorted(channels.items())):
             topic = TOPIC_BY_CHANNEL.get(channel_id, "ai")
@@ -144,6 +158,7 @@ def build_pins() -> int:
             description = (topic_cfg.get("subtitle") or "") + (
                 " Advertising / affiliate link." if partner else "") + " Telegram: " + str(
                 getattr(channel, "description", "") or "")
+            board_id = boards.get(channel_id) or "<BOARD_ID>"
             payload = {
                 "image_url": image_url,
                 "file": str(stable.relative_to(ROOT)),
@@ -151,7 +166,7 @@ def build_pins() -> int:
                 "affiliate": bool(partner),
                 "disclosure": "Advertising / affiliate link.",
                 "pin": {
-                    "board_id": "<BOARD_ID>",
+                    "board_id": board_id,
                     "title": pin_title,
                     "description": description[:500],
                     "alt_text": pin_title,
@@ -163,8 +178,11 @@ def build_pins() -> int:
             manifest[channel_id] = image_url
             print(f"pin: {image_url}")
     MANIFEST.write_text(
-        "# Брендовые пины для Pinterest (GitHub Pages). Автогенерация build_brand_pages.py\nchannels:\n"
-        + "".join(f"  {channel_id}: {url!r}\n" for channel_id, url in manifest.items()),
+        "# Брендовые пины для Pinterest (GitHub Pages). Автогенерация build_brand_pages.py\n"
+        "channels:\n"
+        + "".join(f"  {channel_id}: {url!r}\n" for channel_id, url in manifest.items())
+        + "boards:\n"
+        + "".join(f"  {channel_id}: {boards.get(channel_id, '')!r}\n" for channel_id in manifest),
         encoding="utf-8",
     )
     return 0

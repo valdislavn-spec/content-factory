@@ -1,0 +1,10 @@
+# Доски Pinterest (id найдены через публичный профиль / vladislavpint).
+# Используются скриптами build_brand_pages.py / post_pins.py и публикатором.
+channels:
+  ai-news: "1105774583449690078"      # AI tools
+  tech-ai-es: "1105774583449690078"   # AI tools
+  crypto-news: "1105774583449690077"  # Crypto
+  crypto-es: "1105774583449690077"    # Crypto
+  sport-news: "1105774583449690079"   # Sports
+  futbol-es: "1105774583449690079"    # Sports
+default: ""

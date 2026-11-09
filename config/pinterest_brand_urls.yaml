@@ -6,3 +6,10 @@ channels:
   futbol-es: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/futbol-es-sports-collaborator.png'
   sport-news: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/sport-news-sports-mylead.png'
   tech-ai-es: 'https://valdislavn-spec.github.io/content-factory/assets/pins/brand/tech-ai-es-ai-collaborator.png'
+boards:
+  ai-news: '1105774583449690078'
+  crypto-es: '1105774583449690077'
+  crypto-news: '1105774583449690077'
+  futbol-es: '1105774583449690079'
+  sport-news: '1105774583449690079'
+  tech-ai-es: '1105774583449690078'

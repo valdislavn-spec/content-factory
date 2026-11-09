@@ -130,6 +130,9 @@ python scripts/build_brand_pages.py --all
   `scripts/post_pins.py --only-affiliate`);
 - манифест `config/pinterest_brand_urls.yaml` — публикатор Pinterest берёт
   URL брендового пина канала, если не задан `PINTEREST_IMAGE_URL[_CHANNEL]`;
+- доски: `config/pinterest_boards.yaml` (channel_id → board_id) — реальные id
+  подставляются в JSON-сайдкары, чтобы `post_pins.py` публиковал на нужную доску
+  без `PINTEREST_BOARD_ID`;
 - OG: `docs/assets/og/<page>.png`, в HTML добавляются `og:image`, `twitter:image`
   и `twitter:card=summary_large_image`;
 - Pages база: `https://valdislavn-spec.github.io/content-factory`.
