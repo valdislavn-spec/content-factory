@@ -127,9 +127,12 @@ def fetch_kraken(pair: str, interval: str, limit: int) -> List[Dict[str, float]]
     symbol = _SYMBOLS["kraken"].get(pair)
     if not symbol:
         return []
+    # Kraken из GitHub Actions/ряда сетей отвечает медленно — короткий таймаут,
+    # чтобы не тормозить весь запуск сигналов.
     data = _http_json(
         "https://api.kraken.com/0/public/OHLC",
         {"pair": symbol, "interval": _INTERVALS["kraken"][interval]},
+        timeout=5.0,
     )
     result = data.get("result") or {}
     rows = next((value for key, value in result.items() if key != "last"), []) or []
