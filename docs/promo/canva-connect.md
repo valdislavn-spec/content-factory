@@ -29,3 +29,29 @@ Canva не включает REST API (Outside Canva → Start integrating), по
 - Pexels/Unsplash API — реальные фото для пинов (free).
 - Hugging Face (ключ уже в .env) — AI-фоны для пинов.
 - Собственный рендер HTML→PNG через headless Chrome — без внешних сервисов.
+
+## Реализовано (09.11.2026)
+
+Подготовлена интеграция, чтобы после включения MFA/пароля всё заработало без доработок:
+
+| Файл | Что делает |
+|---|---|
+| `content_factory/integrations/canva.py` | OAuth: PKCE (public/private) и client credentials (service); авто-refresh токена; `profile()`, `list_designs()`, `export_design()` с polling и скачиванием PNG в `assets/canva/` |
+| `scripts/canva_connect.py` | CLI: `service`, `login` (печатает URL + verifier), `login --code`, `check`, `designs`, `export --design-id` |
+| `tests/test_canva.py` | 8 тестов (PKCE, токены, refresh, экспорт, без сети) |
+
+Токен хранится в `data/canva_token.json` (gitignored). Env:
+`CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET`, `CANVA_REDIRECT_URI`
+(по умолчанию `http://127.0.0.1:8085/callback`), `CANVA_SCOPES`.
+
+### Остались только действия в аккаунте (без них Canva API не включается)
+
+1. Задать пароль: Canva → Forgot password на `valdislav.n@gmail.com` (аккаунт на SSO);
+2. Включить MFA (Settings → Login & security → Two-step verification);
+3. Developer Portal → приложение **Content Factory Pins** → Outside Canva →
+   Start integrating → создать auth client → Client ID + Secret;
+4. Вписать в `.env` (или прислать): `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET`.
+
+После этого: `python scripts/canva_connect.py login` → открыть ссылку →
+`login --code ... --verifier ...` → `check` → `export --design-id ...`
+(экспорт PNG в `assets/canva/`).
