@@ -1,79 +1,56 @@
 """Многофункциональный операционный агент контент-завода.
 
-Лёгкий agent-loop без внешних фреймворков: LLM выбирает инструмент из
-компактного реестра, получает короткое наблюдение и в конце отдаёт сводку.
-Бюджет токенов ограничен: максимум ``max_steps`` вызовов, ``max_tokens`` 480
-на ответ, наблюдения обрезаются. Если LLM недоступна — детерминированная
-сводка без единого токена.
+Схема экономит токены и устойчива к бесплатным лимитам:
+1. Детерминированно собирает данные семью инструментами (без LLM).
+2. Один LLM-вызов пишет сводку и 3 приоритета по сжатым фактам.
+3. Если LLM недоступна (429/503/пусто) — детерминированная сводка без токенов.
 
 Запуск:
-    python -m content_factory.agents.ops_agent            # сводка в stdout
-    python -m content_factory.agents.ops_agent --send     # ещё и в Telegram
-    python -m content_factory.agents.ops_agent --task "проверь промо и метрики"
+    python -m content_factory.agents.ops_agent
+    python -m content_factory.agents.ops_agent --send
+    python -m content_factory.agents.ops_agent --task "проверь промо"
 """
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, Optional, Sequence
 
 from ..config import Settings
 from ..nlp.llm import FallbackLLMClient, LLMClient, OpenAICompatibleLLM, _build_llm
 from ..utils import env
-from .tools import TOOLS, call_tool, tools_prompt
+from .tools import call_tool
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_TASK = (
-    "Ежедневный обход: собери метрики роста каналов, проверь здоровье пайплайна, "
-    "статус промо и расход LLM. Дай короткую сводку и 3 приоритетных действия на сегодня."
+    "Ежедневный обход: метрики роста, здоровье пайплайна, промо, расход LLM. "
+    "Дай короткую сводку и 3 приоритетных действия на сегодня."
 )
 SYSTEM = (
-    "Ты — операционный агент контент-завода Telegram-каналов. "
-    "Отвечай ТОЛЬКО валидным JSON без markdown: "
-    '{{"action":"<инструмент>","args":{{}}}} либо '
-    '{{"action":"finish","args":{{"text":"..."}}}}. '
-    "Сначала собери данные инструментами (не больше {max_steps}), затем finish. "
-    "Не выдумывай цифры — только из наблюдений. Финальный текст ≤900 символов, "
-    "по-русски: ключевые числа, что срочно, 3 приоритетных действия.\n\n"
-    "Инструменты:\n{tools}"
+    "Ты — операционный аналитик контент-завода Telegram-каналов. "
+    "По сжатым данным ниже напиши сводку ≤900 символов и ровно 3 приоритетных "
+    "действия на день. Только факты и числа из данных, без выдумок. По-русски."
 )
-
-
-def _extract_json(text: str) -> Optional[Dict[str, Any]]:
-    if not text:
-        return None
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        return None
-    try:
-        data = json.loads(match.group(0))
-    except ValueError:
-        return None
-    return data if isinstance(data, dict) else None
 
 
 def build_client(settings: Settings, model: str = "gemini") -> LLMClient:
-    """Gemini (AI Studio) → второй Gemini-проект → Pollinations (без ключа).
-
-    Два разных проекта дают независимые бесплатные лимиты; если квота первого
-    кончилась (HTTP 429), агент продолжает на втором, затем на Pollinations.
-    """
-    chain: List[LLMClient] = [_build_llm(model or "gemini", settings)]
+    """Gemini-проект №1 → Gemini-проект №2 (своя квота) → Pollinations (без ключа)."""
+    chain = [_build_llm(model or "gemini", settings)]
     if model in ("gemini", "") and (env("GEMINI_API_KEY_ALT", "") or "").strip():
-        chain.append(
-            OpenAICompatibleLLM(
-                {
-                    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
-                    "api_key_env": "GEMINI_API_KEY_ALT",
-                    "model": "gemini-3.6-flash",
-                    "timeout": 120,
-                }
+        for alt_model in ("gemini-3.5-flash", "gemini-3.6-flash"):
+            chain.append(
+                OpenAICompatibleLLM(
+                    {
+                        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+                        "api_key_env": "GEMINI_API_KEY_ALT",
+                        "model": alt_model,
+                        "timeout": 90,
+                    }
+                )
             )
-        )
     chain.append(_build_llm("pollinations", settings))
     usable = [client for client in chain if client.available]
     if not usable:
@@ -83,68 +60,65 @@ def build_client(settings: Settings, model: str = "gemini") -> LLMClient:
     return FallbackLLMClient(usable)
 
 
-def run_agent(
+def collect_data(tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool) -> Dict[str, Any]:
+    """Все инструменты один раз; у каждого инструмента своя защита от сбоев."""
+    return {
+        "channels": tool_runner("channels", {}),
+        "growth": tool_runner("growth", {"limit": 10}),
+        "health": tool_runner("health", {}),
+        "budget": tool_runner("budget", {}),
+        "promo": tool_runner("promo", {}),
+    }
+
+
+def compact_data(data: Dict[str, Any], limit: int = 1500) -> str:
+    text = json.dumps(data, ensure_ascii=False, default=str)
+    return text[:limit]
+
+
+def analyze(
     client: LLMClient,
     task: str,
+    data: Dict[str, Any],
     *,
-    max_steps: int = 6,
-    max_tokens: int = 480,
-    tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool,
+    max_tokens: int = 700,
 ) -> str:
-    """Цикл «мысль → инструмент → наблюдение», возвращает финальный текст."""
-    observations: List[str] = []
-    steps = 0
-    system = SYSTEM.format(max_steps=max_steps, tools=tools_prompt())
-    for _ in range(max_steps + 1):
-        prompt = "Задача: {}\n\nНаблюдения:\n{}".format(
-            task, "\n".join(observations) if observations else "(пока нет)"
-        )
-        raw = client.generate(prompt, system=system, max_tokens=max_tokens, temperature=0.2)
-        data = _extract_json(raw)
-        if data is None:
-            observations.append("ОШИБКА: ответ не JSON. Верни ровно один JSON-объект.")
-            continue
-        action = str(data.get("action") or "").strip()
-        args = data.get("args") if isinstance(data.get("args"), dict) else {}
-        if action == "finish":
-            text = str(args.get("text") or "").strip()
-            if text:
-                return text
-            observations.append("ОШИБКА: пустой finish.text")
-            continue
-        if action not in TOOLS:
-            observations.append("ОШИБКА: неизвестный инструмент {!r}".format(action))
-            continue
-        result = tool_runner(action, args)
-        observations.append(
-            "{} -> {}".format(action, json.dumps(result, ensure_ascii=False)[:900])
-        )
-        steps += 1
-        if steps >= max_steps:
-            break
-    return heuristic_summary(tool_runner)
+    """Один LLM-вызов: сводка по данным. Пустая строка = модель не справилась."""
+    prompt = "Задача: {}\n\nСжатые данные (JSON):\n{}".format(task, compact_data(data))
+    return client.generate(
+        prompt, system=SYSTEM, max_tokens=max_tokens, temperature=0.2, keep_lines=True
+    )
 
 
 def heuristic_summary(
+    data: Optional[Dict[str, Any]] = None,
     tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool,
 ) -> str:
     """Детерминированная сводка без LLM (токенов не тратит)."""
+    if data is None:
+        data = collect_data(tool_runner)
     lines = ["📊 Оперативная сводка (без LLM)"]
-    channels = tool_runner("channels", {})
+    channels = data.get("channels")
     if isinstance(channels, list):
         lines.append("Каналов: {}".format(len(channels)))
-    health = tool_runner("health", {})
+    health = data.get("health")
     if isinstance(health, list) and health:
         ok = ("success", "completed", "queued", "in_progress", "waiting", "requested", "")
         bad = [run for run in health if str(run.get("status", "")) not in ok]
-        lines.append("Последние запуски Actions: {}, проблемных: {}".format(len(health), len(bad)))
+        lines.append("Запуски Actions: {}, проблемных: {}".format(len(health), len(bad)))
         if bad:
-            lines.append("Проблемы: " + ", ".join(str(item.get("name")) for item in bad[:3]))
-    budget = tool_runner("budget", {})
-    if isinstance(budget, dict) and budget.get("tokens"):
-        tokens = budget["tokens"]
+            names = [str(item.get("name")) for item in bad[:3]]
+            lines.append("Проблемы: " + ", ".join(names))
+    growth = data.get("growth")
+    if isinstance(growth, dict) and growth.get("summary"):
+        tail = [line for line in str(growth["summary"]).splitlines() if line.strip()][-3:]
+        lines.extend(tail)
+    promo = data.get("promo")
+    if isinstance(promo, dict) and promo.get("outreach_rows") is not None:
         lines.append(
-            "Токены: {}/{}".format(tokens.get("total"), tokens.get("limit") or "—")
+            "ВП-трекер: {} строк, статусы {}".format(
+                promo.get("outreach_rows"), promo.get("statuses") or {}
+            )
         )
     lines.append("Приоритет: метрики → проблемные запуски → промо.")
     return "\n".join(lines)
@@ -159,8 +133,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Операционный агент контент-завода")
     parser.add_argument("--task", default="", help="Свободная задача вместо ежедневной")
     parser.add_argument("--send", action="store_true", help="Отправить итог в Telegram")
-    parser.add_argument("--max-steps", type=int, default=6)
-    parser.add_argument("--max-tokens", type=int, default=480)
+    parser.add_argument("--max-tokens", type=int, default=700)
     parser.add_argument("--model", default="gemini")
     return parser.parse_args(argv)
 
@@ -169,11 +142,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     settings = Settings.load()
     task = (args.task or "").strip() or DEFAULT_TASK
+    data = collect_data()
+    text = ""
     client = build_client(settings, args.model)
+    describe = getattr(client, "describe", None)
+    if callable(describe):
+        print("LLM: " + describe(), file=sys.stderr)
     if client.available:
-        text = run_agent(client, task, max_steps=args.max_steps, max_tokens=args.max_tokens)
-    else:
-        text = heuristic_summary()
+        text = analyze(client, task, data, max_tokens=args.max_tokens).strip()
+        if text:
+            print("LLM provider: " + client.name, file=sys.stderr)
+    if not text:
+        print("LLM недоступна — детерминированная сводка", file=sys.stderr)
+        text = heuristic_summary(data)
     print(text)
     if args.send:
         return _send_telegram(text)

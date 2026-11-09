@@ -1,6 +1,7 @@
-"""Тесты операционного агента: loop, JSON-протокол, инструменты, фолбэк."""
+"""Тесты операционного агента: сбор данных, один LLM-вызов, фолбэки, клиенты."""
 from __future__ import annotations
 
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -11,10 +12,11 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from content_factory.agents.ops_agent import (  # noqa: E402
-    _extract_json,
+    analyze,
     build_client,
+    collect_data,
+    compact_data,
     heuristic_summary,
-    run_agent,
 )
 from content_factory.agents.tools import TOOLS, call_tool, tools_prompt  # noqa: E402
 from content_factory.config import Settings  # noqa: E402
@@ -32,55 +34,80 @@ class ScriptedLLM(LLMClient):
         return self.answers.pop(0) if self.answers else ""
 
 
-class OpsAgentLoopTests(unittest.TestCase):
-    def test_tool_then_finish(self) -> None:
-        client = ScriptedLLM(
-            [
-                '{"action":"channels","args":{}}',
-                '{"action":"finish","args":{"text":"Готово: 6 каналов"}}',
-            ]
-        )
-        calls = []
+def fake_runner(name, args):
+    return {
+        "channels": [{"id": "ai-news", "title": "AI News"}],
+        "growth": {"ok": True, "summary": "Всего: 3681 подп.\nCrypto: 3666"},
+        "health": [{"name": "content-factory", "status": "success"}],
+        "budget": {"tokens": {"total": 100, "limit": 700000}},
+        "promo": {"outreach_rows": 2, "statuses": {"negotiating": 2}},
+    }[name]
+
+
+def fake_data():
+    return {
+        "channels": [{"id": "ai-news"}],
+        "growth": {"summary": "Всего: 3681 подп."},
+        "health": [{"name": "content-factory", "status": "success"}],
+        "budget": {"tokens": {"total": 100}},
+        "promo": {"outreach_rows": 2, "statuses": {}},
+    }
+
+
+class OpsAgentTests(unittest.TestCase):
+    def test_collect_data_uses_all_tools(self) -> None:
+        seen = []
 
         def runner(name, args):
-            calls.append(name)
-            return [{"id": "ai-news"}]
+            seen.append(name)
+            return fake_runner(name, args)
 
-        text = run_agent(client, "сводка", tool_runner=runner)
-        self.assertEqual(text, "Готово: 6 каналов")
-        self.assertEqual(calls, ["channels"])
-        self.assertEqual(client.calls, 2)
+        data = collect_data(runner)
+        self.assertEqual(set(seen), {"channels", "growth", "health", "budget", "promo"})
+        self.assertIn("channels", data)
 
-    def test_invalid_json_is_retried(self) -> None:
-        client = ScriptedLLM(["не JSON", '{"action":"finish","args":{"text":"ок"}}'])
-        text = run_agent(client, "задача", tool_runner=lambda name, args: {})
-        self.assertEqual(text, "ок")
+    def test_analyze_returns_llm_text(self) -> None:
+        client = ScriptedLLM(["Сводка: всё ок. 1) метрики 2) промо 3) бюджет"])
+        text = analyze(client, "обход", {"channels": []})
+        self.assertIn("Сводка", text)
+        self.assertEqual(client.calls, 1)
 
-    def test_unknown_tool_reported_to_model(self) -> None:
-        captured = {}
+    def test_heuristic_when_llm_empty(self) -> None:
+        client = ScriptedLLM([""])
+        self.assertEqual(analyze(client, "обход", {"channels": []}), "")
+        summary = heuristic_summary(fake_data())
+        self.assertIn("Оперативная сводка", summary)
+        self.assertIn("Каналов: 1", summary)
+        self.assertIn("проблемных: 0", summary)
 
-        def runner(name, args):
-            return {}
+    def test_compact_data_truncates(self) -> None:
+        big = {"channels": [{"id": "x" * 100} for _ in range(100)]}
+        self.assertLessEqual(len(compact_data(big, limit=200)), 200)
 
-        client = ScriptedLLM(
-            ['{"action":"nope","args":{}}', '{"action":"finish","args":{"text":"итог"}}']
-        )
-        self.assertEqual(run_agent(client, "t", tool_runner=runner), "итог")
+    def test_build_client_without_gemini_uses_pollinations(self) -> None:
+        settings = Settings.load(load_env=False)
+        saved = os.environ.pop("GEMINI_API_KEY", None)
+        try:
+            client = build_client(settings)
+        finally:
+            if saved is not None:
+                os.environ["GEMINI_API_KEY"] = saved
+        self.assertTrue(client.available)
+        self.assertEqual(client.name, "pollinations")
 
-    def test_max_steps_falls_back_to_heuristic(self) -> None:
-        answers = ['{"action":"channels","args":{}}'] * 10
-        client = ScriptedLLM(answers)
-        tools = {"channels": {"fn": lambda args: [], "desc": "x"}}
-        with mock.patch(
-            "content_factory.agents.ops_agent.heuristic_summary", return_value="heuristic"
-        ):
-            text = run_agent(client, "t", max_steps=2, tool_runner=lambda name, args: [])
-        self.assertEqual(text, "heuristic")
+    def test_fallback_client_skips_failed_provider(self) -> None:
+        class Failing(LLMClient):
+            def __init__(self):
+                super().__init__(name="failing", available=True, config={})
 
-    def test_extract_json_handles_fences(self) -> None:
-        self.assertEqual(_extract_json('```json\n{"a":1}\n```'), {"a": 1})
-        self.assertIsNone(_extract_json("ничего"))
-        self.assertIsNone(_extract_json("[1,2]"))
+            def _generate(self, prompt, system, max_tokens, temperature):
+                raise RuntimeError("quota")
+
+        good = ScriptedLLM(["ответ"])
+        client = FallbackLLMClient([Failing(), good])
+        self.assertTrue(client.available)
+        self.assertIn("ответ", client.generate("prompt"))
+        self.assertEqual(client.name, "scripted")
 
 
 class OpsToolsTests(unittest.TestCase):
@@ -93,8 +120,7 @@ class OpsToolsTests(unittest.TestCase):
             self.assertIn(name, prompt)
 
     def test_unknown_tool_returns_error(self) -> None:
-        result = call_tool("missing", {})
-        self.assertIn("error", result)
+        self.assertIn("error", call_tool("missing", {}))
 
     def test_channels_tool_uses_settings(self) -> None:
         settings = Settings.load(load_env=False)
@@ -116,43 +142,6 @@ class OpsToolsTests(unittest.TestCase):
         self.assertEqual(rows[0]["id"], "ai-news")
         self.assertEqual(rows[0]["username"], "AINEWS0007")
 
-    def test_heuristic_works_without_llm(self) -> None:
-        tool_runner = lambda name, args: (  # noqa: E731
-            [{"id": "a"}] if name == "channels" else ({} if name == "budget" else [])
-        )
-        text = heuristic_summary(tool_runner)
-        self.assertIn("Оперативная сводка", text)
-        self.assertIn("Каналов: 1", text)
-
 
 if __name__ == "__main__":
     unittest.main()
-
-
-class OpsClientTests(unittest.TestCase):
-    def test_build_client_without_gemini_uses_pollinations(self) -> None:
-        import os
-
-        settings = Settings.load(load_env=False)
-        saved = os.environ.pop("GEMINI_API_KEY", None)
-        try:
-            client = build_client(settings)
-        finally:
-            if saved is not None:
-                os.environ["GEMINI_API_KEY"] = saved
-        self.assertTrue(client.available)
-        self.assertEqual(client.name, "pollinations")
-
-    def test_fallback_client_skips_failed_provider(self) -> None:
-        class Failing(LLMClient):
-            def __init__(self):
-                super().__init__(name="failing", available=True, config={})
-
-            def _generate(self, prompt, system, max_tokens, temperature):
-                raise RuntimeError("quota")
-
-        good = ScriptedLLM(['{"action":"finish","args":{"text":"ok"}}'])
-        client = FallbackLLMClient([Failing(), good])
-        self.assertTrue(client.available)
-        self.assertIn("ok", client.generate("prompt"))
-        self.assertEqual(client.name, "scripted")
