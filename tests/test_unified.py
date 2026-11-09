@@ -39,7 +39,7 @@ class UnifiedConfigTests(unittest.TestCase):
     def test_load_unified_config(self):
         config = unified.load_unified()
         self.assertIn("pipeline", config)
-        self.assertEqual(config["pipeline"]["expected_posts_per_day"], 90)
+        self.assertEqual(config["pipeline"]["expected_posts_per_day"], 30)
         self.assertEqual(config["brain"]["engine"], "langgraph")
         self.assertTrue(config["trends"]["enabled"])
         self.assertIn("growth", config)

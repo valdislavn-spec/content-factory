@@ -168,22 +168,12 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:20"
-  - "03:40"
-  - "07:00"
-  - "08:00"
-  - "09:00"
-  - "10:20"
-  - "12:00"
-  - "13:00"
-  - "17:00"
+  - "06:00"
+  - "10:00"
+  - "14:00"
   - "18:00"
-  - "19:00"
-  - "20:00"
-  - "21:00"
   - "22:00"
-  - "23:00"
-  posts_per_day: 15
+  posts_per_day: 5
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
@@ -328,15 +318,12 @@ channels:
   - interactive
   - digest
   schedule:
-  - "08:00"
-  - "10:00"
-  - "12:00"
-  - "14:00"
-  - "17:00"
-  - "19:00"
-  - "21:00"
-  - "23:00"
-  posts_per_day: 8
+  - "06:10"
+  - "10:10"
+  - "14:10"
+  - "18:10"
+  - "22:10"
+  posts_per_day: 5
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
@@ -503,22 +490,12 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:40"
-  - "04:00"
-  - "07:20"
-  - "08:20"
-  - "09:20"
-  - "10:40"
-  - "12:20"
-  - "13:20"
-  - "17:20"
+  - "06:20"
+  - "10:20"
+  - "14:20"
   - "18:20"
-  - "19:20"
-  - "20:20"
-  - "21:20"
   - "22:20"
-  - "23:20"
-  posts_per_day: 15
+  posts_per_day: 5
   min_relevance: 0.18
   timezone_offset: -5
   max_post_chars: 1800
