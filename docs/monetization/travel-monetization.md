@@ -118,3 +118,30 @@ status: scheduled). Уже **отправленные** посты (17:16 и tra
 
 Формат: короткий список направлений, температура/чем заняться, одна словесная
 партнёрская ссылка. Подходит для серии (менять города и сезон).
+
+## Benable: Pinterest-карточки с QR-пинами (09.11.2026)
+
+Сделаны пины 1000×1500, где партнёрская ссылка **вшита в изображение** (QR +
+короткий адрес + пометка «Ad · affiliate link»), и опубликованы карточками в Benable.
+
+| Пин | QR ведёт на | Публичный файл |
+|---|---|---|
+| Bali on a budget | is.gd/BaliTrip | `assets/pins/qr/bali-budget-qr.png` |
+| Dubai weekend | is.gd/DubaiTrip | `assets/pins/qr/dubai-weekend-qr.png` |
+| 3 winter escapes | is.gd/Flights | `assets/pins/qr/winter-sun-qr.png` |
+| Europe under $300 | is.gd/EuropeTrip | `assets/pins/qr/europe-under-300-qr.png` |
+
+Benable-списки (аккаунт Huk007):
+- Dubai weekend → +«Dubai Trip» (6 items): https://benable.com/Huk007/dubai-weekend-a4
+- Travel essentials → +«Europe under $300», +«3 winter escapes» (12 items):
+  https://benable.com/Huk007/travel-essentials-i-actually-use-ad
+- Bali on a budget → +«Bali Trip» (6 items): https://benable.com/Huk007/bali-on-a-budget-c3
+- AI & Crypto tools → +«Bali Trip» (3 items; можно перенести/удалить позже):
+  https://benable.com/Huk007/ai-crypto-tools-i-use
+
+Каждая карточка: фото нашего QR-пина (импорт по ссылке из GitHub Pages),
+заметка с описанием и «Ad: affiliate link», ссылка карточки = партнёрская is.gd.
+
+Pinterest: готов `docs/pinterest-import-qr.csv` (Title, Media URL, Link, Description,
+board «Travel ideas») — импортировать через Pinterest Bulk create pins.
+Скрипт генерации: `scripts/build_qr_pins.py` (Pillow+segno, рендер в Docker).
