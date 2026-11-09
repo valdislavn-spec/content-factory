@@ -70,8 +70,6 @@ def render(pin, out_dir):
     head=ImageFont.truetype(playfair,124); prom=ImageFont.truetype(inter,34)
     cta=ImageFont.truetype(inter,30); tiny=ImageFont.truetype(inter,22)
     accent=pin["accent"]
-    draw.text((64,70),"V A L D I S L A V",font=brand,fill=INK)
-    draw.text((64,104),"T R A V E L   N O T E S",font=tiny,fill=MUTED)
     tw=draw.textlength(pin["tag"],font=tagf)
     draw.rounded_rectangle((W-64-tw-44,64,W-64,112),radius=24,fill=INK)
     draw.text((W-64-tw-22,78),pin["tag"],font=tagf,fill=CREAM)
@@ -95,14 +93,10 @@ def render(pin, out_dir):
     qr_img=Image.open(buf).convert("RGB").resize((186,186))
     draw.rounded_rectangle((50,1238,50+186+28,1238+186+28),radius=22,fill=(255,255,255))
     img.paste(qr_img,(64,1252))
-    draw.text((64+186+40,1258),"SCAN TO PLAN",font=tiny,fill=MUTED)
-    draw.text((64+186+40,1298),pin["alias"],font=cta,fill=INK)
     ctext=pin["cta"]+"  \u2192"; cw=draw.textlength(ctext,font=cta)
     draw.rounded_rectangle((64+186+40,1358,64+186+40+cw+56,1428),radius=35,fill=INK)
     draw.text((64+186+40+28,1376),ctext,font=cta,fill=CREAM)
-    link_font=ImageFont.truetype(inter,26)
-    draw.text((64,1440),"Book: https://"+pin["alias"],font=link_font,fill=INK)
-    draw.text((64,1476),"Ad \u00b7 affiliate link \u00b7 prices change",font=tiny,fill=MUTED)
+    draw.text((64,1464),"Ad",font=tiny,fill=MUTED)
     out_dir.mkdir(parents=True,exist_ok=True)
     path=out_dir/f"{pin['slug']}.png"; img.save(path,"PNG"); return path
 
