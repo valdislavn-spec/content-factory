@@ -100,6 +100,12 @@ class OpsAgentTests(unittest.TestCase):
         big = {"channels": [{"id": "x" * 100} for _ in range(100)]}
         self.assertLessEqual(len(compact_data(big, limit=200)), 200)
 
+    def test_compact_data_keeps_all_tools(self) -> None:
+        compact = compact_data(fake_data())
+        self.assertIn("ai-news", compact)
+        self.assertIn("content-factory:success", compact)
+        self.assertIn("Mastodon:success", compact)
+
     def test_build_client_without_gemini_uses_pollinations(self) -> None:
         settings = Settings.load(load_env=False)
         saved = os.environ.pop("GEMINI_API_KEY", None)

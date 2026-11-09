@@ -75,7 +75,37 @@ def collect_data(tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool) 
 
 
 def compact_data(data: Dict[str, Any], limit: int = 1900) -> str:
-    text = json.dumps(data, ensure_ascii=False, default=str)
+    """Сжимает данные так, чтобы все инструменты попали в промпт целиком."""
+
+    def rows(items: Any, first: str, second: str) -> List[str]:
+        result: List[str] = []
+        for item in items if isinstance(items, list) else []:
+            if isinstance(item, dict):
+                result.append("{}:{}".format(item.get(first) or "?", item.get(second) or "?"))
+            else:
+                result.append(str(item)[:60])
+        return result[:8]
+
+    growth = data.get("growth") or {}
+    health = data.get("health") or []
+    distribution = data.get("distribution") or {}
+    budget = data.get("budget") or {}
+    promo = data.get("promo") or {}
+    payload = {
+        "channels": [
+            row.get("id") if isinstance(row, dict) else str(row)[:40]
+            for row in (data.get("channels") or [])
+        ],
+        "growth": str(growth.get("summary") or "")[-900:] if isinstance(growth, dict) else "",
+        "health": rows(health, "name", "status"),
+        "distribution": rows(distribution.get("platforms") or [], "platform", "last"),
+        "budget": {"tokens": (budget.get("tokens") if isinstance(budget, dict) else {}) or {}},
+        "promo": {
+            "rows": promo.get("outreach_rows") if isinstance(promo, dict) else None,
+            "statuses": promo.get("statuses") if isinstance(promo, dict) else None,
+        },
+    }
+    text = json.dumps(payload, ensure_ascii=False, default=str)
     return text[:limit]
 
 
