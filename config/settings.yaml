@@ -88,7 +88,7 @@ llm:
   #   Pro/оплату (402). Когда остаток кончится — авто-переход на бесплатный
   #   Cloudflare Workers AI (10 000 neurons/день), затем на локальную Ollama.
   provider: groq
-  fallback: [gemini, pollinations, openrouter, ollama_cloud, cloudflare, ollama, gigachat, yandexgpt, dify, cohere, sambanova, huggingface, openai, deepseek]
+  fallback: [gemini, pollinations, openrouter, ollama_cloud, cloudflare, ollama, gigachat, yandexgpt, dify, cohere, sambanova]  # платные (openai/hf/deepseek) выключены до монетизации
   # Суточные лимиты по провайдерам: после исчерпания провайдер помечается
   # недоступным, и цепочка автоматически переходит к следующему (вплоть до
   # платного DeepSeek). Счётчики: data/llm_usage_<провайдер>.json, сброс в 00:00 UTC.
@@ -110,10 +110,10 @@ llm:
   stage_routes:
     analysis:
       provider: cloudflare
-      fallback: [gemini, pollinations, cohere, ollama_cloud, deepseek_chat, deepseek]
+      fallback: [gemini, pollinations, cohere, ollama_cloud]
     generation:
       provider: ollama_cloud       # бесплатные кредиты Ollama Cloud
-      fallback: [gemini, pollinations, deepseek_chat, cloudflare, cohere, deepseek]  # дальше — платный DeepSeek
+      fallback: [gemini, pollinations, cloudflare, cohere]  # дальше — платный DeepSeek
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3

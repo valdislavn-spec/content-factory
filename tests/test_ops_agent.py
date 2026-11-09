@@ -18,7 +18,12 @@ from content_factory.agents.ops_agent import (  # noqa: E402
     compact_data,
     heuristic_summary,
 )
-from content_factory.agents.tools import TOOLS, call_tool, tools_prompt  # noqa: E402
+from content_factory.agents.tools import (  # noqa: E402
+    TOOLS,
+    call_tool,
+    tool_distribution,
+    tools_prompt,
+)
 from content_factory.config import Settings  # noqa: E402
 from content_factory.nlp.llm import FallbackLLMClient, LLMClient  # noqa: E402
 
@@ -41,6 +46,10 @@ def fake_runner(name, args):
         "health": [{"name": "content-factory", "status": "success"}],
         "budget": {"tokens": {"total": 100, "limit": 700000}},
         "promo": {"outreach_rows": 2, "statuses": {"negotiating": 2}},
+        "distribution": {
+            "platforms": [{"platform": "Mastodon", "last": "success"}],
+            "failing": [],
+        },
     }[name]
 
 
@@ -51,6 +60,10 @@ def fake_data():
         "health": [{"name": "content-factory", "status": "success"}],
         "budget": {"tokens": {"total": 100}},
         "promo": {"outreach_rows": 2, "statuses": {}},
+        "distribution": {
+            "platforms": [{"platform": "Mastodon", "last": "success"}],
+            "failing": [],
+        },
     }
 
 
@@ -63,7 +76,9 @@ class OpsAgentTests(unittest.TestCase):
             return fake_runner(name, args)
 
         data = collect_data(runner)
-        self.assertEqual(set(seen), {"channels", "growth", "health", "budget", "promo"})
+        self.assertEqual(
+            set(seen), {"channels", "growth", "health", "budget", "promo", "distribution"}
+        )
         self.assertIn("channels", data)
 
     def test_analyze_returns_llm_text(self) -> None:
@@ -79,6 +94,7 @@ class OpsAgentTests(unittest.TestCase):
         self.assertIn("Оперативная сводка", summary)
         self.assertIn("Каналов: 1", summary)
         self.assertIn("проблемных: 0", summary)
+        self.assertIn("Дистрибуция: 1", summary)
 
     def test_compact_data_truncates(self) -> None:
         big = {"channels": [{"id": "x" * 100} for _ in range(100)]}
@@ -108,6 +124,43 @@ class OpsAgentTests(unittest.TestCase):
         self.assertTrue(client.available)
         self.assertIn("ответ", client.generate("prompt"))
         self.assertEqual(client.name, "scripted")
+
+
+class DistributionToolTests(unittest.TestCase):
+    class Resp:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def read(self, *args, **kwargs):
+            import json as _json
+
+            return _json.dumps(self.payload).encode()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def test_distribution_marks_failures(self) -> None:
+        import os
+        from unittest import mock
+
+        payload = {"workflow_runs": [{"conclusion": "failure", "created_at": "2026-11-09T09:00:00Z"}]}
+        with mock.patch.dict(os.environ, {"GITHUB_TOKEN": "test"}, clear=False), mock.patch(
+            "urllib.request.urlopen", return_value=self.Resp(payload)
+        ):
+            data = tool_distribution({})
+        self.assertEqual(len(data["platforms"]), 6)
+        self.assertIn("Mastodon", data["failing"])
+
+    def test_distribution_without_token(self) -> None:
+        import os
+        from unittest import mock
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            data = tool_distribution({})
+        self.assertIn("error", data)
 
 
 class OpsToolsTests(unittest.TestCase):

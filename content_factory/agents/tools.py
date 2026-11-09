@@ -126,6 +126,54 @@ def tool_budget(_args: Dict[str, Any]) -> Dict[str, Any]:
     return {"usage": usage, "tokens": tokens}
 
 
+DISTRIBUTION_WORKFLOWS = (
+    ("mastodon-daily", "Mastodon"),
+    ("fediverse-mix", "Fediverse"),
+    ("reddit-digest", "Reddit"),
+    ("tumblr-digest", "Tumblr"),
+    ("pins-generate", "Pinterest"),
+    ("vp-outreach", "ВП-аутрич"),
+)
+
+
+def tool_distribution(_args: Dict[str, Any]) -> Dict[str, Any]:
+    """Статус бесплатных площадок дистрибуции по последним запускам Actions."""
+    import urllib.request
+
+    token = env("GITHUB_TOKEN", "") or env("GH_TOKEN", "") or ""
+    if not token:
+        return {"error": "no GitHub token"}
+    base = "https://api.github.com/repos/valdislavn-spec/content-factory/actions/workflows/"
+    rows: List[Dict[str, Any]] = []
+    for filename, platform in DISTRIBUTION_WORKFLOWS:
+        url = base + filename + ".yml/runs?per_page=3"
+        request = urllib.request.Request(
+            url,
+            headers={"Authorization": "Bearer " + token, "User-Agent": "content-factory-ops-agent"},
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                runs = json.load(response).get("workflow_runs") or []
+        except Exception as exc:  # noqa: BLE001
+            rows.append({"platform": platform, "last": "error:" + type(exc).__name__})
+            continue
+        if not runs:
+            rows.append({"platform": platform, "last": "no runs"})
+            continue
+        last = runs[0]
+        rows.append(
+            {
+                "platform": platform,
+                "last": last.get("conclusion") or last.get("status"),
+                "at": (last.get("created_at") or "")[5:16],
+                "ok_of_3": sum(1 for run in runs if run.get("conclusion") == "success"),
+            }
+        )
+    healthy = ("success", "queued", "in_progress", "waiting", "requested", None)
+    failing = [row["platform"] for row in rows if row.get("last") not in healthy]
+    return {"platforms": rows, "failing": failing}
+
+
 def tool_promo(_args: Dict[str, Any]) -> Dict[str, Any]:
     path = ROOT / "docs" / "promo" / "outreach-tracker.csv"
     rows: List[Dict[str, str]] = []
@@ -191,6 +239,10 @@ TOOLS: Dict[str, Dict[str, Any]] = {
     "promo": {
         "fn": tool_promo,
         "desc": "Статус ВП-трекера и пакета каталогов.",
+    },
+    "distribution": {
+        "fn": tool_distribution,
+        "desc": "Статус бесплатных площадок (Mastodon/Reddit/Tumblr/Pinterest/ВП): последние запуски.",
     },
     "notes": {
         "fn": tool_notes_search,

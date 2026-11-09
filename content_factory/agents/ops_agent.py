@@ -70,10 +70,11 @@ def collect_data(tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool) 
         "health": tool_runner("health", {}),
         "budget": tool_runner("budget", {}),
         "promo": tool_runner("promo", {}),
+        "distribution": tool_runner("distribution", {}),
     }
 
 
-def compact_data(data: Dict[str, Any], limit: int = 1500) -> str:
+def compact_data(data: Dict[str, Any], limit: int = 1900) -> str:
     text = json.dumps(data, ensure_ascii=False, default=str)
     return text[:limit]
 
@@ -115,6 +116,16 @@ def heuristic_summary(
     if isinstance(growth, dict) and growth.get("summary"):
         tail = [line for line in str(growth["summary"]).splitlines() if line.strip()][-3:]
         lines.extend(tail)
+    distribution = data.get("distribution")
+    if isinstance(distribution, dict) and distribution.get("platforms"):
+        failing = distribution.get("failing") or []
+        lines.append(
+            "Дистрибуция: {} площадок, проблемных: {}".format(
+                len(distribution["platforms"]), len(failing)
+            )
+        )
+        if failing:
+            lines.append("Проблемы дистрибуции: " + ", ".join(str(x) for x in failing[:4]))
     promo = data.get("promo")
     if isinstance(promo, dict) and promo.get("outreach_rows") is not None:
         lines.append(
