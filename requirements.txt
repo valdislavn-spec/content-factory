@@ -10,3 +10,4 @@ PyYAML>=6.0
 
 # фото-карточки постов (Playfair Display + Inter)
 Pillow>=10.0
+segno>=1.6

@@ -305,6 +305,10 @@ brain:
   timeout: 300
 
 publishers:
+  # Брендовые карточки для партнёрских постов (config/brand_templates.yaml).
+  # Выключить: BRAND_CARDS=0 или enabled: false.
+  brand_cards:
+    enabled: true
   telegram:
     bot_token_env: TELEGRAM_BOT_TOKEN
     parse_mode: HTML

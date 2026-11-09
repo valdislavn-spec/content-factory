@@ -356,6 +356,16 @@ def publish_post(
                     post.meta["affiliate"] = line
     except Exception:  # noqa: BLE001 - рефералка не должна мешать публикации
         log.debug("Не удалось добавить реферальную строку для %s", channel.id, exc_info=True)
+    # Партнёрский пост: брендовая карточка с QR и раскрытием (вместо обычной).
+    if (post.meta or {}).get("affiliate"):
+        try:
+            from .brand.runtime import maybe_attach_affiliate_card
+
+            brand_path = maybe_attach_affiliate_card(post, channel, settings)
+            if brand_path:
+                log.info("Брендовая карточка партнёрского поста: %s", brand_path)
+        except Exception:  # noqa: BLE001
+            log.debug("Брендовая карточка не создана для %s", channel.id, exc_info=True)
     names = ["dryrun"] if effective_dry_run else list(channel.publisher_ids)
     results: List[PublishResult] = []
     for name in names:

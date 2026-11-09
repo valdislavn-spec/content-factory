@@ -91,3 +91,21 @@ PYTHONPATH=/tmp/segno $DSHPY scripts/brand_templates.py \
 
 Проверяются конфиг, размеры, темы, фильтр ready-партнёрок и план рендера
 (сам рендер требует PIL и в .venv недоступен).
+## Автоподстановка в публикации
+
+Партнёрские посты (строка `post.meta["affiliate"]`, вставляется раз в N постов
+из `channel.affiliate`) автоматически получают брендовую карточку:
+
+- сетка `telegram_post` (1080×1350), тема канала (AI/Crypto/Sports);
+- заголовок поста, партнёрский чип, QR-код на партнёрскую ссылку;
+- disclosure и 18+ (если partner age-restricted);
+- путь кладётся в `post.meta["card_path"]` → Telegram отправляет её через
+  `sendPhoto` вместо обычной карточки.
+
+Выключатель: `BRAND_CARDS=0` (env) или `publishers.brand_cards.enabled: false`
+в `config/settings.yaml`. Любая ошибка рендера не ломает публикацию — остаётся
+обычная карточка.
+
+Для остальных сетей шаблоны генерируются вручную/скриптом
+(`scripts/brand_templates.py --network pinterest_pin ...`) — автоматическая
+привязка к Pinterest/OG-превью в планах.
