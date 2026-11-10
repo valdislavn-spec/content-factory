@@ -35,6 +35,9 @@ APILAYER_KEY=... python scripts/apilayer_check.py
   `usd_to_eur`, `flights`).
 - `scripts/fediverse_mix.py` — в travel-постах цена показывается в USD и EUR
   (`from $44 (≈ €39)`), на карточке тоже.
+- `scripts/flights_digest.py` — на страницах дешёвых билетов локальная валюта:
+  для Алматы `≈ KZT`, для Минска `≈ BYN` (основная цена в ₽); курсы кэшируются
+  на день в `data/flights/fx.json` (1 запрос на прогон, ~30/мес).
 - `scripts/apilayer_check.py` — быстрый healthcheck.
 
 Токен/ключ меняется в дашборде (API Key → Copy Key); после ротации обновить

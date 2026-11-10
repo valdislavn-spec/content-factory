@@ -214,7 +214,7 @@ def find_drops(previous: dict, rows: list, min_drop: float = 0.15) -> list:
     return drops
 
 
-def notify_telegram(drops: list, origin: str, public: str) -> None:
+def notify_telegram(drops: list, origin: str, public: str, fx: dict = None) -> None:
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat = (os.environ.get("TELEGRAM_CHAT_ID_TRAVEL") or os.environ.get("TELEGRAM_CHAT_ID") or "").strip()
     if not token or not chat:
@@ -224,7 +224,12 @@ def notify_telegram(drops: list, origin: str, public: str) -> None:
         return
     lines = ["✈️ Цены на билеты упали из %s:" % ORIGINS.get(origin, {}).get("name", origin)]
     for drop in drops[:5]:
-        lines.append("• %s — %d ₽ (-%d%%) %s" % (drop["city"], drop["price"], drop["drop_pct"], drop["link"]))
+        line = "• %s — %d ₽" % (drop["city"], drop["price"])
+        local = local_price(origin, drop["price"], fx or {})
+        if local:
+            line += " (≈ %s)" % local
+        line += " (-%d%%) %s" % (drop["drop_pct"], drop["link"])
+        lines.append(line)
     lines.append("Все билеты: %s/flights/" % public.rstrip("/"))
     payload = json.dumps({"chat_id": chat, "text": "\n".join(lines), "disable_web_page_preview": True}).encode()
     request = urllib.request.Request("https://api.telegram.org/bot%s/sendMessage" % token, data=payload,
@@ -368,7 +373,7 @@ def main(argv=None) -> int:
         for drop in drops[:5]:
             print("  DROP %-14s %d -> %d ₽ (-%d%%)" % (drop["city"], drop["previous_price"], drop["price"], drop["drop_pct"]))
     if args.notify:
-        notify_telegram(drops, args.origin.upper(), PUB)
+        notify_telegram(drops, args.origin.upper(), PUB, fx=fx)
 
     snapshot = Path(args.snapshot)
     snapshot.parent.mkdir(parents=True, exist_ok=True)
