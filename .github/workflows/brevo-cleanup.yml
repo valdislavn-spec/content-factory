@@ -1,0 +1,35 @@
+name: brevo-cleanup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Delete drafts and temp contact
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          def call(path, method="DELETE"):
+              req = urllib.request.Request("https://api.brevo.com/v3" + path, method=method,
+                  headers={"api-key": key, "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, r.read().decode()[:300]
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()[:300]
+          print("delete campaign 2:", *call("/emailCampaigns/2"))
+          print("delete campaign 3:", *call("/emailCampaigns/3"))
+          print("delete temp contact 2:", *call("/contacts/2"))
+          print("campaign 4:", *call("/emailCampaigns/4", method="GET"))
+          print("list 5:", *call("/contacts/lists/5", method="GET"))
+          PY
+
