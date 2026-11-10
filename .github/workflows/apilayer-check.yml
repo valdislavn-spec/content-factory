@@ -1,0 +1,15 @@
+name: apilayer-check
+on:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: APILayer FX
+        run: |
+          echo "=== FX ==="
+          curl -sS -m 30 -w '\nHTTP %{http_code}\n' "https://api.apilayer.net/exchangerate/v1/latest?access_key=ceb0f3bc4c04c7b9494411d3ca2be208&symbols=USD,EUR,RUB" | head -c 600
+      - name: APILayer flights
+        run: |
+          echo "=== flights ==="
+          curl -sS -m 30 -w '\nHTTP %{http_code}\n' "https://api.apilayer.net/aviationstack/v1/flights?access_key=ceb0f3bc4c04c7b9494411d3ca2be208&limit=1&dep_iata=SFO" | head -c 600
