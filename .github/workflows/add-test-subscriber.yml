@@ -1,0 +1,44 @@
+name: add-test-subscriber
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: "Email"
+        required: true
+        default: "travelfindsdealsskfce@fldubai.com"
+
+permissions:
+  contents: read
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      BREVO_LIST_ID_EN: ${{ secrets.BREVO_LIST_ID_EN }}
+    steps:
+      - name: Add subscriber
+        env:
+          EMAIL: ${{ inputs.email }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          list_id = int(os.environ["BREVO_LIST_ID_EN"])
+          payload = {"email": os.environ["EMAIL"], "listIds": [list_id], "updateEnabled": True}
+          req = urllib.request.Request("https://api.brevo.com/v3/contacts",
+              data=json.dumps(payload).encode(), method="POST",
+              headers={"api-key": key, "Content-Type": "application/json", "Accept": "application/json"})
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  print("contact:", r.status, r.read().decode()[:200])
+          except urllib.error.HTTPError as e:
+              print("contact error:", e.code, e.read().decode()[:200])
+          req = urllib.request.Request(f"https://api.brevo.com/v3/contacts/lists/{list_id}",
+              headers={"api-key": key, "Accept": "application/json"})
+          with urllib.request.urlopen(req, timeout=30) as r:
+              print("list total:", json.loads(r.read().decode()).get("totalSubscribers"))
+          PY
+
