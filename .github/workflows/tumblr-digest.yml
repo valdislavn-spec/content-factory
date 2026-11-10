@@ -7,8 +7,6 @@ name: tumblr-digest
 # Дневной лимит — settings.publishers.tumblr.daily_limit (5 постов).
 
 on:
-  schedule:
-    - cron: "0 */5 * * *"          # 00,05,10,15,20 UTC = 03,08,13,18,23 MSK
   workflow_dispatch:
     inputs:
       hours:

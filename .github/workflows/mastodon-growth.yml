@@ -1,8 +1,6 @@
 name: Mastodon growth
 
 on:
-  schedule:
-    - cron: "17 16 * * *"      # ежедневно 16:17 UTC
   workflow_dispatch:
 
 concurrency:

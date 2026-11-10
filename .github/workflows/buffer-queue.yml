@@ -4,11 +4,6 @@ name: buffer-queue
 # слоты из config/buffer.yaml (schedule.times), независимо от Buffer-овского
 # queue schedule. Quality-гейт: только курируемые пины, проверка картинки.
 on:
-  schedule:
-    # Ранний запуск с запасом: GitHub-планировщик иногда задерживает cron
-    # (наблюдали +7…10 ч), а первые слоты теперь 16:00 UTC (X) и 20:00 UTC (FB).
-    # 03:10 UTC даёт запас даже при сильной задержке.
-    - cron: "10 3 * * *"
   workflow_dispatch:
     inputs:
       live:
