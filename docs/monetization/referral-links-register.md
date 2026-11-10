@@ -161,7 +161,7 @@ Hipobuy, Pandabuy; плюс Admitad как CPA-сеть).
 UTM: `utm_campaign=deals_<program>`.
 ## 10. Нейтральный лендинг deals (10.11.2026)
 
-- **https://deals-finds.deed.page/** — хаб офферов (34 товара + 4 коллекции AliExpress,
+- **https://ofertas-finds.deed.page/** — хаб офферов (34 товара + 4 коллекции AliExpress,
   страница каналов). Публикация: `scripts/deed_publish.py`, токен `.local/keys/deed-page.json`.
 - AliExpress-коллекции (трекинг): Ofertas del día, Menos de 5 $, Best sellers, Electrónica.
 - GitHub Pages `docs/deals/*` — редиректы на нейтральный домен.

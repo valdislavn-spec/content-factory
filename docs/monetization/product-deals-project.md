@@ -163,17 +163,17 @@ Shein, LightInTheBox). Не новый бренд с нуля, а:
 ## 12. Переезд на нейтральный домен (10.11.2026)
 
 - Страницы перенесены с `valdislavn-spec.github.io/content-factory/deals/` на
-  **https://deals-finds.deed.page/** — без имени владельца в URL и без имени в контенте.
+  **https://ofertas-finds.deed.page/** — без имени владельца в URL и без имени в контенте.
 - Публикация: `scripts/deed_publish.py` (deed.page, tar.gz через прокси), токен —
   `.local/keys/deed-page.json`. Обновление: тот же slug + `Authorization: Bearer`.
 - GitHub Pages `docs/deals/*.html` теперь только редиректы на новый домен
-  (`docs/index.html` ссылается сразу на `deals-finds.deed.page`).
+  (`docs/index.html` ссылается сразу на `ofertas-finds.deed.page`).
 - Канонические URL, OG-теги и sitemap — на нейтральном домене.
 - Текущий состав: хаб + 4 программы + 24 товара + страница каналов (`canales.html`).
 
 ## 13. Наполнение и закрепы (10.11.2026)
 
-- Лендинг на нейтральном домене: **https://deals-finds.deed.page/** (41 страница).
+- Лендинг на нейтральном домене: **https://ofertas-finds.deed.page/** (41 страница).
 - Товаров стало **34**: Sugargoo — 22 (форма, бутсы, шорты, носки, гетры, перчатки, мяч,
   детская форма, конусы, бутылка, шапка, шарф, кроссовки, куртка, насос, гаджеты, LED, рюкзак),
   AliExpress — 12 с реальными партнёрскими ссылками.

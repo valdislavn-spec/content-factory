@@ -27,6 +27,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATA = ROOT / "data" / "deals" / "landing.yaml"
 DEFAULT_OUT = ROOT / "build" / "deals"
 
+BUILD_ID = ""
+
 CSS = """
 :root{--bg:#0b1220;--card:#121b2e;--card-hover:#17233c;--text:#e8eefc;--muted:#93a4c4;--accent:#4f8cff;--border:#22304d;--good:#46d39a;--warn:#ffb454}
 *{box-sizing:border-box}
@@ -99,6 +101,7 @@ def page(title: str, description: str, canonical: str, body: str, channels_url: 
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<!-- build:{BUILD_ID} -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(description)}">
@@ -292,6 +295,9 @@ def main(argv=None) -> int:
         print(f"site_base: {data.get('site_base')}")
         print(f"programs: {len(data.get('programs') or [])}, products: {len(data.get('products') or [])}")
         return 0
+    global BUILD_ID
+    from datetime import datetime, timezone
+    BUILD_ID = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     files = build(data, Path(args.out))
     print(f"Готово: {len(files)} файлов в {args.out}")
     return 0
