@@ -1,0 +1,72 @@
+name: kv-audit
+
+# Временный workflow: посчитать подписчиков в Cloudflare KV (без вывода адресов).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SUBSCRIBE_KV_NAMESPACE: 422c94623a2a4b88941bd86178429ba8
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      BREVO_LIST_ID_EN: ${{ secrets.BREVO_LIST_ID_EN }}
+      BREVO_LIST_ID_ES: ${{ secrets.BREVO_LIST_ID_ES }}
+    steps:
+      - name: Count KV subscribers and Brevo list contacts
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+
+          def get(url, headers):
+              req = urllib.request.Request(url, headers=headers)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, json.loads(r.read().decode() or "{}")
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()[:300]
+
+          account = os.environ["CF_ACCOUNT_ID"]
+          ns = os.environ["SUBSCRIBE_KV_NAMESPACE"]
+          cf_headers = {"Authorization": "Bearer " + os.environ["CF_API_TOKEN"]}
+          base = f"https://api.cloudflare.com/client/v4/accounts/{account}/storage/kv/namespaces/{ns}/keys?limit=1000"
+          keys = []
+          cursor = ""
+          while True:
+              url = base + ("&cursor=" + cursor if cursor else "")
+              status, data = get(url, cf_headers)
+              if status != 200:
+                  print("CF keys error:", status, data)
+                  break
+              keys.extend(x.get("name", "") for x in data.get("result", []))
+              info = data.get("result_info") or {}
+              cursor = info.get("cursor") or ""
+              if not cursor or len(keys) >= 1000:
+                  break
+          subs = [k for k in keys if k.startswith("sub:")]
+          print("KV keys:", len(keys), "| subscribers:", len(subs))
+          domains = {}
+          for key in subs:
+              email = key[4:]
+              domain = email.split("@")[-1].lower() if "@" in email else "unknown"
+              domains[domain] = domains.get(domain, 0) + 1
+          masked = {}
+          for domain, count in sorted(domains.items(), key=lambda x: -x[1]):
+              masked[domain] = count
+          print("subscriber domains:", json.dumps(masked))
+
+          key = os.environ.get("BREVO_API_KEY")
+          if key:
+              for name, list_id in (("EN", os.environ.get("BREVO_LIST_ID_EN")), ("ES", os.environ.get("BREVO_LIST_ID_ES"))):
+                  if not list_id:
+                      continue
+                  status, data = get(f"https://api.brevo.com/v3/contacts/lists/{list_id}", {"api-key": key})
+                  print(f"Brevo list {name} ({list_id}):", status, "totalSubscribers=", (data or {}).get("totalSubscribers") if isinstance(data, dict) else data)
+          PY
+
