@@ -221,3 +221,13 @@ FPV). На сайте: 200 000+ товаров, 238+ стран, 150 000+ афф
   - 240W USB-C cable, USD 1.19, 9% → https://tinyurl.com/2aojr74w
   - Waterproof fanny pack, USD 1.19, 7% → https://tinyurl.com/27x4g6fb
 - Tracking ID: `default` (можно завести отдельные ID под каналы в Ad Center → Edit tracking ID).
+
+## 11. AliExpress tracking ID (10.11.2026)
+
+Созданы отдельные tracking ID в Portals → Tools → Tracking ID:
+- `deals_page` — для страниц лендинга deals-finds (все 15 ссылок перегенерированы с этим ID);
+- `tg_tech_ai_es` — для постов в ES tech-канал;
+- `tg_futbol_es` — для постов в ES sports-канал.
+
+Ссылки с трекингом сохранены в `.local/affiliate/ali-links-trackid-deals_page.json`;
+отчёты по ID — Portals → Reports / Live order tracking.
