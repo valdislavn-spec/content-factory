@@ -35,6 +35,7 @@ if str(ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 
+from content_factory.integrations.apilayer import ApiLayerClient
 from content_factory.integrations.bingx import BingXClient  # noqa: E402
 from content_factory.utils import load_dotenv  # noqa: E402
 
@@ -97,8 +98,8 @@ def build_post(config: Dict[str, Any], topic: str, index: int, article: Optional
     travel_link = (os.environ.get("TRAVEL_AFFILIATE_URL", "") or "").strip() or offer.get("link") or config.get("travel_link", "")
     if deal:
         tracker_base = (os.environ.get("LINK_TRACKER_BASE", "") or "").strip().rstrip("/")
-        code = str(deal.get("tracker_code") or "travel-deal")
-        travel_link = (tracker_base + "/r/" + code) if tracker_base else str(deal.get("link") or travel_link)
+        tracker_code = str(deal.get("tracker_code") or "travel-deal")
+        travel_link = (tracker_base + "/r/" + tracker_code) if tracker_base else str(deal.get("link") or travel_link)
     values: Dict[str, Any] = {
         "telegram_crypto": config.get("telegram_crypto", ""),
         "telegram_ai": config.get("telegram_ai", ""),
@@ -435,27 +436,6 @@ def make_travel_card() -> Image.Image:
     return img
 
 
-def _decor_ai(draw: ImageDraw.ImageDraw) -> None:
-    """Нейросеть: узлы и связи справа."""
-    import math
-    nodes = [(980, 150), (1100, 230), (1010, 330), (1110, 430), (960, 480), (1080, 560)]
-    for i, (x1, y1) in enumerate(nodes):
-        for x2, y2 in nodes[i + 1:]:
-            if math.dist((x1, y1), (x2, y2)) < 190:
-                draw.line([(x1, y1), (x2, y2)], fill=(45, 70, 100), width=2)
-    for x, y in nodes:
-        draw.ellipse([x - 10, y - 10, x + 10, y + 10], fill=(99, 179, 237))
-
-
-def _decor_travel(draw: ImageDraw.ImageDraw) -> None:
-    """Солнце, горы и самолёт справа."""
-    draw.ellipse([880, 90, 1040, 250], fill=(250, 200, 120))
-    draw.polygon([(820, 560), (980, 330), (1140, 560)], fill=(38, 92, 100))
-    draw.polygon([(960, 560), (1080, 400), (1200, 560)], fill=(30, 74, 82))
-    draw.line([(860, 240), (1000, 300)], fill=(240, 244, 248), width=7)
-    draw.polygon([(1000, 300), (940, 280), (960, 310)], fill=(240, 244, 248))
-
-
 CITY_NAMES = {
     "ATL": "Atlanta", "ORL": "Orlando", "MIA": "Miami", "DFW": "Dallas", "DTT": "Detroit",
     "IST": "Istanbul", "LON": "London", "PAR": "Paris", "ROM": "Rome", "BCN": "Barcelona",
@@ -478,14 +458,15 @@ def _http_json(url: str, timeout: float = 25.0) -> Optional[Dict[str, Any]]:
 
 
 def fetch_travel_deal(topic: str, config: Dict[str, Any], index: int = 0) -> Optional[Dict[str, Any]]:
-    """Дешёвый билет из Travelpayouts prices API -> headline + deep link."""
+    """Дешёвый билет из Travelpayouts prices API -> {origin,dest,price,dates,headline,link}."""
     deal_cfg = config.get("travel_deals") or {}
     if deal_cfg.get("enabled") is False:
         return None
     token = (os.environ.get(str(deal_cfg.get("api_token_env") or "TRAVELPAYOUTS_TOKEN"), "") or "").strip()
     if not token:
         return None
-    origins = [str(o) for o in (deal_cfg.get("origins_es" if topic.endswith("-es") else "origins") or deal_cfg.get("origins") or ["NYC"])]
+    origins_key = "origins_es" if topic == "travel-es" else "origins"
+    origins = [str(o) for o in (deal_cfg.get(origins_key) or deal_cfg.get("origins") or ["NYC"])]
     limit = int(deal_cfg.get("limit") or 30)
     max_days = int(deal_cfg.get("max_days_ahead") or 90)
     min_price = float(deal_cfg.get("min_price") or 40)
@@ -506,17 +487,24 @@ def fetch_travel_deal(topic: str, config: Dict[str, Any], index: int = 0) -> Opt
             if days < 1 or days > max_days:
                 continue
             value = float(item.get("value") or 0)
-            dest = str(item.get("destination") or "")
-            if value < min_price or not dest or dest == origin:
+            if value < min_price:
                 continue
-            deals.append({
-                "origin": origin, "dest": dest,
-                "origin_name": CITY_NAMES.get(origin, origin),
-                "dest_name": CITY_NAMES.get(dest, dest),
-                "price": int(round(value)), "currency": currency.upper(),
-                "depart_date": item.get("depart_date"), "return_date": item.get("return_date"),
-                "gate": item.get("gate") or "",
-            })
+            dest = str(item.get("destination") or "")
+            if not dest or dest == origin:
+                continue
+            deals.append(
+                {
+                    "origin": origin,
+                    "dest": dest,
+                    "origin_name": CITY_NAMES.get(origin, origin),
+                    "dest_name": CITY_NAMES.get(dest, dest),
+                    "price": int(round(value)),
+                    "currency": currency.upper(),
+                    "depart_date": item.get("depart_date"),
+                    "return_date": item.get("return_date"),
+                    "gate": item.get("gate") or "",
+                }
+            )
         time.sleep(0.4)
     if not deals:
         return None
@@ -526,23 +514,30 @@ def fetch_travel_deal(topic: str, config: Dict[str, Any], index: int = 0) -> Opt
         depart = datetime.strptime(chosen["depart_date"], "%Y-%m-%d")
     except (TypeError, ValueError):
         return None
-
-    def _fmt(value: str) -> str:
-        try:
-            return datetime.strptime(str(value), "%Y-%m-%d").strftime("%b %-d")
-        except (TypeError, ValueError):
-            return str(value)
-
-    route = "{}{}{}1".format(chosen["origin"], depart.strftime("%d%m"), chosen["dest"])
+    ddmm = depart.strftime("%d%m")
+    route = "{}{}{}1".format(chosen["origin"], ddmm, chosen["dest"])
     marker = str(deal_cfg.get("marker") or "674170")
-    chosen["link"] = "https://www.aviasales.com/search/{}?marker={}".format(route, marker)
-    dates = _fmt(chosen.get("depart_date") or "")
+    target = "https://www.aviasales.com/search/{}?marker={}".format(route, marker)
+    dates = depart.strftime("%b %-d")
     if chosen.get("return_date"):
-        dates += "–" + _fmt(chosen["return_date"])
-    chosen["headline"] = "{} → {} from ${} round trip · {}".format(
-        chosen["origin_name"], chosen["dest_name"], chosen["price"], dates
+        try:
+            back = datetime.strptime(chosen["return_date"], "%Y-%m-%d")
+            dates += "–" + back.strftime("%b %-d")
+        except (TypeError, ValueError):
+            pass
+    price_eur = None
+    try:
+        price_eur = ApiLayerClient().usd_to_eur(chosen["price"])
+    except Exception:  # noqa: BLE001 — FX не должен ломать пост
+        price_eur = None
+    if price_eur:
+        chosen["price_eur"] = price_eur
+    price_note = " (≈ €{:.0f})".format(price_eur) if price_eur else ""
+    chosen["headline"] = "{} → {} from ${}{} round trip · {}".format(
+        chosen["origin_name"], chosen["dest_name"], chosen["price"], price_note, dates
     )
     chosen["cta"] = "Compare flights"
+    chosen["link"] = target
     chosen["tracker_code"] = str(deal_cfg.get("tracker_code") or "travel-deal")
     return chosen
 
@@ -550,7 +545,7 @@ def fetch_travel_deal(topic: str, config: Dict[str, Any], index: int = 0) -> Opt
 def upsert_tracker_link(code: str, target: str, label: str) -> bool:
     base = (os.environ.get("LINK_TRACKER_BASE", "") or "").strip().rstrip("/")
     token = (os.environ.get("LINK_TRACKER_ADMIN_TOKEN", "") or "").strip()
-    if not base or not token or not target:
+    if not base or not token:
         return False
     payload = json.dumps({
         "code": code, "target": target, "channel": "akkoma",
@@ -576,17 +571,47 @@ def make_deal_card(deal: Dict[str, Any]) -> Image.Image:
     draw.text((60, 70), "FLIGHT DEAL", font=_font(34, bold=True), fill=accent)
     draw.line([(60, 128), (280, 128)], fill=accent, width=4)
     title_font = _font(64, bold=True)
+    route = "{} to {}".format(deal["origin_name"], deal["dest_name"])
     y = 180
-    for line in _wrap("{} to {}".format(deal["origin_name"], deal["dest_name"]), title_font, WIDTH - 120, draw):
+    for line in _wrap(route, title_font, WIDTH - 120, draw):
         draw.text((60, y), line, font=title_font, fill=FG)
         y += 78
-    draw.text((60, y + 10), "from ${}".format(deal["price"]), font=_font(84, bold=True), fill=accent)
-    dates = str(deal.get("depart_date") or "")
+    price_line = "from ${}".format(deal["price"])
+    if deal.get("price_eur"):
+        price_line += "  ≈ €{:.0f}".format(float(deal["price_eur"]))
+    draw.text((60, y + 10), price_line, font=_font(84, bold=True), fill=accent)
+    def _fmt(value: str) -> str:
+        try:
+            return datetime.strptime(str(value), "%Y-%m-%d").strftime("%b %-d")
+        except (TypeError, ValueError):
+            return str(value)
+    dates = _fmt(deal.get("depart_date") or "")
     if deal.get("return_date"):
-        dates += " – " + str(deal.get("return_date"))
+        dates += " – " + _fmt(deal.get("return_date"))
     draw.text((60, HEIGHT - 150), "Round trip · " + dates, font=_font(28), fill=MUTED)
     _footer(draw, WIDTH, HEIGHT, "Travel partner · tracked link")
     return img
+
+
+def _decor_ai(draw: ImageDraw.ImageDraw) -> None:
+    """Нейросеть: узлы и связи справа."""
+    import math
+    nodes = [(980, 150), (1100, 230), (1010, 330), (1110, 430), (960, 480), (1080, 560)]
+    for i, (x1, y1) in enumerate(nodes):
+        for x2, y2 in nodes[i + 1:]:
+            if math.dist((x1, y1), (x2, y2)) < 190:
+                draw.line([(x1, y1), (x2, y2)], fill=(45, 70, 100), width=2)
+    for x, y in nodes:
+        draw.ellipse([x - 10, y - 10, x + 10, y + 10], fill=(99, 179, 237))
+
+
+def _decor_travel(draw: ImageDraw.ImageDraw) -> None:
+    """Солнце, горы и самолёт справа."""
+    draw.ellipse([880, 90, 1040, 250], fill=(250, 200, 120))
+    draw.polygon([(820, 560), (980, 330), (1140, 560)], fill=(38, 92, 100))
+    draw.polygon([(960, 560), (1080, 400), (1200, 560)], fill=(30, 74, 82))
+    draw.line([(860, 240), (1000, 300)], fill=(240, 244, 248), width=7)
+    draw.polygon([(1000, 300), (940, 280), (960, 310)], fill=(240, 244, 248))
 
 
 def build_card(topic: str, config: Dict[str, Any], headline: str, market: str, angle: str, klines: Optional[List[Dict[str, Any]]] = None) -> Optional[Image.Image]:
@@ -848,7 +873,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 upsert_tracker_link(
                     str(deal.get("tracker_code") or "travel-deal"),
                     str(deal.get("link") or ""),
-                    "{} → {} ${} {}".format(deal.get("origin_name"), deal.get("dest_name"), deal.get("price"), deal.get("depart_date")),
+                    "{} → {} from ${} {}".format(deal.get("origin_name"), deal.get("dest_name"), deal.get("price"), deal.get("depart_date")),
                 )
                 print("deal:", deal.get("headline"))
             article = find_article(topic, config) if not deal else None

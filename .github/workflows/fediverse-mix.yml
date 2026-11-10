@@ -34,6 +34,7 @@ jobs:
         env:
           AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
           AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+          APILAYER_KEY: ${{ secrets.APILAYER_KEY }}
           TRAVEL_AFFILIATE_URL: ${{ secrets.TRAVEL_AFFILIATE_URL }}
           PIXELFED_BASE_URL: ${{ secrets.PIXELFED_BASE_URL }}
           PIXELFED_TOKEN: ${{ secrets.PIXELFED_TOKEN }}
