@@ -13,6 +13,7 @@ from __future__ import annotations
 import html
 import json
 import re
+import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -441,6 +442,54 @@ def _post_json(url: str, payload: Dict[str, Any], api_key: str, method: str = "P
         return json.loads(raw) if raw else {}
 
 
+def _get_json(url: str, api_key: str) -> Dict[str, Any]:
+    request = urllib.request.Request(
+        url,
+        headers={
+            "api-key": api_key,
+            "Accept": "application/json",
+            "User-Agent": "content-factory-email-digest",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=60) as response:
+        raw = response.read()
+        return json.loads(raw) if raw else {}
+
+
+def send_brevo_transactional(
+    digest: Digest,
+    *,
+    api_key: str,
+    sender_email: str,
+    sender_name: str,
+    list_id: int,
+) -> Dict[str, Any]:
+    """Fallback: отправка через /smtp/email (кампании могут быть недоступны на free)."""
+    data = _get_json(
+        f"{BREVO_API}/contacts/lists/{int(list_id)}/contacts?limit=500&offset=0", api_key
+    )
+    contacts = data.get("contacts") or []
+    sent = 0
+    errors: List[str] = []
+    for contact in contacts:
+        email = str(contact.get("email") or "").strip()
+        if not email:
+            continue
+        payload = {
+            "sender": {"name": sender_name or "Travel Finds Deals", "email": sender_email},
+            "to": [{"email": email}],
+            "subject": digest.subject,
+            "htmlContent": digest.html,
+            "textContent": digest.text,
+        }
+        try:
+            _post_json(f"{BREVO_API}/smtp/email", payload, api_key)
+            sent += 1
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"{email}: {exc}")
+    return {"sent": sent, "total": len(contacts), "errors": errors}
+
+
 def send_brevo_campaign(
     digest: Digest,
     *,
@@ -450,7 +499,7 @@ def send_brevo_campaign(
     list_id: int,
     campaign_name: str = "",
 ) -> Dict[str, Any]:
-    """Создаёт и сразу отправляет кампанию в Brevo. Возвращает ответ API."""
+    """Пытается отправить кампанию, при ошибке — transactional API."""
     payload = build_brevo_payload(
         digest,
         sender_email=sender_email,
@@ -458,11 +507,21 @@ def send_brevo_campaign(
         list_id=list_id,
         campaign_name=campaign_name,
     )
-    created = _post_json(f"{BREVO_API}/emailCampaigns", payload, api_key)
-    campaign_id = created.get("id")
-    if not campaign_id:
-        raise RuntimeError(f"Brevo не вернул id кампании: {created}")
-    result = _post_json(
-        f"{BREVO_API}/emailCampaigns/{campaign_id}/sendNow", {}, api_key
-    )
-    return {"id": campaign_id, "send": result}
+    try:
+        created = _post_json(f"{BREVO_API}/emailCampaigns", payload, api_key)
+        campaign_id = created.get("id")
+        if not campaign_id:
+            raise RuntimeError(f"Brevo не вернул id кампании: {created}")
+        result = _post_json(
+            f"{BREVO_API}/emailCampaigns/{campaign_id}/sendNow", {}, api_key
+        )
+        return {"id": campaign_id, "send": result}
+    except (urllib.error.HTTPError, RuntimeError):
+        fallback = send_brevo_transactional(
+            digest,
+            api_key=api_key,
+            sender_email=sender_email,
+            sender_name=sender_name,
+            list_id=list_id,
+        )
+        return {"id": None, "transactional": fallback}
