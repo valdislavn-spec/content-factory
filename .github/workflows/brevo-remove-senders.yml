@@ -1,0 +1,35 @@
+name: brevo-remove-senders
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Remove personal senders
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          def call(path, method="GET"):
+              req = urllib.request.Request("https://api.brevo.com/v3" + path, method=method,
+                  headers={"api-key": key, "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      raw = r.read().decode()
+                      return r.status, raw[:500]
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()[:500]
+          print("delete sender 1:", *call("/senders/1", "DELETE"))
+          print("delete sender 2:", *call("/senders/2", "DELETE"))
+          print("senders:", *call("/senders"))
+          print("lists:", *call("/contacts/lists?limit=10"))
+          PY
+
