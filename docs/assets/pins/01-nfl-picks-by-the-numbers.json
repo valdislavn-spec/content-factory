@@ -1,0 +1,17 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-nfl-picks-by-the-numbers.png",
+  "file": "docs/assets/pins/01-nfl-picks-by-the-numbers.png",
+  "niche": "sports",
+  "affiliate": false,
+  "disclosure": "Save this guide",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "NFL picks by the numbers",
+    "description": "Weekly NFL numbers: injury impact, line movement and what prediction markets price for each game. 18+.",
+    "alt_text": "NFL picks by the numbers",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-nfl-picks-by-the-numbers.png"
+    }
+  }
+}
