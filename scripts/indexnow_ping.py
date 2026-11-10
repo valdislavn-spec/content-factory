@@ -20,6 +20,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SITEMAP = ROOT / "docs" / "sitemap.xml"
 ENDPOINT = "https://api.indexnow.org/indexnow"
 HOST = "valdislavn-spec.github.io"
+# GitHub Pages отдаёт репозиторий как project page: docs/… → /content-factory/…
+# keyLocation должен быть на том же хосте, но файл лежит под /content-factory/.
+SITE_PATH = "/content-factory"
 
 
 def main() -> int:
@@ -31,7 +34,9 @@ def main() -> int:
     if not urls:
         print("no urls in sitemap")
         return 1
-    payload = json.dumps({"host": HOST, "key": key, "keyLocation": f"https://{HOST}/{key}.txt", "urlList": urls}).encode()
+    payload = json.dumps({"host": HOST, "key": key,
+                          "keyLocation": f"https://{HOST}{SITE_PATH}/{key}.txt",
+                          "urlList": urls}).encode()
     request = urllib.request.Request(ENDPOINT, data=payload, method="POST",
         headers={"Content-Type": "application/json; charset=utf-8", "User-Agent": "content-factory-indexnow/1.0"})
     try:
