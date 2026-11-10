@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 15
     env:
       TRAVELPAYOUTS_TOKEN: ${{ secrets.TRAVELPAYOUTS_TOKEN }}
+      APILAYER_KEY: ${{ secrets.APILAYER_KEY }}
       TRAVELPAYOUTS_MARKER: "674170"
       TRAVELPAYOUTS_TRS: "597672"
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

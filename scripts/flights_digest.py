@@ -23,6 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from content_factory.integrations.apilayer import ApiLayerClient  # noqa: E402
 from content_factory.integrations.aviasales import AviasalesClient, search_path  # noqa: E402
 
 PUB = "https://valdislavn-spec.github.io/content-factory"
@@ -52,6 +53,55 @@ CITY_NAMES = {
     "PAR": "Paris", "LON": "London", "MIL": "Milan", "ATH": "Athens", "LCA": "Larnaca", "MLE": "Maldives",
     "PEK": "Beijing", "SHA": "Shanghai", "HKG": "Hong Kong", "DEL": "Delhi", "GOI": "Goa", "CMB": "Colombo",
 }
+
+LOCAL_CURRENCY = {
+    "ALA": ("KZT", "₸"),
+    "MSQ": ("BYN", "Br"),
+}
+
+
+def load_fx_rates(origin: str) -> dict:
+    """Курсы EUR-базы из APILayer (кэш на день) для локальной валюты страницы."""
+    if origin not in LOCAL_CURRENCY:
+        return {}
+    cache = ROOT / "data" / "flights" / "fx.json"
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        if cache.exists():
+            data = json.loads(cache.read_text(encoding="utf-8"))
+            if data.get("date") == today and data.get("rates"):
+                return data["rates"]
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        client = ApiLayerClient()
+        if not client.configured():
+            return {}
+        rates = client.latest_rates("RUB,KZT,BYN,USD").get("rates") or {}
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({"date": today, "rates": rates}, ensure_ascii=False, indent=2), encoding="utf-8")
+        return rates
+    except Exception as error:  # noqa: BLE001
+        print("fx failed:", str(error)[:120])
+        return {}
+
+
+def local_price(origin: str, price: int, rates: dict) -> str:
+    """Цена в локальной валюте (KZT/BYN) как надпись; RUB остаётся основной."""
+    meta = LOCAL_CURRENCY.get(origin)
+    if not meta or not rates:
+        return ""
+    code, symbol = meta
+    try:
+        rub_per_eur = float(rates.get("RUB") or 0)
+        local_per_eur = float(rates.get(code) or 0)
+    except (TypeError, ValueError):
+        return ""
+    if rub_per_eur <= 0 or local_per_eur <= 0:
+        return ""
+    value = price / rub_per_eur * local_per_eur
+    return "{:,.0f} {}".format(value, symbol).replace(",", " ")
+
 
 COMPARE = [
     ("https://aviasales.tpk.ro/b3PI8GVN", "Compare all flights"),
@@ -186,7 +236,7 @@ def notify_telegram(drops: list, origin: str, public: str) -> None:
         print("telegram error:", str(error)[:120])
 
 
-def render_page(rows: list, origin: str, updated: str, drops: list = None, public: str = PUB) -> str:
+def render_page(rows: list, origin: str, updated: str, drops: list = None, public: str = PUB, fx: dict = None) -> str:
     table = []
     for row in rows:
         table.append(
@@ -194,7 +244,9 @@ def render_page(rows: list, origin: str, updated: str, drops: list = None, publi
             f'<td style="padding:10px 12px;border-bottom:1px solid #eef0f4">{row["city"]} <span style="color:#9ca3af">({row["destination"]})</span></td>'
             f'<td style="padding:10px 12px;border-bottom:1px solid #eef0f4;white-space:nowrap">{row["dates"]}</td>'
             f'<td style="padding:10px 12px;border-bottom:1px solid #eef0f4">{row["airline"]}</td>'
-            f'<td style="padding:10px 12px;border-bottom:1px solid #eef0f4;font-weight:600;white-space:nowrap">{row["price"]:,} ₽'.replace(",", " ") + '</td>'
+            f'<td style="padding:10px 12px;border-bottom:1px solid #eef0f4;font-weight:600;white-space:nowrap">{row["price"]:,} ₽'.replace(",", " ")
+            + (f'<div style="color:#6b7280;font-size:12px;font-weight:400">≈ {local_price(origin, row["price"], fx)}</div>' if fx and local_price(origin, row["price"], fx) else '')
+            + '</td>'
             f'<td style="padding:10px 12px;border-bottom:1px solid #eef0f4"><a href="{row["link"]}" style="color:#2563eb;text-decoration:none">Book →</a></td>'
             '</tr>'
         )
@@ -309,7 +361,8 @@ def main(argv=None) -> int:
     origin_meta = ORIGINS.get(args.origin.upper(), {})
     page_path = Path(args.page or ROOT / origin_meta.get("page", "docs/flights/index.html"))
     page_path.parent.mkdir(parents=True, exist_ok=True)
-    page_path.write_text(render_page(rows, args.origin.upper(), updated, drops), encoding="utf-8")
+    fx = load_fx_rates(args.origin.upper())
+    page_path.write_text(render_page(rows, args.origin.upper(), updated, drops, fx=fx), encoding="utf-8")
     print("page:", page_path, "| drops:", len(drops))
     if drops:
         for drop in drops[:5]:
