@@ -417,7 +417,10 @@ def build_brevo_payload(
         "type": "classic",
         "htmlContent": digest.html,
         "recipients": {"listIds": [int(list_id)]},
-        "replyTo": {"email": sender_email},
+        # replyTo intentionally omitted: on the free plan Brevo rejects
+        # reply-to addresses outside an authenticated domain with
+        # ``invalid_parameter: ReplyTo email should be valid``. Replies go to
+        # the verified sender (EMAIL_FROM) by default.
     }
 
 
