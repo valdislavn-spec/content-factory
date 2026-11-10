@@ -1,0 +1,53 @@
+name: send-test-email
+
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: "Recipient email"
+        required: true
+      subject:
+        description: "Subject"
+        required: true
+        default: "Test from Brevo"
+      text:
+        description: "Plain text body"
+        required: true
+        default: "Verification code: 482913
+Link: https://example.com/verify?code=482913"
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Send transactional email via Brevo
+        env:
+          TO: ${{ inputs.to }}
+          SUBJECT: ${{ inputs.subject }}
+          TEXT: ${{ inputs.text }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          payload = {
+              "sender": {"name": "Travel Finds Deals", "email": "valdislav.n@gmail.com"},
+              "to": [{"email": os.environ["TO"]}],
+              "subject": os.environ["SUBJECT"],
+              "textContent": os.environ["TEXT"],
+          }
+          req = urllib.request.Request("https://api.brevo.com/v3/smtp/email",
+              data=json.dumps(payload).encode(), method="POST",
+              headers={"api-key": key, "Content-Type": "application/json", "Accept": "application/json"})
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  print("SEND:", r.status, r.read().decode()[:400])
+          except urllib.error.HTTPError as e:
+              print("SEND ERROR:", e.code, e.read().decode()[:400])
+          PY
+
