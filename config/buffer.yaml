@@ -1,5 +1,6 @@
 # Buffer: дублирование дневного пина в подключённые соцсети.
-# Buffer: X (twitter) + Facebook. Bluesky публикуется напрямую (AT Protocol).
+# Buffer: X (twitter). Facebook заблокирован (2026-11-10) — не публикуем.
+# Bluesky — через прямой AT Protocol (пока канал не переподключён в Buffer).
 # Ключ: BUFFER_API_KEY (Buffer → Settings → API).
 organization_id: 68d276b0ab330eddbacc2da8
 hub_url: https://valdislavn-spec.github.io/content-factory/
@@ -59,17 +60,6 @@ channels:
       utm_source: x
       utm_medium: social
       utm_campaign: daily_pin
-  - service: facebook
-    name: The best offers
-    channel_id: 695c387b457dae6a34e00408
-    max_chars: 5000
-    utm:
-      utm_source: facebook
-      utm_medium: social
-      utm_campaign: daily_pin
-    metadata:
-      facebook:
-        type: post
 
 # Quality-гейт: в очередь попадают только хорошие (отобранные) посты.
 quality:
@@ -97,4 +87,3 @@ schedule:
   horizon_days: 3
   times:
     twitter: ["16:00", "22:00"]
-    facebook: ["20:00", "23:00"]
