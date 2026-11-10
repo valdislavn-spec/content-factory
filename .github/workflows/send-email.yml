@@ -1,0 +1,50 @@
+name: send-email
+
+# Утилита: отправить письмо через Brevo из CI (Gmail web в песочнице не отправляет).
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: "Кому (email)"
+        required: true
+      subject:
+        description: "Тема"
+        required: true
+      body:
+        description: "Текст письма"
+        required: true
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send via Brevo
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
+          TO: ${{ inputs.to }}
+          SUBJECT: ${{ inputs.subject }}
+          BODY: ${{ inputs.body }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          payload = {
+              "sender": {"email": os.environ["EMAIL_FROM"], "name": os.environ.get("EMAIL_FROM_NAME") or "Content Factory"},
+              "to": [{"email": os.environ["TO"]}],
+              "subject": os.environ["SUBJECT"],
+              "textContent": os.environ["BODY"],
+          }
+          req = urllib.request.Request(
+              "https://api.brevo.com/v3/smtp/email",
+              data=json.dumps(payload).encode(),
+              headers={"api-key": os.environ["BREVO_API_KEY"], "Content-Type": "application/json", "Accept": "application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  print("sent:", resp.status, resp.read().decode()[:300])
+          except urllib.error.HTTPError as exc:
+              print("brevo error:", exc.code, exc.read().decode()[:600])
+              raise
+          PY
