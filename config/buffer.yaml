@@ -87,9 +87,14 @@ state_path: data/buffer_state.json
 # customScheduled на эти слоты — независимо от Buffer-овского queue schedule.
 # Число слотов в день × horizon_days должно укладываться в лимит Free-плана
 # (10 запланированных постов на канал).
+#
+# Слоты подобраны под аудиторию США (страница «The best offers» — New York):
+#   facebook 20:00 / 23:00 UTC = 15:00 / 18:00 ET = 12:00 / 15:00 PT
+#   twitter  16:00 / 22:00 UTC = 11:00 / 17:00 ET = 08:00 / 14:00 PT
+# (прежние 11:00/19:00 UTC давали 06:00/14:00 ET и 03:00/11:00 PT — ночь/утро)
 schedule:
   timezone: UTC
   horizon_days: 3
   times:
-    twitter: ["09:00", "18:00"]
-    facebook: ["11:00", "19:00"]
+    twitter: ["16:00", "22:00"]
+    facebook: ["20:00", "23:00"]
