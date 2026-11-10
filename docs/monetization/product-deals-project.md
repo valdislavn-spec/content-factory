@@ -159,3 +159,14 @@ Shein, LightInTheBox). Не новый бренд с нуля, а:
 @SPORTSAnalytics007 (форма, бутсы, мяч) и @WORLDNews0007 (наушники, смарт-часы, проектор);
 один пост (смарт-часы) переопубликован после сетевой ошибки через
 `scripts/deals_publish.py --only es-watch-01`. Лог: `data/deals/published-2026-11-09.json`.
+
+## 12. Переезд на нейтральный домен (10.11.2026)
+
+- Страницы перенесены с `valdislavn-spec.github.io/content-factory/deals/` на
+  **https://deals-finds.deed.page/** — без имени владельца в URL и без имени в контенте.
+- Публикация: `scripts/deed_publish.py` (deed.page, tar.gz через прокси), токен —
+  `.local/keys/deed-page.json`. Обновление: тот же slug + `Authorization: Bearer`.
+- GitHub Pages `docs/deals/*.html` теперь только редиректы на новый домен
+  (`docs/index.html` ссылается сразу на `deals-finds.deed.page`).
+- Канонические URL, OG-теги и sitemap — на нейтральном домене.
+- Текущий состав: хаб + 4 программы + 24 товара + страница каналов (`canales.html`).
