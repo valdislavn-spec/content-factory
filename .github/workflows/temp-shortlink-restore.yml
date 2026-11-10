@@ -1,8 +1,8 @@
 name: temp-shortlink-restore
 
-# Временный workflow: восстановить мёртвую короткую ссылку is.gd/BaliTrip
-# (на неё ведёт живой пин «Bali on a budget: 7-day plan under $500» и QR в его
-# картинке). С GitHub-раннера is.gd доступен, с локальной сети — нет.
+# Временный workflow: проверить, что короткие ссылки is.gd живы.
+# (Локальная сеть не достаёт is.gd/Cloudflare; HEAD-запросы дают ложный 404,
+# поэтому проверяем GET с GitHub-раннера.)
 on:
   workflow_dispatch:
 
@@ -10,18 +10,12 @@ permissions:
   contents: read
 
 jobs:
-  restore:
+  check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: is.gd status before
+      - name: check aliases
         run: |
-          curl -s -o /dev/null -w "before: HTTP %{http_code} -> %{redirect_url}\n" -m 25 "https://is.gd/BaliTrip" || true
-      - name: create BaliTrip alias
-        run: |
-          echo "create result:"
-          curl -sS -m 30 "https://is.gd/create.php?format=simple&url=https%3A%2F%2Faviasales.tpk.ro%2FrYaenwKl&shorturl=BaliTrip" || true
-          echo
-      - name: is.gd status after
-        run: |
-          curl -s -o /dev/null -w "after: HTTP %{http_code} -> %{redirect_url}\n" -m 25 "https://is.gd/BaliTrip" || true
+          for a in Flights BaliTrip DubaiTrip CryptoDigest AINews SportsNews ESCrypto ESNews ESport ESimDeal CarRental Compensair EuropeTrip; do
+            curl -s -o /dev/null -w "$a: HTTP %{http_code} -> %{redirect_url}\n" -m 20 "https://is.gd/$a" || echo "$a: FAILED"
+          done
