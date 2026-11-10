@@ -1,0 +1,40 @@
+# Сигналы с прогнозных рынков (Polymarket/Kalshi/…) → Telegram.
+# Данные — публичные API; ключи не нужны (Metaculus требует бесплатный токен).
+enabled: true
+channel_env: TELEGRAM_CHAT_ID_CRYPTO_SIGNALS
+state_path: data/prediction_state.json
+
+# Какие платформы опрашивать (публичные read-only API).
+sources:
+  - polymarket
+  - kalshi
+
+# Пока публикуем только крипто-рынки (SIGNAL CRYPTO). false = все события.
+crypto_only: true
+crypto_keywords:
+  - bitcoin
+  - btc
+  - ethereum
+  - eth
+  - solana
+  - sol
+  - xrp
+  - dogecoin
+  - doge
+  - crypto
+  - stablecoin
+  - halving
+  - etf
+  - sec
+  - coinbase
+  - binance
+  - satoshi
+  - blockchain
+
+min_abs_change: 0.07      # 7 п.п. изменения вероятности за 24ч
+min_volume_24h: 25000     # $
+min_liquidity: 10000      # $
+max_signals_per_run: 2
+cooldown_hours: 12
+
+disclaimer: "Not financial advice. Prediction-market odds are volatile."
