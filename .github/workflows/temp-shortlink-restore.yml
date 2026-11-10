@@ -1,0 +1,27 @@
+name: temp-shortlink-restore
+
+# Временный workflow: восстановить мёртвую короткую ссылку is.gd/BaliTrip
+# (на неё ведёт живой пин «Bali on a budget: 7-day plan under $500» и QR в его
+# картинке). С GitHub-раннера is.gd доступен, с локальной сети — нет.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: is.gd status before
+        run: |
+          curl -s -o /dev/null -w "before: HTTP %{http_code} -> %{redirect_url}\n" -m 25 "https://is.gd/BaliTrip" || true
+      - name: create BaliTrip alias
+        run: |
+          echo "create result:"
+          curl -sS -m 30 "https://is.gd/create.php?format=simple&url=https%3A%2F%2Faviasales.tpk.ro%2FrYaenwKl&shorturl=BaliTrip" || true
+          echo
+      - name: is.gd status after
+        run: |
+          curl -s -o /dev/null -w "after: HTTP %{http_code} -> %{redirect_url}\n" -m 25 "https://is.gd/BaliTrip" || true
