@@ -136,4 +136,11 @@
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
+
+  <url>
+    <loc>https://valdislavn-spec.github.io/content-factory/tours/</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
 </urlset>

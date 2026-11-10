@@ -1,0 +1,38 @@
+name: travelata-digest
+
+# Ежедневная витрина пакетных туров (Travelata API) из не-РФ городов вылета.
+on:
+  schedule:
+    - cron: "40 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TRAVELATA_LOGIN: ${{ secrets.TRAVELATA_LOGIN }}
+      TRAVELATA_PASSWORD: ${{ secrets.TRAVELATA_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build tours page
+        run: python scripts/travelata_digest.py --limit 12
+      - name: Commit page
+        run: |
+          git config user.name "dsh-agent"
+          git config user.email "dsh-agent@users.noreply.github.com"
+          git add docs/tours
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "chore(tours): daily travelata digest"
+          git pull --rebase origin main || true
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then echo "pushed"; exit 0; fi
+            sleep 5; git pull --rebase origin main || true
+          done
+          exit 1
