@@ -1,0 +1,49 @@
+name: brevo-shared-sender-test
+
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: "Test recipient"
+        required: true
+        default: "travelfindsdealsskfce@fldubai.com"
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Send from shared-domain sender
+        env:
+          TO: ${{ inputs.to }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          def call(path, method="GET", body=None):
+              data = json.dumps(body).encode() if body is not None else None
+              req = urllib.request.Request("https://api.brevo.com/v3" + path, data=data, method=method,
+                  headers={"api-key": key, "Content-Type": "application/json", "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      raw = r.read().decode()
+                      return r.status, raw[:600]
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()[:600]
+          payload = {
+              "sender": {"name": "Travel Finds Deals", "email": "digest@12579258.brevosend.com"},
+              "to": [{"email": os.environ["TO"]}],
+              "subject": "Shared-domain sender test",
+              "textContent": "Test from shared Brevo sender. No personal mailbox.",
+          }
+          print("send:", *call("/smtp/email", "POST", payload))
+          print("delete extra sender 5:", *call("/senders/5", "DELETE"))
+          print("senders:", *call("/senders"))
+          print("account plan:", *call("/account"))
+          PY
+
