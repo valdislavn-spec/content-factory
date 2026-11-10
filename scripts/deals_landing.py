@@ -42,6 +42,7 @@ h2{font-size:22px;margin:34px 0 14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:18px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:background .15s}
 .card:hover{background:var(--card-hover)}
+.thumb{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;background:#0e1626;display:block}
 .badge{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:2px 10px;width:fit-content}
 .badge.live{color:var(--good);border-color:#1f5c46}
 .badge.pending{color:var(--warn);border-color:#5c4620}
@@ -134,7 +135,9 @@ def product_card(p: Dict[str, Any], program: Dict[str, Any], base: str) -> str:
     pct = f' <span class="desc">−{disc}%</span>' if disc else ""
     url = with_utm(str(p.get("url") or ""), str(p.get("program") or ""))
     detail = f'{base}/deals/p-{esc(p.get("id"))}.html'
+    img = f'<img class="thumb" src="{esc(p.get("image"))}" alt="{esc(p.get("title_es"))}" loading="lazy">' if p.get("image") else ""
     return f"""<article class="card">
+  {img}
   <span class="badge">{esc(p.get("badge_es") or p.get("program"))}</span>
   <h3><a href="{esc(detail)}">{esc(p.get("title_es"))}</a></h3>
   <div class="price">{esc(p.get("price"))}{old}{pct}</div>
@@ -224,6 +227,7 @@ def build(data: Dict[str, Any], out: Path) -> List[Path]:
         related_html = f'<h2>Más de {esc(prog.get("name"))}</h2><div class="grid">{"".join(related)}</div>' if related else ""
         old = f'<s>{esc(p["old_price"])}</s>' if p.get("old_price") else ""
         pct = f' <span class="desc">−{disc}%</span>' if disc else ""
+        img = f'<img class="thumb" src="{esc(p.get("image"))}" alt="{esc(p.get("title_es"))}" loading="lazy">' if p.get("image") else ""
         status = str(prog.get("status") or "pending")
         cta = (
             f'<a class="cta" href="{esc(url)}" rel="nofollow sponsored noopener" target="_blank">{esc(prog.get("cta_es") or "Pedir ahora")}</a>'
@@ -233,6 +237,7 @@ def build(data: Dict[str, Any], out: Path) -> List[Path]:
         body = f"""<p class="crumbs"><a href="{esc(base + '/deals/')}">Ofertas</a> / <a href="{esc(base + '/deals/' + str(prog.get('slug')) + '.html')}">{esc(prog.get("name"))}</a> / {esc(p.get("title_es"))}</p>
 <h1>{esc(p.get("title_es"))}</h1>
 <div class="panel">
+  {img}
   <div class="price">{esc(p.get("price"))}{old}{pct}</div>
   <p class="desc">{esc(p.get("subtitle_es"))}</p>
   {cta}
