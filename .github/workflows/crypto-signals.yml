@@ -5,7 +5,7 @@ name: crypto-signals
 # Quality: сигнал только при подтверждении >=2 бирж; бэктест — scripts/signals_backtest.py.
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
     inputs:
       publish:
@@ -25,7 +25,7 @@ permissions:
 jobs:
   signals:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 355
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID_CRYPTO_SIGNALS: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_SIGNALS }}
@@ -48,9 +48,15 @@ jobs:
           path: data/signals_state.json
           key: crypto-signals-state-${{ github.run_id }}
           restore-keys: crypto-signals-state-
-      - name: Generate signals
+      - name: Generate signals (loop ~5h40m, every 15 min)
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.publish }}" = "true" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            for i in $(seq 1 20); do
+              echo "=== iteration $i/20 $(date -u +%H:%M:%SZ) ==="
+              python scripts/crypto_signals.py --publish || true
+              if [ "$i" -lt 20 ]; then sleep 900; fi
+            done
+          elif [ "${{ inputs.publish }}" = "true" ]; then
             python scripts/crypto_signals.py --publish
           else
             python scripts/crypto_signals.py --dry-run

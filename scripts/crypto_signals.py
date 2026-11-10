@@ -17,6 +17,7 @@ import html
 import json
 import logging
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -31,6 +32,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from content_factory.prediction.market import fetch_markets  # noqa: E402
 from content_factory.signals.engine import build_signals  # noqa: E402
 from content_factory.signals.market import fetch_candles  # noqa: E402
 
@@ -80,6 +82,58 @@ def _fetch_data(config: Dict) -> Dict[str, Dict[str, Dict[str, List[dict]]]]:
     return data
 
 
+_ASSET_WORDS = {
+    "BTC/USDT": ("bitcoin", "btc"),
+    "ETH/USDT": ("ethereum", "eth"),
+    "SOL/USDT": ("solana", "sol"),
+}
+_BEARISH_MARKET_WORDS = (
+    "dip", "drop", "below", "fall", "crash", "under", "less than", "down", "plunge", "decline",
+)
+_BULLISH_MARKET_WORDS = (
+    "above", "hit", "reach", "exceed", "all-time high", "ath", "higher", "rise", "surge", "top",
+)
+
+
+def _market_direction(question: str, delta: float) -> str:
+    """Направление ожидания рынка: bullish/bearish/neutral.
+
+    Учитываем формулировку: «BTC dip» при росте вероятности — медвежий
+    сигнал, «BTC above $100k» при росте — бычий.
+    """
+    text = str(question or "").lower()
+    bearish_framing = any(word in text for word in _BEARISH_MARKET_WORDS)
+    bullish_framing = any(word in text for word in _BULLISH_MARKET_WORDS)
+    if bearish_framing and not bullish_framing:
+        return "bearish" if delta > 0 else "bullish"
+    if bullish_framing and not bearish_framing:
+        return "bullish" if delta > 0 else "bearish"
+    return "neutral"
+
+
+def _prediction_notes(signal: Dict, markets: List[Dict], min_abs_change: float, max_notes: int) -> List[Dict]:
+    """Прогнозные рынки, подтверждающие направление сигнала."""
+    asset_words = _ASSET_WORDS.get(str(signal.get("pair") or ""), ())
+    if not asset_words or not markets:
+        return []
+    pattern = re.compile(r"\b(" + "|".join(re.escape(word) for word in asset_words) + r")\b", re.IGNORECASE)
+    expected = "bullish" if signal["side"] == "LONG" else "bearish"
+    notes: List[Dict] = []
+    for market in markets:
+        delta = market.get("delta_24h")
+        if delta is None or abs(delta) < min_abs_change:
+            continue
+        question = str(market.get("question") or "")
+        if not pattern.search(question) or market.get("probability") is None:
+            continue
+        if _market_direction(question, delta) != expected:
+            continue
+        notes.append(market)
+        if len(notes) >= max_notes:
+            break
+    return notes
+
+
 def _format_signal(signal: Dict, config: Dict, affiliate: Dict | None) -> str:
     direction = "🟢 LONG" if signal["side"] == "LONG" else "🔴 SHORT"
     pair = html.escape(str(signal["pair"]))
@@ -94,6 +148,15 @@ def _format_signal(signal: Dict, config: Dict, affiliate: Dict | None) -> str:
         ),
         "RSI: %.1f · объём ×%.2f" % (signal["rsi"], signal["volume_ratio"]),
     ]
+    for market in signal.get("predictions") or []:
+        lines.append(
+            "🔮 Прогнозы: %s — %.0f%% (%+.1f п.п.)"
+            % (
+                html.escape(str(market.get("question") or ""), quote=False)[:90],
+                (market.get("probability") or 0) * 100,
+                (market.get("delta_24h") or 0) * 100,
+            )
+        )
     if affiliate and affiliate.get("url"):
         lines.append("")
         lines.append('➡️ <a href="%s">%s</a>' % (
@@ -162,6 +225,14 @@ def main(argv=None) -> int:
 
     data = _fetch_data(config)
     signals = build_signals(data, config)
+    confirmation = config.get("prediction_confirmation") or {}
+    prediction_markets: List[Dict] = []
+    if confirmation.get("enabled", True):
+        try:
+            prediction_markets = fetch_markets({"sources": confirmation.get("sources") or ["polymarket", "kalshi"]})
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.warning("prediction: рынки недоступны: %s", exc)
+        print("prediction markets: %d" % len(prediction_markets))
     pairs_ok = sum(1 for pair in data if data[pair])
     print("market: пар с данными %d/%d, бирж в конфиге %d" % (pairs_ok, len(data), len(config.get("exchanges") or [])))
     print("signals: %d" % len(signals))
@@ -178,6 +249,12 @@ def main(argv=None) -> int:
         last = float(recent.get(key) or 0)
         if now.timestamp() - last < cooldown:
             continue
+        signal["predictions"] = _prediction_notes(
+            signal,
+            prediction_markets,
+            float(confirmation.get("min_abs_change") or 0.07),
+            int(confirmation.get("max_notes") or 2),
+        )
         fresh.append(signal)
 
     affiliate_index = int(state.get("affiliate_index") or 0)
@@ -197,7 +274,7 @@ def main(argv=None) -> int:
             published += 1
             key = "%s|%s" % (signal["pair"], signal["side"])
             recent[key] = now.timestamp()
-            print("published:", signal["pair"], signal["side"])
+            print("published:", signal["pair"], signal["side"], "| prediction notes:", len(signal.get("predictions") or []))
         else:
             print("--- signal ---")
             print(text)
