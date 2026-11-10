@@ -1,0 +1,46 @@
+name: brevo-campaign-status
+
+on:
+  workflow_dispatch:
+    inputs:
+      campaign_id:
+        description: "Campaign id"
+        required: true
+        default: "4"
+      temp_email:
+        description: "Temp email"
+        required: true
+        default: "travelfindsdealsskfce@fldubai.com"
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Campaign and contact status
+        env:
+          CAMPAIGN_ID: ${{ inputs.campaign_id }}
+          TEMP_EMAIL: ${{ inputs.temp_email }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          def get(path):
+              req = urllib.request.Request("https://api.brevo.com/v3" + path,
+                  headers={"api-key": key, "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, r.read().decode()[:1200]
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()[:1200]
+          print("campaign:", *get("/emailCampaigns/" + os.environ["CAMPAIGN_ID"]))
+          print("contact:", *get("/contacts/" + os.environ["TEMP_EMAIL"]))
+          print("list:", *get("/contacts/lists/5"))
+          print("email stats:", *get("/smtp/statistics/events?limit=20"))
+          PY
+
