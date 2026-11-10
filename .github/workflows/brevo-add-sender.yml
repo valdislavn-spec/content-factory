@@ -1,0 +1,51 @@
+name: brevo-add-sender
+
+# Временный workflow: добавляет отправителя в Brevo (must verify by email).
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: "Sender email to add"
+        required: true
+      name:
+        description: "Sender display name"
+        required: true
+        default: "Travel Finds Deals"
+
+permissions:
+  contents: read
+
+jobs:
+  add-sender:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Add sender and list senders
+        env:
+          SENDER_EMAIL: ${{ inputs.email }}
+          SENDER_NAME: ${{ inputs.name }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          key = os.environ["BREVO_API_KEY"]
+          email = os.environ["SENDER_EMAIL"]
+          name = os.environ["SENDER_NAME"]
+          def call(path, method="GET", body=None):
+              data = json.dumps(body).encode() if body is not None else None
+              req = urllib.request.Request("https://api.brevo.com/v3" + path, data=data, method=method,
+                  headers={"api-key": key, "Content-Type": "application/json", "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return r.status, r.read().decode()
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()
+          status, body = call("/senders", "POST", {"email": email, "name": name})
+          print("POST /senders:", status)
+          print(body[:600])
+          status, body = call("/senders")
+          print("GET /senders:", status)
+          print(body[:900])
+          PY
+
