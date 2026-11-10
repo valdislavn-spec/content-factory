@@ -140,7 +140,14 @@ def main(argv=None) -> int:
                     list_id=int(list_id_raw),
                 )
                 result["sent"].append({"language": language, **sent})
-                print(f"[{language}] кампания Brevo #{sent.get('id')} отправлена")
+                if sent.get("transactional"):
+                    fallback = sent["transactional"]
+                    print(
+                        f"[{language}] Brevo API: {fallback.get('sent')}/{fallback.get('total')}"
+                        " писем отправлено (transactional fallback)"
+                    )
+                else:
+                    print(f"[{language}] кампания Brevo #{sent.get('id')} отправлена")
             except Exception as exc:  # noqa: BLE001
                 result["errors"].append(f"{language}: send: {exc}")
                 print(f"[{language}] ошибка отправки: {exc}", file=sys.stderr)
