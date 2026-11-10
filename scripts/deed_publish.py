@@ -62,7 +62,7 @@ def publish(dir_path: Path, slug: str, proxy: str) -> dict:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Publish static site to deed.page")
-    parser.add_argument("--dir", default=str(ROOT / "docs" / "deals"))
+    parser.add_argument("--dir", default=str(ROOT / "build" / "deals"))
     parser.add_argument("--slug", default="deals-finds")
     parser.add_argument("--proxy", default=PROXY)
     args = parser.parse_args(argv)

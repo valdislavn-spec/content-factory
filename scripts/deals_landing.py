@@ -25,7 +25,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATA = ROOT / "data" / "deals" / "landing.yaml"
-DEFAULT_OUT = ROOT / "docs" / "deals"
+DEFAULT_OUT = ROOT / "build" / "deals"
 
 CSS = """
 :root{--bg:#0b1220;--card:#121b2e;--card-hover:#17233c;--text:#e8eefc;--muted:#93a4c4;--accent:#4f8cff;--border:#22304d;--good:#46d39a;--warn:#ffb454}
@@ -197,10 +197,24 @@ def build(data: Dict[str, Any], out: Path) -> List[Path]:
         cards = "\n".join(product_card(p, base) for p in prods)
         if not cards:
             cards = '<p class="desc">Pronto añadiremos ofertas de esta tienda.</p>'
+        colls = [c for c in (data.get("collections") or []) if str(c.get("program")) == slug]
+        coll_html = ""
+        if colls:
+            coll_cards = "\n".join(
+                f"""<article class="card">
+  <span class="badge">Colección</span>
+  <h3><a href="{esc(with_utm(str(c.get("url") or ""), slug))}" rel="nofollow sponsored noopener" target="_blank">{esc(c.get("title"))}</a></h3>
+  <div class="desc">{esc(c.get("desc"))}</div>
+  <a class="cta" href="{esc(with_utm(str(c.get("url") or ""), slug))}" rel="nofollow sponsored noopener" target="_blank">Ver colección</a>
+</article>"""
+                for c in colls
+            )
+            coll_html = f'<h2>Colecciones</h2><div class="grid">{coll_cards}</div>'
         body = f"""<p class="crumbs"><a href="index.html">Ofertas</a> / {esc(prog.get("name"))}</p>
 <h1>{esc(prog.get("name"))} — ofertas</h1>
 <p class="lead">{esc(prog.get("description_es"))}</p>
 <p class="desc">{esc(prog.get("commission_es"))}</p>
+{coll_html}
 <div class="grid">{cards}</div>"""
         path = out / f"{slug}.html"
         write(path, page(f'{prog.get("name")} — ofertas y hallazgos', str(prog.get("tagline_es") or prog.get("name")), f"{base}/{slug}.html", body, channels_url))
