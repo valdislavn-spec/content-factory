@@ -132,3 +132,30 @@ https://<реф-ссылка>?utm_source=tg_<channel>&utm_medium=telegram&utm_ca
 - **Travelpayouts** — пароль сброшен, окно логина открыто (предзаполнено).
 - **collaborator.pro** — реф-ссылка из письма: `https://collaborator.pro/ru/signup?code=m9Vidx`.
 - **N1 Partners** — пропущен (2FA/блок).
+
+## 9. Товарные партнёрки (e-commerce) — 08.11.2026
+
+План и контент-шаблоны: `docs/monetization/product-affiliates.md`.
+Аккаунты маркетплейсов уже есть в Google-аккаунте (Temu, eBay, Etsy, KLEKT,
+Depop, Grailed, China-агенты: CNFans, Hoobuy, CSSBuy, iTaoBuy, AllChinaBuy,
+Hipobuy, Pandabuy; плюс Admitad как CPA-сеть).
+
+| Программа | Тип | Аккаунт | Реф-ссылка | Статус |
+|---|---|---|---|---|
+| **Temu Affiliate** | маркетплейс | ✅ Temu | ⏳ | регистрация в партнёрке |
+| **eBay Partner Network** | маркетплейс | ✅ eBay | ⏳ | подать заявку |
+| **Admitad** | CPA-сеть (AliExpress/Temu/Shein/LightInTheBox) | ✅ есть | ⏳ | **вход восстановлен 08.11 (Mitgo ID, KZ-резидентство подтверждено); создана площадка «Telegram tech & football channels» (@AINEWS0007, @WORLDNews0007, @SPORTSAnalytics007) — ждёт верификации через @adspace_verification_bot** |
+| **Sugargoo** | посредник 1688/Taobao/AliExpress | ✅ есть | **https://www.sugargoo.com/register?memberId=2834487856253302865** | ✅ подключено 09.11: Affiliate Center активен, ставка 4–9% от стоимости доставки, вывод 2–10 числа (CNY) |
+| **China-агенты** (CNFans, Hoobuy, CSSBuy, iTaoBuy, AllChinaBuy, Hipobuy) | посредники 1688/AliExpress | ✅ есть | ⏳ | CNFans/AllChinaBuy на обслуживании; Hoobuy/CSSBuy/Pandabuy недоступны из РФ |
+| **KLEKT** | кроссовки/стритвир | ✅ KLEKT | ⏳ | партнёрка через Awin |
+| **Etsy** | хэндмейд | ✅ Etsy | ⏳ | партнёрка через Awin (низкий приоритет) |
+| **Ecwid** | SaaS-магазины (20% recurring) | ✅ Ecwid | ⏳ | регистрация в партнёрке |
+| **Banggood** | маркетплейс (гаджеты/RC/FPV) | ✅ есть (dropship) | ⏳ | своя партнёрка до 25% (заявка 3–5 дней; нужен вход в аккаунт — капча) + оффер **Banggood WW** в Admitad (EPC ~$2, hold 40 дней) |
+| **AliExpress Portals** | маркетплейс | ✅ есть (аккаунт ae615644) | ⏳ ссылки из Ad Center → Promote now → Copy&Promo | **вход 10.11.2026 по email-коду; комиссия до 9%, ссылки формата aliexpress.com/item/...?affd...** |
+| **Amazon Associates** | маркетплейс | ❌ нет | — | отдельная регистрация (нужен сайт) |
+| **AliExpress Portals** | маркетплейс | ❌ нет | — | регистрация или через Admitad |
+
+Каналы: `ai-news`/`tech-ai-es` — гаджеты (Temu/AliExpress/Amazon);
+`sport-news`/`futbol-es` — экипировка, джерси, кроссовки (eBay/KLEKT/агенты).
+Правило: 1 товарный пост на 3–4 новостных, маркировка «партнёрская ссылка/advertising».
+UTM: `utm_campaign=deals_<program>`.
