@@ -19,6 +19,7 @@ from content_factory.agents.ops_agent import (  # noqa: E402
     heuristic_summary,
 )
 from content_factory.agents.tools import (  # noqa: E402
+    DISTRIBUTION_WORKFLOWS,
     TOOLS,
     call_tool,
     tool_distribution,
@@ -169,7 +170,7 @@ class DistributionToolTests(unittest.TestCase):
             "urllib.request.urlopen", return_value=self.Resp(payload)
         ):
             data = tool_distribution({})
-        self.assertEqual(len(data["platforms"]), 6)
+        self.assertEqual(len(data["platforms"]), len(DISTRIBUTION_WORKFLOWS))
         self.assertIn("Mastodon", data["failing"])
 
     def test_distribution_without_token(self) -> None:

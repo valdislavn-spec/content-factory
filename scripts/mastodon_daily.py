@@ -148,6 +148,43 @@ def _no_links() -> bool:
         "1", "true", "yes", "on"}
 
 
+def split_llm_text(raw: str) -> List[str]:
+    """Нарезает LLM-текст на части: --- / абзацы / предложения ≤ MAX_PART."""
+    raw = (raw or "").strip()
+    if not raw:
+        return []
+    by_sep = [part.strip() for part in re.split(r"(?m)^\s*-{3,}\s*$", raw) if part.strip()]
+    if len(by_sep) >= 2:
+        return by_sep
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", raw) if part.strip()]
+    if len(paragraphs) >= 2:
+        chunks: List[str] = []
+        current = ""
+        for paragraph in paragraphs:
+            candidate = (current + "\n\n" + paragraph).strip() if current else paragraph
+            if len(candidate) > MAX_PART and current:
+                chunks.append(current)
+                current = paragraph
+            else:
+                current = candidate
+        if current:
+            chunks.append(current)
+        return chunks
+    sentences = [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", raw) if sentence.strip()]
+    chunks = []
+    current = ""
+    for sentence in sentences:
+        candidate = (current + " " + sentence).strip() if current else sentence
+        if len(candidate) > MAX_PART and current:
+            chunks.append(current)
+            current = sentence
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
+
+
 def clean_part(text: str, strip_links: Optional[bool] = None) -> str:
     text = normalize_space(strip_html(text or ""))
     if strip_links is None:
@@ -204,7 +241,7 @@ def build_with_llm(channel: Any, topic: Dict[str, str], articles: List[Any],
                            handle=_handle(channel) or "@our_channel",
                            hashtags=topic["hashtags"])
     raw = llm.generate(prompt, system=system, max_tokens=1200, temperature=0.4)
-    chunks = [clean_part(part) for part in re.split(r"(?m)^\s*---\s*$", raw or "") if part.strip()]
+    chunks = [clean_part(part) for part in split_llm_text(raw)]
     chunks = [chunk for chunk in chunks if len(chunk) >= 80][:MAX_PARTS]
     if len(chunks) < 2:
         return []
