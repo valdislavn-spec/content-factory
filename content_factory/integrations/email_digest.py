@@ -463,6 +463,6 @@ def send_brevo_campaign(
     if not campaign_id:
         raise RuntimeError(f"Brevo не вернул id кампании: {created}")
     result = _post_json(
-        f"{BREVO_API}/emailCampaigns/{campaign_id}/send", {}, api_key
+        f"{BREVO_API}/emailCampaigns/{campaign_id}/sendNow", {}, api_key
     )
     return {"id": campaign_id, "send": result}
