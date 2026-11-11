@@ -510,6 +510,20 @@ def cmd_ingest(args: argparse.Namespace, settings: Settings) -> int:
     return 0 if failed == 0 else 1
 
 
+def cmd_growth(args: argparse.Namespace, settings: Settings) -> int:
+    """Сводка growth-событий (deep links /start, inline mode)."""
+    with Storage(settings.db_path) as storage:
+        summary = storage.growth_summary(days=float(args.days))
+    print(f"Growth-события за {summary['days']:g} дн.: {summary['total']}")
+    for key in ("by_event", "by_channel", "by_source"):
+        data = summary.get(key) or {}
+        if data:
+            print(f"  {key}: " + ", ".join(f"{k}={v}" for k, v in sorted(data.items(), key=lambda kv: -kv[1])))
+    if not summary["total"]:
+        print("  Пока пусто: запустите growth-бота (scripts/telegram-growth-bot.py) и раздайте deep links.")
+    return 0
+
+
 def _split_channels(value: Optional[str]) -> List[str]:
     if not value:
         return ["all"]
@@ -611,6 +625,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Проверить соцсети-публикаторы (Bluesky/Mastodon/Discord/Fediverse)",
     )
     p_social.set_defaults(func=cmd_social_check)
+
+    p_growth = sub.add_parser(
+        "growth", help="Сводка growth-событий: /start по deep links, inline mode"
+    )
+    p_growth.add_argument("--days", type=float, default=7, help="Период в днях (по умолчанию 7)")
+    p_growth.set_defaults(func=cmd_growth)
 
     p_demo = sub.add_parser("demo", help="Офлайн-демо: посты и отчёт без сети и токенов")
     p_demo.add_argument("--keep", action="store_true", help="Не очищать прошлые демо-данные")
