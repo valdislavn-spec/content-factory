@@ -621,7 +621,9 @@ class EnglishDigestTest(EnglishGeneratorTestBase):
         analysis = Analysis(numbers=["18%"], key_terms=["Fed", "rate"], source_count=2)
         post = generate_digest([(cluster, analysis)], self.channel, self.settings)
         self.assert_no_cyrillic(post)
-        self.assertIn("The reports mention numbers: 18%.", post.text)
+        # Цифра выделяется жирным — проверяем текст без учёта тега.
+        self.assertIn("The reports mention numbers:", post.text)
+        self.assertIn("18%", post.text)
 
 
 # ---------------------------------------------------------------------------
@@ -725,7 +727,8 @@ class EnglishLLMTest(EnglishGeneratorTestBase):
         self.assertEqual(post.meta["generator"], "llm")
         self.assertEqual(post.meta["llm_provider"], "fake-digest-en")
         self.assertIn("OpenAI introduced GPT-5 with a larger context window", post.text)
-        self.assertIn("The Fed kept its key interest rate unchanged at 4.5%", post.text)
+        self.assertIn("The Fed kept its key interest rate unchanged at", post.text)
+        self.assertIn("4.5%", post.text)
         self.assert_no_cyrillic(post)
         self.assertTrue(llm.systems)
         for system in llm.systems:

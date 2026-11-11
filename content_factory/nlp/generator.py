@@ -157,7 +157,9 @@ _SYSTEM_WRITER = (
     "разделов. Используй только факты из предоставленного текста: не придумывай "
     "события, цифры, имена, цитаты и ссылки. Никогда не начинай с ярлыков "
     "вроде HEADLINE:, TITLE:, BODY: или LEAD: — только текст для читателя. "
-    "Используй не больше трёх эмодзи и не больше одного вопроса."
+    "Используй не больше трёх эмодзи и не больше одного вопроса. Начинай с "
+    "цепкого хука до 120 символов — что на кону или главная цифра; абзацы "
+    "по 1–2 короткие фразы, чтобы пост легко читался с телефона."
 )
 _SYSTEM_WRITER_EN = (
     "You are a professional journalist writing for a US news Telegram channel. "
@@ -171,7 +173,10 @@ _SYSTEM_WRITER_EN = (
     "from the provided text: never invent events, numbers, names, quotes or links. "
     "No markdown and no explanations. Never start with labels such as "
     "HEADLINE:, TITLE:, BODY: or LEAD: — write only the reader-facing text. "
-    "Use no more than three emojis and at most one question mark."
+    "Use no more than three emojis and at most one question mark. "
+    "Start with a punchy hook under 120 characters that names the stake or the "
+    "most important number; keep paragraphs to 1-2 short sentences so the post "
+    "is easy to scan on a phone."
 )
 _SYSTEM_WRITER_ES = (
     "Eres un periodista profesional que escribe para un canal de noticias de "
@@ -186,7 +191,9 @@ _SYSTEM_WRITER_ES = (
     "no inventes acontecimientos, cifras, nombres, citas ni enlaces. Sin markdown "
     "y sin explicaciones. Nunca empieces con etiquetas como "
     "HEADLINE:, TITLE:, BODY: o LEAD: — escribe solo el texto para el lector. "
-    "Usa como máximo tres emojis y una sola pregunta."
+    "Usa como máximo tres emojis y una sola pregunta. Empieza con un gancho "
+    "de menos de 120 caracteres que nombre lo que está en juego o la cifra "
+    "más importante; párrafos de 1-2 frases cortas para leer en el móvil."
 )
 
 # Тренды и интерактив: подписи по языкам.
@@ -832,7 +839,7 @@ def _headline(cluster: StoryCluster, analysis: Optional[Analysis] = None, lang: 
         return placeholder
     if len(title) > _MAX_HEADLINE:
         title = truncate(title, _MAX_HEADLINE, suffix="…")
-    return title[:1].upper() + title[1:]
+    return _punch_title(title, lang)
 
 
 def _post_hashtags(
@@ -1594,7 +1601,7 @@ def _build_story(
     bullets = _story_bullets(analysis, title, lang)
     lead = _lead_prose(analysis, title, lang, limit=2, max_len=340, fallback=bullets)
     if lead:
-        blocks.append({"text": _escape(lead)})
+        blocks.append({"text": _bold_key_number(_escape(lead))})
     details = _prose(bullets[2:] if lead else bullets, lang, limit=2, max_len=280, avoid=lead)
     if details:
         blocks.append({"text": _escape(details)})
@@ -1873,6 +1880,36 @@ def _strip_prompt_labels(text: str) -> str:
     return cleaned.strip()
 
 
+_KEY_NUMBER_RE = re.compile(
+    r"(?<![\w>/])((?:[$€£]\s?)?\d[\d\s.,]*(?:\s?(?:%|млрд|трлн|млн|billion|million|trillion|percent))?)"
+)
+
+
+def _bold_key_number(text: str) -> str:
+    """Выделяет первую значимую цифру жирным — зацепка для глаза в Telegram."""
+    if not text or "<a " in text:
+        return text
+    match = _KEY_NUMBER_RE.search(text)
+    if not match:
+        return text
+    value = match.group(1).strip()
+    if len(value) < 2 or not re.search(r"\d", value):
+        return text
+    before = text[: match.start()]
+    if before.count("<b>") > before.count("</b>"):
+        return text
+    return before + "<b>" + value + "</b>" + text[match.end():]
+
+
+def _punch_title(title: str, lang: str = "ru") -> str:
+    """Чистит заголовок: без кавычек/точки в конце, максимум 95 символов."""
+    text = normalize_space(str(title or "")).strip()
+    text = text.strip('"\'«»“”').rstrip(". ")
+    if len(text) > 95:
+        text = truncate(text, 95, suffix="…")
+    return text[:1].upper() + text[1:] if text else ""
+
+
 def _make_post(
     *,
     post_id: str,
@@ -2112,7 +2149,7 @@ def generate_digest(
             link = " " + f"<b>{_link(link_label, item_sources[0]['url'])}</b>"
         prefix = f"{emoji} " if emoji else ""
         blocks.append(
-            {"text": f"{prefix}<b>{_escape(title)}</b> — {_escape(one_line)}{link}"}
+            {"text": f"{prefix}<b>{_escape(title)}</b> — {_bold_key_number(_escape(one_line))}{link}"}
         )
 
     cta_text = _cta_block(channel, settings, lang, seed=title)
@@ -2149,7 +2186,7 @@ def _digest_fallback_line(analysis: Analysis, title: str, lang: str = "ru") -> s
         if not _fits_language(sentence, lang):
             continue
         if not _similar(sentence, title, 0.65):
-            return _shorten(sentence, 170)
+            return _shorten(sentence, 130)
     if _is_en(lang):
         numbers = [number for number in analysis.numbers[:3] if _fits_language(number, lang)]
         if numbers:

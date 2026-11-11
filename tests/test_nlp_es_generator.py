@@ -808,7 +808,9 @@ class SpanishDigestTest(SpanishGeneratorTestBase):
             [(cluster, analysis)], self.channel, self.settings
         )
         self.assert_no_cyrillic(post)
-        self.assertIn("Los informes mencionan estas cifras: 18%.", post.text)
+        # La cifra se resalta en negrita: comprobamos el texto sin el tag.
+        self.assertIn("Los informes mencionan estas cifras:", post.text)
+        self.assertIn("18%", post.text)
 
 
 # ---------------------------------------------------------------------------
