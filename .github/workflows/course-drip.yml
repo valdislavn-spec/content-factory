@@ -74,9 +74,7 @@ jobs:
               email = str(value.get("email") or key[4:]).strip()
               if not email:
                   continue
-              topics = value.get("topics") or []
-              if value.get("source") != "us-course" and "course" not in topics:
-                  continue
+              # Onboarding course for every new subscriber (the Worker stores signups as source=landing).
               start_raw = str(value.get("consent_at") or "")
               try:
                   start = datetime.fromisoformat(start_raw.replace("Z", "+00:00"))
