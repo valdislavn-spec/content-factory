@@ -480,6 +480,9 @@ content-factory/
 | [api-keys-inventory.md](docs/api-keys-inventory.md) | инвентаризация API-ключей и бесплатных лимитов: что работает, что пусто, чего не хватает и что нужно от владельца |
 | [promo/channel-cards.md](docs/promo/channel-cards.md) | Pinterest-style карточки 6 Telegram-каналов (1000×1500): описание, CTA t.me, travel-ссылки; публикация в Mastodon, Akkoma, Buffer (X/Bluesky/Facebook), Tumblr, Pinterest |
 | [promo/reddit-api-setup.md](docs/promo/reddit-api-setup.md) | Reddit Data API: где была кнопка create another app, почему приём заявок закрыт с 31.10.2026, Devvit как единственный путь для новых проектов, что делать с legacy-публикатором |
+| [post-quality.md](docs/post-quality.md) | качество постов: детерминированная рубрика (хук, структура, ссылки, CTA, кликбейт), score 0–100, гейт `pipeline.quality_gate`, примеры и метрики |
+| [pinterest-quality.md](docs/pinterest-quality.md) | качество картинок/пинов: дизайн-система `content_factory/brand/design.py`, спецификация Pinterest 1000×1500, auto-fit текста, WCAG-контраст, QA-чеклист и сэмплы `assets/pins-v5/` |
+| [repo-sync-2026-11-11.md](docs/repo-sync-2026-11-11.md) | как репозиторий синхронизировали с `origin/main`, чистка worktree/stash/веток и правила, чтобы не разъезжаться снова |
 | [plan.md](docs/plan.md) | чек-лист запуска на 7 дней и дорожная карта |
 | [free-cloud.md](docs/free-cloud.md) | бесплатные облачные варианты: сбор новостей, LLM, хостинг, автопостинг, рецепты Oracle/GitHub Actions/Apps Script/n8n |
 | [legal.md](docs/legal.md) | авторские права, ToS, дисклеймеры, ответственность |
