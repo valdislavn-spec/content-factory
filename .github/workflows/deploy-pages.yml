@@ -1,0 +1,43 @@
+name: deploy-pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout site
+        uses: actions/checkout@v4
+        with:
+          repository: valdislavn-spec/travel-finds
+          path: site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Create project
+        run: |
+          for name in travel-finds-usa us-travel-finds travel-finds-deals travelfinds-us; do
+            if npx --yes wrangler@3 pages project create "$name" --production-branch main >/dev/null 2>&1; then
+              echo "PROJECT=$name" >> "$GITHUB_ENV"
+              break
+            fi
+          done
+          if [ -z "$PROJECT" ]; then echo "No free Pages project name"; exit 1; fi
+          echo "Using project: $PROJECT"
+      - name: Deploy
+        run: |
+          npx --yes wrangler@3 pages deploy site --project-name "$PROJECT" --branch main --commit-dirty=true
+          printf '%s' "$UNSUB_SECRET" | npx --yes wrangler@3 pages secret put UNSUB_SECRET --project-name "$PROJECT"
+          printf '%s' "$BREVO_API_KEY" | npx --yes wrangler@3 pages secret put BREVO_API_KEY --project-name "$PROJECT"
+          echo "URL: https://$PROJECT.pages.dev"
