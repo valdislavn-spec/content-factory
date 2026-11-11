@@ -27,6 +27,7 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      ASTRBOT_TEMPLATE: ${{ github.workspace }}/.astrbot/cmd_config.template.json
     steps:
       - uses: actions/checkout@v4
 
@@ -44,10 +45,10 @@ jobs:
         run: |
           mkdir -p "$ASTRBOT_ROOT/data/config" "$ASTRBOT_ROOT/data/plugins" "$ASTRBOT_ROOT/data/temp"
           touch "$ASTRBOT_ROOT/.astrbot"
-          python .astrbot/state.py restore
+          python .astrbot/state_sync.py restore
 
       - name: Render config
-        run: python .astrbot/render_config.py
+        run: python .astrbot/render_config_image.py
 
       - name: Run AstrBot (5h30m)
         run: |
@@ -64,4 +65,4 @@ jobs:
 
       - name: Save state
         if: always()
-        run: python .astrbot/state.py save
+        run: python .astrbot/state_sync.py save

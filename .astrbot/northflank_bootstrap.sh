@@ -29,4 +29,5 @@ python "$WORK/render_config_image.py"
   done
 ) &
 
+cd "$ASTRBOT_ROOT"
 exec python main.py

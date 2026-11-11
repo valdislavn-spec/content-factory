@@ -33,7 +33,14 @@ def restore() -> None:
         return
     ROOT.mkdir(parents=True, exist_ok=True)
     with tarfile.open(path) as tar:
-        tar.extractall(ROOT)
+        for member in tar.getmembers():
+            target = (ROOT / member.name).resolve()
+            if target != ROOT and ROOT not in target.parents:
+                raise SystemExit(f"unsafe archive member: {member.name}")
+        try:
+            tar.extractall(ROOT, filter="data")  # Python 3.12+
+        except TypeError:  # pragma: no cover - Python 3.11 fallback
+            tar.extractall(ROOT)
     print("state restored from", REPO)
 
 
@@ -48,18 +55,24 @@ def save() -> None:
 
     with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as tmp:
         name = tmp.name
-    with tarfile.open(name, "w:gz") as tar:
-        tar.add(DATA, arcname="data")
-    HfApi(token=TOKEN).upload_file(
-        path_or_fileobj=name,
-        path_in_repo=FILENAME,
-        repo_id=REPO,
-        repo_type="dataset",
-        commit_message="astrbot state sync",
-    )
+    try:
+        with tarfile.open(name, "w:gz") as tar:
+            tar.add(DATA, arcname="data")
+        HfApi(token=TOKEN).upload_file(
+            path_or_fileobj=name,
+            path_in_repo=FILENAME,
+            repo_id=REPO,
+            repo_type="dataset",
+            commit_message="astrbot state sync",
+        )
+    finally:
+        Path(name).unlink(missing_ok=True)
     print("state saved to", REPO)
 
 
 if __name__ == "__main__":
     action = sys.argv[1] if len(sys.argv) > 1 else "restore"
-    {"restore": restore, "save": save}[action]()
+    actions = {"restore": restore, "save": save}
+    if action not in actions:
+        raise SystemExit(f"unknown action: {action} (use restore|save)")
+    actions[action]()
