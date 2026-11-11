@@ -1,5 +1,7 @@
 # Buffer: дублирование дневного пина в подключённые соцсети.
-# Buffer: X (twitter). Facebook заблокирован (2026-11-10) — не публикуем.
+# Buffer: X (twitter) — только редкие ручные посты, без частой публикации
+# (решение владельца 11.11.2026: «не публикуй часто в твиттере»).
+# Facebook заблокирован (2026-11-10) — не публикуем.
 # Bluesky — через прямой AT Protocol (пока канал не переподключён в Buffer).
 # Ключ: BUFFER_API_KEY (Buffer → Settings → API).
 organization_id: 68d276b0ab330eddbacc2da8
@@ -82,8 +84,11 @@ state_path: data/buffer_state.json
 #   facebook 20:00 / 23:00 UTC = 15:00 / 18:00 ET = 12:00 / 15:00 PT
 #   twitter  16:00 / 22:00 UTC = 11:00 / 17:00 ET = 08:00 / 14:00 PT
 # (прежние 11:00/19:00 UTC давали 06:00/14:00 ET и 03:00/11:00 PT — ночь/утро)
+#
+# ВАЖНО (11.11.2026): плановых слотов для X/Twitter НЕТ — частые публикации не нужны.
+# X используем только для редкого ручного поста (workflow_dispatch buffer-queue --live).
 schedule:
   timezone: UTC
   horizon_days: 3
   times:
-    twitter: ["16:00", "22:00"]
+    twitter: []
