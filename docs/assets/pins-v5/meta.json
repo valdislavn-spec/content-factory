@@ -1,0 +1,1227 @@
+[
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/bali-budget-qr.png",
+  "file": "docs/assets/pins-v5/bali-budget-qr.png",
+  "slug": "bali-budget-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "bali",
+   "budget",
+   "days",
+   "rice"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "Bali on a budget: 7 days of rice terraces and $3 meals",
+   "description": "A 7-day Bali budget plan: cheap rice-terrace stays, where to eat for $3 and how to get around without overspending. Find flights. Ad · affiliate link",
+   "alt_text": "BALI ON\nA BUDGET. 7 days of rice terraces, surf and $3 meals.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/bali-budget-qr.png"
+   },
+   "link": "https://is.gd/BaliTrip"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 11.91,
+    "brandmark_text": 14.55,
+    "headline": 8.54,
+    "subtitle": 6.6,
+    "cta": 11.91,
+    "disclosure": 11.91,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 6.6,
+   "min_heading_contrast": 8.54,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 142,
+     "line_width": 98,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 142,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 14.55
+    },
+    {
+     "role": "headline",
+     "font_size": 136,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 658,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 316
+     },
+     "contrast": 8.54
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 1,
+     "box_width": 856,
+     "line_width": 850,
+     "rect": {
+      "x": 72,
+      "y": 718,
+      "w": 856,
+      "h": 59
+     },
+     "contrast": 6.6
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 316,
+     "line_width": 244,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 316,
+      "h": 82
+     },
+     "contrast": 11.91
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1273,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 11.91
+    },
+    {
+     "role": "attribution",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 568,
+     "rect": {
+      "x": 94,
+      "y": 1313,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1353,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ },
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/dubai-weekend-qr.png",
+  "file": "docs/assets/pins-v5/dubai-weekend-qr.png",
+  "slug": "dubai-weekend-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "dubai",
+   "days",
+   "desert",
+   "skyline"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "Dubai in 3 days: desert, skyline and a carry-on weekend",
+   "description": "A 3-day Dubai weekend itinerary: desert dunes, the skyline, duty-free and how to do it with one carry-on bag. Find flights. Ad · affiliate link",
+   "alt_text": "DUBAI IN\n3 DAYS. Desert dunes, skyline and duty-free — one carry-on.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/dubai-weekend-qr.png"
+   },
+   "link": "https://is.gd/DubaiTrip"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 12.44,
+    "brandmark_text": 13.93,
+    "headline": 8.53,
+    "subtitle": 6.49,
+    "cta": 12.44,
+    "disclosure": 12.44,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 6.49,
+   "min_heading_contrast": 8.53,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 161,
+     "line_width": 117,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 161,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 13.93
+    },
+    {
+     "role": "headline",
+     "font_size": 136,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 587,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 316
+     },
+     "contrast": 8.53
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 788,
+     "rect": {
+      "x": 72,
+      "y": 718,
+      "w": 856,
+      "h": 118
+     },
+     "contrast": 6.49
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 316,
+     "line_width": 244,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 316,
+      "h": 82
+     },
+     "contrast": 12.44
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1274,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 12.44
+    },
+    {
+     "role": "attribution",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 589,
+     "rect": {
+      "x": 94,
+      "y": 1314,
+      "w": 622,
+      "h": 31
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1351,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ },
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/winter-sun-qr.png",
+  "file": "docs/assets/pins-v5/winter-sun-qr.png",
+  "slug": "winter-sun-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "winter",
+   "sun",
+   "escapes",
+   "lisbon"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "3 winter sun escapes: Lisbon, Dubai and Bali",
+   "description": "Three winter sun destinations compared: Lisbon 15C, Dubai 25C and Bali 30C, with the best months and flight tips. Find flights. Ad · affiliate link",
+   "alt_text": "3 WINTER\nESCAPES. Lisbon 15°C · Dubai 25°C · Bali 30°C.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/winter-sun-qr.png"
+   },
+   "link": "https://is.gd/Flights"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 10.41,
+    "brandmark_text": 12.82,
+    "headline": 6.77,
+    "subtitle": 5.76,
+    "cta": 10.41,
+    "disclosure": 10.41,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 5.76,
+   "min_heading_contrast": 6.77,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 195,
+     "line_width": 151,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 195,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 12.82
+    },
+    {
+     "role": "headline",
+     "font_size": 136,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 618,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 316
+     },
+     "contrast": 6.77
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 1,
+     "box_width": 856,
+     "line_width": 744,
+     "rect": {
+      "x": 72,
+      "y": 718,
+      "w": 856,
+      "h": 59
+     },
+     "contrast": 5.76
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 316,
+     "line_width": 244,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 316,
+      "h": 82
+     },
+     "contrast": 10.41
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1274,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 10.41
+    },
+    {
+     "role": "attribution",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 589,
+     "rect": {
+      "x": 94,
+      "y": 1314,
+      "w": 622,
+      "h": 31
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1351,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ },
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/europe-under-300-qr.png",
+  "file": "docs/assets/pins-v5/europe-under-300-qr.png",
+  "slug": "europe-under-300-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "europe",
+   "under",
+   "300",
+   "cheap"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "Europe under $300: cheap city breaks by month",
+   "description": "How to book a 3-night European city break under $300: cheapest months, carry-on rules and the best booking window. Find flights. Ad · affiliate link",
+   "alt_text": "EUROPE\nUNDER $300. A 3-night city break: cheapest months and booking windows.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/europe-under-300-qr.png"
+   },
+   "link": "https://is.gd/EuropeTrip"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 8.89,
+    "brandmark_text": 15.33,
+    "headline": 10.99,
+    "subtitle": 7.53,
+    "cta": 8.89,
+    "disclosure": 8.89,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 7.53,
+   "min_heading_contrast": 10.99,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 142,
+     "line_width": 98,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 142,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 15.33
+    },
+    {
+     "role": "headline",
+     "font_size": 136,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 790,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 316
+     },
+     "contrast": 10.99
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 782,
+     "rect": {
+      "x": 72,
+      "y": 718,
+      "w": 856,
+      "h": 118
+     },
+     "contrast": 7.53
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 316,
+     "line_width": 244,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 316,
+      "h": 82
+     },
+     "contrast": 8.89
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1273,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 8.89
+    },
+    {
+     "role": "attribution",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 423,
+     "rect": {
+      "x": 94,
+      "y": 1313,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1353,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ },
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/travel-esim-qr.png",
+  "file": "docs/assets/pins-v5/travel-esim-qr.png",
+  "slug": "travel-esim-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "travel",
+   "esim",
+   "works",
+   "install"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "Travel eSIM that works: install before you fly",
+   "description": "How a travel eSIM works, when it beats airport SIM cards and how to install one before you fly for data in 200+ countries. Get eSIM. Ad · affiliate link",
+   "alt_text": "TRAVEL eSIM\nTHAT WORKS. Install before you fly — data in 200+ countries.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/travel-esim-qr.png"
+   },
+   "link": "https://is.gd/ESimDeal"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 7.92,
+    "brandmark_text": 16.06,
+    "headline": 7.43,
+    "subtitle": 5.73,
+    "cta": 7.92,
+    "disclosure": 7.92,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 5.73,
+   "min_heading_contrast": 7.43,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 273,
+     "line_width": 229,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 273,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 16.06
+    },
+    {
+     "role": "headline",
+     "font_size": 128,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 812,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 296
+     },
+     "contrast": 7.43
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 746,
+     "rect": {
+      "x": 72,
+      "y": 698,
+      "w": 856,
+      "h": 118
+     },
+     "contrast": 5.73
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 284,
+     "line_width": 212,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 284,
+      "h": 82
+     },
+     "contrast": 7.92
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1273,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 7.92
+    },
+    {
+     "role": "attribution",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 536,
+     "rect": {
+      "x": 94,
+      "y": 1313,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1353,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ },
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/car-rental-qr.png",
+  "file": "docs/assets/pins-v5/car-rental-qr.png",
+  "slug": "car-rental-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "car",
+   "rental",
+   "without",
+   "surprises"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "Car rental without surprises: fuel policy and excess cover",
+   "description": "How to rent a car without hidden fees: local renters, full-to-full fuel policy, excess cover and the best booking window. Rent a car. Ad · affiliate link",
+   "alt_text": "CAR RENTAL\nNO SURPRISES. Local renters, clear fuel policy, excess cover.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/car-rental-qr.png"
+   },
+   "link": "https://is.gd/CarRental"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 9.82,
+    "brandmark_text": 15.56,
+    "headline": 8.16,
+    "subtitle": 6.46,
+    "cta": 9.82,
+    "disclosure": 9.82,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 6.46,
+   "min_heading_contrast": 8.16,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 273,
+     "line_width": 229,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 273,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 15.56
+    },
+    {
+     "role": "headline",
+     "font_size": 120,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 818,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 278
+     },
+     "contrast": 8.16
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 785,
+     "rect": {
+      "x": 72,
+      "y": 680,
+      "w": 856,
+      "h": 118
+     },
+     "contrast": 6.46
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 303,
+     "line_width": 231,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 303,
+      "h": 82
+     },
+     "contrast": 9.82
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1273,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.82
+    },
+    {
+     "role": "attribution",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 409,
+     "rect": {
+      "x": 94,
+      "y": 1313,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1353,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ },
+ {
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/flight-compensation-qr.png",
+  "file": "docs/assets/pins-v5/flight-compensation-qr.png",
+  "slug": "flight-compensation-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+   "travel tips",
+   "city breaks",
+   "budget travel",
+   "travel guide",
+   "flight",
+   "delayed",
+   "check",
+   "owed"
+  ],
+  "variant": "photo",
+  "pin": {
+   "board_id": "<BOARD_ID>",
+   "title": "Flight delayed? Check if you are owed up to 600 EUR",
+   "description": "Flight delayed or cancelled? What EU261 compensation you may be owed (up to 600 EUR), and a 2-minute way to check your flight. Check my flight. Ad · affiliate link",
+   "alt_text": "FLIGHT\nDELAYED?. You may be owed up to €600 — check in 2 minutes.",
+   "media_source": {
+    "source_type": "image_url",
+    "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/flight-compensation-qr.png"
+   },
+   "link": "https://is.gd/Compensair"
+  },
+  "metrics": {
+   "variant": "photo",
+   "width": 1000,
+   "height": 1500,
+   "aspect_ratio": 0.6667,
+   "margin": 72,
+   "margins": {
+    "left": 72,
+    "top": 72,
+    "right": 72,
+    "bottom": 72
+   },
+   "min_font_size": 24,
+   "contrast": {
+    "tag": 17.61,
+    "brandmark": 14.3,
+    "brandmark_text": 15.55,
+    "headline": 9.03,
+    "subtitle": 9.2,
+    "cta": 14.3,
+    "disclosure": 14.3,
+    "attribution": 9.83,
+    "site": 9.83
+   },
+   "min_body_contrast": 9.2,
+   "min_heading_contrast": 9.03,
+   "blocks": [
+    {
+     "role": "tag",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 230,
+     "line_width": 186,
+     "rect": {
+      "x": 72,
+      "y": 72,
+      "w": 230,
+      "h": 48
+     },
+     "contrast": 17.61
+    },
+    {
+     "role": "brandmark_text",
+     "font_size": 24,
+     "lines": 1,
+     "box_width": 262,
+     "line_width": 234,
+     "rect": {
+      "x": 666,
+      "y": 80,
+      "w": 262,
+      "h": 31
+     },
+     "contrast": 15.55
+    },
+    {
+     "role": "headline",
+     "font_size": 136,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 670,
+     "rect": {
+      "x": 72,
+      "y": 340,
+      "w": 856,
+      "h": 316
+     },
+     "contrast": 9.03
+    },
+    {
+     "role": "subtitle",
+     "font_size": 44,
+     "lines": 2,
+     "box_width": 856,
+     "line_width": 851,
+     "rect": {
+      "x": 72,
+      "y": 718,
+      "w": 856,
+      "h": 118
+     },
+     "contrast": 9.2
+    },
+    {
+     "role": "cta",
+     "font_size": 38,
+     "lines": 1,
+     "box_width": 399,
+     "line_width": 327,
+     "rect": {
+      "x": 72,
+      "y": 1122,
+      "w": 399,
+      "h": 82
+     },
+     "contrast": 14.3
+    },
+    {
+     "role": "disclosure",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 197,
+     "rect": {
+      "x": 94,
+      "y": 1273,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 14.3
+    },
+    {
+     "role": "attribution",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 555,
+     "rect": {
+      "x": 94,
+      "y": 1313,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    },
+    {
+     "role": "site",
+     "font_size": 26,
+     "lines": 1,
+     "box_width": 622,
+     "line_width": 306,
+     "rect": {
+      "x": 94,
+      "y": 1353,
+      "w": 622,
+      "h": 34
+     },
+     "contrast": 9.83
+    }
+   ],
+   "warnings": [
+    "content centred vertically (+180px)"
+   ]
+  }
+ }
+]

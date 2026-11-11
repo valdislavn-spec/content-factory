@@ -1,0 +1,175 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/dubai-weekend-qr.png",
+  "file": "docs/assets/pins-v5/dubai-weekend-qr.png",
+  "slug": "dubai-weekend-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+    "travel tips",
+    "city breaks",
+    "budget travel",
+    "travel guide",
+    "dubai",
+    "days",
+    "desert",
+    "skyline"
+  ],
+  "variant": "photo",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Dubai in 3 days: desert, skyline and a carry-on weekend",
+    "description": "A 3-day Dubai weekend itinerary: desert dunes, the skyline, duty-free and how to do it with one carry-on bag. Find flights. Ad · affiliate link",
+    "alt_text": "DUBAI IN\n3 DAYS. Desert dunes, skyline and duty-free — one carry-on.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/dubai-weekend-qr.png"
+    },
+    "link": "https://is.gd/DubaiTrip"
+  },
+  "metrics": {
+    "variant": "photo",
+    "width": 1000,
+    "height": 1500,
+    "aspect_ratio": 0.6667,
+    "margin": 72,
+    "margins": {
+      "left": 72,
+      "top": 72,
+      "right": 72,
+      "bottom": 72
+    },
+    "min_font_size": 24,
+    "contrast": {
+      "tag": 17.61,
+      "brandmark": 12.44,
+      "brandmark_text": 13.93,
+      "headline": 8.53,
+      "subtitle": 6.49,
+      "cta": 12.44,
+      "disclosure": 12.44,
+      "attribution": 9.83,
+      "site": 9.83
+    },
+    "min_body_contrast": 6.49,
+    "min_heading_contrast": 8.53,
+    "blocks": [
+      {
+        "role": "tag",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 161,
+        "line_width": 117,
+        "rect": {
+          "x": 72,
+          "y": 72,
+          "w": 161,
+          "h": 48
+        },
+        "contrast": 17.61
+      },
+      {
+        "role": "brandmark_text",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 262,
+        "line_width": 234,
+        "rect": {
+          "x": 666,
+          "y": 80,
+          "w": 262,
+          "h": 31
+        },
+        "contrast": 13.93
+      },
+      {
+        "role": "headline",
+        "font_size": 136,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 587,
+        "rect": {
+          "x": 72,
+          "y": 340,
+          "w": 856,
+          "h": 316
+        },
+        "contrast": 8.53
+      },
+      {
+        "role": "subtitle",
+        "font_size": 44,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 788,
+        "rect": {
+          "x": 72,
+          "y": 718,
+          "w": 856,
+          "h": 118
+        },
+        "contrast": 6.49
+      },
+      {
+        "role": "cta",
+        "font_size": 38,
+        "lines": 1,
+        "box_width": 316,
+        "line_width": 244,
+        "rect": {
+          "x": 72,
+          "y": 1122,
+          "w": 316,
+          "h": 82
+        },
+        "contrast": 12.44
+      },
+      {
+        "role": "disclosure",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 197,
+        "rect": {
+          "x": 94,
+          "y": 1274,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 12.44
+      },
+      {
+        "role": "attribution",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 589,
+        "rect": {
+          "x": 94,
+          "y": 1314,
+          "w": 622,
+          "h": 31
+        },
+        "contrast": 9.83
+      },
+      {
+        "role": "site",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 306,
+        "rect": {
+          "x": 94,
+          "y": 1351,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 9.83
+      }
+    ],
+    "warnings": [
+      "content centred vertically (+180px)"
+    ]
+  }
+}

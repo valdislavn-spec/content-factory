@@ -1,0 +1,175 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/winter-sun-qr.png",
+  "file": "docs/assets/pins-v5/winter-sun-qr.png",
+  "slug": "winter-sun-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+    "travel tips",
+    "city breaks",
+    "budget travel",
+    "travel guide",
+    "winter",
+    "sun",
+    "escapes",
+    "lisbon"
+  ],
+  "variant": "photo",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "3 winter sun escapes: Lisbon, Dubai and Bali",
+    "description": "Three winter sun destinations compared: Lisbon 15C, Dubai 25C and Bali 30C, with the best months and flight tips. Find flights. Ad · affiliate link",
+    "alt_text": "3 WINTER\nESCAPES. Lisbon 15°C · Dubai 25°C · Bali 30°C.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/winter-sun-qr.png"
+    },
+    "link": "https://is.gd/Flights"
+  },
+  "metrics": {
+    "variant": "photo",
+    "width": 1000,
+    "height": 1500,
+    "aspect_ratio": 0.6667,
+    "margin": 72,
+    "margins": {
+      "left": 72,
+      "top": 72,
+      "right": 72,
+      "bottom": 72
+    },
+    "min_font_size": 24,
+    "contrast": {
+      "tag": 17.61,
+      "brandmark": 10.41,
+      "brandmark_text": 12.82,
+      "headline": 6.77,
+      "subtitle": 5.76,
+      "cta": 10.41,
+      "disclosure": 10.41,
+      "attribution": 9.83,
+      "site": 9.83
+    },
+    "min_body_contrast": 5.76,
+    "min_heading_contrast": 6.77,
+    "blocks": [
+      {
+        "role": "tag",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 195,
+        "line_width": 151,
+        "rect": {
+          "x": 72,
+          "y": 72,
+          "w": 195,
+          "h": 48
+        },
+        "contrast": 17.61
+      },
+      {
+        "role": "brandmark_text",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 262,
+        "line_width": 234,
+        "rect": {
+          "x": 666,
+          "y": 80,
+          "w": 262,
+          "h": 31
+        },
+        "contrast": 12.82
+      },
+      {
+        "role": "headline",
+        "font_size": 136,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 618,
+        "rect": {
+          "x": 72,
+          "y": 340,
+          "w": 856,
+          "h": 316
+        },
+        "contrast": 6.77
+      },
+      {
+        "role": "subtitle",
+        "font_size": 44,
+        "lines": 1,
+        "box_width": 856,
+        "line_width": 744,
+        "rect": {
+          "x": 72,
+          "y": 718,
+          "w": 856,
+          "h": 59
+        },
+        "contrast": 5.76
+      },
+      {
+        "role": "cta",
+        "font_size": 38,
+        "lines": 1,
+        "box_width": 316,
+        "line_width": 244,
+        "rect": {
+          "x": 72,
+          "y": 1122,
+          "w": 316,
+          "h": 82
+        },
+        "contrast": 10.41
+      },
+      {
+        "role": "disclosure",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 197,
+        "rect": {
+          "x": 94,
+          "y": 1274,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 10.41
+      },
+      {
+        "role": "attribution",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 589,
+        "rect": {
+          "x": 94,
+          "y": 1314,
+          "w": 622,
+          "h": 31
+        },
+        "contrast": 9.83
+      },
+      {
+        "role": "site",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 306,
+        "rect": {
+          "x": 94,
+          "y": 1351,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 9.83
+      }
+    ],
+    "warnings": [
+      "content centred vertically (+180px)"
+    ]
+  }
+}

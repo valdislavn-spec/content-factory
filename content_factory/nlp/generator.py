@@ -47,6 +47,11 @@ _ALLOWED_FORMATS = ("story", "digest", "analysis", "interactive")
 _ALLOWED_TAGS = frozenset({"b", "i", "a", "code"})
 _TAG_SPLIT_RE = re.compile(r"(<[^>]+>)")
 _NUM_RE = re.compile(r"\d+")
+# Диапазоны эмодзи — чтобы уважать `channel.emoji: false` в блоках поддержки.
+_EMOJI_RE = re.compile(
+    "[\U0001F300-\U0001FAFF\U0001F1E6-\U0001F1FF\u2600-\u27BF"
+    "\u2B00-\u2BFF\u2300-\u23FF\uFE0F\u200D]"
+)
 # Служебные хвосты заголовков: «GPT-5: главное», «...: что известно».
 _GENERIC_TITLE_TAIL_RE = re.compile(
     r"^(?:главное|что\s+(?:известно|важно|нужно\s+знать)|подробности|условия|"
@@ -140,25 +145,38 @@ _WHY_MARKERS = {
     ),
 }
 
+# Правила качества повторяются во всех LLM-промптах: хук до 90 символов,
+# конкретные числа/даты/организации, объяснение «почему это важно», CTA,
+# запрет кликбейта/капса/markdown и сохранение фактов исходного текста.
 _SYSTEM_WRITER = (
     "Ты — редактор новостного Telegram-канала. Пиши по-русски живо, но точно и "
-    "нейтрально. Используй только факты из предоставленного текста: не придумывай "
-    "события, цифры, имена, цитаты и ссылки. Без markdown и без пояснений."
+    "нейтрально. Первый абзац — цепкий лид-хук до 90 символов, дальше 2–3 коротких "
+    "абзаца. Используй конкретные цифры, даты и организации из текста, объясняй, "
+    "почему новость важна, и заканчивай призывом к действию, если он уместен. Без "
+    "кликбейта («шок», «вы не поверите», «срочно»), без КАПСА, markdown и ярлыков "
+    "разделов. Используй только факты из предоставленного текста: не придумывай "
+    "события, цифры, имена, цитаты и ссылки."
 )
 _SYSTEM_WRITER_EN = (
     "You are a professional journalist writing for a US news Telegram channel. "
-    "Write a tight article: a strong SEO headline with the main keyword, a lead "
-    "paragraph answering what happened, then 2-3 short paragraphs of flowing prose. "
-    "Never use section labels (Key points, Why it matters, Context, Bottom line) "
-    "and never number list items. Use 1-3 relevant emojis naturally. Use only the "
-    "facts from the provided text: never invent events, numbers, names, quotes or "
-    "links. No markdown and no explanations."
+    "Write a tight article: a strong SEO headline under 90 characters, a hook lead "
+    "answering what happened, then 2-3 short paragraphs of flowing prose. Prefer "
+    "concrete numbers, dates and named organisations from the text, explain why the "
+    "story matters, and end with a clear call to action when it fits. Never use "
+    "section labels (Key points, Why it matters, Context, Bottom line), never number "
+    "list items, never write in ALL CAPS and never use clickbait (shocking, you "
+    "won't believe, urgent). Use 1-3 relevant emojis naturally. Use only the facts "
+    "from the provided text: never invent events, numbers, names, quotes or links. "
+    "No markdown and no explanations."
 )
 _SYSTEM_WRITER_ES = (
     "Eres un periodista profesional que escribe para un canal de noticias de "
-    "América Latina. Escribe un artículo breve: titular SEO con la palabra clave, "
-    "entradilla con lo que pasó y 2-3 párrafos de prosa periodística. Nunca uses "
-    "etiquetas (Puntos clave, Por qué importa, Contexto) ni numeres los elementos. "
+    "América Latina. Escribe un artículo breve: titular SEO de menos de 90 "
+    "caracteres, entradilla-hook con lo que pasó y 2-3 párrafos cortos de prosa "
+    "periodística. Usa cifras, fechas y nombres de organizaciones del texto, "
+    "explica por qué importa la noticia y termina con una llamada a la acción si "
+    "encaja. Nunca uses etiquetas (Puntos clave, Por qué importa, Contexto), ni "
+    "numeración, ni MAYÚSCULAS, ni clickbait (increíble, no vas a creer, urgente). "
     "Usa 1-3 emojis con naturalidad. Español neutro latinoamericano: siempre "
     "«ustedes», sin «vosotros» ni regionalismos. Usa solo los hechos del texto: "
     "no inventes acontecimientos, cifras, nombres, citas ni enlaces. Sin markdown "
@@ -820,8 +838,11 @@ def _post_hashtags(
         for tag in (getattr(channel, "hashtags", None) or [])
         if str(tag).strip() and _fits_language(tag, lang)
     ]
-    if not tags and analysis is not None:
-        for term in analysis.key_terms[:3]:
+    # Рубрика ждёт 2–5 хэштегов: если у канала их меньше двух, добираем
+    # осмысленные термины из анализа (у канала без тегов — до трёх, как раньше).
+    hashtag_target = 3 if not tags else 2
+    if len(tags) < hashtag_target and analysis is not None:
+        for term in analysis.key_terms:
             if not _fits_language(term, lang):
                 continue
             # Диакритика важна для испанских хэштегов: #economía, #España.
@@ -832,6 +853,8 @@ def _post_hashtags(
             )
             if len(cleaned) >= 3:
                 tags.append("#" + cleaned)
+            if len(tags) >= hashtag_target:
+                break
     result: List[str] = []
     seen = set()
     for tag in tags:
@@ -880,6 +903,9 @@ def _cta_block(
     except Exception as exc:  # noqa: BLE001 — донат не должен ломать пост
         logger.debug("Блок поддержки недоступен: %s", exc)
         support = ""
+    if support and not bool(getattr(channel, "emoji", True)):
+        # Канал без эмодзи не должен получать ❤️ из стандартного блока поддержки.
+        support = normalize_space(_EMOJI_RE.sub(" ", support)).replace(" :", ":")
     if support:
         blocks.append(support)
     return "\n\n".join(blocks)
@@ -1055,8 +1081,10 @@ def _llm_headline(
                 f"Summary: {analysis.summary}\n"
                 f"Key points: {points}\n\n"
                 "Rewrite this news headline so it is shorter and more precise, in "
-                "English. Do not add facts, numbers or links that are not in the text. "
-                "Return only the headline, without quotes and without a trailing period."
+                "English. Keep it under 90 characters and put the main fact or number "
+                "first as a hook. Avoid clickbait and ALL CAPS. Do not add facts, "
+                "numbers or links that are not in the text. Return only the headline, "
+                "without quotes and without a trailing period."
             )
         elif _is_es(lang):
             prompt = (
@@ -1064,8 +1092,10 @@ def _llm_headline(
                 f"Resumen: {analysis.summary}\n"
                 f"Puntos clave: {points}\n\n"
                 "Reescribe este titular de forma más breve y precisa, en español. "
-                "No añadas hechos, cifras ni enlaces que no estén en el texto. "
-                "Devuelve solo el titular, sin comillas y sin punto final."
+                "Que no pase de 90 caracteres y empiece por el hecho o la cifra "
+                "principal como gancho. Sin clickbait ni MAYÚSCULAS. No añadas "
+                "hechos, cifras ni enlaces que no estén en el texto. Devuelve solo "
+                "el titular, sin comillas y sin punto final."
             )
         else:
             prompt = (
@@ -1073,32 +1103,38 @@ def _llm_headline(
                 f"Резюме: {analysis.summary}\n"
                 f"Тезисы: {points}\n\n"
                 "Перепиши заголовок этой новости короче и точнее, на русском языке. "
-                "Не добавляй факты, цифры и ссылки, которых нет в тексте. Верни только "
-                "заголовок без кавычек и без точки в конце."
+                "Сделай хук до 90 символов: главный факт или цифра в начале, без "
+                "кликбейта и без КАПСА. Не добавляй факты, цифры и ссылки, которых "
+                "нет в тексте. Верни только заголовок без кавычек и без точки в конце."
             )
     elif _is_en(lang):
         prompt = (
             f"News headline: {headline}\n"
             f"Source text:\n{source_text[:4000]}\n\n"
             "Rewrite this news headline so it is shorter and more precise, in "
-            "English. Do not add facts, numbers or links that are not in the text. "
-            "Return only the headline, without quotes and without a trailing period."
+            "English. Keep it under 90 characters and put the main fact or number "
+            "first as a hook. Avoid clickbait and ALL CAPS. Do not add facts, "
+            "numbers or links that are not in the text. Return only the headline, "
+            "without quotes and without a trailing period."
         )
     elif _is_es(lang):
         prompt = (
             f"Noticia: {headline}\n"
             f"Texto de las fuentes:\n{source_text[:4000]}\n\n"
             "Reescribe este titular de forma más breve y precisa, en español. "
-            "No añadas hechos, cifras ni enlaces que no estén en el texto. "
-            "Devuelve solo el titular, sin comillas y sin punto final."
+            "Que no pase de 90 caracteres y empiece por el hecho o la cifra "
+            "principal como gancho. Sin clickbait ni MAYÚSCULAS. No añadas "
+            "hechos, cifras ni enlaces que no estén en el texto. Devuelve solo "
+            "el titular, sin comillas y sin punto final."
         )
     else:
         prompt = (
             f"Новость: {headline}\n"
             f"Текст источников:\n{source_text[:4000]}\n\n"
             "Перепиши заголовок этой новости короче и точнее, на русском языке. "
-            "Не добавляй факты, цифры и ссылки, которых нет в тексте. Верни только "
-            "заголовок без кавычек и без точки в конце."
+            "Сделай хук до 90 символов: главный факт или цифра в начале, без "
+            "кликбейта и без КАПСА. Не добавляй факты, цифры и ссылки, которых "
+            "нет в тексте. Верни только заголовок без кавычек и без точки в конце."
         )
     raw = _safe_generate(
         llm, prompt, max_tokens=80, temperature=0.3, system=_system_prompt(lang)
@@ -1114,24 +1150,27 @@ def _llm_why(
             f"News summary: {analysis.summary}\n"
             f"Key points: {'; '.join(analysis.bullets)}\n\n"
             "Write one short sentence in English explaining why this news matters. "
-            "Use only the text above, without invented facts or numbers. Return only "
-            "the sentence."
+            "Name the concrete consequence, number or group affected, and avoid "
+            "clickbait and vague phrases. Use only the text above, without invented "
+            "facts or numbers. Return only the sentence."
         )
     elif _is_es(lang):
         prompt = (
             f"Resumen de la noticia: {analysis.summary}\n"
             f"Puntos clave: {'; '.join(analysis.bullets)}\n\n"
             "Escribe una frase corta en español que explique por qué esta noticia "
-            "importa. Usa solo el texto anterior, sin hechos ni cifras inventados. "
-            "Devuelve solo la frase."
+            "importa. Menciona la consecuencia, la cifra o el grupo afectado, y evita "
+            "el clickbait y las frases vagas. Usa solo el texto anterior, sin hechos "
+            "ni cifras inventados. Devuelve solo la frase."
         )
     else:
         prompt = (
             f"Резюме новости: {analysis.summary}\n"
             f"Тезисы: {'; '.join(analysis.bullets)}\n\n"
             "Сформулируй одно короткое предложение на русском: почему эта новость "
-            "важна. Опирайся только на текст выше, без выдуманных фактов и цифр. "
-            "Верни только предложение."
+            "важна. Назови конкретное следствие, цифру или затронутую группу, без "
+            "кликбейта и общих слов. Опирайся только на текст выше, без выдуманных "
+            "фактов и цифр. Верни только предложение."
         )
     raw = _safe_generate(
         llm, prompt, max_tokens=120, temperature=0.3, system=_system_prompt(lang)
@@ -1149,8 +1188,9 @@ def _llm_conclusion(
             f"Key points: {'; '.join(analysis.bullets)}\n"
             f"Numbers from the text: {numbers}\n\n"
             "Write one neutral conclusion sentence in English strictly based on "
-            "these facts. No invented events, numbers or links. Return only the "
-            "sentence."
+            "these facts. Explain the practical consequence of the story for the "
+            "reader, without clickbait. No invented events, numbers or links. "
+            "Return only the sentence."
         )
     elif _is_es(lang):
         numbers = ", ".join(analysis.numbers) or "ninguna"
@@ -1159,8 +1199,9 @@ def _llm_conclusion(
             f"Puntos clave: {'; '.join(analysis.bullets)}\n"
             f"Cifras del texto: {numbers}\n\n"
             "Escribe una conclusión neutral en español basada estrictamente en estos "
-            "hechos. Sin acontecimientos, cifras ni enlaces inventados. Devuelve solo "
-            "la frase."
+            "hechos. Explica la consecuencia práctica de la noticia para el lector, "
+            "sin clickbait. Sin acontecimientos, cifras ni enlaces inventados. "
+            "Devuelve solo la frase."
         )
     else:
         prompt = (
@@ -1168,7 +1209,8 @@ def _llm_conclusion(
             f"Тезисы: {'; '.join(analysis.bullets)}\n"
             f"Цифры из текста: {', '.join(analysis.numbers) or 'нет'}\n\n"
             "Сформулируй один нейтральный вывод на русском языке строго по этим "
-            "фактам. Без выдуманных событий, цифр и ссылок. Верни только предложение."
+            "фактам: что это значит для читателя, без кликбейта. Без выдуманных "
+            "событий, цифр и ссылок. Верни только предложение."
         )
     raw = _safe_generate(
         llm, prompt, max_tokens=140, temperature=0.25, system=_system_prompt(lang)
@@ -1191,25 +1233,28 @@ def _llm_digest_lines(
     if _is_en(lang):
         prompt = (
             "Below is the list of news items for a digest:\n" + "\n".join(lines) + "\n\n"
-            "Give one short line in English for each news item (up to 150 characters). "
-            "Strictly based on the facts from the list, without links and without "
-            f"invented numbers. Return exactly {len(items)} lines without numbering, "
-            "in the same order."
+            "Give one short hook line in English for each news item (up to 150 "
+            "characters), starting with its main fact or number. No clickbait, no "
+            "ALL CAPS. Strictly based on the facts from the list, without links and "
+            f"without invented numbers. Return exactly {len(items)} lines without "
+            "numbering, in the same order."
         )
     elif _is_es(lang):
         prompt = (
             "Abajo tienes la lista de noticias para un resumen:\n"
             + "\n".join(lines)
             + "\n\n"
-            "Da una línea corta en español para cada noticia (hasta 150 caracteres). "
-            "Estrictamente basada en los hechos de la lista, sin enlaces y sin cifras "
-            f"inventadas. Devuelve exactamente {len(items)} líneas sin numeración, "
-            "en el mismo orden."
+            "Da una línea corta tipo gancho en español para cada noticia (hasta 150 "
+            "caracteres), empezando por su hecho o cifra principal. Sin clickbait y "
+            "sin MAYÚSCULAS. Estrictamente basada en los hechos de la lista, sin "
+            f"enlaces y sin cifras inventadas. Devuelve exactamente {len(items)} líneas "
+            "sin numeración, en el mismo orden."
         )
     else:
         prompt = (
             "Ниже список новостей для дайджеста:\n" + "\n".join(lines) + "\n\n"
-            "Дай для каждой новости одну короткую строку на русском (до 150 символов). "
+            "Дай для каждой новости одну короткую строку-хук на русском (до 150 "
+            "символов), начиная с главного факта или цифры. Без кликбейта и КАПСА. "
             "Строго по фактам из списка, без ссылок, без выдуманных цифр. Верни ровно "
             f"{len(items)} строк без нумерации, в том же порядке."
         )
@@ -1263,6 +1308,37 @@ def _echoes_headline(text: str, headline: str) -> bool:
     if not left or not right:
         return False
     return SequenceMatcher(None, left, right).ratio() >= 0.6
+
+
+def _lead_prose(
+    analysis: Analysis,
+    headline: str,
+    lang: str = "ru",
+    *,
+    limit: int = 2,
+    max_len: int = 340,
+    fallback: Sequence[str] = (),
+) -> str:
+    """Лид-абзац, который не пересказывает заголовок.
+
+    Первое предложение резюме часто дублирует заголовок («X представила Y»).
+    Такой пересказ — главный источник повторов в посте, поэтому эхо заголовка
+    отбрасывается, а лид начинается с нового факта. Если после фильтра не
+    осталось ни одного предложения, поведение прежнее (берём как есть).
+    """
+    sentences = [
+        normalize_space(sentence)
+        for sentence in split_sentences(analysis.summary)
+        if normalize_space(sentence) and _fits_language(sentence, lang)
+    ]
+    fresh = [sentence for sentence in sentences if not _echoes_headline(sentence, headline)]
+    lead = _prose(fresh, lang, limit=limit, max_len=max_len)
+    if lead:
+        return lead
+    lead = _prose(sentences, lang, limit=limit, max_len=max_len)
+    if lead:
+        return lead
+    return _prose(list(fallback or ()), lang, limit=limit, max_len=max_len)
 
 
 def _story_bullets(analysis: Analysis, headline: str = "", lang: str = "ru") -> List[str]:
@@ -1378,6 +1454,70 @@ def _numbers_sentence(analysis: Analysis, lang: str = "ru") -> str:
     return f"Фигурирующие цифры: {chips}."
 
 
+_NUMBER_IN_TEXT_RE = re.compile(r"\d+(?:[.,]\d+)?")
+_SOURCE_LIMIT = 4000
+
+
+def _missing_numbers(analysis: Analysis, body_text: str) -> List[str]:
+    """Цифры из анализа, которых ещё нет в уже собранном тексте поста."""
+    body = normalize_space(str(body_text or "")).lower()
+    missing: List[str] = []
+    for number in getattr(analysis, "numbers", None) or []:
+        value = normalize_space(str(number)).lower()
+        if not value:
+            continue
+        # Сравниваем по «ядру» цифры: 25% ≈ 25, 8,5% ≈ 8,5.
+        core = _NUMBER_IN_TEXT_RE.search(value)
+        needle = core.group(0) if core else value
+        if not needle:
+            continue
+        # Границы числа, чтобы «25» не считалось найденным в «250».
+        if re.search(r"(?<!\d)" + re.escape(needle) + r"(?!\d)", body):
+            continue
+        missing.append(needle)
+    return missing
+
+
+def _fact_sentence(
+    analysis: Analysis,
+    cluster: StoryCluster,
+    lang: str,
+    missing: Sequence[str],
+    existing_text: str = "",
+) -> str:
+    """Натуральное предложение с недостающей цифрой — вместо строки «Цифры: …».
+
+    Сначала ищем в резюме/тезисах, затем в исходном тексте кластера: так
+    конкретная цифра попадает в пост вместе с контекстом, а не служебной
+    строкой. Если ничего не нашлось, вызывающий код использует прежний
+    ``_numbers_sentence``.
+    """
+    if not missing:
+        return ""
+    existing = [normalize_space(sentence) for sentence in split_sentences(existing_text)]
+    headline = _headline(cluster, analysis, lang)
+    candidates: List[str] = []
+    candidates.extend(split_sentences(analysis.summary or ""))
+    candidates.extend(list(getattr(analysis, "bullets", None) or []))
+    source = normalize_space(str(getattr(cluster, "combined_text", "") or ""))
+    if source:
+        candidates.extend(split_sentences(source[:_SOURCE_LIMIT]))
+    for sentence in candidates:
+        text = normalize_space(sentence)
+        if not text or not _fits_language(text, lang):
+            continue
+        if "[…]" in text:
+            continue
+        if not any(number in text for number in missing):
+            continue
+        if _echoes_headline(text, headline):
+            continue
+        if any(_similar(text, previous, 0.6) for previous in existing):
+            continue
+        return _shorten(text, 260)
+    return ""
+
+
 def _numbers_block(analysis: Analysis, style: Dict[str, str], lang: str = "ru") -> str:
     numbers = [number for number in analysis.numbers if _fits_language(number, lang)]
     if not numbers:
@@ -1446,18 +1586,40 @@ def _build_story(
     prefix = f"{lead_emoji} " if lead_emoji else ""
     blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
     bullets = _story_bullets(analysis, title, lang)
-    lead_sentences = [sentence for sentence in split_sentences(analysis.summary)]
-    lead = _prose(lead_sentences or bullets, lang, limit=2, max_len=340)
+    lead = _lead_prose(analysis, title, lang, limit=2, max_len=340, fallback=bullets)
     if lead:
         blocks.append({"text": _escape(lead)})
     details = _prose(bullets[2:] if lead else bullets, lang, limit=2, max_len=280, avoid=lead)
     if details:
         blocks.append({"text": _escape(details)})
-    current_len = sum(len(strip_html(block.get("text", ""))) for block in blocks)
-    if current_len < 300:
-        numbers_sentence = _numbers_sentence(analysis, lang)
-        if numbers_sentence:
-            blocks.append({"text": _escape(numbers_sentence)})
+
+    body_text = " ".join(strip_html(block.get("text", "")) for block in blocks[1:])
+    # «Почему это важно» без ярлыка: факт из текста, объясняющий последствия.
+    why_text = ""
+    if _llm_available(llm):
+        why_text = _llm_why(analysis, source_text, llm, lang)
+        if why_text:
+            llm_used = True
+    if not why_text:
+        why_text = _template_why(analysis, cluster, lang)
+    why_text = _shorten(why_text, 280)
+    existing_sentences = split_sentences(normalize_space(body_text))
+    if why_text and not any(
+        _similar(why_text, sentence, 0.6) for sentence in existing_sentences
+    ):
+        blocks.append({"text": _escape(why_text), "optional": True, "drop_priority": 60})
+        body_text = body_text + " " + why_text
+
+    # Конкретные цифры из текста: натуральное предложение, а не строка-ярлык.
+    missing = _missing_numbers(analysis, body_text)
+    if missing:
+        fact_sentence = _fact_sentence(analysis, cluster, lang, missing, body_text)
+        if not fact_sentence:
+            fact_sentence = _numbers_sentence(analysis, lang)
+        if fact_sentence:
+            blocks.append(
+                {"text": _escape(fact_sentence), "optional": True, "drop_priority": 65}
+            )
 
     sources_text = _sources_block(sources, style)
     if sources_text:
@@ -1503,7 +1665,7 @@ def _build_analysis(
     lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
     prefix = f"{lead_emoji} " if lead_emoji else ""
     blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
-    lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=340)
+    lead = _lead_prose(analysis, title, lang, limit=2, max_len=340)
     if lead:
         blocks.append({"text": _escape(lead)})
 
@@ -1567,7 +1729,7 @@ def _build_interactive(
     lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
     prefix = f"{lead_emoji} " if lead_emoji else ""
     blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
-    lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=340)
+    lead = _lead_prose(analysis, title, lang, limit=2, max_len=340)
     if lead:
         blocks.append({"text": _escape(lead)})
     facts = _prose(_story_bullets(analysis, title, lang)[:2], lang, limit=2, max_len=260, avoid=lead)
@@ -1608,7 +1770,7 @@ def _build_single_digest(
     lead_emoji = _lead_emoji(channel) if getattr(channel, "emoji", True) else ""
     prefix = f"{lead_emoji} " if lead_emoji else ""
     blocks: List[Dict[str, Any]] = [{"text": f"{prefix}<b>{_escape(title)}</b>"}]
-    lead = _prose(split_sentences(analysis.summary), lang, limit=2, max_len=300)
+    lead = _lead_prose(analysis, title, lang, limit=2, max_len=300)
     if lead:
         blocks.append({"text": _escape(lead)})
     facts = _prose(_story_bullets(analysis, title, lang)[:3], lang, limit=2, max_len=240, avoid=lead)

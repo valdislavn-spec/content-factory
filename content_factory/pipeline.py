@@ -35,6 +35,7 @@ from .models import (
 from .nlp.analyzer import analyze_cluster
 from .nlp.generator import generate_digest, generate_post
 from .nlp.llm import get_llm
+from .nlp.quality import QualityReport, score_post
 from .integrations.dify_posts import build_post_generator
 from .publishers import Publisher, get_publisher
 from .sources import get_adapter
@@ -274,8 +275,173 @@ def build_clusters(
 # ---------------------------------------------------------------------------
 
 
+# Ключи настроек качества: по умолчанию гейт выключен, конвейер только
+# складывает метрики в post.meta (см. docs/post-quality.md).
+QUALITY_GATE_DEFAULT_MIN_SCORE = 60
+
+# Как не дублировать в списке ошибок те же проблемы, что уже нашли старые
+# проверки quality_issues(): код рубрики -> подстроки в существующих сообщениях.
+_QUALITY_DUPLICATE_MARKERS: Dict[str, Tuple[str, ...]] = {
+    "too_short": ("коротк", "короче"),
+    "too_long": ("длиннее лимита",),
+    "no_sources": ("нет ссылок",),
+    "plain_url": ("не оформлены как html", "html-ссылк"),
+}
+
+
+def _pipeline_setting(settings: Any, key: str, default: Any = None) -> Any:
+    """Настройка из секции ``pipeline`` для Settings и лёгких фейков в тестах."""
+    try:
+        section = settings.pipeline
+        if isinstance(section, dict):
+            return section.get(key, default)
+    except Exception:  # noqa: BLE001 - нестандартный Settings не должен ломать конвейер
+        pass
+    try:
+        return settings.get(f"pipeline.{key}", default)
+    except Exception:  # noqa: BLE001
+        return default
+
+
+def _quality_gate_config(settings: Any) -> Dict[str, Any]:
+    """Разбирает ``pipeline.quality_gate`` в нормализованный словарь.
+
+    Поддерживаются варианты:
+
+    * ``false``/нет ключа/``"off"`` — гейт выключен (по умолчанию);
+    * ``true`` — включён, блокируются blocker-проблемы и score ниже
+      ``pipeline.quality_gate_min_score`` (60);
+    * число — включён с этим минимальным баллом;
+    * ``"warn"`` — только предупреждения в meta, без отклонения постов;
+    * словарь ``{enabled, min_score, block_blockers, block_majors, warn_only}``.
+    """
+    config: Dict[str, Any] = {
+        "enabled": False,
+        "min_score": 0,
+        "block_blockers": True,
+        "block_majors": False,
+        "warn_only": False,
+    }
+    raw = _pipeline_setting(settings, "quality_gate", False)
+    if raw is None or raw is False or raw == 0:
+        return config
+    min_score_explicit = False
+    if isinstance(raw, dict):
+        if raw.get("enabled") is False:
+            return config
+        config["enabled"] = True
+        config["warn_only"] = bool(raw.get("warn_only", False))
+        config["block_blockers"] = bool(raw.get("block_blockers", True))
+        config["block_majors"] = bool(raw.get("block_majors", False))
+        if "min_score" in raw:
+            min_score_explicit = True
+            config["min_score"] = int(raw.get("min_score") or 0)
+    elif isinstance(raw, str):
+        mode = raw.strip().lower()
+        if mode in ("", "off", "false", "no", "0", "disabled"):
+            return config
+        config["enabled"] = True
+        config["warn_only"] = mode == "warn"
+    else:
+        config["enabled"] = True
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+            min_score_explicit = True
+            config["min_score"] = int(raw)
+    if not config["enabled"]:
+        return config
+    if not min_score_explicit:
+        # Отдельный ключ настроек; 0 допустим («только blocker-проверки»).
+        configured = _pipeline_setting(settings, "quality_gate_min_score", None)
+        if configured is None:
+            config["min_score"] = QUALITY_GATE_DEFAULT_MIN_SCORE
+        else:
+            try:
+                config["min_score"] = int(configured)
+            except (TypeError, ValueError):
+                config["min_score"] = QUALITY_GATE_DEFAULT_MIN_SCORE
+    if config["min_score"] < 0:
+        config["min_score"] = 0
+    return config
+
+
+def _attach_quality_report(
+    post: GeneratedPost, channel: ChannelConfig, settings: Any
+) -> Optional[QualityReport]:
+    """Считает рубрику и складывает score/warnings/metrics в ``post.meta``.
+
+    Оценка никогда не должна ломать публикацию: любые сбои рубрики гасятся и
+    только логируются. Существующее поле ``meta["quality_issues"]`` (список
+    старых проверок) сохраняется, blocker-сообщения рубрики добавляются к нему.
+    """
+    try:
+        report = score_post(post, channel, settings)
+    except Exception:  # noqa: BLE001 - метрики не должны мешать конвейеру
+        log.debug("Не удалось посчитать quality-score поста %s", post.id, exc_info=True)
+        return None
+    try:
+        meta = post.meta if isinstance(post.meta, dict) else {}
+        existing = meta.get("quality_issues")
+        rubric_messages = [issue.message for issue in report.blockers]
+        if isinstance(existing, list) and existing:
+            merged = list(existing) + [
+                message for message in rubric_messages if message not in existing
+            ]
+        else:
+            merged = rubric_messages
+        meta["quality_issues"] = merged
+        meta["quality_score"] = report.score
+        meta["quality_warnings"] = [issue.as_dict() for issue in report.warnings]
+        meta["quality_blockers"] = [issue.as_dict() for issue in report.blockers]
+        meta["quality_metrics"] = report.metrics
+        meta["quality_report"] = report.as_dict()
+        post.meta = meta
+    except Exception:  # noqa: BLE001 - нестандартный post.meta
+        log.debug("Не удалось записать quality-метрики в meta", exc_info=True)
+    return report
+
+
+def _already_reported(code: str, messages: Sequence[str]) -> bool:
+    joined = " ".join(str(message).lower() for message in messages)
+    return any(marker in joined for marker in _QUALITY_DUPLICATE_MARKERS.get(code, ()))
+
+
+def _quality_gate_issues(
+    report: QualityReport,
+    settings: Any,
+    existing: Sequence[str],
+) -> List[str]:
+    """Дополнительные блокеры от опционального гейта качества (по умолчанию пусто)."""
+    config = _quality_gate_config(settings)
+    if not config["enabled"] or config["warn_only"]:
+        return []
+    extra: List[str] = []
+    if config["block_blockers"]:
+        for issue in report.blockers:
+            if _already_reported(issue.code, existing):
+                continue
+            extra.append(f"quality[{issue.code}]: {issue.message}")
+    if config["block_majors"]:
+        for issue in report.majors:
+            if _already_reported(issue.code, existing):
+                continue
+            extra.append(f"quality[{issue.code}]: {issue.message}")
+    if config["min_score"] and report.score < config["min_score"]:
+        extra.append(
+            "quality score: {} < {}".format(report.score, config["min_score"])
+        )
+    return extra
+
+
 def quality_issues(post: GeneratedPost, channel: ChannelConfig, settings: Settings) -> List[str]:
-    """Проверки перед публикацией. Непустой список = пост не публикуем."""
+    """Проверки перед публикацией. Непустой список = пост не публикуем.
+
+    Поведение блокеров не изменилось. Дополнительно всегда считается
+    детерминированный quality-score (``content_factory/nlp/quality.py``) и
+    пишется в ``post.meta`` (``quality_score``, ``quality_warnings``,
+    ``quality_blockers``, ``quality_metrics``). Если в настройках включён
+    ``pipeline.quality_gate``, в список блокеров добавляются проблемы рубрики
+    и/или низкий балл — это opt-in, по умолчанию гейт выключен.
+    """
     issues: List[str] = []
     plain = post.plain_text
     min_chars = int(settings.pipeline.get("min_post_chars", 300))
@@ -299,6 +465,17 @@ def quality_issues(post: GeneratedPost, channel: ChannelConfig, settings: Settin
         issues.append("нет ссылок на источники")
     if "http" in lowered and "<a href" not in post.text:
         issues.append("ссылки в тексте не оформлены как HTML-ссылки")
+    # --- оценка по рубрике и опциональный гейт -----------------------------
+    report = _attach_quality_report(post, channel, settings)
+    if report is not None:
+        issues.extend(_quality_gate_issues(report, settings, issues))
+        log.debug(
+            "quality %s: score=%s blockers=%s warnings=%s",
+            post.id,
+            report.score,
+            len(report.blockers),
+            len(report.warnings),
+        )
     return issues
 
 

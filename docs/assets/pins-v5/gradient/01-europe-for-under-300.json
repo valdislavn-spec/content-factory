@@ -1,0 +1,203 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/gradient/01-europe-for-under-300.png",
+  "file": "docs/assets/pins-v5/gradient/01-europe-for-under-300.png",
+  "niche": "travel",
+  "affiliate": false,
+  "disclosure": "Save this guide",
+  "board": "Travel ideas",
+  "keywords": [
+    "travel tips",
+    "city breaks",
+    "budget travel",
+    "travel guide",
+    "cheap",
+    "europe",
+    "city",
+    "breaks"
+  ],
+  "variant": "gradient",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Cheap Europe city breaks under $300",
+    "description": "Budget city breaks in Europe: cheapest months, carry-on tips and booking windows. Hand-picked flight and hotel deals. See the deals. Save this guide",
+    "alt_text": "Europe for under $300. Real cheap city breaks: flights + 3 nights, no tourist traps.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/gradient/01-europe-for-under-300.png"
+    }
+  },
+  "metrics": {
+    "variant": "gradient",
+    "width": 1000,
+    "height": 1500,
+    "aspect_ratio": 0.6667,
+    "margin": 72,
+    "margins": {
+      "left": 72,
+      "top": 72,
+      "right": 72,
+      "bottom": 72
+    },
+    "min_font_size": 24,
+    "contrast": {
+      "tag": 17.61,
+      "brandmark": 7.59,
+      "brandmark_text": 17.16,
+      "headline": 16.92,
+      "subtitle": 16.81,
+      "bullet_1": 17.6,
+      "bullet_2": 17.6,
+      "bullet_3": 17.6,
+      "cta": 7.59,
+      "disclosure": 7.59,
+      "site": 9.83
+    },
+    "min_body_contrast": 7.59,
+    "min_heading_contrast": 16.92,
+    "blocks": [
+      {
+        "role": "tag",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 136,
+        "line_width": 92,
+        "rect": {
+          "x": 72,
+          "y": 72,
+          "w": 136,
+          "h": 48
+        },
+        "contrast": 17.61
+      },
+      {
+        "role": "brandmark_text",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 262,
+        "line_width": 234,
+        "rect": {
+          "x": 666,
+          "y": 80,
+          "w": 262,
+          "h": 31
+        },
+        "contrast": 17.16
+      },
+      {
+        "role": "headline",
+        "font_size": 136,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 698,
+        "rect": {
+          "x": 72,
+          "y": 262,
+          "w": 856,
+          "h": 316
+        },
+        "contrast": 16.92
+      },
+      {
+        "role": "subtitle",
+        "font_size": 44,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 842,
+        "rect": {
+          "x": 72,
+          "y": 640,
+          "w": 856,
+          "h": 118
+        },
+        "contrast": 16.81
+      },
+      {
+        "role": "bullet_1",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 500,
+        "rect": {
+          "x": 144,
+          "y": 806,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "bullet_2",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 622,
+        "rect": {
+          "x": 144,
+          "y": 898,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "bullet_3",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 559,
+        "rect": {
+          "x": 144,
+          "y": 990,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "cta",
+        "font_size": 38,
+        "lines": 1,
+        "box_width": 363,
+        "line_width": 291,
+        "rect": {
+          "x": 72,
+          "y": 1178,
+          "w": 363,
+          "h": 82
+        },
+        "contrast": 7.59
+      },
+      {
+        "role": "disclosure",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 812,
+        "line_width": 187,
+        "rect": {
+          "x": 94,
+          "y": 1321,
+          "w": 812,
+          "h": 34
+        },
+        "contrast": 7.59
+      },
+      {
+        "role": "site",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 812,
+        "line_width": 306,
+        "rect": {
+          "x": 94,
+          "y": 1361,
+          "w": 812,
+          "h": 34
+        },
+        "contrast": 9.83
+      }
+    ],
+    "warnings": [
+      "content centred vertically (+102px)"
+    ]
+  }
+}

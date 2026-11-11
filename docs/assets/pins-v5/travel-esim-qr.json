@@ -1,0 +1,175 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/travel-esim-qr.png",
+  "file": "docs/assets/pins-v5/travel-esim-qr.png",
+  "slug": "travel-esim-qr",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+    "travel tips",
+    "city breaks",
+    "budget travel",
+    "travel guide",
+    "travel",
+    "esim",
+    "works",
+    "install"
+  ],
+  "variant": "photo",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Travel eSIM that works: install before you fly",
+    "description": "How a travel eSIM works, when it beats airport SIM cards and how to install one before you fly for data in 200+ countries. Get eSIM. Ad · affiliate link",
+    "alt_text": "TRAVEL eSIM\nTHAT WORKS. Install before you fly — data in 200+ countries.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/travel-esim-qr.png"
+    },
+    "link": "https://is.gd/ESimDeal"
+  },
+  "metrics": {
+    "variant": "photo",
+    "width": 1000,
+    "height": 1500,
+    "aspect_ratio": 0.6667,
+    "margin": 72,
+    "margins": {
+      "left": 72,
+      "top": 72,
+      "right": 72,
+      "bottom": 72
+    },
+    "min_font_size": 24,
+    "contrast": {
+      "tag": 17.61,
+      "brandmark": 7.92,
+      "brandmark_text": 16.06,
+      "headline": 7.43,
+      "subtitle": 5.73,
+      "cta": 7.92,
+      "disclosure": 7.92,
+      "attribution": 9.83,
+      "site": 9.83
+    },
+    "min_body_contrast": 5.73,
+    "min_heading_contrast": 7.43,
+    "blocks": [
+      {
+        "role": "tag",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 273,
+        "line_width": 229,
+        "rect": {
+          "x": 72,
+          "y": 72,
+          "w": 273,
+          "h": 48
+        },
+        "contrast": 17.61
+      },
+      {
+        "role": "brandmark_text",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 262,
+        "line_width": 234,
+        "rect": {
+          "x": 666,
+          "y": 80,
+          "w": 262,
+          "h": 31
+        },
+        "contrast": 16.06
+      },
+      {
+        "role": "headline",
+        "font_size": 128,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 812,
+        "rect": {
+          "x": 72,
+          "y": 340,
+          "w": 856,
+          "h": 296
+        },
+        "contrast": 7.43
+      },
+      {
+        "role": "subtitle",
+        "font_size": 44,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 746,
+        "rect": {
+          "x": 72,
+          "y": 698,
+          "w": 856,
+          "h": 118
+        },
+        "contrast": 5.73
+      },
+      {
+        "role": "cta",
+        "font_size": 38,
+        "lines": 1,
+        "box_width": 284,
+        "line_width": 212,
+        "rect": {
+          "x": 72,
+          "y": 1122,
+          "w": 284,
+          "h": 82
+        },
+        "contrast": 7.92
+      },
+      {
+        "role": "disclosure",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 197,
+        "rect": {
+          "x": 94,
+          "y": 1273,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 7.92
+      },
+      {
+        "role": "attribution",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 536,
+        "rect": {
+          "x": 94,
+          "y": 1313,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 9.83
+      },
+      {
+        "role": "site",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 622,
+        "line_width": 306,
+        "rect": {
+          "x": 94,
+          "y": 1353,
+          "w": 622,
+          "h": 34
+        },
+        "contrast": 9.83
+      }
+    ],
+    "warnings": [
+      "content centred vertically (+180px)"
+    ]
+  }
+}

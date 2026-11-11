@@ -1,0 +1,372 @@
+{
+  "engine": "content_factory/brand/design.py",
+  "batch": "v5",
+  "requirements": {
+    "canvas": [
+      1000,
+      1500
+    ],
+    "aspect_ratio": "2:3",
+    "min_font_size": 24,
+    "body_contrast": 4.5,
+    "heading_contrast": 3.0,
+    "min_margin": 64,
+    "title_max": 100,
+    "description_max": 500
+  },
+  "summary": {
+    "samples": 9,
+    "passed": 9,
+    "failed": 0,
+    "min_body_contrast": 5.73,
+    "min_heading_contrast": 6.77,
+    "min_font_size": 24,
+    "min_margin": 72,
+    "max_title_len": 58,
+    "max_description_len": 163
+  },
+  "samples": [
+    {
+      "file": "docs/assets/pins-v5/bali-budget-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 6.6,
+      "min_heading_contrast": 8.54,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Bali on a budget: 7 days of rice terraces and $3 meals",
+      "title_len": 54,
+      "description_len": 149,
+      "cta": "https://is.gd/BaliTrip",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/car-rental-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 6.46,
+      "min_heading_contrast": 8.16,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Car rental without surprises: fuel policy and excess cover",
+      "title_len": 58,
+      "description_len": 153,
+      "cta": "https://is.gd/CarRental",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/dubai-weekend-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 6.49,
+      "min_heading_contrast": 8.53,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Dubai in 3 days: desert, skyline and a carry-on weekend",
+      "title_len": 55,
+      "description_len": 143,
+      "cta": "https://is.gd/DubaiTrip",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/europe-under-300-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 7.53,
+      "min_heading_contrast": 10.99,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Europe under $300: cheap city breaks by month",
+      "title_len": 45,
+      "description_len": 148,
+      "cta": "https://is.gd/EuropeTrip",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/flight-compensation-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 9.2,
+      "min_heading_contrast": 9.03,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Flight delayed? Check if you are owed up to 600 EUR",
+      "title_len": 51,
+      "description_len": 163,
+      "cta": "https://is.gd/Compensair",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/gradient/01-europe-for-under-300.png",
+      "variant": "gradient",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 7.59,
+      "min_heading_contrast": 16.92,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Cheap Europe city breaks under $300",
+      "title_len": 35,
+      "description_len": 148,
+      "cta": "",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/gradient/02-bali-on-a-budget.png",
+      "variant": "gradient",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 9.34,
+      "min_heading_contrast": 16.92,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Bali budget guide: 7 days on a budget",
+      "title_len": 37,
+      "description_len": 125,
+      "cta": "",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/travel-esim-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 5.73,
+      "min_heading_contrast": 7.43,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "Travel eSIM that works: install before you fly",
+      "title_len": 46,
+      "description_len": 152,
+      "cta": "https://is.gd/ESimDeal",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    },
+    {
+      "file": "docs/assets/pins-v5/winter-sun-qr.png",
+      "variant": "photo",
+      "format": "PNG",
+      "size": [
+        1000,
+        1500
+      ],
+      "mode": "RGB",
+      "min_font_size": 24,
+      "min_body_contrast": 5.76,
+      "min_heading_contrast": 6.77,
+      "margins": {
+        "left": 72,
+        "top": 72,
+        "right": 72,
+        "bottom": 72
+      },
+      "title": "3 winter sun escapes: Lisbon, Dubai and Bali",
+      "title_len": 44,
+      "description_len": 147,
+      "cta": "https://is.gd/Flights",
+      "gates": {
+        "png_1000x1500_rgb": true,
+        "min_font_ge_24": true,
+        "body_contrast_ge_4_5": true,
+        "heading_contrast_ge_3_0": true,
+        "margins_ge_64": true,
+        "no_text_overflow": true,
+        "cta_present": true,
+        "disclosure_present": true,
+        "title_le_100": true,
+        "description_le_500": true,
+        "alt_text_le_500": true,
+        "payload_valid": true
+      },
+      "pass": true
+    }
+  ]
+}

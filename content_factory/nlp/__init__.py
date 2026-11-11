@@ -16,6 +16,7 @@ from .extractive import (
 )
 from .generator import generate_digest, generate_post
 from .keywords import extract_key_terms
+from .quality import QualityIssue, QualityReport, score_post
 from .llm import (
     DifyLLM,
     ExtractiveLLM,
@@ -42,6 +43,9 @@ __all__ = [
     "analyze_cluster",
     "generate_post",
     "generate_digest",
+    "score_post",
+    "QualityReport",
+    "QualityIssue",
     "extract_key_terms",
     "detect_sentiment",
     "summarize_texts",

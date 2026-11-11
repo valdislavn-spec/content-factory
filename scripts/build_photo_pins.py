@@ -1,122 +1,263 @@
 #!/usr/bin/env python3
-"""Photo pins v4 (Pinterest 2026 best practices): real Commons photo background,
-dark overlay for contrast, <=6-word headline in the top third, keyword pill,
-QR + CTA + Ad footer, mandatory photo attribution for CC BY / CC BY-SA.
+"""Photo pins v5 (Pinterest best practices) rendered with the brand design engine.
+
+Real Commons photo background + contrast scrim, auto-fit headline (<=3 lines),
+keyword pill, subtitle, CTA pill, QR + disclosure footer and mandatory photo
+attribution for CC BY / CC BY-SA.  Every pin is a 1000x1500 PNG plus a JSON
+sidecar with the Pinterest payload and measured QA metrics.
+
+Usage:
+    python scripts/build_photo_pins.py                       # docs/assets/pins/photo
+    PYTHONPATH=/tmp/segno <dsh-python> scripts/build_photo_pins.py --out docs/assets/pins-v5
 """
+
 from __future__ import annotations
-import argparse, io, json
+
+import argparse
+import json
+import sys
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
-import segno
 
 ROOT = Path(__file__).resolve().parents[1]
-W, H = 1000, 1500
-INK, CREAM = (16, 16, 18), (247, 242, 233)
+sys.path.insert(0, str(ROOT))
 
+from content_factory.brand.design import (  # noqa: E402
+    DISCLOSURE_AFFILIATE,
+    PIN_SIZE,
+    PinContent,
+    board_for_niche,
+    build_pinterest_payload,
+    format_attribution,
+    keywords_for,
+    render_pin,
+)
+
+#: Photo pin definitions.  ``url`` is the landing/short link encoded in the QR
+#: code and used as the pin destination.
 PINS = [
- {"slug":"bali-budget-qr","photo":"bali","tag":"BUDGET","headline":"BALI ON\nA BUDGET","promise":"7 days of rice terraces, surf and $3 meals","cta":"Find flights","url":"https://is.gd/BaliTrip","accent":(80,220,170)},
- {"slug":"dubai-weekend-qr","photo":"dubai","tag":"WEEKEND","headline":"DUBAI IN\n3 DAYS","promise":"Desert dunes, skyline and duty-free — one carry-on","cta":"Find flights","url":"https://is.gd/DubaiTrip","accent":(255,196,92)},
- {"slug":"winter-sun-qr","photo":"lisbon","tag":"WINTER SUN","headline":"3 WINTER\nESCAPES","promise":"Lisbon 15°C · Dubai 25°C · Bali 30°C","cta":"Find flights","url":"https://is.gd/Flights","accent":(120,196,255)},
- {"slug":"europe-under-300-qr","photo":"europe","tag":"BUDGET","headline":"EUROPE\nUNDER $300","promise":"A 3-night city break: cheapest months and booking windows","cta":"Find flights","url":"https://is.gd/EuropeTrip","accent":(255,140,160)},
- {"slug":"travel-esim-qr","photo":"esim","tag":"TRAVEL ESSENTIAL","headline":"TRAVEL eSIM\nTHAT WORKS","promise":"Install before you fly — data in 200+ countries","cta":"Get eSIM","url":"https://is.gd/ESimDeal","accent":(168,150,255)},
- {"slug":"car-rental-qr","photo":"car","tag":"TRAVEL ESSENTIAL","headline":"CAR RENTAL\nNO SURPRISES","promise":"Local renters, clear fuel policy, excess cover","cta":"Rent a car","url":"https://is.gd/CarRental","accent":(255,160,110)},
- {"slug":"flight-compensation-qr","photo":"flight","tag":"TRAVEL MONEY","headline":"FLIGHT\nDELAYED?","promise":"You may be owed up to €600 — check in 2 minutes","cta":"Check my flight","url":"https://is.gd/Compensair","accent":(120,240,220)},
+    {
+        "slug": "bali-budget-qr",
+        "photo": "bali",
+        "niche": "travel",
+        "tag": "BUDGET",
+        "headline": "BALI ON\nA BUDGET",
+        "promise": "7 days of rice terraces, surf and $3 meals",
+        "cta": "Find flights",
+        "url": "https://is.gd/BaliTrip",
+        "accent": "#80DCAA",
+        "title": "Bali on a budget: 7 days of rice terraces and $3 meals",
+        "description": (
+            "A 7-day Bali budget plan: cheap rice-terrace stays, where to eat for $3 "
+            "and how to get around without overspending."
+        ),
+    },
+    {
+        "slug": "dubai-weekend-qr",
+        "photo": "dubai",
+        "niche": "travel",
+        "tag": "WEEKEND",
+        "headline": "DUBAI IN\n3 DAYS",
+        "promise": "Desert dunes, skyline and duty-free \u2014 one carry-on",
+        "cta": "Find flights",
+        "url": "https://is.gd/DubaiTrip",
+        "accent": "#FFC45C",
+        "title": "Dubai in 3 days: desert, skyline and a carry-on weekend",
+        "description": (
+            "A 3-day Dubai weekend itinerary: desert dunes, the skyline, "
+            "duty-free and how to do it with one carry-on bag."
+        ),
+    },
+    {
+        "slug": "winter-sun-qr",
+        "photo": "lisbon",
+        "niche": "travel",
+        "tag": "WINTER SUN",
+        "headline": "3 WINTER\nESCAPES",
+        "promise": "Lisbon 15\u00b0C \u00b7 Dubai 25\u00b0C \u00b7 Bali 30\u00b0C",
+        "cta": "Find flights",
+        "url": "https://is.gd/Flights",
+        "accent": "#78C4FF",
+        "title": "3 winter sun escapes: Lisbon, Dubai and Bali",
+        "description": (
+            "Three winter sun destinations compared: Lisbon 15C, Dubai 25C and "
+            "Bali 30C, with the best months and flight tips."
+        ),
+    },
+    {
+        "slug": "europe-under-300-qr",
+        "photo": "europe",
+        "niche": "travel",
+        "tag": "BUDGET",
+        "headline": "EUROPE\nUNDER $300",
+        "promise": "A 3-night city break: cheapest months and booking windows",
+        "cta": "Find flights",
+        "url": "https://is.gd/EuropeTrip",
+        "accent": "#FF8CA0",
+        "title": "Europe under $300: cheap city breaks by month",
+        "description": (
+            "How to book a 3-night European city break under $300: "
+            "cheapest months, carry-on rules and the best booking window."
+        ),
+    },
+    {
+        "slug": "travel-esim-qr",
+        "photo": "esim",
+        "niche": "travel",
+        "tag": "TRAVEL ESSENTIAL",
+        "headline": "TRAVEL eSIM\nTHAT WORKS",
+        "promise": "Install before you fly \u2014 data in 200+ countries",
+        "cta": "Get eSIM",
+        "url": "https://is.gd/ESimDeal",
+        "accent": "#A896FF",
+        "title": "Travel eSIM that works: install before you fly",
+        "description": (
+            "How a travel eSIM works, when it beats airport SIM cards and how to "
+            "install one before you fly for data in 200+ countries."
+        ),
+    },
+    {
+        "slug": "car-rental-qr",
+        "photo": "car",
+        "niche": "travel",
+        "tag": "TRAVEL ESSENTIAL",
+        "headline": "CAR RENTAL\nNO SURPRISES",
+        "promise": "Local renters, clear fuel policy, excess cover",
+        "cta": "Rent a car",
+        "url": "https://is.gd/CarRental",
+        "accent": "#FFA06E",
+        "title": "Car rental without surprises: fuel policy and excess cover",
+        "description": (
+            "How to rent a car without hidden fees: local renters, full-to-full "
+            "fuel policy, excess cover and the best booking window."
+        ),
+    },
+    {
+        "slug": "flight-compensation-qr",
+        "photo": "flight",
+        "niche": "travel",
+        "tag": "TRAVEL MONEY",
+        "headline": "FLIGHT\nDELAYED?",
+        "promise": "You may be owed up to \u20ac600 \u2014 check in 2 minutes",
+        "cta": "Check my flight",
+        "url": "https://is.gd/Compensair",
+        "accent": "#78F0DC",
+        "title": "Flight delayed? Check if you are owed up to 600 EUR",
+        "description": (
+            "Flight delayed or cancelled? What EU261 compensation you may be "
+            "owed (up to 600 EUR), and a 2-minute way to check your flight."
+        ),
+    },
 ]
 
-def cover(img: Image.Image) -> Image.Image:
-    iw, ih = img.size
-    scale = max(W / iw, H / ih)
-    img = img.resize((int(iw * scale) + 1, int(ih * scale) + 1))
-    iw, ih = img.size
-    left, top = (iw - W) // 2, (ih - H) // 2
-    return img.crop((left, top, left + W, top + H))
 
-def overlay(img: Image.Image) -> Image.Image:
-    grad = Image.new("L", (1, H))
-    for y in range(H):
-        t = y / H
-        # тёмный верх для заголовка, тёмный низ для QR, чуть светлее середина
-        v = 165 - int(80 * (1 - abs(t - 0.45) * 2)) if 0.15 < t < 0.75 else 150
-        grad.putpixel((0, y), max(70, min(190, v)))
-    grad = grad.resize((W, H))
-    black = Image.new("RGB", (W, H), (0, 0, 0))
-    return Image.composite(black, img, grad)
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="Render photo pins (v5 design engine)")
+    parser.add_argument("--photos", default=str(ROOT / "docs" / "assets" / "photos"))
+    parser.add_argument("--out", default=str(ROOT / "docs" / "assets" / "pins" / "photo"))
+    parser.add_argument("--limit", type=int, default=0, help="max pins (0 = all)")
+    parser.add_argument("--no-qr", action="store_true", help="omit QR codes from the footer")
+    args = parser.parse_args(argv)
 
-def wrap(draw, text, font, max_w):
-    out = []
-    for raw in text.split("\n"):
-        words, cur = raw.split(), ""
-        for w in words:
-            probe = (cur + " " + w).strip()
-            if draw.textlength(probe, font=font) <= max_w: cur = probe
-            else:
-                if cur: out.append(cur)
-                cur = w
-        if cur: out.append(cur)
-    return out
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        print(
+            "Pillow is required to render pins.\n"
+            "Use the DSH python: PYTHONPATH=/tmp/segno <dsh-python> scripts/build_photo_pins.py",
+            file=sys.stderr,
+        )
+        return 2
 
-def render(pin, photos_dir: Path, credits: dict, out_dir: Path) -> Path:
-    img = Image.open(photos_dir / f"{pin['photo']}.jpg").convert("RGB")
-    img = overlay(cover(img))
-    draw = ImageDraw.Draw(img)
-    fonts = ROOT / "assets" / "fonts"
-    inter, playfair = str(fonts / "Inter.ttf"), str(fonts / "PlayfairDisplay.ttf")
-    tagf = ImageFont.truetype(inter, 22); head = ImageFont.truetype(playfair, 124)
-    prom = ImageFont.truetype(inter, 34); cta = ImageFont.truetype(inter, 30)
-    tiny = ImageFont.truetype(inter, 20)
-    accent = pin["accent"]
-    # keyword pill top-right
-    tw = draw.textlength(pin["tag"], font=tagf)
-    draw.rounded_rectangle((W - 64 - tw - 44, 64, W - 64, 112), radius=24, fill=(0, 0, 0, 255), outline=accent, width=2)
-    draw.text((W - 64 - tw - 22, 78), pin["tag"], font=tagf, fill=CREAM)
-    # headline top third
-    y = 236
-    for line in wrap(draw, pin["headline"], head, W - 128)[:3]:
-        draw.text((64, y), line, font=head, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
-        y += 126
-    y += 24
-    draw.rectangle((64, y, 64 + 132, y + 10), fill=accent); y += 44
-    for line in wrap(draw, pin["promise"], prom, W - 128)[:2]:
-        draw.text((64, y), line, font=prom, fill=(240, 244, 250), stroke_width=2, stroke_fill=(0, 0, 0))
-        y += 44
-    # QR bottom-left
-    buf = io.BytesIO()
-    segno.make(pin["url"], error="m").save(buf, kind="png", scale=10, border=2, dark="#101012", light="#ffffff")
-    buf.seek(0)
-    qr = Image.open(buf).convert("RGB").resize((186, 186))
-    draw.rounded_rectangle((50, 1200, 50 + 186 + 28, 1200 + 186 + 28), radius=22, fill=(255, 255, 255))
-    img.paste(qr, (64, 1214))
-    # CTA pill
-    text = pin["cta"] + "  \u2192"
-    cw = draw.textlength(text, font=cta)
-    draw.rounded_rectangle((300, 1300, 300 + cw + 56, 1376), radius=38, fill=(0, 0, 0, 255), outline=accent, width=2)
-    draw.text((328, 1320), text, font=cta, fill=CREAM)
-    # footer: ad + attribution
-    draw.text((64, 1440), "Ad", font=tiny, fill=(200, 206, 216))
-    credit = credits.get(pin["photo"], {})
-    if credit:
-        author = (credit.get("author") or "Wikimedia Commons").split(",")[0][:40]
-        line = f"Photo: {author} / {credit.get('license','CC')} · Wikimedia Commons"
-        draw.text((64, 1468), line, font=tiny, fill=(160, 168, 182))
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"{pin['slug']}.png"
-    img.save(path, "PNG")
-    return path
-
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--photos", default="docs/assets/photos")
-    ap.add_argument("--out", default="docs/assets/pins/photo")
-    args = ap.parse_args()
-    photos = Path(args.photos); out = Path(args.out)
-    credits = json.loads((photos / "credits.json").read_text()) if (photos / "credits.json").exists() else {}
+    photos = Path(args.photos)
+    out = Path(args.out)
+    credits_path = photos / "credits.json"
+    credits = json.loads(credits_path.read_text(encoding="utf-8")) if credits_path.exists() else {}
+    pins = PINS[: args.limit] if args.limit else PINS
+    out.mkdir(parents=True, exist_ok=True)
+    public_base = "https://valdislavn-spec.github.io/content-factory"
     meta = []
-    for pin in PINS:
-        p = render(pin, photos, credits, out)
-        print("pin:", p)
-        meta.append({"slug": pin["slug"], "file": str(p), "url": pin["url"]})
+    for pin in pins:
+        photo_path = photos / ("%s.jpg" % pin["photo"])
+        if not photo_path.exists():
+            print("photo missing: %s (skipped)" % photo_path, file=sys.stderr)
+            continue
+        credit = credits.get(pin["photo"]) or {}
+        content = PinContent(
+            niche=pin["niche"],
+            headline=pin["headline"],
+            subtitle=pin["promise"],
+            cta=pin["cta"],
+            link=pin["url"],
+            tag=pin["tag"],
+            disclosure=DISCLOSURE_AFFILIATE,
+            attribution=format_attribution(credit),
+            title=pin["title"],
+            description=pin["description"],
+            accent=pin["accent"],
+        )
+        try:
+            rendered = render_pin(
+                content,
+                size=PIN_SIZE,
+                variants=("photo",),
+                photo_path=photo_path,
+                qr_data="" if args.no_qr else pin["url"],
+                font_dir=ROOT / "assets" / "fonts",
+            )["photo"]
+        except Exception as error:  # noqa: BLE001
+            print("pin %s failed quality gates: %s" % (pin["slug"], error), file=sys.stderr)
+            return 3
+        image_path = out / ("%s.png" % pin["slug"])
+        rendered.save(image_path)
+        try:
+            relative = image_path.resolve().relative_to((ROOT / "docs").resolve()).as_posix()
+        except ValueError:
+            relative = image_path.name
+        image_url = "%s/%s" % (public_base, relative)
+        payload = build_pinterest_payload(
+            content,
+            image_url=image_url,
+            board_id="<BOARD_ID>",
+            disclosure=DISCLOSURE_AFFILIATE,
+            include_link=True,
+        )
+        board = board_for_niche(pin["niche"])
+        keywords = keywords_for(pin["niche"], pin["title"], pin["description"], pin["promise"])
+        entry = {
+            "image_url": image_url,
+            "file": str(image_path),
+            "slug": pin["slug"],
+            "niche": pin["niche"],
+            "affiliate": True,
+            "disclosure": DISCLOSURE_AFFILIATE,
+            "board": board,
+            "keywords": list(keywords),
+            "variant": "photo",
+            "pin": payload,
+            "metrics": rendered.metrics.to_dict(),
+        }
+        sidecar = out / ("%s.json" % pin["slug"])
+        sidecar.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
+        meta.append(entry)
+        print(
+            "pin: %s (%d KB) minfont=%d body=%.2f heading=%.2f margins=%s"
+            % (
+                image_path,
+                image_path.stat().st_size // 1024,
+                rendered.metrics.min_font_size,
+                rendered.metrics.min_body_contrast,
+                rendered.metrics.min_heading_contrast,
+                rendered.metrics.margins,
+            )
+        )
     (out / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1), encoding="utf-8")
+    (out / "index.json").write_text(
+        json.dumps({"engine": "brand.design", "variant": "photo", "pins": meta}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    print("done: %d photo pins in %s" % (len(meta), out))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
