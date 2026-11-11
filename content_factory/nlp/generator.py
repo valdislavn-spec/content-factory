@@ -2152,6 +2152,22 @@ def generate_digest(
             {"text": f"{prefix}<b>{_escape(title)}</b> — {_bold_key_number(_escape(one_line))}{link}"}
         )
 
+    # «Почему это важно» для сводки: берём самый сильный сюжет и его факт-контекст.
+    why_text = ""
+    if normalized:
+        top_cluster, top_analysis = normalized[0]
+        # Сначала вывод-контекст (он не совпадает с первой строкой сводки),
+        # затем «почему важно» как фолбэк.
+        candidate = _shorten(_template_conclusion(top_analysis, top_cluster, lang), 220)
+        if not candidate:
+            candidate = _shorten(_template_why(top_analysis, top_cluster, lang), 220)
+        if candidate:
+            item_texts = [strip_html(block.get("text", "")) for block in blocks[1:]]
+            if not any(_similar(candidate, text, 0.6) for text in item_texts if text):
+                why_text = candidate
+    if why_text:
+        blocks.append({"text": "💡 " + _escape(why_text), "optional": True, "drop_priority": 55})
+
     cta_text = _cta_block(channel, settings, lang, seed=title)
     if cta_text:
         blocks.append({"text": cta_text, "optional": True, "drop_priority": 100})
