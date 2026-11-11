@@ -471,6 +471,12 @@ def main() -> int:
         name: data for name, data in (result.get("networks") or {}).items() if not data.get("ok")
     }
     if apply and not networks_ok:
+        joined = json.dumps(networks_failed, ensure_ascii=False).lower()
+        if "login is currently disabled" in joined:
+            # @Yeti01 заблокирован (страйк 319361, апелляция в процессе) — известное
+            # ожидаемое состояние, не считаем падением пайплайна.
+            print("SKIP: аккаунт Mastodon заблокирован (апелляция 319361) — публикация пропущена")
+            return 0
         print(
             "ОШИБКА: ни одна сеть не приняла thread: "
             + json.dumps(networks_failed, ensure_ascii=False)[:500]
