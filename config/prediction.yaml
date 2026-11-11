@@ -37,4 +37,4 @@ min_liquidity: 10000      # $
 max_signals_per_run: 2
 cooldown_hours: 12
 
-disclaimer: "Not financial advice. Prediction-market odds are volatile."
+disclaimer: "No es asesoramiento financiero. Las probabilidades del mercado de pronóstico son volátiles."

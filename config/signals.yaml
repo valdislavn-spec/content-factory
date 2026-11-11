@@ -43,7 +43,7 @@ strategy:
 affiliates:
   - name: BingX
     url: "https://bingxdao.com/invite/WYYEGK/"
-    note: "Ad · affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong."
+    note: "Ad · enlace de afiliado. No disponible en EE. UU., Reino Unido, Canadá, Singapur, Países Bajos y Hong Kong."
 
 # Подтверждение сигнала прогнозными рынками (Polymarket/Kalshi):
 # если рынок по этому активу двинулся в ту же сторону — добавляем строку в пост.
@@ -53,4 +53,4 @@ prediction_confirmation:
   min_abs_change: 0.07
   max_notes: 2
 
-disclaimer: "Not financial advice. Crypto is volatile — risk of loss."
+disclaimer: "No es asesoramiento financiero. Las criptomonedas son volátiles — riesgo de pérdida."

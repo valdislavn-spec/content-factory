@@ -139,18 +139,18 @@ def _format_signal(signal: Dict, config: Dict, affiliate: Dict | None) -> str:
     pair = html.escape(str(signal["pair"]))
     lines = [
         "⚡️ <b>%s · %s</b>" % (pair, direction),
-        "Цена: <b>%s</b>" % _fmt_price(signal["entry"]),
-        "Стоп: %s · Тейк: %s (R:R %.1f)" % (
+        "Precio: <b>%s</b>" % _fmt_price(signal["entry"]),
+        "Stop: %s · Take: %s (R:R %.1f)" % (
             _fmt_price(signal["stop"]), _fmt_price(signal["take"]), signal["rr"]
         ),
-        "Подтвердили биржи (%d): %s" % (
+        "Confirmaron exchanges (%d): %s" % (
             len(signal["confirmations"]), html.escape(", ".join(signal["confirmations"]))
         ),
-        "RSI: %.1f · объём ×%.2f" % (signal["rsi"], signal["volume_ratio"]),
+        "RSI: %.1f · volumen ×%.2f" % (signal["rsi"], signal["volume_ratio"]),
     ]
     for market in signal.get("predictions") or []:
         lines.append(
-            "🔮 Прогнозы: %s — %.0f%% (%+.1f п.п.)"
+            "🔮 Pronósticos: %s — %.0f%% (%+.1f p.p.)"
             % (
                 html.escape(str(market.get("question") or ""), quote=False)[:90],
                 (market.get("probability") or 0) * 100,
@@ -219,7 +219,7 @@ def main(argv=None) -> int:
         if not (token and chat_id):
             print("test: нет TELEGRAM_BOT_TOKEN / chat_id")
             return 2
-        ok = _send_message(token, chat_id, "🔔 <b>SIGNAL CRYPTO</b>\nКанал подключён. Сигналы будут появляться автоматически.")
+        ok = _send_message(token, chat_id, "🔔 <b>SIGNAL CRYPTO</b>\nCanal conectado. Las señales aparecerán automáticamente.")
         print("test message:", "sent" if ok else "failed")
         return 0 if ok else 1
 

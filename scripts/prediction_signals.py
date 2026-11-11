@@ -90,23 +90,23 @@ def _format_signal(market: Dict, config: Dict) -> str:
     delta = market.get("delta_24h")
     direction = "📈" if (delta or 0) > 0 else "📉"
     lines = [
-        "🔮 <b>ПРОГНОЗ · %s</b>" % source,
+        "🔮 <b>PRONÓSTICO · %s</b>" % source,
         "<i>%s</i>" % html.escape(str(market.get("question") or "")),
     ]
     if probability is not None:
-        lines.append("Вероятность: <b>%.0f%%</b> (%s%.1f п.п. за 24ч)" % (probability * 100, "+" if (delta or 0) > 0 else "", (delta or 0) * 100))
+        lines.append("Probabilidad: <b>%.0f%%</b> (%s%.1f p.p. en 24 h)" % (probability * 100, "+" if (delta or 0) > 0 else "", (delta or 0) * 100))
     else:
         lines.append("%s" % direction)
     details = []
     if market.get("volume_24h"):
-        details.append("объём 24ч " + _fmt_money(market["volume_24h"]))
+        details.append("volumen 24 h " + _fmt_money(market["volume_24h"]))
     if market.get("liquidity"):
-        details.append("ликвидность " + _fmt_money(market["liquidity"]))
+        details.append("liquidez " + _fmt_money(market["liquidity"]))
     if details:
         lines.append(" · ".join(details))
     if market.get("end_date"):
-        lines.append("Дедлайн: %s" % _fmt_date(market["end_date"]))
-    lines.append('🔗 <a href="%s">Открыть рынок</a>' % html.escape(str(market.get("url") or ""), quote=True))
+        lines.append("Fecha límite: %s" % _fmt_date(market["end_date"]))
+    lines.append('🔗 <a href="%s">Abrir mercado</a>' % html.escape(str(market.get("url") or ""), quote=True))
     lines.append("")
     lines.append("<i>%s</i>" % html.escape(str(config.get("disclaimer") or "Not financial advice.")))
     return "\n".join(lines)
@@ -155,7 +155,7 @@ def main(argv=None) -> int:
         if not (token and chat_id):
             print("test: нет TELEGRAM_BOT_TOKEN / chat_id")
             return 2
-        ok = _send(token, chat_id, "🔮 <b>Прогнозные рынки подключены</b>\nСигналы Polymarket/Kalshi будут появляться здесь.")
+        ok = _send(token, chat_id, "🔮 <b>Mercados de pronóstico conectados</b>\nLas señales de Polymarket/Kalshi aparecerán aquí.")
         print("test message:", "sent" if ok else "failed")
         return 0 if ok else 1
 
