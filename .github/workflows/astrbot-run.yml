@@ -42,7 +42,8 @@ jobs:
 
       - name: Restore state
         run: |
-          mkdir -p "$ASTRBOT_ROOT/data"
+          mkdir -p "$ASTRBOT_ROOT/data/config" "$ASTRBOT_ROOT/data/plugins" "$ASTRBOT_ROOT/data/temp"
+          touch "$ASTRBOT_ROOT/.astrbot"
           python .astrbot/state.py restore
 
       - name: Render config
@@ -55,7 +56,11 @@ jobs:
           timeout --signal=TERM --kill-after=60 19800 astrbot run
           code=$?
           echo "astrbot exit code: $code"
-          exit 0
+          if [ "$code" -eq 124 ] || [ "$code" -eq 137 ]; then
+            echo "timeout reached — normal rotation"
+            exit 0
+          fi
+          exit "$code"
 
       - name: Save state
         if: always()
