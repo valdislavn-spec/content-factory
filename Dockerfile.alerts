@@ -1,0 +1,10 @@
+# Образ для 24/7 price-alerts демона (деплой на Northflank/Koyeb и т.п.)
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY content_factory ./content_factory
+COPY scripts ./scripts
+COPY config ./config
+ENV PYTHONUNBUFFERED=1
+CMD ["python", "scripts/price_alerts.py", "--loop", "--live"]
