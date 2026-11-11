@@ -22,7 +22,7 @@ jobs:
           node-version: "20"
       - name: Deploy unsubscribe worker
         run: |
-          npx --yes wrangler@3 deploy --name cf-unsubscribe --compatibility-date 2024-11-01
+          npx --yes wrangler@3 deploy worker.js --name cf-unsubscribe --compatibility-date 2024-11-01
           printf '%%s' "$UNSUB_SECRET" | npx --yes wrangler@3 secret put UNSUB_SECRET --name cf-unsubscribe
           printf '%%s' "$BREVO_API_KEY" | npx --yes wrangler@3 secret put BREVO_API_KEY --name cf-unsubscribe
       - name: Print URL
