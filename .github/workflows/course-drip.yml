@@ -1,0 +1,119 @@
+name: course-drip
+
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SUBSCRIBE_KV_NAMESPACE: 422c94623a2a4b88941bd86178429ba8
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Send due course emails
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, hmac, json, os, urllib.parse, urllib.request, urllib.error
+          from datetime import datetime, timezone
+
+          account = os.environ["CF_ACCOUNT_ID"]; cf_token = os.environ["CF_API_TOKEN"]
+          ns = os.environ["SUBSCRIBE_KV_NAMESPACE"]; brevo_key = os.environ["BREVO_API_KEY"]
+          unsub_secret = os.environ["UNSUB_SECRET"].encode()
+          kv_base = f"https://api.cloudflare.com/client/v4/accounts/{account}/storage/kv/namespaces/{ns}"
+          unsub_base = "https://cf-unsubscribe.valdislav-n.workers.dev/"
+          subjects = {
+              1: "The #1 trick that cuts US flight prices",
+              2: "Book 2–4 months ahead (here's the timeline)",
+              3: "How to catch a mistake fare before it disappears",
+              4: "The airport 40 minutes away can save you $200",
+              5: "Your flight is only 60% of the trip cost",
+          }
+          sender = {"name": "Travel Finds Deals", "email": "digest@12579258.brevosend.com"}
+
+          def cf(url, method="GET", body=None, raw=False):
+              headers = {"Authorization": "Bearer " + cf_token}
+              data = None
+              if body is not None:
+                  data = body if raw else json.dumps(body).encode()
+                  if isinstance(data, str):
+                      data = data.encode()
+                  headers["Content-Type"] = "text/plain"
+              req = urllib.request.Request(url, data=data, method=method, headers=headers)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      payload = r.read().decode()
+                      return r.status, (json.loads(payload) if payload and not raw else payload)
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode()[:200]
+
+          def unsub_url(email):
+              b64 = base64.urlsafe_b64encode(email.encode()).decode().rstrip("=")
+              sig = hmac.new(unsub_secret, email.encode(), hashlib.sha256).hexdigest()
+              return f"{unsub_base}?e={urllib.parse.quote(b64)}&s={sig}"
+
+          status, data = cf(kv_base + "/keys?limit=1000")
+          keys = [x.get("name", "") for x in (data.get("result") or [])] if isinstance(data, dict) else []
+          sent_count = 0
+          now = datetime.now(timezone.utc)
+          for key in keys:
+              if not key.startswith("sub:"):
+                  continue
+              status, value = cf(kv_base + "/values/" + urllib.parse.quote(key))
+              if not isinstance(value, dict):
+                  continue
+              email = str(value.get("email") or key[4:]).strip()
+              if not email:
+                  continue
+              topics = value.get("topics") or []
+              if value.get("source") != "us-course" and "course" not in topics:
+                  continue
+              start_raw = str(value.get("consent_at") or "")
+              try:
+                  start = datetime.fromisoformat(start_raw.replace("Z", "+00:00"))
+              except ValueError:
+                  continue
+              days = (now - start).days
+              sent = int(value.get("course_day_sent") or 0)
+              if sent >= 5:
+                  continue
+              # One lesson per day: day N is due when at least N-1 full days passed.
+              if days < sent:
+                  continue
+              day = sent + 1
+              with open(f"email-course/day-{day}.html") as handle:
+                  html = handle.read()
+              html = html.replace("{{UNSUB_URL}}", unsub_url(email))
+              payload = {
+                  "sender": sender,
+                  "to": [{"email": email}],
+                  "subject": subjects[day],
+                  "htmlContent": html,
+                  "textContent": f"Day {day} of the free 5-day course. Unsubscribe: {unsub_url(email)}",
+              }
+              req = urllib.request.Request("https://api.brevo.com/v3/smtp/email",
+                  data=json.dumps(payload).encode(), method="POST",
+                  headers={"api-key": brevo_key, "Content-Type": "application/json", "Accept": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      r.read()
+              except urllib.error.HTTPError as e:
+                  print("send error", email[:3] + "***", e.code, e.read().decode()[:160])
+                  continue
+              value["course_day_sent"] = day
+              value["course_last_sent_at"] = now.isoformat()
+              cf(kv_base + "/values/" + urllib.parse.quote(key), method="PUT", body=json.dumps(value), raw=True)
+              sent_count += 1
+              print("sent day", day, "to", email[:3] + "***")
+          print("course emails sent:", sent_count)
+          PY
+
