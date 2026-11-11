@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 TRAVEL = DOCS / "travel"
 PUB = "https://valdislavn-spec.github.io/content-factory"
-TODAY = "2026-11-09"
+TODAY = "2026-11-11"
 
 DRIVE = '''  <!-- Travelpayouts Drive -->
   <script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
@@ -142,6 +142,34 @@ ARTICLES = [
             ("Book ahead", "2–4 weeks ahead for the big sights in high season. Same-day tickets are resold at a markup."),
         ],
         "cta": ("Get tickets", "/go/11-skip-the-line.html"),
+    },
+    {
+        "slug": "almaty-48-hours",
+        "title": "Almaty in 48 hours: mountains, markets and cheap eats",
+        "headline": "48 hours in Almaty",
+        "desc": "A two-day Almaty itinerary: mountains, Green Bazaar, cable car, where to eat and how much it costs.",
+        "intro": "Almaty packs mountains, a Soviet-era metro, a huge green bazaar and some of the cheapest good food in Central Asia into one walkable city. Here is the 48-hour plan we use.",
+        "sections": [
+            ("Day 1 — city centre", "Start at Panfilov Park and Zenkov Cathedral, walk to Green Bazaar for dried fruit and kazy, then ride the metro (each station is decorated differently) to Republic Square. Sunset at Kok-Tobe — take the cable car up, walk down."),
+            ("Day 2 — mountains", "Medeu ice rink and the Shymbulak cable car are 25 minutes from the centre. Go early: queues build by 11:00. Bring a windproof layer — it is 10–15 °C colder than in the city."),
+            ("Where to eat", "Lunch at a chaikhana (lagman, plov, samsa): $5–8. Coffee in the Golden Quarter: $3–4. Dinner at a local grill house: $12–18 for two."),
+            ("Budget", "Hostel bed: $12–18. 3-star hotel: $45–70. Metro ride: $0.35. Cable car: $4. Airport bus: $1.5."),
+        ],
+        "cta": ("Cheap flights from Almaty", "/flights/almaty/"),
+    },
+    {
+        "slug": "minsk-weekend",
+        "title": "Minsk weekend: what to see, eat and where to stay",
+        "headline": "Minsk weekend guide",
+        "desc": "A weekend in Minsk: Independence Avenue, old town, museums, food markets and a realistic budget.",
+        "intro": "Minsk is a clean, green and surprisingly cheap weekend city: wide avenues, rebuilt old town and excellent food markets. Two days is enough for the highlights.",
+        "sections": [
+            ("Day 1 — avenues and old town", "Walk Independence Avenue from Independence Square to Victory Square, then the old town (Troitskoye Predmestye) and the Island of Tears. Finish with dinner near Nemiga."),
+            ("Day 2 — museums and markets", "Museum of the Great Patriotic War (book 2–3 hours), then Komarovsky market for cheese, honey and smoked fish. Afternoon: Gorky Park and the botanical garden."),
+            ("Where to eat", "Draniki and machanka at a local cafeteria: $6–9. Coffee: $2–3. Dinner for two with wine: $25–35."),
+            ("Budget", "Hostel bed: $10–15. 3-star hotel: $35–55. Metro: $0.3. Airport bus: $1.2. Package tours from Minsk start at ~130k RUB for 5–7 nights with flights."),
+        ],
+        "cta": ("Package tours from Minsk", "/tours/"),
     },
 ]
 
