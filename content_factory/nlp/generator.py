@@ -155,7 +155,9 @@ _SYSTEM_WRITER = (
     "почему новость важна, и заканчивай призывом к действию, если он уместен. Без "
     "кликбейта («шок», «вы не поверите», «срочно»), без КАПСА, markdown и ярлыков "
     "разделов. Используй только факты из предоставленного текста: не придумывай "
-    "события, цифры, имена, цитаты и ссылки."
+    "события, цифры, имена, цитаты и ссылки. Никогда не начинай с ярлыков "
+    "вроде HEADLINE:, TITLE:, BODY: или LEAD: — только текст для читателя. "
+    "Используй не больше трёх эмодзи и не больше одного вопроса."
 )
 _SYSTEM_WRITER_EN = (
     "You are a professional journalist writing for a US news Telegram channel. "
@@ -167,7 +169,9 @@ _SYSTEM_WRITER_EN = (
     "list items, never write in ALL CAPS and never use clickbait (shocking, you "
     "won't believe, urgent). Use 1-3 relevant emojis naturally. Use only the facts "
     "from the provided text: never invent events, numbers, names, quotes or links. "
-    "No markdown and no explanations."
+    "No markdown and no explanations. Never start with labels such as "
+    "HEADLINE:, TITLE:, BODY: or LEAD: — write only the reader-facing text. "
+    "Use no more than three emojis and at most one question mark."
 )
 _SYSTEM_WRITER_ES = (
     "Eres un periodista profesional que escribe para un canal de noticias de "
@@ -180,7 +184,9 @@ _SYSTEM_WRITER_ES = (
     "Usa 1-3 emojis con naturalidad. Español neutro latinoamericano: siempre "
     "«ustedes», sin «vosotros» ni regionalismos. Usa solo los hechos del texto: "
     "no inventes acontecimientos, cifras, nombres, citas ni enlaces. Sin markdown "
-    "y sin explicaciones."
+    "y sin explicaciones. Nunca empieces con etiquetas como "
+    "HEADLINE:, TITLE:, BODY: o LEAD: — escribe solo el texto para el lector. "
+    "Usa como máximo tres emojis y una sola pregunta."
 )
 
 # Тренды и интерактив: подписи по языкам.
@@ -1847,6 +1853,26 @@ def _dedupe_body_hashtags(text: str) -> str:
     text = _HASHTAG_TOKEN_RE.sub(repl, str(text or ""))
     return re.sub(r"[ \t]{2,}", " ", text)
 
+_PROMPT_LABEL_RE = re.compile(
+    r"(?im)^\s*(?:HEADLINE|TITLE|BODY|TEXT|LEAD|SUMMARY|EXCERPT|CTA|TEASER|INTRO|OUTRO)\s*:\s*"
+)
+_PROMPT_LABEL_INLINE_RE = re.compile(
+    r"(?i)\b(?:HEADLINE|TITLE|BODY|TEXT|LEAD|SUMMARY|EXCERPT)\s*:\s*"
+)
+
+
+def _strip_prompt_labels(text: str) -> str:
+    """Убирает служебные ярлыки, которые LLM иногда выводит вместо текста.
+
+    В постах встречались утечки промпта вида «HEADLINE: ...» — для читателя
+    это мусор, поэтому чистим и начало строк, и инлайн-вхождения.
+    """
+    cleaned = _PROMPT_LABEL_RE.sub("", str(text or ""))
+    cleaned = _PROMPT_LABEL_INLINE_RE.sub("", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
 def _make_post(
     *,
     post_id: str,
@@ -1865,10 +1891,11 @@ def _make_post(
 ) -> GeneratedPost:
     limit = int(max_chars or channel.max_post_chars)
     text = _fit_blocks(blocks, limit)
+    text = _strip_prompt_labels(text)
     text = _dedupe_body_hashtags(text)
     if len(text) > limit or not html_is_balanced(text):
         # страховка: лимит и валидность важнее форматирования
-        text = strip_html(text)[:limit].rstrip()
+        text = _strip_prompt_labels(strip_html(text)[:limit].rstrip())
     quality = _quality_issues(text, channel, settings, sources)
     meta: Dict[str, Any] = {
         "format": fmt,

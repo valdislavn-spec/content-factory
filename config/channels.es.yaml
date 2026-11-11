@@ -83,19 +83,19 @@ channels:
   - interactive
   - digest
   schedule:
-  - "08:00"
-  - "10:00"
-  - "12:00"
-  - "14:00"
-  - "17:00"
-  - "19:00"
-  - "21:00"
-  - "23:00"
+  - "03:20"
+  - "04:50"
+  - "06:20"
+  - "07:50"
+  - "09:20"
+  - "10:50"
+  - "12:20"
+  - "13:20"
   posts_per_day: 8
   strict_topics: true
   min_relevance: 0.50
   timezone_offset: -6
-  max_post_chars: 1800
+  max_post_chars: 1200
   cta: "Síguenos y comparte este post con un amigo."
   sources:
   - id: hipertextual
@@ -131,20 +131,20 @@ channels:
     options:
       trust: true
       max_items: 10
-  night_max_chars: 900
+  night_max_chars: 700
   night_window: 23:00-07:00
   content_mix:
-    story: 30
-    analysis: 40
+    story: 45
+    analysis: 25
     interactive: 30
   peak_windows:
   - 08:00-10:00
   - 13:00-15:00
   - 19:00-23:00
   content_mix_peak:
-    story: 20
-    analysis: 40
-    interactive: 40
+    story: 35
+    analysis: 30
+    interactive: 35
 - id: crypto-es
   title: ES Crypto & Blockchain
   description: "Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados y tecnología blockchain.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Sports News @SPORTSAnalytics007"
@@ -209,26 +209,23 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:35"
-  - "03:55"
-  - "07:15"
-  - "08:15"
-  - "09:15"
-  - "10:55"
-  - "13:15"
-  - "14:15"
-  - "15:55"
-  - "17:35"
-  - "19:15"
-  - "20:15"
-  - "21:15"
-  - "22:15"
-  - "23:15"
-  posts_per_day: 15
+  - "03:10"
+  - "04:10"
+  - "05:10"
+  - "06:10"
+  - "07:10"
+  - "08:10"
+  - "09:10"
+  - "10:10"
+  - "11:10"
+  - "12:10"
+  - "13:10"
+  - "13:40"
+  posts_per_day: 12
   strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
-  max_post_chars: 1800
+  max_post_chars: 1200
   cta: "Comparte este post con un amigo, así crecemos."
   sources:
   - id: bingx-announcements
@@ -272,20 +269,20 @@ channels:
     options:
       trust: true
       max_items: 10
-  night_max_chars: 900
+  night_max_chars: 700
   night_window: 23:00-07:00
   content_mix:
-    story: 30
-    analysis: 40
+    story: 45
+    analysis: 25
     interactive: 30
   peak_windows:
   - 08:00-10:00
   - 13:00-15:00
   - 19:00-23:00
   content_mix_peak:
-    story: 20
-    analysis: 40
-    interactive: 40
+    story: 35
+    analysis: 30
+    interactive: 35
 - id: futbol-es
   title: ES Sports Analytics
   description: "Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina, MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Crypto & Blockchain @TechnologiesNews01"
@@ -376,26 +373,23 @@ channels:
   - interactive
   - digest
   schedule:
-  - "01:50"
-  - "04:10"
-  - "07:30"
-  - "08:30"
-  - "09:30"
-  - "11:10"
-  - "13:30"
-  - "14:30"
-  - "16:10"
-  - "17:50"
-  - "19:30"
-  - "20:30"
-  - "21:30"
-  - "22:30"
-  - "23:30"
-  posts_per_day: 15
+  - "03:20"
+  - "04:20"
+  - "05:20"
+  - "06:20"
+  - "07:20"
+  - "08:20"
+  - "09:20"
+  - "10:20"
+  - "11:20"
+  - "12:20"
+  - "13:20"
+  - "13:50"
+  posts_per_day: 12
   strict_topics: true
   min_relevance: 0.18
   timezone_offset: -6
-  max_post_chars: 1800
+  max_post_chars: 1200
   cta: "18+ | Juega con responsabilidad. Comparte este post con un hincha."
   sources:
   - id: espn-laliga
@@ -499,17 +493,17 @@ channels:
       language: es
       max_items: 10
       daily_limit: 100
-  night_max_chars: 900
+  night_max_chars: 700
   night_window: 23:00-07:00
   content_mix:
-    story: 30
-    analysis: 40
+    story: 45
+    analysis: 25
     interactive: 30
   peak_windows:
   - 08:00-10:00
   - 13:00-15:00
   - 19:00-23:00
   content_mix_peak:
-    story: 20
-    analysis: 40
-    interactive: 40
+    story: 35
+    analysis: 30
+    interactive: 35
