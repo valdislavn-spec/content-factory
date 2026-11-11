@@ -54,7 +54,7 @@ DESCRIPTION_MAX = 500
 ALT_TEXT_MAX = 500
 DISCLOSURE_AFFILIATE = "Ad \u00b7 affiliate link"
 DISCLOSURE_GUIDE = "Save this guide"
-DEFAULT_SITE = "valdislavn-spec.github.io"
+DEFAULT_SITE = "travel-finds-usa.pages.dev"
 
 #: Layout quality floors (asserted by tests and by the renderer).
 MIN_FONT_SIZE = 24          # never render text smaller than this
