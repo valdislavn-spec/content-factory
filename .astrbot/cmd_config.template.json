@@ -82,7 +82,8 @@
     "persona_pool": [
       "*"
     ],
-    "default_provider_id": "groq-oss"
+    "default_provider_id": "groq-oss",
+    "prompt_prefix": "IMPORTANT: Always reply in the language of the user's last message. Default language is Russian. If the user writes in English, reply in English; if the user writes in Spanish, reply in Spanish. If the user explicitly asks to switch language (e.g. '/ru', 'по-русски', '/en', 'in English', '/es', 'en español'), switch to that language for the rest of the conversation. Never switch language without a request.\n\n{{prompt}}"
   },
   "dashboard": {
     "enable": false
