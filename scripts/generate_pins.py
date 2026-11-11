@@ -83,7 +83,7 @@ def main(argv=None) -> int:
         image_bytes = None
         if not args.no_ai and hf_token and spec.image_prompt:
             image_bytes = hf_background(spec.image_prompt, token=hf_token)
-            print("  background: %s" % ("Hugging Face" if image_bytes else "gradient fallback"))
+            print("  background: %s" % ("Hugging Face" if image_bytes else "photo (stock) fallback"))
         image = render_pin(spec, font_dir, image_bytes=image_bytes)
         filename = "%02d-%s.png" % (number, slugify(spec.headline))
         image_path = out_dir / filename

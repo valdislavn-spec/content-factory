@@ -134,64 +134,125 @@ def _gradient_background(accent: Tuple[int, int, int], base: Tuple[int, int, int
     return Image.alpha_composite(image.convert("RGBA"), glow).convert("RGB")
 
 
-def render_pin(spec: PinSpec, font_dir: str | Path, image_bytes: Optional[bytes] = None):
-    """Render one 1000x1500 pin and return a Pillow Image."""
-    from PIL import Image, ImageDraw, ImageFont
+def stock_background(prompt: str, width: int = 1000, height: int = 1500, timeout: float = 120.0) -> Optional[bytes]:
+    """Fetch a photo-like background from the free Pollinations image API (with retries)."""
+    import time
+    import urllib.parse
+    import urllib.request
 
-    accent = _rgb(spec.accent)
+    if not prompt:
+        return None
+    for attempt in range(4):
+        seed = (abs(hash(prompt)) + attempt * 7919) % 1000000
+        url = (
+            "https://image.pollinations.ai/prompt/"
+            + urllib.parse.quote(prompt[:380])
+            + f"?width={width}&height={height}&nologo=true&seed={seed}"
+        )
+        request = urllib.request.Request(url, headers={"User-Agent": "content-factory-pins/1.0"})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                data = response.read()
+            if len(data) > 5000:
+                return data
+        except Exception:  # noqa: BLE001
+            time.sleep(4 + attempt * 6)
+    return None
+
+
+def render_pin(spec: PinSpec, font_dir: str | Path, image_bytes: Optional[bytes] = None):
+    """Render one 1000x1500 photo-style pin and return a Pillow Image."""
+    from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+    accent = _rgb(spec.accent, (255, 107, 53))
+    photo = None
+    if not image_bytes and spec.image_prompt:
+        image_bytes = stock_background(spec.image_prompt)
     if image_bytes:
         try:
             photo = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-            photo = photo.resize((WIDTH, HEIGHT))
-            overlay = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
-            odraw = ImageDraw.Draw(overlay)
-            for y in range(HEIGHT):
-                alpha = int(90 + 150 * (y / HEIGHT))
-                odraw.line([(0, y), (WIDTH, y)], fill=(5, 8, 14, alpha))
-            image = Image.alpha_composite(photo.convert("RGBA"), overlay).convert("RGB")
+            # cover-crop to 2:3
+            scale = max(WIDTH / photo.width, HEIGHT / photo.height)
+            photo = photo.resize((max(WIDTH, int(photo.width * scale)), max(HEIGHT, int(photo.height * scale))), Image.LANCZOS)
+            left = (photo.width - WIDTH) // 2
+            top = (photo.height - HEIGHT) // 3
+            photo = photo.crop((left, top, left + WIDTH, top + HEIGHT))
         except Exception:  # noqa: BLE001
-            image = _gradient_background(accent, _rgb(spec.background, (11, 18, 32)))
-    else:
-        image = _gradient_background(accent, _rgb(spec.background, (11, 18, 32)))
+            photo = None
+    if photo is None:
+        photo = _gradient_background(accent, _rgb(spec.background, (11, 18, 32)))
+
+    image = photo.convert("RGBA")
+    # dark scrim: stronger at the bottom for text contrast
+    overlay = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    odraw = ImageDraw.Draw(overlay)
+    for y in range(HEIGHT):
+        bottom = max(0.0, (y - HEIGHT * 0.35) / (HEIGHT * 0.65))
+        alpha = int(230 * (bottom ** 1.5))
+        top_alpha = int(70 * max(0.0, (1 - y / (HEIGHT * 0.25)))) if y < HEIGHT * 0.25 else 0
+        odraw.line([(0, y), (WIDTH, y)], fill=(6, 10, 18, min(245, alpha + top_alpha)))
+    image = Image.alpha_composite(image, overlay).convert("RGB")
+    image = image.filter(ImageFilter.SMOOTH)
 
     draw = ImageDraw.Draw(image)
     fonts = Path(font_dir)
     playfair = str(fonts / "PlayfairDisplay.ttf")
     inter = str(fonts / "Inter.ttf")
-    kicker = ImageFont.truetype(inter, 34)
-    headline_font = ImageFont.truetype(playfair, 96)
-    sub_font = ImageFont.truetype(inter, 40)
-    bullet_font = ImageFont.truetype(inter, 34)
-    cta_font = ImageFont.truetype(inter, 38)
-    small = ImageFont.truetype(inter, 27)
+    chip_font = ImageFont.truetype(inter, 32)
+    headline_font = ImageFont.truetype(inter, 96)
+    sub_font = ImageFont.truetype(inter, 38)
+    cta_font = ImageFont.truetype(inter, 40)
+    small = ImageFont.truetype(inter, 24)
+    badge_font = ImageFont.truetype(inter, 64)
 
-    draw.text((64, 96), spec.niche.upper(), font=kicker, fill=accent)
+    pad = 64
+    # top chip
+    chip = spec.niche.upper()
+    chip_w = int(draw.textlength(chip, font=chip_font)) + 44
+    draw.rounded_rectangle((pad, 56, pad + chip_w, 56 + 58), radius=29, fill=(8, 12, 20, 210))
+    draw.text((pad + 22, 56 + 12), chip, font=chip_font, fill=(255, 255, 255))
 
-    y = 168
-    for line in _wrap(draw, spec.headline, headline_font, WIDTH - 128)[:3]:
-        draw.text((64, y), line, font=headline_font, fill=(255, 255, 255))
-        y += 108
-    draw.rectangle((64, y + 18, 64 + 170, y + 26), fill=accent)
-    y += 70
-    for line in _wrap(draw, spec.subtitle, sub_font, WIDTH - 128)[:3]:
-        draw.text((64, y), line, font=sub_font, fill=(214, 224, 240))
-        y += 54
-    y += 16
-    for bullet in spec.bullets[:4]:
-        for line in _wrap(draw, "• " + bullet, bullet_font, WIDTH - 128)[:2]:
-            draw.text((64, y), line, font=bullet_font, fill=(176, 190, 212))
-            y += 44
+    # bottom text block
+    y = HEIGHT - 650
+    lines = _wrap(draw, spec.headline, headline_font, WIDTH - pad * 2)[:3]
+    for line in lines:
+        draw.text((pad, y), line, font=headline_font, fill=(255, 255, 255), stroke_width=1, stroke_fill=(255, 255, 255))
+        y += 104
+    draw.rounded_rectangle((pad, y + 6, pad + 150, y + 16), radius=5, fill=accent)
+    y += 64
+    for line in _wrap(draw, spec.subtitle, sub_font, WIDTH - pad * 2)[:2]:
+        draw.text((pad, y), line, font=sub_font, fill=(226, 232, 240))
+        y += 48
 
-    # CTA bar
-    cta_y = HEIGHT - 220
-    bar_width = 64 + int(draw.textlength(spec.cta + "  →", font=cta_font)) + 40
-    draw.rounded_rectangle((64, cta_y, bar_width, cta_y + 68), radius=34, fill=accent)
-    draw.text((64 + 26, cta_y + 13), spec.cta + "  →", font=cta_font, fill=(8, 12, 20))
+    # CTA pill
+    cta_text = spec.cta + "  →"
+    cta_w = int(draw.textlength(cta_text, font=cta_font)) + 72
+    cta_y = HEIGHT - 250
+    draw.rounded_rectangle((pad, cta_y, pad + cta_w, cta_y + 82), radius=41, fill=accent)
+    draw.text((pad + 36, cta_y + 18), cta_text, font=cta_font, fill=(12, 16, 24))
 
-    # disclosure + footer
-    draw.text((64, HEIGHT - 128), spec.disclosure, font=small, fill=(240, 200, 120))
-    draw.text((64, HEIGHT - 88), spec.link[:70], font=small, fill=(150, 165, 188))
-    draw.text((64, HEIGHT - 52), "Saved? Follow for daily picks.", font=small, fill=(120, 134, 158))
+    # bottom row: disclosure + domain
+    draw.text((pad, HEIGHT - 132), spec.disclosure, font=small, fill=(203, 213, 225))
+    domain = spec.link.replace("https://", "").replace("http://", "").split("/")[0] or "content-factory"
+    dw = int(draw.textlength(domain, font=small))
+    draw.text((WIDTH - pad - dw, HEIGHT - 132), domain, font=small, fill=(203, 213, 225))
+    # bottom bar covers generator watermark, becomes our brand strip
+    draw.rectangle((0, HEIGHT - 56, WIDTH, HEIGHT), fill=(6, 10, 18))
+    brand = "content-factory  ·  daily travel picks"
+    bw = int(draw.textlength(brand, font=small))
+    draw.text(((WIDTH - bw) // 2, HEIGHT - 42), brand, font=small, fill=(148, 163, 184))
+
+    # small price/marker badge (top-right) when headline contains a number-like marker
+    marker = None
+    for token in spec.headline.split():
+        if any(ch.isdigit() for ch in token) and len(token) <= 8:
+            marker = token
+            break
+    if marker:
+        cx, cy, rr = WIDTH - pad - 80, 130, 82
+        draw.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill=accent)
+        mw = int(draw.textlength(marker, font=badge_font))
+        draw.text((cx - mw // 2, cy - 40), marker, font=badge_font, fill=(12, 16, 24))
     return image
 
 
