@@ -12,6 +12,8 @@ AstrBot — отдельный Telegram-бот с LLM (Groq / OpenRouter / DeepS
 | `GROQ_API_KEY` / `OPENROUTER_API_KEY` / `DEEPSEEK_API_KEY` | хотя бы один | LLM-провайдер |
 | `HUGGINGFACE_API_KEY` (`HF_TOKEN`) | для state | приватный dataset `ERPSAS/cf-astrbot-state` |
 | `HF_REPO` | нет | по умолчанию `ERPSAS/cf-astrbot-state` |
+| `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_API_TOKEN` | для RAG | эмбеддинги Cloudflare Workers AI `@cf/baai/bge-m3` |
+| `ASTRBOT_DASHBOARD_INITIAL_PASSWORD` | для WebUI | пароль администратора Dashboard |
 
 Конфиг рендерится из [`.astrbot/cmd_config.template.json`](../.astrbot/cmd_config.template.json).
 Провайдеры без ключа автоматически убираются; если не осталось ни одного — запуск
@@ -67,3 +69,7 @@ python -m pytest -q tests/test_astrbot_scripts.py
   `ad_bot.py` / `telegram-growth-bot.py` на том же токене;
 - GitHub Actions job ограничен 6 часами;
 - не коммить `data/` и `.env` — там сессии и секреты.
+
+## RAG и Telegram Stars
+
+См. [astrbot-rag-stars.md](astrbot-rag-stars.md): база знаний `content-factory`, эмбеддинги Cloudflare, донаты через `@Cf_crosspromo_bot` (`/donate`).
