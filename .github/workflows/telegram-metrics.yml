@@ -1,0 +1,126 @@
+name: telegram-metrics
+
+# Ежедневный сбор Telegram-метрик (без сайта, GA4 и GSC):
+#   • подписчики — Bot API;
+#   • просмотры/реакции/репосты/ER — Telethon, если есть сессия;
+#   • отчёт report.html/report.md с блоком «Telegram-метрики».
+#
+# Работает и без Telethon: тогда собираются только подписчики, а посты
+# пропускаются. Сводка роста из t.me/s живёт отдельно в growth-report.yml.
+
+on:
+  schedule:
+    - cron: "20 9 * * *"   # ежедневно, после growth-report (09:10 UTC)
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Сколько последних постов анализировать"
+        required: false
+        default: "30"
+      publish_artifact:
+        description: "Загрузить report.html/md артефактом"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+concurrency:
+  group: telegram-metrics
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      TZ: Europe/Moscow
+      # Только чтение: ничего не публикуем.
+      CONTENT_FACTORY_DRY_RUN: "true"
+
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+
+      # ES-каналы (EN-каналы хранят chat_id прямо в channels.en.yaml).
+      TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
+      TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
+
+      # Telethon (опционально).
+      TG_API_ID: ${{ secrets.TG_API_ID }}
+      TG_API_HASH: ${{ secrets.TG_API_HASH }}
+      TG_SESSION: data/telegram.session
+      # Сессия Telethon, закодированная base64 — опциональный секрет.
+      TG_SESSION_B64: ${{ secrets.TG_SESSION_B64 }}
+
+      LIMIT: ${{ github.event.inputs.limit || '30' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Telethon (optional)
+        continue-on-error: true
+        run: pip install -r requirements-optional.txt
+
+      - name: Prepare data
+        run: mkdir -p data
+
+      # SQLite с таблицами telegram_posts/telegram_channel_metrics.
+      - name: Restore SQLite state
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/factory.sqlite3
+            data/schedule_state.json
+            data/schedule_state_es.json
+          key: cf-state-telegram-${{ github.run_id }}
+          restore-keys: |
+            cf-state-
+
+      # Если секрет TG_SESSION_B64 задан — кладём сессию Telethon в файл.
+      # Без сессии модуль просто пропустит просмотры/реакции.
+      - name: Restore Telethon session
+        if: ${{ env.TG_SESSION_B64 != '' }}
+        run: |
+          mkdir -p data
+          printf '%s' "$TG_SESSION_B64" | base64 -d > "$TG_SESSION"
+          chmod 600 "$TG_SESSION"
+
+      - name: Show channels
+        run: python -m content_factory channels
+
+      - name: Collect Telegram metrics
+        run: |
+          python -m content_factory telegram-metrics --channel all --limit "$LIMIT" \
+            | tee /tmp/telegram-metrics.txt
+          cat /tmp/telegram-metrics.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build report
+        run: python -m content_factory report --days 7 --no-collect
+
+      - name: Upload report
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_artifact == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-metrics-${{ github.run_number }}
+          path: |
+            data/reports/report.html
+            data/reports/report.md
+            data/logs
+          if-no-files-found: warn
+          retention-days: 14

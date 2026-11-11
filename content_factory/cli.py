@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from . import __version__
-from .config import Settings, load_channels
+from .config import Settings, load_channels, load_network_channels
 from .logging_setup import setup_logging
 from .models import GeneratedPost
 from .pipeline import (
@@ -257,6 +257,14 @@ def cmd_report(args: argparse.Namespace, settings: Settings) -> int:
 
                 print("Собираю метрики каналов...")
                 collect_all(load_channels(settings), settings, storage)
+                from .analytics.telegram_metrics import collect_all_telegram_metrics
+
+                collect_all_telegram_metrics(
+                    load_network_channels(settings),
+                    settings,
+                    storage,
+                    limit=int(settings.analytics.get("telegram_posts_limit", 30) or 30),
+                )
             except Exception as exc:
                 print(f"Метрики собраны не полностью: {exc}")
         try:
@@ -274,17 +282,79 @@ def cmd_report(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+def _print_telegram_summary(item: dict) -> None:
+    subscribers = item.get("subscribers")
+    growth = item.get("growth_subscribers")
+    growth_text = "—" if growth is None else "{:+d}".format(int(growth))
+    print(
+        "  {:<18} подписчиков: {:>7} (рост {:>5}) постов: {:>3} "
+        "ср. просмотры: {:>7} ER: {:>5}%".format(
+            str(item.get("channel_id") or ""),
+            subscribers if subscribers is not None else "—",
+            growth_text,
+            int(item.get("posts_analyzed") or 0),
+            item.get("avg_views") or 0,
+            item.get("er") or 0,
+        )
+    )
+
+
+def cmd_telegram_metrics(args: argparse.Namespace, settings: Settings) -> int:
+    from .analytics.telegram_metrics import collect_all_telegram_metrics
+
+    channels = [channel for channel in load_network_channels(settings) if channel.enabled]
+    requested = {str(item).strip() for item in _split_channels(args.channel)}
+    if requested and "all" not in requested:
+        unknown = requested - {channel.id for channel in channels}
+        if unknown:
+            print(f"Неизвестные каналы: {', '.join(sorted(unknown))}")
+            return 1
+        channels = [channel for channel in channels if channel.id in requested]
+    with Storage(settings.db_path) as storage:
+        summaries = collect_all_telegram_metrics(
+            channels, settings, storage, limit=args.limit
+        )
+    print(f"Telegram-метрики: {len(summaries)} каналов")
+    for item in summaries:
+        _print_telegram_summary(item)
+    if not any(int(item.get("posts_analyzed") or 0) for item in summaries):
+        print(
+            "\nПросмотры/реакции не собраны. Нужны: telethon, TG_API_ID, TG_API_HASH "
+            "и user-аккаунт с доступом к каналам (TG_SESSION)."
+        )
+    print("\nОтчёт: python -m content_factory report")
+    return 0
+
+
 def cmd_metrics(args: argparse.Namespace, settings: Settings) -> int:
     from .analytics.collector import collect_all
+    from .analytics.telegram_metrics import collect_all_telegram_metrics
 
+    channels = load_channels(settings)
+    network_channels = load_network_channels(settings)
     with Storage(settings.db_path) as storage:
-        snapshots = collect_all(load_channels(settings), settings, storage)
+        snapshots = collect_all(channels, settings, storage)
+        telegram = collect_all_telegram_metrics(
+            network_channels,
+            settings,
+            storage,
+            limit=int(settings.analytics.get("telegram_posts_limit", 30) or 30),
+        )
     print(f"Собрано срезов метрик: {len(snapshots)}")
     for snapshot in snapshots:
         print(
             f"  {snapshot.channel_id:<18} подписчиков: {snapshot.subscribers if snapshot.subscribers is not None else '—':>7} "
             f"постов: {snapshot.posts_total:>3} статей: {snapshot.articles_total:>3}"
         )
+    if telegram:
+        print(f"\nTelegram-метрики: {len(telegram)} каналов")
+        for item in telegram:
+            _print_telegram_summary(item)
+        if not any(int(item.get("posts_analyzed") or 0) for item in telegram):
+            print(
+                "  Просмотры/реакции не собраны: установите telethon и задайте "
+                "TG_API_ID/TG_API_HASH/TG_SESSION."
+            )
     return 0
 
 
@@ -527,6 +597,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_metrics = sub.add_parser("metrics", help="Собрать срез метрик каналов")
     p_metrics.set_defaults(func=cmd_metrics)
+
+    p_tg = sub.add_parser(
+        "telegram-metrics",
+        help="Собрать подписчиков/просмотры/реакции Telegram (Bot API + Telethon)",
+    )
+    p_tg.add_argument("--channel", default="all", help="id канала, несколько через запятую или all")
+    p_tg.add_argument("--limit", type=int, default=30, help="Сколько последних постов анализировать")
+    p_tg.set_defaults(func=cmd_telegram_metrics)
 
     p_social = sub.add_parser(
         "social-check",
