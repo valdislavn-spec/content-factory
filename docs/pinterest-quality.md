@@ -147,7 +147,7 @@ non-standard board names) into errors.
 | europe-under-300-qr | aviasales | `https://aviasales.tpk.ro/2ZW95Xpf` |
 | travel-esim-qr | yesim | `https://yesim.tpk.ro/aU7AT4LC` |
 | car-rental-qr | localrent | `https://localrent.tpk.ro/vGHu8Vuj` |
-| flight-compensation-qr | compensair | `https://compensair.tpk.ro/yhsBLUP1` |
+| flight-compensation-qr | airhelp | `https://airhelp.tpk.ro/WbJKruUg` |
 | gradient/*.png | — (hub fallback) | `https://valdislavn-spec.github.io/content-factory/` |
 
 Проверка:

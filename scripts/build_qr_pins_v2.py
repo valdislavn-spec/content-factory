@@ -27,7 +27,7 @@ PINS = [
  {"slug":"europe-under-300-qr","tag":"BUDGET","headline":"EUROPE\nUNDER $300","promise":"A 3-night city break: cheapest months and booking windows","cta":"Find flights","program":"aviasales","accent":(176,62,92),"scene":"city"},
  {"slug":"travel-esim-qr","tag":"TRAVEL ESSENTIAL","headline":"TRAVEL eSIM\nTHAT WORKS","promise":"Install before you fly — data in 200+ countries","cta":"Get eSIM","program":"yesim","accent":(110,88,230),"scene":"city"},
  {"slug":"car-rental-qr","tag":"TRAVEL ESSENTIAL","headline":"CAR RENTAL\nNO SURPRISES","promise":"Local renters, clear fuel policy, excess cover","cta":"Rent a car","program":"localrent","accent":(222,104,44),"scene":"road"},
- {"slug":"flight-compensation-qr","tag":"TRAVEL MONEY","headline":"FLIGHT\nDELAYED?","promise":"You may be owed up to €600 — check in 2 minutes","cta":"Check my flight","program":"compensair","accent":(26,152,148),"scene":"plane"},
+ {"slug":"flight-compensation-qr","tag":"TRAVEL MONEY","headline":"FLIGHT\nDELAYED?","promise":"You may be owed up to €600 — check in 2 minutes","cta":"Check my flight","program":"airhelp","accent":(26,152,148),"scene":"plane"},
 ]
 
 def draw_scene(draw, box, accent, scene):

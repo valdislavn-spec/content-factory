@@ -145,7 +145,7 @@ PINS = [
         "headline": "FLIGHT\nDELAYED?",
         "promise": "You may be owed up to \u20ac600 \u2014 check in 2 minutes",
         "cta": "Check my flight",
-        "program": "compensair",
+        "program": "airhelp",
         "accent": "#78F0DC",
         "title": "Flight delayed? Check if you are owed up to 600 EUR",
         "description": (

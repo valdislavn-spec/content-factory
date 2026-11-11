@@ -78,7 +78,7 @@ PINS = [
         "headline": "Flight delayed?",
         "subtitle": "You may be owed up to €600 — check your flight in 2 minutes",
         "cta": "Scan \u2192 check my flight",
-        "url": "https://compensair.tpk.ro/yhsBLUP1",
+        "url": "https://airhelp.tpk.ro/WbJKruUg",
         "accent": (60, 200, 190),
     },
 ]
