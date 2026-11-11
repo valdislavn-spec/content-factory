@@ -32,6 +32,8 @@ jobs:
       TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
       TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      LINK_TRACKER_BASE: ${{ secrets.LINK_TRACKER_BASE }}
+      LINK_TRACKER_STATS_TOKEN: ${{ secrets.LINK_TRACKER_STATS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

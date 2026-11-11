@@ -45,6 +45,8 @@ def api(method: str, payload: dict) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--language", choices=["en", "es"], default="en")
+    parser.add_argument("--channel", default="", help="обновить только этот канал")
+    parser.add_argument("--update", action="store_true", help="править существующий закреп, а не слать новый пост")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     load_dotenv()
@@ -53,8 +55,17 @@ def main() -> int:
     channels = load_channels(settings)
     pinned_path = os.path.join("config", "pinned", f"{args.language}.yaml")
     pinned = yaml.safe_load(open(pinned_path, encoding="utf-8")) or {}
+    ids_path = os.path.join("config", "pinned", "ids.yaml")
+    ids = {}
+    if args.update:
+        try:
+            ids = (yaml.safe_load(open(ids_path, encoding="utf-8")) or {}).get(args.language) or {}
+        except OSError:
+            ids = {}
     ok = 0
     for channel in channels:
+        if args.channel and channel.id != args.channel:
+            continue
         text = str(pinned.get(channel.id) or "").strip()
         chat_id = str(channel.telegram_chat_id or "").strip()
         if not text or not chat_id:
@@ -62,6 +73,21 @@ def main() -> int:
             continue
         if args.dry_run:
             print(f"{channel.id}: {text[:80]}...")
+            continue
+        pinned_id = ids.get(channel.id)
+        if args.update and pinned_id:
+            try:
+                api("editMessageText", {
+                    "chat_id": chat_id,
+                    "message_id": pinned_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": "true",
+                })
+                print(f"{channel.id}: закреп обновлён (msg {pinned_id})")
+                ok += 1
+            except Exception as exc:  # noqa: BLE001
+                print(f"{channel.id}: не удалось обновить закреп {pinned_id}: {exc}")
             continue
         try:
             sent = api("sendMessage", {

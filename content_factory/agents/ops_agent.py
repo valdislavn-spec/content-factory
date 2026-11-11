@@ -62,6 +62,43 @@ def build_client(settings: Settings, model: str = "gemini") -> LLMClient:
     return FallbackLLMClient(usable)
 
 
+def _affiliate_summary() -> Dict[str, Any]:
+    """Клики по партнёрским ссылкам из нашего трекера (детерминированно, без LLM)."""
+    try:
+        from ..integrations.link_tracker import LinkTrackerClient
+
+        stats = LinkTrackerClient().stats() or {}
+    except Exception as exc:  # noqa: BLE001 — трекер не должен ломать сводку
+        print("affiliate: трекер недоступен: %s" % exc, file=sys.stderr)
+        return {}
+    links = stats.get("links") if isinstance(stats, dict) else None
+    if not isinstance(links, list):
+        return {}
+    total = 0
+    by_network: Dict[str, int] = {}
+    last_click = ""
+    for link in links:
+        if not isinstance(link, dict):
+            continue
+        clicks = int(link.get("total") or 0)
+        if clicks <= 0:
+            continue
+        total += clicks
+        network = str(link.get("network") or link.get("code") or "?")
+        by_network[network] = by_network.get(network, 0) + clicks
+        stamp = str(link.get("last_click") or "")
+        if stamp > last_click:
+            last_click = stamp
+    if not total:
+        return {}
+    return {
+        "total_clicks": total,
+        "by_network": dict(sorted(by_network.items(), key=lambda item: -item[1])[:6]),
+        "links_with_clicks": len(by_network),
+        "last_click": last_click[:10],
+    }
+
+
 def collect_data(tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool) -> Dict[str, Any]:
     """Все инструменты один раз; у каждого инструмента своя защита от сбоев."""
     return {
@@ -71,6 +108,7 @@ def collect_data(tool_runner: Callable[[str, Dict[str, Any]], Any] = call_tool) 
         "budget": tool_runner("budget", {}),
         "promo": tool_runner("promo", {}),
         "distribution": tool_runner("distribution", {}),
+        "affiliate": _affiliate_summary(),
     }
 
 
@@ -128,6 +166,7 @@ def compact_data(data: Dict[str, Any], limit: int = 1900) -> str:
             "rows": promo.get("outreach_rows") if isinstance(promo, dict) else None,
             "statuses": promo.get("statuses") if isinstance(promo, dict) else None,
         },
+        "affiliate": data.get("affiliate") or {},
     }
     text = json.dumps(payload, ensure_ascii=False, default=str)
     return text[:limit]
@@ -185,6 +224,16 @@ def heuristic_summary(
         lines.append(
             "ВП-трекер: {} строк, статусы {}".format(
                 promo.get("outreach_rows"), promo.get("statuses") or {}
+            )
+        )
+    affiliate = data.get("affiliate")
+    if isinstance(affiliate, dict) and affiliate.get("total_clicks"):
+        networks = ", ".join(
+            "{} {}".format(name, clicks) for name, clicks in (affiliate.get("by_network") or {}).items()
+        )
+        lines.append(
+            "Партнёрка: {} кликов ({}), последний {}".format(
+                affiliate.get("total_clicks"), networks or "—", affiliate.get("last_click") or "—"
             )
         )
     lines.append("Приоритет: метрики → проблемные запуски → промо.")
