@@ -36,9 +36,15 @@ class LinkTrackerClient:
         stats_token: Optional[str] = None,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> None:
-        self.base_url = (base_url or os.environ.get("LINK_TRACKER_BASE", "") or "").strip().rstrip("/")
-        self.admin_token = (admin_token or os.environ.get("LINK_TRACKER_ADMIN_TOKEN", "") or "").strip()
-        self.stats_token = (stats_token or os.environ.get("LINK_TRACKER_STATS_TOKEN", "") or "").strip()
+        if base_url is None:
+            base_url = os.environ.get("LINK_TRACKER_BASE", "")
+        if admin_token is None:
+            admin_token = os.environ.get("LINK_TRACKER_ADMIN_TOKEN", "")
+        if stats_token is None:
+            stats_token = os.environ.get("LINK_TRACKER_STATS_TOKEN", "")
+        self.base_url = str(base_url or "").strip().rstrip("/")
+        self.admin_token = str(admin_token or "").strip()
+        self.stats_token = str(stats_token or "").strip()
         self.timeout = float(timeout)
 
     # ------------------------------------------------------------------

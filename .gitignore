@@ -16,3 +16,9 @@ assets/generated/
 
 # сгенерированные брендовые шаблоны (регенерируются scripts/brand_templates.py)
 assets/brand/
+
+# Google Agents CLI / generated skills
+.agents/
+
+# generated landing exports
+exports/landing/

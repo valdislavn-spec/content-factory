@@ -22,6 +22,12 @@ ENV = {
 
 class RedditPublisherTest(unittest.TestCase):
     def setUp(self):
+        # .env может выставить CONTENT_FACTORY_DRY_RUN=true; для реестра нужен реальный публикатор.
+        env_patch = mock.patch.dict(
+            os.environ, {"CONTENT_FACTORY_DRY_RUN": "false"}, clear=False
+        )
+        env_patch.start()
+        self.addCleanup(env_patch.stop)
         self.settings = Settings.load(load_env=False)
         self.settings.raw.setdefault("app", {})["dry_run"] = False
         self.channel = ChannelConfig(

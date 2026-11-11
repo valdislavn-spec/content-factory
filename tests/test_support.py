@@ -77,7 +77,8 @@ class SupportConfigTests(unittest.TestCase):
             root = Path(tmp)
             write_config(root, url="")
             settings = FakeSettings(root)
-            self.assertEqual(voluntary_support_block(make_channel(), settings), "")
+            with mock.patch.dict(os.environ, {"SUPPORT_URL": ""}, clear=False):
+                self.assertEqual(voluntary_support_block(make_channel(), settings), "")
 
     def test_env_url_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:
