@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pay per quote, not per seat: an x402 use case for AI agents on Solana</title>
+<meta name="description" content="SwapBot — a Telegram bot that pays Swap.io's Agent API per quote via x402. A submission for the Swap.io x402 use-case bounty on Superteam Earn.">
+<meta property="og:title" content="Pay per quote, not per seat: an x402 use case for AI agents on Solana">
+<meta property="og:type" content="article">
+</head>
+<body>
+<article>
+  <h1>Pay per quote, not per seat: an x402 use case for AI agents on Solana</h1>
+  <p><em>A submission for the <a href="https://superteam.fun/earn/listing/make-a-video-about-our-x402-feature">Swap.io x402 use-case bounty</a> on Superteam Earn.</em></p>
+
+  <h2>The pitch</h2>
+  <p>AI agents are becoming real economic actors, but our billing stack was built for humans: signup forms, sales calls, API keys, monthly seat licenses. An autonomous agent cannot fill out a form — and a bot that trades a few times a day should not pay for a monthly plan it mostly does not use.</p>
+
+  <h2>Meet SwapBot</h2>
+  <p>A Telegram bot with one job: <strong>“swap 2 SOL → USDC”</strong>.</p>
+  <ol>
+    <li>The user sends a swap request.</li>
+    <li>The bot asks <a href="https://swap.io">Swap.io's Agent API</a> for a quote.</li>
+    <li>The API replies <code>402 Payment Required</code> — <strong>0.001 USDC</strong>.</li>
+    <li>The bot signs the x402 payment, receives the signed quote, and executes the swap.</li>
+    <li>The bot keeps a 1% fee. Every quote it consumes is metered and paid for.</li>
+  </ol>
+
+  <h2>Why x402 wins here</h2>
+  <ul>
+    <li><strong>No API keys.</strong> The wallet is the credential — nothing to leak or rotate.</li>
+    <li><strong>Pay per call.</strong> 0.001 USDC per quote, no minimums, no seats.</li>
+    <li><strong>Agent-to-agent.</strong> Any agent can pay any API. That is composable by default on Solana.</li>
+  </ul>
+
+  <h2>Unit economics</h2>
+  <p>10,000 users × 20 swaps per month × $0.001 per quote = <strong>$200</strong> of API cost, versus $2,000+ in typical seat licenses. The margin is the product.</p>
+
+  <h2>Watch the video</h2>
+  <p>The 100-second pitch video is posted on X: <a href="https://x.com/NValdislav/status/2120587862642966917">https://x.com/NValdislav/status/2120587862642966917</a></p>
+
+  <h2>Links</h2>
+  <ul>
+    <li>Swap.io Agent API: <a href="https://swap.io">https://swap.io</a></li>
+    <li>x402 protocol: <a href="https://x402.org">https://x402.org</a></li>
+    <li>Bounty: <a href="https://superteam.fun/earn/listing/make-a-video-about-our-x402-feature">Swap.io × Superteam Earn</a></li>
+  </ul>
+
+  <p><small>Built for the x402 use-case bounty. AI voiceover used; the scenario is original.</small></p>
+</article>
+</body>
+</html>
