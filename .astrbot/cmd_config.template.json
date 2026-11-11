@@ -70,6 +70,20 @@
       "provider_source_id": "deepseek",
       "model": "deepseek-flash",
       "enable": true
+    },
+    {
+      "id": "cf-embed",
+      "type": "openai_embedding",
+      "provider": "cloudflare",
+      "provider_type": "embedding",
+      "enable": true,
+      "embedding_api_key": "__CLOUDFLARE_API_TOKEN__",
+      "embedding_api_base": "https://api.cloudflare.com/client/v4/accounts/__CLOUDFLARE_ACCOUNT_ID__/ai/v1",
+      "embedding_model": "@cf/baai/bge-m3",
+      "embedding_dimensions": 1024,
+      "embedding_dimensions_mode": "never",
+      "timeout": 30,
+      "proxy": ""
     }
   ],
   "provider_settings": {
@@ -90,5 +104,10 @@
     "host": "0.0.0.0",
     "port": 6185
   },
-  "timezone": "UTC"
+  "timezone": "UTC",
+  "kb_names": [
+    "content-factory"
+  ],
+  "kb_fusion_top_k": 20,
+  "kb_final_top_k": 5
 }
