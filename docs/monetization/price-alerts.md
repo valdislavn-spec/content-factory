@@ -113,3 +113,28 @@ affiliate:
 Можно переопределить на конкретном канале блоком `affiliate:` в
 `config/channels.*.yaml` (как в обычных постах). После одобрения Affiliate
 Program замените `link` на 50%-ную affiliate-ссылку.
+
+## Облачный деплой: Cloudflare Worker (11.11.2026)
+
+Локальный демон на Mac зависит от включённого ноутбука. Поэтому алерты
+перенесены в **Cloudflare Worker с Cron Trigger каждую минуту** (бесплатно,
+без карты):
+
+- URL: https://price-alerts.valdislav-n.workers.dev
+- код: `infra/cloudflare/price-alerts/worker.js`
+- деплой: `bash scripts/deploy_price_alerts_worker.sh` (создаёт KV `price-alerts-state`,
+  заливает секреты `TELEGRAM_BOT_TOKEN`, `ADMIN_TOKEN`, ставит cron `* * * * *`)
+- state (последние цены, история для move-правил, cooldown, счётчики для
+  affiliate-вставок) хранится в KV, поэтому рестарты не спамят дублями.
+- правила/каналы/шаблоны EN-ES зашиты в воркере (аналог `config/price_alerts.yaml`);
+  после правки порогов — передеплой скриптом.
+- проверки:
+  - `GET /health` — статус, username бота, `last_run` (обновляется каждую минуту);
+  - `GET /run?dry=1&token=<ADMIN>` — что сработало бы сейчас, без публикации;
+  - `GET /selftest?token=<ADMIN>` — отправляет и сразу удаляет тестовое сообщение.
+- каналы: `crypto-news` `-1003891468537`, `crypto-es` `-1004304574421`;
+  рефералка вставляется каждый 3-й алерт на канал (трекер `bingx-crypto-news`,
+  `bingx-crypto-es`).
+- локальный launchd-агент отключён (`launchctl bootout …`), чтобы не дублировать.
+
+Бэкфилл: `scripts/price_alerts.py --loop` остаётся как резервный/локальный режим.
