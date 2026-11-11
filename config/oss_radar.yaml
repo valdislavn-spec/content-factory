@@ -1,0 +1,60 @@
+# OSS Radar: откуда брать «свежие релизы» для рубрики.
+#
+# Только EN/ES-каналы (US/LatAm): ai-news и tech-ai-es.
+# GitHub Releases API работает без ключа (60 запросов/час; с GITHUB_TOKEN — 5000/час).
+# libraries.io используется только если задан LIBRARIES_IO_API_KEY (60 запросов/мин).
+
+channels:
+  ai-news:
+    language: en
+    max_items: 8
+    per_repo: 1
+    # llama.cpp/unsloth помечают релизы prerelease — включаем, помечаем в посте
+    include_prereleases: true
+    repos:
+      - ollama/ollama
+      - huggingface/transformers
+      - vllm-project/vllm
+      - ggml-org/llama.cpp
+      - langchain-ai/langchain
+      - openai/openai-python
+      - crewAIInc/crewAI
+      - modelcontextprotocol/servers
+      - Comfy-Org/ComfyUI
+      - unslothai/unsloth
+      - huggingface/diffusers
+      - pytorch/pytorch
+    queries:
+      - llm
+      - large language model
+      - agents
+      - inference
+    platforms: [PyPI, npm]
+    allowed_licenses: [MIT, Apache-2.0, BSD-3-Clause, BSD-2-Clause, MPL-2.0]
+
+  tech-ai-es:
+    language: es
+    max_items: 8
+    per_repo: 1
+    include_prereleases: true
+    # те же репозитории: скрипт кэширует их в рамках одного запуска
+    repos:
+      - ollama/ollama
+      - huggingface/transformers
+      - vllm-project/vllm
+      - ggml-org/llama.cpp
+      - langchain-ai/langchain
+      - openai/openai-python
+      - crewAIInc/crewAI
+      - modelcontextprotocol/servers
+      - Comfy-Org/ComfyUI
+      - unslothai/unsloth
+      - huggingface/diffusers
+      - pytorch/pytorch
+    queries:
+      - llm
+      - inteligencia artificial
+      - agents
+      - inference
+    platforms: [PyPI, npm]
+    allowed_licenses: [MIT, Apache-2.0, BSD-3-Clause, BSD-2-Clause, MPL-2.0]

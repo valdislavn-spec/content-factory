@@ -99,11 +99,13 @@ class ChannelConfig:
     emoji: bool = True
     language: str = "ru"
     description: str = ""
+    public_url: str = ""
     meta: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.id = str(self.id).strip()
         self.title = str(self.title).strip() or self.id
+        self.public_url = str(self.public_url or "").strip()
         self.topics = [str(t).strip() for t in self.topics if str(t).strip()]
         self.exclude_keywords = [str(t).strip().lower() for t in self.exclude_keywords if str(t).strip()]
         self.schedule = [str(s).strip() for s in self.schedule]

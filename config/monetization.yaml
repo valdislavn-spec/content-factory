@@ -1,0 +1,56 @@
+# Монетизация каналов: продажа рекламных постов за Telegram Stars (0 ₽ на старте).
+#
+# Только живые EN/ES-каналы (US/LatAm). Оплата — Stars (XTR), без платёжного провайдера.
+# Бот @your_bot принимает заказы, оплата → заявка админу на модерацию → в очередь.
+# Админ получает уведомления в chat_id из TELEGRAM_ADMIN_CHAT_ID.
+
+admin_chat_id_env: TELEGRAM_ADMIN_CHAT_ID
+currency: XTR
+min_amount: 1
+
+channels:
+  ai-news:
+    title: "AI News (US)"
+    tariffs:
+      "1/24":
+        price: 150
+        description: "1 пост в канале, 24 часа"
+      "2/48":
+        price: 250
+        description: "2 поста, 48 часов (в разное время)"
+  crypto-news:
+    title: "Crypto & Blockchain (US)"
+    tariffs:
+      "1/24":
+        price: 150
+        description: "1 пост в канале, 24 часа"
+      "2/48":
+        price: 250
+        description: "2 поста, 48 часов (в разное время)"
+  sport-news:
+    title: "US Sports News"
+    tariffs:
+      "1/24":
+        price: 100
+        description: "1 пост в канале, 24 часа"
+  tech-ai-es:
+    title: "ES AI News (LatAm)"
+    tariffs:
+      "1/24":
+        price: 100
+        description: "1 публикация, 24 часа"
+      "2/48":
+        price: 180
+        description: "2 публикации, 48 часов (в разное время)"
+  crypto-es:
+    title: "ES Crypto (LatAm)"
+    tariffs:
+      "1/24":
+        price: 100
+        description: "1 публикация, 24 часа"
+  futbol-es:
+    title: "ES Sports (LatAm)"
+    tariffs:
+      "1/24":
+        price: 100
+        description: "1 публикация, 24 часа"

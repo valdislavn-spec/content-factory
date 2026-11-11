@@ -590,6 +590,7 @@ def _parse_channel(
         id=channel_id,
         title=title,
         description=str(data.get("description") or ""),
+        public_url=str(data.get("public_url") or ""),
         topics=[str(t).strip() for t in topics],
         exclude_keywords=[str(t).strip() for t in (data.get("exclude_keywords") or [])],
         sources=sources,
