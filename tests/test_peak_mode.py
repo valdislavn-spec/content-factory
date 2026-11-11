@@ -35,16 +35,16 @@ def test_phases_and_peak_mix():
 def test_day_formats_mix_interleaved():
     channel = _channel("ai-news")
     formats = day_formats(channel)
-    # пропорции 30/40/30 и форматы идут вперемешку, а не блоками
+    # пропорции 45/25/30 (анализ 11.11.2026: короткие story дают выше ER)
     assert formats[0] != formats[1] != formats[2]
-    assert formats.count("analysis") >= formats.count("story")
+    assert formats.count("story") >= formats.count("analysis")
     assert "interactive" in formats and "digest" not in formats
 
 
 def test_night_max_chars_and_timezone():
     channel = _channel("ai-news")
     assert channel.timezone_offset == -5
-    assert channel.night_max_chars == 900
+    assert channel.night_max_chars == 700
     assert len(channel.schedule) == 8
     es_channel = _channel("futbol-es", "config/channels.es.yaml")
     assert es_channel.timezone_offset == -6
