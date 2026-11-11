@@ -40,9 +40,18 @@ DRIVE = '''  <!-- Travelpayouts Drive -->
 '''
 
 ORIGINS = {
-    "MOW": {"slug": "", "name": "Moscow", "page": "docs/flights/index.html"},
+    "MOW": {"slug": "moscow", "name": "Moscow", "page": "docs/flights/moscow/index.html"},
     "ALA": {"slug": "almaty", "name": "Almaty", "page": "docs/flights/almaty/index.html"},
     "MSQ": {"slug": "minsk", "name": "Minsk", "page": "docs/flights/minsk/index.html"},
+}
+
+# Российские города-направления исключаем из публикаций (аудитория — KZ/BY, не РФ).
+RU_DEST = {
+    "MOW", "LED", "KZN", "AER", "KGD", "KUF", "SVX", "MCX", "ROV", "VKO", "DME", "SVO",
+    "OVB", "KJA", "UFA", "SAM", "VOG", "GRV", "MRV", "NJC", "PEE", "TJM", "CEK", "IKT",
+    "UUS", "VVO", "KHV", "BQS", "ASF", "RTW", "SKX", "TBW", "GOJ", "KRR", "AAQ", "EGO",
+    "URS", "VOZ", "CSY", "IAR", "RYB", "ABA", "BAX", "KEJ", "NOZ", "OMS", "OSF", "PEX",
+    "PKV", "PEE", "SGC", "STW", "TJM", "TOF", "UUD", "VUS", "YKS", "YOL", "ZIA", "ZST",
 }
 
 CITY_NAMES = {
@@ -264,7 +273,7 @@ def render_page(rows: list, origin: str, updated: str, drops: list = None, publi
     slug = ORIGINS.get(origin, {}).get("slug", "")
     canonical = f"{public}/flights/" + (slug + "/" if slug else "")
     nav = f'<p style="margin:0 0 18px"><a href="{public}/" style="color:#2563eb;text-decoration:none">← All channels</a> · <a href="{public}/travel/" style="color:#2563eb;text-decoration:none">Travel guides</a>'
-    nav += f' · <a href="{public}/flights/" style="color:#2563eb;text-decoration:none">Moscow</a>'
+    nav += f' · <a href="{public}/flights/" style="color:#2563eb;text-decoration:none">Flights from Almaty &amp; Minsk</a>'
     nav += f' · <a href="{public}/flights/almaty/" style="color:#2563eb;text-decoration:none">Almaty</a>'
     nav += f' · <a href="{public}/flights/minsk/" style="color:#2563eb;text-decoration:none">Minsk</a></p>'
     drops = drops or []
@@ -285,7 +294,7 @@ def render_page(rows: list, origin: str, updated: str, drops: list = None, publi
         f'<title>Cheapest flights from {city_name} — deals updated daily</title>',
         f'<meta name="description" content="Cheapest round-trip flights from {city_name}: live Aviasales deals with dates, airlines and prices. Updated daily.">',
         f'<link rel="canonical" href="{canonical}">',
-        '<meta name="robots" content="index,follow">',
+        f'<meta name="robots" content="{"noindex,nofollow" if origin == "MOW" else "index,follow"}">',
         f'<script type="application/ld+json">{schema}</script>',
         DRIVE + '</head>',
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fff">',
@@ -308,9 +317,43 @@ def render_page(rows: list, origin: str, updated: str, drops: list = None, publi
     ])
 
 
+def render_hub(public: str = PUB) -> str:
+    """Landing page for flight deals: local departures only (Almaty, Minsk)."""
+    cards = [
+        ("Almaty", f"{public}/flights/almaty/", "Cheapest round-trip flights from Almaty, updated daily.", "🇰🇿"),
+        ("Minsk", f"{public}/flights/minsk/", "Cheapest round-trip flights from Minsk, updated daily.", "🇧🇾"),
+    ]
+    cards_html = "".join(
+        f'<a href="{href}" style="display:block;padding:20px 22px;border:1px solid #e5e7eb;border-radius:16px;text-decoration:none;color:#111;margin:0 0 14px">'
+        f'<div style="font-size:20px;font-weight:600;margin-bottom:6px">{flag} Flights from {name}</div>'
+        f'<div style="color:#6b7280;font-size:14px">{desc}</div>'
+        f'<div style="color:#2563eb;font-size:14px;margin-top:8px">See deals →</div></a>'
+        for name, href, desc, flag in cards
+    )
+    return "\n".join([
+        '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
+        '<title>Cheap flights from Almaty and Minsk — live deals</title>',
+        '<meta name="description" content="Cheapest round-trip flights from Almaty and Minsk: live Aviasales deals with dates, airlines and prices. Updated daily.">',
+        f'<link rel="canonical" href="{public}/flights/">',
+        '<meta name="robots" content="index,follow">',
+        DRIVE + '</head>',
+        '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fff">',
+        '<div style="max-width:860px;margin:0 auto;padding:32px 20px 60px">',
+        f'<p style="margin:0 0 18px"><a href="{public}/" style="color:#2563eb;text-decoration:none">← All channels</a> · <a href="{public}/travel/" style="color:#2563eb;text-decoration:none">Travel guides</a> · <a href="{public}/tours/" style="color:#2563eb;text-decoration:none">Package tours</a></p>',
+        '<p style="color:#6b7280;font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px">Flight deals</p>',
+        '<h1 style="font-size:32px;margin:0 0 10px">Cheap flights from Almaty &amp; Minsk</h1>',
+        '<p style="color:#6b7280;margin:0 0 24px">Live round-trip deals for local departures: Almaty (Kazakhstan) and Minsk (Belarus). Prices in RUB, updated every morning.</p>',
+        cards_html,
+        f'<p style="font-size:14px;color:#374151;margin-top:20px">Also: <a href="{public}/tours/" style="color:#2563eb;text-decoration:none">package tours from Minsk &amp; Astana</a> · <a href="{public}/travel/travel-esim.html" style="color:#2563eb;text-decoration:none">travel eSIM</a> · <a href="{public}/travel/airport-transfer-guide.html" style="color:#2563eb;text-decoration:none">airport transfers</a></p>',
+        '<p style="color:#6b7280;font-size:13px;margin-top:8px">Ad · affiliate links. Prices change fast; the price is fixed at booking.</p>',
+        f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · <a href="{public}/privacy.html" style="color:#6b7280">Privacy</a> · <a href="{public}/terms.html" style="color:#6b7280">Terms</a></p>',
+        '</div></body></html>',
+    ])
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--origin", default="MOW")
+    parser.add_argument("--origin", default="ALA")
     parser.add_argument("--currency", default="rub")
     parser.add_argument("--top", type=int, default=12)
     parser.add_argument("--page", default="")
@@ -355,6 +398,7 @@ def main(argv=None) -> int:
     except Exception as error:  # noqa: BLE001
         print("link conversion skipped:", error)
 
+    items = [it for it in items if str(it.get("destination") or "").upper() not in RU_DEST]
     rows = build_rows(items, partner_links)
     updated = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
 
@@ -368,6 +412,9 @@ def main(argv=None) -> int:
     page_path.parent.mkdir(parents=True, exist_ok=True)
     fx = load_fx_rates(args.origin.upper())
     page_path.write_text(render_page(rows, args.origin.upper(), updated, drops, fx=fx), encoding="utf-8")
+    hub_path = ROOT / "docs" / "flights" / "index.html"
+    if page_path.resolve() != hub_path.resolve():
+        hub_path.write_text(render_hub(PUB), encoding="utf-8")
     print("page:", page_path, "| drops:", len(drops))
     if drops:
         for drop in drops[:5]:

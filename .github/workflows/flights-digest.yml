@@ -27,7 +27,6 @@ jobs:
           python-version: "3.12"
       - name: Build flights pages
         run: |
-          python scripts/flights_digest.py --origin MOW --top 12 --notify
           python scripts/flights_digest.py --origin ALA --top 12 --notify
           python scripts/flights_digest.py --origin MSQ --top 12 --notify
       - name: Commit page
