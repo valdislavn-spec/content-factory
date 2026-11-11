@@ -1,0 +1,78 @@
+{
+  "platform": [
+    {
+      "id": "telegram",
+      "type": "telegram",
+      "enable": true,
+      "telegram_token": "__TELEGRAM_BOT_TOKEN__",
+      "start_message": "Привет! Я AI-ассистент контент-фабрики. Задай вопрос или пришли ссылку/текст.",
+      "telegram_api_base_url": "https://api.telegram.org/bot",
+      "telegram_file_base_url": "https://api.telegram.org/file/bot",
+      "telegram_command_register": true,
+      "telegram_command_auto_refresh": true,
+      "telegram_command_register_interval": 300,
+      "telegram_polling_restart_delay": 5.0
+    }
+  ],
+  "provider_sources": [
+    {
+      "id": "groq",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "api_base": "https://api.groq.com/openai/v1",
+      "key": ["__GROQ_API_KEY__"],
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {}
+    },
+    {
+      "id": "openrouter",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "api_base": "https://openrouter.ai/api/v1",
+      "key": ["__OPENROUTER_API_KEY__"],
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {}
+    },
+    {
+      "id": "deepseek",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "api_base": "https://api.deepseek.com/v1",
+      "key": ["__DEEPSEEK_API_KEY__"],
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {}
+    }
+  ],
+  "provider": [
+    {
+      "id": "groq-llama",
+      "provider_source_id": "groq",
+      "model": "llama-3.3-70b-versatile",
+      "enable": true
+    },
+    {
+      "id": "openrouter-free",
+      "provider_source_id": "openrouter",
+      "model": "meta-llama/llama-3.3-70b-instruct:free",
+      "enable": true
+    },
+    {
+      "id": "deepseek-chat",
+      "provider_source_id": "deepseek",
+      "model": "deepseek-chat",
+      "enable": true
+    }
+  ],
+  "provider_settings": {
+    "enable": true,
+    "provider_pool": ["*"],
+    "streaming_response": false,
+    "datetime_system_prompt": true,
+    "persona_pool": ["*"]
+  },
+  "dashboard": {"enable": false},
+  "timezone": "UTC"
+}
