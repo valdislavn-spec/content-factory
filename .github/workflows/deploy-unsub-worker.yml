@@ -1,0 +1,29 @@
+name: deploy-unsub-worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      UNSUB_SECRET: ${{ secrets.UNSUB_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Deploy unsubscribe worker
+        run: |
+          npx --yes wrangler@3 deploy --name cf-unsubscribe --compatibility-date 2024-11-01
+          printf '%%s' "$UNSUB_SECRET" | npx --yes wrangler@3 secret put UNSUB_SECRET --name cf-unsubscribe
+          printf '%%s' "$BREVO_API_KEY" | npx --yes wrangler@3 secret put BREVO_API_KEY --name cf-unsubscribe
+      - name: Print URL
+        run: echo "Worker deployed: https://cf-unsubscribe.valdislav-n.workers.dev"
