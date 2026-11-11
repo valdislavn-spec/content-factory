@@ -109,5 +109,38 @@
     "content-factory"
   ],
   "kb_fusion_top_k": 30,
-  "kb_final_top_k": 8
+  "kb_final_top_k": 8,
+  "agent_runner": {
+    "runner_type": "local",
+    "config": {
+      "model": {
+        "provider_id": "groq-oss",
+        "fallback_provider_ids": [
+          "openrouter-free",
+          "deepseek-flash"
+        ],
+        "request_max_retries": 5
+      },
+      "persona": {
+        "persona_id": "default",
+        "safety_mode": true,
+        "safety_mode_strategy": "system_prompt"
+      },
+      "compression": {
+        "max_turns": -1,
+        "trim_turns": 1,
+        "overflow_strategy": "llm_compress",
+        "instruction": "",
+        "keep_recent_ratio": 0.15,
+        "provider_id": "",
+        "fallback_max_tokens": 128000
+      },
+      "misc": {
+        "max_steps": 128,
+        "tool_schema_mode": "full",
+        "tool_call_timeout": 120,
+        "sanitize_context_by_modalities": false
+      }
+    }
+  }
 }
