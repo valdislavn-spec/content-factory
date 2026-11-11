@@ -25,6 +25,8 @@ PLACEHOLDERS = {
     "__GROQ_API_KEY__": "GROQ_API_KEY",
     "__OPENROUTER_API_KEY__": "OPENROUTER_API_KEY",
     "__DEEPSEEK_API_KEY__": "DEEPSEEK_API_KEY",
+    "__CLOUDFLARE_ACCOUNT_ID__": "CLOUDFLARE_ACCOUNT_ID",
+    "__CLOUDFLARE_API_TOKEN__": "CLOUDFLARE_API_TOKEN",
 }
 
 
@@ -56,7 +58,10 @@ def main() -> int:
     if not token:
         raise SystemExit("missing secret: TELEGRAM_BOT_TOKEN")
 
-    secrets = {key: os.environ.get(key, "").strip() for key in ("GROQ_API_KEY", "OPENROUTER_API_KEY", "DEEPSEEK_API_KEY")}
+    secrets = {
+        key: os.environ.get(key, "").strip()
+        for key in ("GROQ_API_KEY", "OPENROUTER_API_KEY", "DEEPSEEK_API_KEY", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN")
+    }
     text = TEMPLATE.read_text(encoding="utf-8")
     values = {"TELEGRAM_BOT_TOKEN": token, **secrets}
     for placeholder, env_key in PLACEHOLDERS.items():
@@ -71,8 +76,12 @@ def main() -> int:
     config["provider_sources"] = [
         source for source in config.get("provider_sources", []) if source.get("id") in available
     ]
+    cf_ready = bool(secrets.get("CLOUDFLARE_ACCOUNT_ID")) and bool(secrets.get("CLOUDFLARE_API_TOKEN"))
     config["provider"] = [
-        provider for provider in config.get("provider", []) if provider.get("provider_source_id") in available
+        provider
+        for provider in config.get("provider", [])
+        if provider.get("provider_source_id") in available
+        or (provider.get("provider_type") == "embedding" and cf_ready)
     ]
     if not config["provider_sources"]:
         raise SystemExit("missing secret: нужен хотя бы один из GROQ_API_KEY / OPENROUTER_API_KEY / DEEPSEEK_API_KEY")
