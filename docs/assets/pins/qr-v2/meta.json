@@ -1,44 +1,44 @@
 [
  {
   "slug": "bali-budget-qr",
-  "file": "docs/assets/pins/qr-v2/bali-budget-qr.png",
-  "url": "https://is.gd/BaliTrip",
-  "alias": "is.gd/BaliTrip"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/bali-budget-qr.png",
+  "url": "https://aviasales.tpk.ro/2ZW95Xpf",
+  "program": "aviasales"
  },
  {
   "slug": "dubai-weekend-qr",
-  "file": "docs/assets/pins/qr-v2/dubai-weekend-qr.png",
-  "url": "https://is.gd/DubaiTrip",
-  "alias": "is.gd/DubaiTrip"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/dubai-weekend-qr.png",
+  "url": "https://aviasales.tpk.ro/2ZW95Xpf",
+  "program": "aviasales"
  },
  {
   "slug": "winter-sun-qr",
-  "file": "docs/assets/pins/qr-v2/winter-sun-qr.png",
-  "url": "https://is.gd/Flights",
-  "alias": "is.gd/Flights"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/winter-sun-qr.png",
+  "url": "https://aviasales.tpk.ro/2ZW95Xpf",
+  "program": "aviasales"
  },
  {
   "slug": "europe-under-300-qr",
-  "file": "docs/assets/pins/qr-v2/europe-under-300-qr.png",
-  "url": "https://is.gd/EuropeTrip",
-  "alias": "is.gd/EuropeTrip"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/europe-under-300-qr.png",
+  "url": "https://aviasales.tpk.ro/2ZW95Xpf",
+  "program": "aviasales"
  },
  {
   "slug": "travel-esim-qr",
-  "file": "docs/assets/pins/qr-v2/travel-esim-qr.png",
-  "url": "https://is.gd/ESimDeal",
-  "alias": "is.gd/ESimDeal"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/travel-esim-qr.png",
+  "url": "https://yesim.tpk.ro/aU7AT4LC",
+  "program": "yesim"
  },
  {
   "slug": "car-rental-qr",
-  "file": "docs/assets/pins/qr-v2/car-rental-qr.png",
-  "url": "https://is.gd/CarRental",
-  "alias": "is.gd/CarRental"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/car-rental-qr.png",
+  "url": "https://localrent.tpk.ro/vGHu8Vuj",
+  "program": "localrent"
  },
  {
   "slug": "flight-compensation-qr",
-  "file": "docs/assets/pins/qr-v2/flight-compensation-qr.png",
-  "url": "https://is.gd/Compensair",
-  "alias": "is.gd/Compensair"
+  "file": "/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/docs/assets/pins/qr-v2/flight-compensation-qr.png",
+  "url": "https://compensair.tpk.ro/yhsBLUP1",
+  "program": "compensair"
  }
 ]

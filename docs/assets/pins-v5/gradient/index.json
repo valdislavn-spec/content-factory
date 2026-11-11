@@ -29,7 +29,8 @@
         "media_source": {
           "source_type": "image_url",
           "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/gradient/01-europe-for-under-300.png"
-        }
+        },
+        "link": "https://valdislavn-spec.github.io/content-factory/"
       },
       "metrics": {
         "variant": "gradient",
@@ -232,7 +233,8 @@
         "media_source": {
           "source_type": "image_url",
           "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/gradient/02-bali-on-a-budget.png"
-        }
+        },
+        "link": "https://valdislavn-spec.github.io/content-factory/"
       },
       "metrics": {
         "variant": "gradient",

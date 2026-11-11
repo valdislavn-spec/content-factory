@@ -21,6 +21,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from content_factory.integrations.partner_links import (
+    check_links_live,
+    load_partner_links,
+    resolve_program_link,
+    validate_link,
+)
 from content_factory.brand.design import (  # noqa: E402
     DISCLOSURE_AFFILIATE,
     PIN_SIZE,
@@ -32,8 +38,8 @@ from content_factory.brand.design import (  # noqa: E402
     render_pin,
 )
 
-#: Photo pin definitions.  ``url`` is the landing/short link encoded in the QR
-#: code and used as the pin destination.
+#: Photo pin definitions.  ``program`` names an affiliate program from
+#: ``config/affiliate_links.yaml``; its partner URL is the pin destination and QR target.
 PINS = [
     {
         "slug": "bali-budget-qr",
@@ -43,7 +49,7 @@ PINS = [
         "headline": "BALI ON\nA BUDGET",
         "promise": "7 days of rice terraces, surf and $3 meals",
         "cta": "Find flights",
-        "url": "https://is.gd/BaliTrip",
+        "program": "aviasales",
         "accent": "#80DCAA",
         "title": "Bali on a budget: 7 days of rice terraces and $3 meals",
         "description": (
@@ -59,7 +65,7 @@ PINS = [
         "headline": "DUBAI IN\n3 DAYS",
         "promise": "Desert dunes, skyline and duty-free \u2014 one carry-on",
         "cta": "Find flights",
-        "url": "https://is.gd/DubaiTrip",
+        "program": "aviasales",
         "accent": "#FFC45C",
         "title": "Dubai in 3 days: desert, skyline and a carry-on weekend",
         "description": (
@@ -75,7 +81,7 @@ PINS = [
         "headline": "3 WINTER\nESCAPES",
         "promise": "Lisbon 15\u00b0C \u00b7 Dubai 25\u00b0C \u00b7 Bali 30\u00b0C",
         "cta": "Find flights",
-        "url": "https://is.gd/Flights",
+        "program": "aviasales",
         "accent": "#78C4FF",
         "title": "3 winter sun escapes: Lisbon, Dubai and Bali",
         "description": (
@@ -91,7 +97,7 @@ PINS = [
         "headline": "EUROPE\nUNDER $300",
         "promise": "A 3-night city break: cheapest months and booking windows",
         "cta": "Find flights",
-        "url": "https://is.gd/EuropeTrip",
+        "program": "aviasales",
         "accent": "#FF8CA0",
         "title": "Europe under $300: cheap city breaks by month",
         "description": (
@@ -107,7 +113,7 @@ PINS = [
         "headline": "TRAVEL eSIM\nTHAT WORKS",
         "promise": "Install before you fly \u2014 data in 200+ countries",
         "cta": "Get eSIM",
-        "url": "https://is.gd/ESimDeal",
+        "program": "yesim",
         "accent": "#A896FF",
         "title": "Travel eSIM that works: install before you fly",
         "description": (
@@ -123,7 +129,7 @@ PINS = [
         "headline": "CAR RENTAL\nNO SURPRISES",
         "promise": "Local renters, clear fuel policy, excess cover",
         "cta": "Rent a car",
-        "url": "https://is.gd/CarRental",
+        "program": "localrent",
         "accent": "#FFA06E",
         "title": "Car rental without surprises: fuel policy and excess cover",
         "description": (
@@ -139,7 +145,7 @@ PINS = [
         "headline": "FLIGHT\nDELAYED?",
         "promise": "You may be owed up to \u20ac600 \u2014 check in 2 minutes",
         "cta": "Check my flight",
-        "url": "https://is.gd/Compensair",
+        "program": "compensair",
         "accent": "#78F0DC",
         "title": "Flight delayed? Check if you are owed up to 600 EUR",
         "description": (
@@ -156,6 +162,11 @@ def main(argv=None) -> int:
     parser.add_argument("--out", default=str(ROOT / "docs" / "assets" / "pins" / "photo"))
     parser.add_argument("--limit", type=int, default=0, help="max pins (0 = all)")
     parser.add_argument("--no-qr", action="store_true", help="omit QR codes from the footer")
+    parser.add_argument(
+        "--check-links",
+        action="store_true",
+        help="live-check every resolved partner link (HTTP 2xx/3xx) before rendering",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -175,6 +186,25 @@ def main(argv=None) -> int:
     pins = PINS[: args.limit] if args.limit else PINS
     out.mkdir(parents=True, exist_ok=True)
     public_base = "https://valdislavn-spec.github.io/content-factory"
+    partner_links = load_partner_links()
+    resolved_links = {}
+    for item in pins:
+        link = resolve_program_link(item.get("program"), partner_links, fallback=public_base + "/")
+        problems = validate_link(link)
+        if problems:
+            print("pin %s: неактивная ссылка: %s" % (item["slug"], "; ".join(problems)), file=sys.stderr)
+            return 2
+        resolved_links[item["slug"]] = link
+    if args.check_links:
+        print("live-check partner links:")
+        bad = []
+        for check in check_links_live(resolved_links.values()):
+            print("  %-4s %s -> %s" % (check.status or "ERR", check.url, check.reason or check.final_url))
+            if not check.ok:
+                bad.append(check.url)
+        if bad:
+            print("неактивные ссылки: %s" % ", ".join(bad), file=sys.stderr)
+            return 2
     meta = []
     for pin in pins:
         photo_path = photos / ("%s.jpg" % pin["photo"])
@@ -187,7 +217,7 @@ def main(argv=None) -> int:
             headline=pin["headline"],
             subtitle=pin["promise"],
             cta=pin["cta"],
-            link=pin["url"],
+            link=resolved_links[pin["slug"]],
             tag=pin["tag"],
             disclosure=DISCLOSURE_AFFILIATE,
             attribution=format_attribution(credit),
@@ -201,7 +231,7 @@ def main(argv=None) -> int:
                 size=PIN_SIZE,
                 variants=("photo",),
                 photo_path=photo_path,
-                qr_data="" if args.no_qr else pin["url"],
+                qr_data="" if args.no_qr else resolved_links[pin["slug"]],
                 font_dir=ROOT / "assets" / "fonts",
             )["photo"]
         except Exception as error:  # noqa: BLE001
@@ -225,6 +255,7 @@ def main(argv=None) -> int:
         keywords = keywords_for(pin["niche"], pin["title"], pin["description"], pin["promise"])
         entry = {
             "image_url": image_url,
+            "link": resolved_links[pin["slug"]],
             "file": str(image_path),
             "slug": pin["slug"],
             "niche": pin["niche"],

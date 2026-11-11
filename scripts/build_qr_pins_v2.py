@@ -6,18 +6,28 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import segno
 
+import sys
+
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from content_factory.integrations.partner_links import (
+    load_partner_links,
+    resolve_program_link,
+    validate_link,
+)
+
 W, H = 1000, 1500
 CREAM, INK, MUTED = (247, 242, 233), (20, 20, 20), (78, 78, 74)
 
 PINS = [
- {"slug":"bali-budget-qr","tag":"BUDGET","headline":"BALI ON\nA BUDGET","promise":"7 days of rice terraces, surf and $3 meals","cta":"Find flights","alias":"is.gd/BaliTrip","url":"https://is.gd/BaliTrip","accent":(34,160,120),"scene":"island"},
- {"slug":"dubai-weekend-qr","tag":"WEEKEND","headline":"DUBAI IN\n3 DAYS","promise":"Desert dunes, skyline and duty-free — one carry-on","cta":"Find flights","alias":"is.gd/DubaiTrip","url":"https://is.gd/DubaiTrip","accent":(214,138,42),"scene":"desert"},
- {"slug":"winter-sun-qr","tag":"WINTER SUN","headline":"3 WINTER\nESCAPES","promise":"Lisbon 15°C · Dubai 25°C · Bali 30°C","cta":"Find flights","alias":"is.gd/Flights","url":"https://is.gd/Flights","accent":(42,116,196),"scene":"coast"},
- {"slug":"europe-under-300-qr","tag":"BUDGET","headline":"EUROPE\nUNDER $300","promise":"A 3-night city break: cheapest months and booking windows","cta":"Find flights","alias":"is.gd/EuropeTrip","url":"https://is.gd/EuropeTrip","accent":(176,62,92),"scene":"city"},
- {"slug":"travel-esim-qr","tag":"TRAVEL ESSENTIAL","headline":"TRAVEL eSIM\nTHAT WORKS","promise":"Install before you fly — data in 200+ countries","cta":"Get eSIM","alias":"is.gd/ESimDeal","url":"https://is.gd/ESimDeal","accent":(110,88,230),"scene":"city"},
- {"slug":"car-rental-qr","tag":"TRAVEL ESSENTIAL","headline":"CAR RENTAL\nNO SURPRISES","promise":"Local renters, clear fuel policy, excess cover","cta":"Rent a car","alias":"is.gd/CarRental","url":"https://is.gd/CarRental","accent":(222,104,44),"scene":"road"},
- {"slug":"flight-compensation-qr","tag":"TRAVEL MONEY","headline":"FLIGHT\nDELAYED?","promise":"You may be owed up to €600 — check in 2 minutes","cta":"Check my flight","alias":"is.gd/Compensair","url":"https://is.gd/Compensair","accent":(26,152,148),"scene":"plane"},
+ {"slug":"bali-budget-qr","tag":"BUDGET","headline":"BALI ON\nA BUDGET","promise":"7 days of rice terraces, surf and $3 meals","cta":"Find flights","program":"aviasales","accent":(34,160,120),"scene":"island"},
+ {"slug":"dubai-weekend-qr","tag":"WEEKEND","headline":"DUBAI IN\n3 DAYS","promise":"Desert dunes, skyline and duty-free — one carry-on","cta":"Find flights","program":"aviasales","accent":(214,138,42),"scene":"desert"},
+ {"slug":"winter-sun-qr","tag":"WINTER SUN","headline":"3 WINTER\nESCAPES","promise":"Lisbon 15°C · Dubai 25°C · Bali 30°C","cta":"Find flights","program":"aviasales","accent":(42,116,196),"scene":"coast"},
+ {"slug":"europe-under-300-qr","tag":"BUDGET","headline":"EUROPE\nUNDER $300","promise":"A 3-night city break: cheapest months and booking windows","cta":"Find flights","program":"aviasales","accent":(176,62,92),"scene":"city"},
+ {"slug":"travel-esim-qr","tag":"TRAVEL ESSENTIAL","headline":"TRAVEL eSIM\nTHAT WORKS","promise":"Install before you fly — data in 200+ countries","cta":"Get eSIM","program":"yesim","accent":(110,88,230),"scene":"city"},
+ {"slug":"car-rental-qr","tag":"TRAVEL ESSENTIAL","headline":"CAR RENTAL\nNO SURPRISES","promise":"Local renters, clear fuel policy, excess cover","cta":"Rent a car","program":"localrent","accent":(222,104,44),"scene":"road"},
+ {"slug":"flight-compensation-qr","tag":"TRAVEL MONEY","headline":"FLIGHT\nDELAYED?","promise":"You may be owed up to €600 — check in 2 minutes","cta":"Check my flight","program":"compensair","accent":(26,152,148),"scene":"plane"},
 ]
 
 def draw_scene(draw, box, accent, scene):
@@ -102,9 +112,22 @@ def render(pin, out_dir):
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--out",default=str(ROOT/"docs"/"assets"/"pins"/"qr-v2")); args=ap.parse_args()
-    out=Path(args.out); meta=[]
+    out=Path(args.out)
+    hub = "https://valdislavn-spec.github.io/content-factory/"
+    links = load_partner_links()
+    resolved = {}
     for pin in PINS:
-        p=render(pin,out); print("pin:",p); meta.append({"slug":pin["slug"],"file":str(p),"url":pin["url"],"alias":pin["alias"]})
+        link = resolve_program_link(pin.get("program"), links, fallback=hub)
+        problems = validate_link(link)
+        if problems:
+            print("pin %s: неактивная ссылка: %s" % (pin["slug"], "; ".join(problems)), file=sys.stderr)
+            return 2
+        resolved[pin["slug"]] = link
+    meta=[]
+    for pin in PINS:
+        pin = dict(pin, url=resolved[pin["slug"]])
+        p=render(pin,out); print("pin:",p)
+        meta.append({"slug":pin["slug"],"file":str(p),"url":resolved[pin["slug"]],"program":pin.get("program","")})
     (out/"meta.json").write_text(json.dumps(meta,ensure_ascii=False,indent=1),encoding="utf-8")
     print("meta:",out/"meta.json"); return 0
 

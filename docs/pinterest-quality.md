@@ -112,7 +112,8 @@ Fonts: `assets/fonts/Inter.ttf` (sans) and `assets/fonts/PlayfairDisplay.ttf`
   the base description is trimmed first so the CTA/disclosure are never lost;
 * `alt_text` ≤ 500 chars;
 * `media_source.source_type = "image_url"` + absolute URL;
-* `link` included only for affiliate pins (absolute URL);
+* `link` **always** present: partner URL for affiliate pins, hub fallback for
+  guide pins; must be an active https URL (see 2.5);
 * `validate_pinterest_payload` returns a list of problems; invalid payloads
   raise `PinterestPayloadError`.
 
@@ -120,6 +121,48 @@ Fonts: `assets/fonts/Inter.ttf` (sans) and `assets/fonts/PlayfairDisplay.ttf`
 Hub import CSV and enforce the same limits plus board/keywords/media checks;
 `--strict` turns warnings (missing affiliate disclosure, duplicate titles/URLs,
 non-standard board names) into errors.
+
+### 2.5 Ссылки: только активные
+
+Пин без рабочей ссылки — потерянный клик. Правила:
+
+* **никаких заглушек**: `is.gd`/`v.gd`, `example.com`, `localhost` и любые
+  нерабочие сокращатели запрещены;
+* только `https://`, длина ≤ 500 символов, без пробелов;
+* партнёрские пины берут ссылку из `config/affiliate_links.yaml`
+  (`programs.<name>.partner_url`), а не хардкодят её в скрипте;
+* если партнёрской ссылки нет — используется hub (`https://valdislavn-spec.github.io/content-factory/`),
+  он тоже проверяется;
+* батч не собирается, пока ссылки не проверены: `--check-links` у
+  `build_photo_pins.py` и `build_pinterest_csv.py`;
+* независимая проверка артефактов — `scripts/check_links.py`.
+
+Маппинг v5-батча:
+
+| Пин | Программа | Ссылка |
+|---|---|---|
+| bali-budget-qr | aviasales | `https://aviasales.tpk.ro/2ZW95Xpf` |
+| dubai-weekend-qr | aviasales | `https://aviasales.tpk.ro/2ZW95Xpf` |
+| winter-sun-qr | aviasales | `https://aviasales.tpk.ro/2ZW95Xpf` |
+| europe-under-300-qr | aviasales | `https://aviasales.tpk.ro/2ZW95Xpf` |
+| travel-esim-qr | yesim | `https://yesim.tpk.ro/aU7AT4LC` |
+| car-rental-qr | localrent | `https://localrent.tpk.ro/vGHu8Vuj` |
+| flight-compensation-qr | compensair | `https://compensair.tpk.ro/yhsBLUP1` |
+| gradient/*.png | — (hub fallback) | `https://valdislavn-spec.github.io/content-factory/` |
+
+Проверка:
+
+```bash
+# офлайн: заглушки, схемы, домены
+python3 scripts/check_links.py
+
+# + живые HTTP-статусы (после публикации картинок/страниц)
+python3 scripts/check_links.py --live --json /tmp/pins-links.json
+```
+
+`check_links.py` сканирует sidecar-JSON и CSV батча (`link`, `image_url`,
+`Media URL`), печатает таблицу статусов и выходит с кодом 1, если есть
+мёртвые/заглушечные ссылки — удобно встроить в CI перед импортом.
 
 ---
 
@@ -129,18 +172,26 @@ Use the DSH python (Pillow 12) for images and install `segno` for QR codes:
 
 ```bash
 # 1) Photo pins (real Commons photos, scrim, attribution, QR, payload sidecars)
+#    --check-links live-проверяет партнёрские ссылки до рендера
 PYTHONPATH=/tmp/segno /Users/vd/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3 \
-  scripts/build_photo_pins.py --out docs/assets/pins-v5
+  scripts/build_photo_pins.py --out docs/assets/pins-v5 --check-links
 
 # 2) Gradient pins from config/pins.yaml (no AI key needed)
 PYTHONPATH=/tmp/segno /Users/vd/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3 \
   scripts/generate_pins.py --out docs/assets/pins-v5/gradient --limit 2 --no-ai
 
-# 3) Build and validate the Pinterest import CSV
-python3 scripts/build_pinterest_csv.py --pins docs/assets/pins-v5 --out docs/pinterest-import-v5.csv --strict
+# 3) QA report (metrics/gates из sidecar-ов)
+PYTHONPATH=/tmp/segno /Users/vd/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/bin/python3 \
+  scripts/build_pin_qa_report.py --pins docs/assets/pins-v5
 
-# 4) Quality gates
-PYTHONPATH=/tmp/cfdeps:. python3 -m pytest -q tests/test_brand_design.py tests/test_pins.py
+# 4) Build and validate the Pinterest import CSV (links: offline + live)
+python3 scripts/build_pinterest_csv.py --pins docs/assets/pins-v5 --out docs/pinterest-import-v5.csv --strict --check-links
+
+# 5) Independent link audit (offline; --live после публикации)
+python3 scripts/check_links.py --live
+
+# 6) Quality gates
+PYTHONPATH=/tmp/cfdeps:. python3 -m pytest -q tests/test_brand_design.py tests/test_pins.py tests/test_pin_links.py
 ```
 
 `scripts/generate_pins.py` keeps the original CLI (`--out`, `--limit`,
@@ -178,7 +229,7 @@ Every row: 2:3 RGBA→RGB PNG, no text block wider than its box, CTA + disclosur
 present, footer QR in the photo batch, valid Pinterest payload
 (`validate_pinterest_payload` returns no problems) and a non-empty board/keyword
 list.  `python3 scripts/build_pinterest_csv.py --pins docs/assets/pins-v5
---strict` writes 7 rows with **0 warnings, 0 errors**.
+--strict` writes 9 rows (7 photo + 2 gradient) with **0 warnings, 0 errors**.
 
 Sidecars look like this (`bali-budget-qr.json`):
 
@@ -192,7 +243,7 @@ Sidecars look like this (`bali-budget-qr.json`):
   "keywords": ["travel tips", "city breaks", "bali", "..."],
   "variant": "photo",
   "pin": {"board_id": "<BOARD_ID>", "title": "...", "description": "...", "alt_text": "...",
-          "link": "https://is.gd/BaliTrip", "media_source": {"source_type": "image_url", "url": "..."}},
+          "link": "https://aviasales.tpk.ro/2ZW95Xpf", "media_source": {"source_type": "image_url", "url": "..."}},
   "metrics": {"min_font_size": 24, "min_body_contrast": 6.6, "min_heading_contrast": 8.54,
               "margins": {"left": 72, "top": 72, "right": 72, "bottom": 72},
               "blocks": [{"role": "headline", "font_size": 136, "line_width": 698, "box_width": 856, ...}]}
@@ -236,6 +287,8 @@ Automated (required):
       would raise otherwise).
 - [ ] `python3 scripts/build_pinterest_csv.py --pins <dir> --out <csv> --strict`
       exits 0 with 0 errors/warnings.
+- [ ] `python3 scripts/check_links.py --live` exits 0 (all `link`/`image_url` are active).
+- [ ] Sidecar `pin.link` — https, не `is.gd`/`example.com`, совпадает с партнёрской ссылкой.
 - [ ] Every PNG in the batch is 1000×1500 and has a matching JSON sidecar with
       `metrics.violations()` empty (no overflow, min font ≥ 24, body contrast
       ≥ 4.5, heading ≥ 3.0, margins ≥ 64).

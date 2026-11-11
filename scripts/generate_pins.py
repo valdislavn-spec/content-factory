@@ -41,6 +41,7 @@ from content_factory.brand.design import (  # noqa: E402
     render_pin,
 )
 from content_factory.integrations.pins import hf_background, load_specs  # noqa: E402
+from content_factory.integrations.partner_links import validate_link  # noqa: E402
 
 
 def slugify(value: str) -> str:
@@ -103,7 +104,17 @@ def main(argv=None) -> int:
         )
         if not affiliate:
             disclosure = str(defaults.get("disclosure_guide") or DISCLOSURE_GUIDE)
-        content = replace(PinContent.from_object(spec), disclosure=disclosure, link=str(spec.link or "").strip())
+        # Активная ссылка обязательна: партнёрская из конфига, иначе — hub.
+        raw_link = str(spec.link or "").strip()
+        if raw_link:
+            problems = validate_link(raw_link)
+            if problems:
+                print("pin %d: неактивная ссылка (%s): %s" % (number, raw_link, "; ".join(problems)), file=sys.stderr)
+                return 2
+            link = raw_link
+        else:
+            link = hub_url.rstrip("/") + "/"
+        content = replace(PinContent.from_object(spec), disclosure=disclosure, link=link)
         image_bytes = None
         if not args.no_ai and hub_token and spec.image_prompt:
             image_bytes = hf_background(spec.image_prompt, token=hub_token)
@@ -134,7 +145,7 @@ def main(argv=None) -> int:
             image_url=image_url,
             board_id=board_id or "<BOARD_ID>",
             disclosure=disclosure,
-            include_link=affiliate,
+            include_link=True,
         )
         board = board_for_niche(spec.niche)
         keywords = keywords_for(spec.niche, payload["title"], payload["description"])

@@ -12,6 +12,8 @@ Validation (``content_factory/brand/design.py``):
 * Media URL absolute http(s) image URL;
 * Pinterest board present (warns for non-standard board names);
 * Keywords present, no empty values, each <= 64 chars, total <= 320 chars;
+* Link must be a live https URL (no is.gd/example.com placeholders; see
+  ``content_factory/integrations/partner_links.py``);
 * affiliate pins must have an http(s) Link and should mention the disclosure;
 * duplicate titles / media URLs are reported.
 
@@ -36,6 +38,10 @@ from content_factory.brand.design import (  # noqa: E402
     build_csv_row,
     validate_csv_rows,
 )
+from content_factory.integrations.partner_links import (  # noqa: E402
+    check_links_live,
+    validate_link,
+)
 
 HUB = "https://valdislavn-spec.github.io/content-factory/"
 SKIP_NAMES = {"index.json", "meta.json"}
@@ -44,7 +50,7 @@ SKIP_NAMES = {"index.json", "meta.json"}
 def load_sidecars(pins_dir: Path) -> list:
     """Read pin sidecars (dicts with a ``pin`` payload); report skipped files."""
     metas = []
-    for path in sorted(pins_dir.glob("*.json")):
+    for path in sorted(pins_dir.rglob("*.json")):
         if path.name in SKIP_NAMES:
             continue
         try:
@@ -68,6 +74,11 @@ def main(argv=None) -> int:
     parser.add_argument("--out", default=str(ROOT / "docs" / "pinterest-import.csv"))
     parser.add_argument("--link", default=HUB, help="fallback Link for pins without one")
     parser.add_argument("--strict", action="store_true", help="treat warnings as errors")
+    parser.add_argument(
+        "--check-links",
+        action="store_true",
+        help="live-check every Link (HTTP 2xx/3xx) before writing the CSV",
+    )
     args = parser.parse_args(argv)
 
     metas = load_sidecars(Path(args.pins))
@@ -76,6 +87,18 @@ def main(argv=None) -> int:
         return 1
     rows = [build_csv_row(meta, default_link=args.link) for meta in metas]
     errors, warnings = validate_csv_rows(rows, metas=metas, strict=args.strict)
+    # Ссылки пинов: никаких заглушек и мёртвых доменов.
+    for row in rows:
+        problems = validate_link(row.get("Link", ""))
+        if problems:
+            errors.append("%s: неактивная Link (%s)" % (row.get("Title", "?")[:40], "; ".join(problems)))
+    if args.check_links:
+        links = [row.get("Link", "") for row in rows]
+        print("live-check links:")
+        for check in check_links_live(links):
+            print("  %-4s %s -> %s" % (check.status or "ERR", check.url, check.reason or check.final_url))
+            if not check.ok:
+                errors.append("мёртвая ссылка: %s (%s)" % (check.url, check.reason))
     for warning in warnings:
         print("WARNING:", warning)
     for error in errors:

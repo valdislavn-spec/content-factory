@@ -34,7 +34,7 @@ class ChannelCardsTest(unittest.TestCase):
         x_caption = build_caption(card, "x")
         self.assertLessEqual(len(x_caption), 270)
         self.assertIn("t.me/HOOPY0007", x_caption)
-        self.assertIn("is.gd/Flights", x_caption)
+        self.assertIn("Flights →", x_caption)
 
         bluesky = build_caption(card, "bluesky")
         self.assertLessEqual(len(bluesky), 290)

@@ -35,3 +35,12 @@ programs:
   wegotrip:
     brand_url: https://wegotrip.com/
     partner_url: https://wegotrip.tpk.ro/JpsOLmuW
+  localrent:
+    brand_url: https://localrent.com/
+    partner_url: https://localrent.tpk.ro/vGHu8Vuj
+  economybookings:
+    brand_url: https://www.economybookings.com/
+    partner_url: https://economybookings.tpk.ro/Kz3xifq2
+  qeeq:
+    brand_url: https://www.qeeq.com/
+    partner_url: https://qeeq.tpk.ro/GyMAxFey

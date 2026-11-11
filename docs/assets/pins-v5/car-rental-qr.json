@@ -1,5 +1,6 @@
 {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/car-rental-qr.png",
+  "link": "https://localrent.tpk.ro/vGHu8Vuj",
   "file": "docs/assets/pins-v5/car-rental-qr.png",
   "slug": "car-rental-qr",
   "niche": "travel",
@@ -26,7 +27,7 @@
       "source_type": "image_url",
       "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/car-rental-qr.png"
     },
-    "link": "https://is.gd/CarRental"
+    "link": "https://localrent.tpk.ro/vGHu8Vuj"
   },
   "metrics": {
     "variant": "photo",

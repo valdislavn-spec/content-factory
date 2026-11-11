@@ -1,6 +1,7 @@
 [
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/bali-budget-qr.png",
+  "link": "https://aviasales.tpk.ro/2ZW95Xpf",
   "file": "docs/assets/pins-v5/bali-budget-qr.png",
   "slug": "bali-budget-qr",
   "niche": "travel",
@@ -27,7 +28,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/bali-budget-qr.png"
    },
-   "link": "https://is.gd/BaliTrip"
+   "link": "https://aviasales.tpk.ro/2ZW95Xpf"
   },
   "metrics": {
    "variant": "photo",
@@ -176,6 +177,7 @@
  },
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/dubai-weekend-qr.png",
+  "link": "https://aviasales.tpk.ro/2ZW95Xpf",
   "file": "docs/assets/pins-v5/dubai-weekend-qr.png",
   "slug": "dubai-weekend-qr",
   "niche": "travel",
@@ -202,7 +204,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/dubai-weekend-qr.png"
    },
-   "link": "https://is.gd/DubaiTrip"
+   "link": "https://aviasales.tpk.ro/2ZW95Xpf"
   },
   "metrics": {
    "variant": "photo",
@@ -351,6 +353,7 @@
  },
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/winter-sun-qr.png",
+  "link": "https://aviasales.tpk.ro/2ZW95Xpf",
   "file": "docs/assets/pins-v5/winter-sun-qr.png",
   "slug": "winter-sun-qr",
   "niche": "travel",
@@ -377,7 +380,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/winter-sun-qr.png"
    },
-   "link": "https://is.gd/Flights"
+   "link": "https://aviasales.tpk.ro/2ZW95Xpf"
   },
   "metrics": {
    "variant": "photo",
@@ -526,6 +529,7 @@
  },
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/europe-under-300-qr.png",
+  "link": "https://aviasales.tpk.ro/2ZW95Xpf",
   "file": "docs/assets/pins-v5/europe-under-300-qr.png",
   "slug": "europe-under-300-qr",
   "niche": "travel",
@@ -552,7 +556,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/europe-under-300-qr.png"
    },
-   "link": "https://is.gd/EuropeTrip"
+   "link": "https://aviasales.tpk.ro/2ZW95Xpf"
   },
   "metrics": {
    "variant": "photo",
@@ -701,6 +705,7 @@
  },
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/travel-esim-qr.png",
+  "link": "https://yesim.tpk.ro/aU7AT4LC",
   "file": "docs/assets/pins-v5/travel-esim-qr.png",
   "slug": "travel-esim-qr",
   "niche": "travel",
@@ -727,7 +732,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/travel-esim-qr.png"
    },
-   "link": "https://is.gd/ESimDeal"
+   "link": "https://yesim.tpk.ro/aU7AT4LC"
   },
   "metrics": {
    "variant": "photo",
@@ -876,6 +881,7 @@
  },
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/car-rental-qr.png",
+  "link": "https://localrent.tpk.ro/vGHu8Vuj",
   "file": "docs/assets/pins-v5/car-rental-qr.png",
   "slug": "car-rental-qr",
   "niche": "travel",
@@ -902,7 +908,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/car-rental-qr.png"
    },
-   "link": "https://is.gd/CarRental"
+   "link": "https://localrent.tpk.ro/vGHu8Vuj"
   },
   "metrics": {
    "variant": "photo",
@@ -1051,6 +1057,7 @@
  },
  {
   "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/flight-compensation-qr.png",
+  "link": "https://compensair.tpk.ro/yhsBLUP1",
   "file": "docs/assets/pins-v5/flight-compensation-qr.png",
   "slug": "flight-compensation-qr",
   "niche": "travel",
@@ -1077,7 +1084,7 @@
     "source_type": "image_url",
     "url": "https://valdislavn-spec.github.io/content-factory/assets/pins-v5/flight-compensation-qr.png"
    },
-   "link": "https://is.gd/Compensair"
+   "link": "https://compensair.tpk.ro/yhsBLUP1"
   },
   "metrics": {
    "variant": "photo",

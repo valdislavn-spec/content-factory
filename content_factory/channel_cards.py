@@ -22,33 +22,36 @@ from typing import Any, Dict, Iterable, List, Optional
 
 CARD_WIDTH, CARD_HEIGHT = 1000, 1500
 
+#: Travel partner offers shown in captions.  ``url`` must be a live tracked /
+#: partner link; ``display`` is a short truthful label (no fake short-domain
+#: aliases — see ``docs/pinterest-quality.md`` and scripts/check_links.py).
 TRAVEL_OFFERS: List[Dict[str, str]] = [
     {
         "name": "Aviasales",
         "label": "Compare flight deals",
         "label_es": "Comparar vuelos baratos",
-        "display": "is.gd/Flights",
+        "display": "Flights \u2192",
         "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales",
     },
     {
         "name": "Airalo",
         "label": "Get a travel eSIM",
         "label_es": "eSIM para viajar",
-        "display": "is.gd/TravelESIM",
+        "display": "eSIM \u2192",
         "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-airalo",
     },
     {
         "name": "Kiwitaxi",
         "label": "Book an airport transfer",
         "label_es": "Traslado al aeropuerto",
-        "display": "is.gd/AirportTaxi",
+        "display": "Transfer \u2192",
         "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-kiwitaxi",
     },
     {
         "name": "Yesim",
         "label": "Mobile data for the trip",
         "label_es": "Datos móviles para el viaje",
-        "display": "is.gd/TravelData",
+        "display": "Travel data \u2192",
         "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-yesim",
     },
 ]

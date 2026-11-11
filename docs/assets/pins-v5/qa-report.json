@@ -47,7 +47,7 @@
       "title": "Bali on a budget: 7 days of rice terraces and $3 meals",
       "title_len": 54,
       "description_len": 149,
-      "cta": "https://is.gd/BaliTrip",
+      "cta": "https://aviasales.tpk.ro/2ZW95Xpf",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -60,7 +60,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -85,7 +86,7 @@
       "title": "Car rental without surprises: fuel policy and excess cover",
       "title_len": 58,
       "description_len": 153,
-      "cta": "https://is.gd/CarRental",
+      "cta": "https://localrent.tpk.ro/vGHu8Vuj",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -98,7 +99,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -123,7 +125,7 @@
       "title": "Dubai in 3 days: desert, skyline and a carry-on weekend",
       "title_len": 55,
       "description_len": 143,
-      "cta": "https://is.gd/DubaiTrip",
+      "cta": "https://aviasales.tpk.ro/2ZW95Xpf",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -136,7 +138,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -161,7 +164,7 @@
       "title": "Europe under $300: cheap city breaks by month",
       "title_len": 45,
       "description_len": 148,
-      "cta": "https://is.gd/EuropeTrip",
+      "cta": "https://aviasales.tpk.ro/2ZW95Xpf",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -174,7 +177,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -199,7 +203,7 @@
       "title": "Flight delayed? Check if you are owed up to 600 EUR",
       "title_len": 51,
       "description_len": 163,
-      "cta": "https://is.gd/Compensair",
+      "cta": "https://compensair.tpk.ro/yhsBLUP1",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -212,7 +216,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -237,7 +242,7 @@
       "title": "Cheap Europe city breaks under $300",
       "title_len": 35,
       "description_len": 148,
-      "cta": "",
+      "cta": "https://valdislavn-spec.github.io/content-factory/",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -250,7 +255,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -275,7 +281,7 @@
       "title": "Bali budget guide: 7 days on a budget",
       "title_len": 37,
       "description_len": 125,
-      "cta": "",
+      "cta": "https://valdislavn-spec.github.io/content-factory/",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -288,7 +294,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -313,7 +320,7 @@
       "title": "Travel eSIM that works: install before you fly",
       "title_len": 46,
       "description_len": 152,
-      "cta": "https://is.gd/ESimDeal",
+      "cta": "https://yesim.tpk.ro/aU7AT4LC",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -326,7 +333,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     },
@@ -351,7 +359,7 @@
       "title": "3 winter sun escapes: Lisbon, Dubai and Bali",
       "title_len": 44,
       "description_len": 147,
-      "cta": "https://is.gd/Flights",
+      "cta": "https://aviasales.tpk.ro/2ZW95Xpf",
       "gates": {
         "png_1000x1500_rgb": true,
         "min_font_ge_24": true,
@@ -364,7 +372,8 @@
         "title_le_100": true,
         "description_le_500": true,
         "alt_text_le_500": true,
-        "payload_valid": true
+        "payload_valid": true,
+        "link_is_https": true
       },
       "pass": true
     }
