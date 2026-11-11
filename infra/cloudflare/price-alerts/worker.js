@@ -142,14 +142,23 @@ async function check(env, opts = {}) {
     }
   }
 
+  // одна точка истории на символ за прогон (а не на каждое правило)
+  const histMap = {};
+  for (const symbol of Object.keys(tickers)) {
+    const ticker = tickers[symbol];
+    if (!ticker || ticker.error || !Number.isFinite(ticker.price)) continue;
+    const hist = (history[symbol] || []).filter((p) => now - p.t <= 180 * 60_000 && p.t !== now);
+    hist.push({ p: ticker.price, t: now });
+    histMap[symbol] = hist.slice(-200);
+  }
+
   const events = [];
   for (const rule of RULES) {
     const ticker = tickers[rule.symbol];
     if (!ticker || ticker.error || !Number.isFinite(ticker.price)) continue;
     const price = ticker.price;
     const prev = prices[rule.symbol];
-    const hist = (history[rule.symbol] || []).filter((p) => now - p.t <= 180 * 60_000);
-    hist.push({ p: price, t: now });
+    const hist = histMap[rule.symbol] || [];
 
     if (prev && Number.isFinite(prev.p)) {
       if (rule.above != null && prev.p < rule.above && price >= rule.above) {
@@ -199,6 +208,7 @@ async function check(env, opts = {}) {
 
 export default {
   async scheduled(event, env, ctx) {
+    ctx.waitUntil(env.STATE.put("last_trigger", JSON.stringify({ at: new Date().toISOString(), cron: event.cron })));
     ctx.waitUntil(
       check(env, { dry: false }).catch(async (err) => {
         await env.STATE.put("last_error", JSON.stringify({ at: new Date().toISOString(), error: String(err).slice(0, 300) }));
@@ -218,7 +228,13 @@ export default {
       } catch (err) {
         bot = String(err).slice(0, 80);
       }
-      return json({ ok: true, bot, last_run: await env.STATE.get("last_run", "json"), last_error: await env.STATE.get("last_error", "json") });
+      return json({
+        ok: true,
+        bot,
+        last_trigger: await env.STATE.get("last_trigger", "json"),
+        last_run: await env.STATE.get("last_run", "json"),
+        last_error: await env.STATE.get("last_error", "json"),
+      });
     }
     if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: "forbidden" }, 403);
     if (url.pathname === "/selftest") {
