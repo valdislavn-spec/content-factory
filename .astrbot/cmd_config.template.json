@@ -1,0 +1,92 @@
+{
+  "platform": [
+    {
+      "id": "telegram",
+      "type": "telegram",
+      "enable": true,
+      "telegram_token": "__TELEGRAM_BOT_TOKEN__",
+      "start_message": "Привет! Я AI-ассистент контент-фабрики. Задай вопрос или пришли ссылку/текст.",
+      "telegram_api_base_url": "https://api.telegram.org/bot",
+      "telegram_file_base_url": "https://api.telegram.org/file/bot",
+      "telegram_command_register": true,
+      "telegram_command_auto_refresh": true,
+      "telegram_command_register_interval": 300,
+      "telegram_polling_restart_delay": 5.0
+    }
+  ],
+  "provider_sources": [
+    {
+      "id": "groq",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "api_base": "https://api.groq.com/openai/v1",
+      "key": [
+        "__GROQ_API_KEY__"
+      ],
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {}
+    },
+    {
+      "id": "openrouter",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "api_base": "https://openrouter.ai/api/v1",
+      "key": [
+        "__OPENROUTER_API_KEY__"
+      ],
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {}
+    },
+    {
+      "id": "deepseek",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "api_base": "https://api.deepseek.com/v1",
+      "key": [
+        "__DEEPSEEK_API_KEY__"
+      ],
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {}
+    }
+  ],
+  "provider": [
+    {
+      "id": "groq-oss",
+      "provider_source_id": "groq",
+      "model": "openai/gpt-oss-120b",
+      "enable": true
+    },
+    {
+      "id": "openrouter-free",
+      "provider_source_id": "openrouter",
+      "model": "openrouter/free",
+      "enable": true
+    },
+    {
+      "id": "deepseek-flash",
+      "provider_source_id": "deepseek",
+      "model": "deepseek-flash",
+      "enable": true
+    }
+  ],
+  "provider_settings": {
+    "enable": true,
+    "provider_pool": [
+      "*"
+    ],
+    "streaming_response": false,
+    "datetime_system_prompt": true,
+    "persona_pool": [
+      "*"
+    ],
+    "default_provider_id": "groq-oss",
+    "prompt_prefix": "IMPORTANT: Always reply in the language of the user's last message. Default language is Russian. If the user writes in English, reply in English; if the user writes in Spanish, reply in Spanish. If the user explicitly asks to switch language (e.g. '/ru', 'по-русски', '/en', 'in English', '/es', 'en español'), switch to that language for the rest of the conversation. Never switch language without a request.\n\n{{prompt}}"
+  },
+  "dashboard": {
+    "enable": false
+  },
+  "timezone": "UTC"
+}

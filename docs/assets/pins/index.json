@@ -1,27 +1,10 @@
 {
-  "date": "2026-11-10",
+  "date": "2026-11-11",
   "hub": "https://valdislavn-spec.github.io/content-factory/",
   "pins": [
     {
-      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-nfl-picks-by-the-numbers.png",
-      "file": "docs/assets/pins/01-nfl-picks-by-the-numbers.png",
-      "niche": "sports",
-      "affiliate": false,
-      "disclosure": "Save this guide",
-      "pin": {
-        "board_id": "<BOARD_ID>",
-        "title": "NFL picks by the numbers",
-        "description": "Weekly NFL numbers: injury impact, line movement and what prediction markets price for each game. 18+.",
-        "alt_text": "NFL picks by the numbers",
-        "media_source": {
-          "source_type": "image_url",
-          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-nfl-picks-by-the-numbers.png"
-        }
-      }
-    },
-    {
-      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-travel-esim.png",
-      "file": "docs/assets/pins/02-travel-esim.png",
+      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-travel-esim.png",
+      "file": "docs/assets/pins/01-travel-esim.png",
       "niche": "travel",
       "affiliate": true,
       "disclosure": "Ad · affiliate link",
@@ -33,7 +16,25 @@
         "link": "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html",
         "media_source": {
           "source_type": "image_url",
-          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-travel-esim.png"
+          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-travel-esim.png"
+        }
+      }
+    },
+    {
+      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-car-rental-no-surprises.png",
+      "file": "docs/assets/pins/02-car-rental-no-surprises.png",
+      "niche": "travel",
+      "affiliate": true,
+      "disclosure": "Ad · affiliate link",
+      "pin": {
+        "board_id": "<BOARD_ID>",
+        "title": "Car rental deals: how to avoid hidden fees",
+        "description": "Car rental in Europe: excess insurance, fuel policy, deposit holds and the booking window that saves the most. https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html",
+        "alt_text": "Car rental deals: how to avoid hidden fees",
+        "link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html",
+        "media_source": {
+          "source_type": "image_url",
+          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-car-rental-no-surprises.png"
         }
       }
     }
