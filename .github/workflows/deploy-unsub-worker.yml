@@ -1,6 +1,10 @@
 name: deploy-unsub-worker
 
 on:
+  push:
+    paths:
+      - '.github/workflows/deploy-unsub-worker.yml'
+      - 'worker.js'
   workflow_dispatch:
 
 permissions:
