@@ -40,7 +40,7 @@ from content_factory.brand.design import (  # noqa: E402
     keywords_for,
     render_pin,
 )
-from content_factory.integrations.pins import hf_background, load_specs  # noqa: E402
+from content_factory.integrations.pins import hf_background, load_specs, stock_background  # noqa: E402
 from content_factory.integrations.partner_links import validate_link  # noqa: E402
 
 
@@ -116,9 +116,11 @@ def main(argv=None) -> int:
             link = hub_url.rstrip("/") + "/"
         content = replace(PinContent.from_object(spec), disclosure=disclosure, link=link)
         image_bytes = None
-        if not args.no_ai and hub_token and spec.image_prompt:
-            image_bytes = hf_background(spec.image_prompt, token=hub_token)
-            print("  background: %s" % ("Hugging Face" if image_bytes else "gradient fallback"))
+        if not args.no_ai and spec.image_prompt:
+            image_bytes = hf_background(spec.image_prompt, token=hub_token) if hub_token else None
+            if not image_bytes:
+                image_bytes = stock_background(spec.image_prompt)
+            print("  background: %s" % ("Hugging Face" if image_bytes else "stock photo"))
         variant = "photo" if image_bytes else "gradient"
         try:
             rendered = render_pin(
