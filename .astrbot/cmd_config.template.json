@@ -20,7 +20,9 @@
       "type": "openai_chat_completion",
       "provider_type": "chat_completion",
       "api_base": "https://api.groq.com/openai/v1",
-      "key": ["__GROQ_API_KEY__"],
+      "key": [
+        "__GROQ_API_KEY__"
+      ],
       "timeout": 120,
       "proxy": "",
       "custom_headers": {}
@@ -30,7 +32,9 @@
       "type": "openai_chat_completion",
       "provider_type": "chat_completion",
       "api_base": "https://openrouter.ai/api/v1",
-      "key": ["__OPENROUTER_API_KEY__"],
+      "key": [
+        "__OPENROUTER_API_KEY__"
+      ],
       "timeout": 120,
       "proxy": "",
       "custom_headers": {}
@@ -40,7 +44,9 @@
       "type": "openai_chat_completion",
       "provider_type": "chat_completion",
       "api_base": "https://api.deepseek.com/v1",
-      "key": ["__DEEPSEEK_API_KEY__"],
+      "key": [
+        "__DEEPSEEK_API_KEY__"
+      ],
       "timeout": 120,
       "proxy": "",
       "custom_headers": {}
@@ -48,31 +54,38 @@
   ],
   "provider": [
     {
-      "id": "groq-llama",
+      "id": "groq-oss",
       "provider_source_id": "groq",
-      "model": "llama-3.3-70b-versatile",
+      "model": "openai/gpt-oss-120b",
       "enable": true
     },
     {
       "id": "openrouter-free",
       "provider_source_id": "openrouter",
-      "model": "meta-llama/llama-3.3-70b-instruct:free",
+      "model": "openrouter/free",
       "enable": true
     },
     {
-      "id": "deepseek-chat",
+      "id": "deepseek-flash",
       "provider_source_id": "deepseek",
-      "model": "deepseek-chat",
+      "model": "deepseek-flash",
       "enable": true
     }
   ],
   "provider_settings": {
     "enable": true,
-    "provider_pool": ["*"],
+    "provider_pool": [
+      "*"
+    ],
     "streaming_response": false,
     "datetime_system_prompt": true,
-    "persona_pool": ["*"]
+    "persona_pool": [
+      "*"
+    ],
+    "default_provider_id": "groq-oss"
   },
-  "dashboard": {"enable": false},
+  "dashboard": {
+    "enable": false
+  },
   "timezone": "UTC"
 }
