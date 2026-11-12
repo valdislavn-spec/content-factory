@@ -27,7 +27,7 @@ jobs:
           node-version: "20"
       - name: Create project
         run: |
-          for name in travel-finds-usa us-travel-finds travel-finds-deals travelfinds-us; do
+          for name in us-travel-finds travel-finds-usa travel-finds-deals travelfinds-us; do
             if npx --yes wrangler@3 pages project create "$name" --production-branch main >/dev/null 2>&1; then
               PROJECT="$name"
               echo "PROJECT=$name" >> "$GITHUB_ENV"

@@ -30,7 +30,7 @@ jobs:
           ns = os.environ["SUBSCRIBE_KV_NAMESPACE"]; brevo_key = os.environ["BREVO_API_KEY"]
           unsub_secret = os.environ["UNSUB_SECRET"].encode()
           kv_base = f"https://api.cloudflare.com/client/v4/accounts/{account}/storage/kv/namespaces/{ns}"
-          unsub_base = "https://travel-finds-usa.pages.dev/api/unsubscribe"
+          unsub_base = "https://us-travel-finds.pages.dev/api/unsubscribe"
           subjects = {
               1: "The #1 trick that cuts US flight prices",
               2: "Book 2–4 months ahead (here's the timeline)",
