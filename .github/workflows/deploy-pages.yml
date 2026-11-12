@@ -27,14 +27,11 @@ jobs:
           node-version: "20"
       - name: Create project
         run: |
-          for name in us-travel-finds travel-finds-usa travel-finds-deals travelfinds-us; do
-            if npx --yes wrangler@3 pages project create "$name" --production-branch main >/dev/null 2>&1; then
-              PROJECT="$name"
-              echo "PROJECT=$name" >> "$GITHUB_ENV"
-              break
-            fi
-          done
-          if [ -z "$PROJECT" ]; then echo "No free Pages project name"; exit 1; fi
+          # Fixed project name: create is idempotent; an existing project must be
+          # reused instead of failing the loop on "already exists".
+          PROJECT=us-travel-finds
+          npx --yes wrangler@3 pages project create "$PROJECT" --production-branch main >/dev/null 2>&1 || true
+          echo "PROJECT=$PROJECT" >> "$GITHUB_ENV"
           echo "Using project: $PROJECT"
       - name: Deploy
         run: |
