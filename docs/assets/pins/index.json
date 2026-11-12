@@ -1,41 +1,414 @@
 {
-  "date": "2026-11-11",
+  "date": "2026-11-12",
   "hub": "https://valdislavn-spec.github.io/content-factory/",
+  "engine": "brand.design",
   "pins": [
     {
-      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-travel-esim.png",
-      "file": "docs/assets/pins/01-travel-esim.png",
+      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-car-rental-no-surprises.png",
+      "file": "docs/assets/pins/01-car-rental-no-surprises.png",
       "niche": "travel",
       "affiliate": true,
       "disclosure": "Ad · affiliate link",
-      "pin": {
-        "board_id": "<BOARD_ID>",
-        "title": "Travel eSIM: internet abroad without roaming bills",
-        "description": "How travel eSIMs work, how to install one before flying, and when they beat airport SIM cards. https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html",
-        "alt_text": "Travel eSIM: internet abroad without roaming bills",
-        "link": "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html",
-        "media_source": {
-          "source_type": "image_url",
-          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-travel-esim.png"
-        }
-      }
-    },
-    {
-      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-car-rental-no-surprises.png",
-      "file": "docs/assets/pins/02-car-rental-no-surprises.png",
-      "niche": "travel",
-      "affiliate": true,
-      "disclosure": "Ad · affiliate link",
+      "board": "Travel ideas",
+      "keywords": [
+        "travel tips",
+        "city breaks",
+        "budget travel",
+        "travel guide",
+        "car",
+        "rental",
+        "deals",
+        "avoid"
+      ],
+      "variant": "photo",
       "pin": {
         "board_id": "<BOARD_ID>",
         "title": "Car rental deals: how to avoid hidden fees",
-        "description": "Car rental in Europe: excess insurance, fuel policy, deposit holds and the booking window that saves the most. https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html",
-        "alt_text": "Car rental deals: how to avoid hidden fees",
-        "link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html",
+        "description": "Car rental in Europe: excess insurance, fuel policy, deposit holds and the booking window that saves the most. Compare cars. Ad · affiliate link",
+        "alt_text": "Car rental, no surprises. What to check before you book.",
         "media_source": {
           "source_type": "image_url",
-          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-car-rental-no-surprises.png"
-        }
+          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/01-car-rental-no-surprises.png"
+        },
+        "link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html"
+      },
+      "metrics": {
+        "variant": "photo",
+        "width": 1000,
+        "height": 1500,
+        "aspect_ratio": 0.6667,
+        "margin": 72,
+        "margins": {
+          "left": 72,
+          "top": 72,
+          "right": 72,
+          "bottom": 72
+        },
+        "min_font_size": 24,
+        "contrast": {
+          "tag": 17.61,
+          "brandmark": 4.64,
+          "brandmark_text": 17.72,
+          "headline": 9.48,
+          "subtitle": 13.71,
+          "bullet_1": 17.34,
+          "bullet_2": 17.27,
+          "bullet_3": 17.62,
+          "cta": 4.64,
+          "disclosure": 4.64,
+          "site": 9.83
+        },
+        "min_body_contrast": 4.64,
+        "min_heading_contrast": 9.48,
+        "blocks": [
+          {
+            "role": "tag",
+            "font_size": 24,
+            "lines": 1,
+            "box_width": 135,
+            "line_width": 91,
+            "rect": {
+              "x": 72,
+              "y": 72,
+              "w": 135,
+              "h": 48
+            },
+            "contrast": 17.61
+          },
+          {
+            "role": "brandmark_text",
+            "font_size": 24,
+            "lines": 1,
+            "box_width": 262,
+            "line_width": 234,
+            "rect": {
+              "x": 666,
+              "y": 80,
+              "w": 262,
+              "h": 31
+            },
+            "contrast": 17.72
+          },
+          {
+            "role": "headline",
+            "font_size": 136,
+            "lines": 2,
+            "box_width": 856,
+            "line_width": 841,
+            "rect": {
+              "x": 72,
+              "y": 291,
+              "w": 856,
+              "h": 316
+            },
+            "contrast": 9.48
+          },
+          {
+            "role": "subtitle",
+            "font_size": 44,
+            "lines": 1,
+            "box_width": 856,
+            "line_width": 653,
+            "rect": {
+              "x": 72,
+              "y": 669,
+              "w": 856,
+              "h": 59
+            },
+            "contrast": 13.71
+          },
+          {
+            "role": "bullet_1",
+            "font_size": 34,
+            "lines": 1,
+            "box_width": 758,
+            "line_width": 586,
+            "rect": {
+              "x": 144,
+              "y": 776,
+              "w": 758,
+              "h": 46
+            },
+            "contrast": 17.34
+          },
+          {
+            "role": "bullet_2",
+            "font_size": 34,
+            "lines": 1,
+            "box_width": 758,
+            "line_width": 343,
+            "rect": {
+              "x": 144,
+              "y": 868,
+              "w": 758,
+              "h": 46
+            },
+            "contrast": 17.27
+          },
+          {
+            "role": "bullet_3",
+            "font_size": 34,
+            "lines": 1,
+            "box_width": 758,
+            "line_width": 372,
+            "rect": {
+              "x": 144,
+              "y": 960,
+              "w": 758,
+              "h": 46
+            },
+            "contrast": 17.62
+          },
+          {
+            "role": "cta",
+            "font_size": 38,
+            "lines": 1,
+            "box_width": 373,
+            "line_width": 301,
+            "rect": {
+              "x": 72,
+              "y": 1178,
+              "w": 373,
+              "h": 82
+            },
+            "contrast": 4.64
+          },
+          {
+            "role": "disclosure",
+            "font_size": 26,
+            "lines": 1,
+            "box_width": 812,
+            "line_width": 196,
+            "rect": {
+              "x": 94,
+              "y": 1321,
+              "w": 812,
+              "h": 34
+            },
+            "contrast": 4.64
+          },
+          {
+            "role": "site",
+            "font_size": 26,
+            "lines": 1,
+            "box_width": 812,
+            "line_width": 318,
+            "rect": {
+              "x": 94,
+              "y": 1361,
+              "w": 812,
+              "h": 34
+            },
+            "contrast": 9.83
+          }
+        ],
+        "warnings": [
+          "content centred vertically (+131px)"
+        ]
+      }
+    },
+    {
+      "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-airport-transfer.png",
+      "file": "docs/assets/pins/02-airport-transfer.png",
+      "niche": "travel",
+      "affiliate": true,
+      "disclosure": "Ad · affiliate link",
+      "board": "Travel ideas",
+      "keywords": [
+        "travel tips",
+        "city breaks",
+        "budget travel",
+        "travel guide",
+        "airport",
+        "transfers",
+        "book",
+        "fixed"
+      ],
+      "variant": "gradient",
+      "pin": {
+        "board_id": "<BOARD_ID>",
+        "title": "Airport transfers: book a fixed price, skip the taxi queue",
+        "description": "How to book a reliable airport transfer: fixed prices, meet-and-greet, luggage and late-flight cover. Book a transfer. Ad · affiliate link",
+        "alt_text": "Airport transfer. Fixed price instead of taxi roulette.",
+        "media_source": {
+          "source_type": "image_url",
+          "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-airport-transfer.png"
+        },
+        "link": "https://valdislavn-spec.github.io/content-factory/go/10-airport-transfer.html"
+      },
+      "metrics": {
+        "variant": "gradient",
+        "width": 1000,
+        "height": 1500,
+        "aspect_ratio": 0.6667,
+        "margin": 72,
+        "margins": {
+          "left": 72,
+          "top": 72,
+          "right": 72,
+          "bottom": 72
+        },
+        "min_font_size": 24,
+        "contrast": {
+          "tag": 17.61,
+          "brandmark": 9.14,
+          "brandmark_text": 17.16,
+          "headline": 16.92,
+          "subtitle": 16.81,
+          "bullet_1": 17.6,
+          "bullet_2": 17.6,
+          "bullet_3": 17.6,
+          "cta": 9.14,
+          "disclosure": 9.14,
+          "site": 9.83
+        },
+        "min_body_contrast": 9.14,
+        "min_heading_contrast": 16.92,
+        "blocks": [
+          {
+            "role": "tag",
+            "font_size": 24,
+            "lines": 1,
+            "box_width": 135,
+            "line_width": 91,
+            "rect": {
+              "x": 72,
+              "y": 72,
+              "w": 135,
+              "h": 48
+            },
+            "contrast": 17.61
+          },
+          {
+            "role": "brandmark_text",
+            "font_size": 24,
+            "lines": 1,
+            "box_width": 262,
+            "line_width": 234,
+            "rect": {
+              "x": 666,
+              "y": 80,
+              "w": 262,
+              "h": 31
+            },
+            "contrast": 17.16
+          },
+          {
+            "role": "headline",
+            "font_size": 136,
+            "lines": 2,
+            "box_width": 856,
+            "line_width": 491,
+            "rect": {
+              "x": 72,
+              "y": 291,
+              "w": 856,
+              "h": 316
+            },
+            "contrast": 16.92
+          },
+          {
+            "role": "subtitle",
+            "font_size": 44,
+            "lines": 1,
+            "box_width": 856,
+            "line_width": 707,
+            "rect": {
+              "x": 72,
+              "y": 669,
+              "w": 856,
+              "h": 59
+            },
+            "contrast": 16.81
+          },
+          {
+            "role": "bullet_1",
+            "font_size": 34,
+            "lines": 1,
+            "box_width": 758,
+            "line_width": 374,
+            "rect": {
+              "x": 144,
+              "y": 776,
+              "w": 758,
+              "h": 46
+            },
+            "contrast": 17.6
+          },
+          {
+            "role": "bullet_2",
+            "font_size": 34,
+            "lines": 1,
+            "box_width": 758,
+            "line_width": 404,
+            "rect": {
+              "x": 144,
+              "y": 868,
+              "w": 758,
+              "h": 46
+            },
+            "contrast": 17.6
+          },
+          {
+            "role": "bullet_3",
+            "font_size": 34,
+            "lines": 1,
+            "box_width": 758,
+            "line_width": 384,
+            "rect": {
+              "x": 144,
+              "y": 960,
+              "w": 758,
+              "h": 46
+            },
+            "contrast": 17.6
+          },
+          {
+            "role": "cta",
+            "font_size": 38,
+            "lines": 1,
+            "box_width": 393,
+            "line_width": 321,
+            "rect": {
+              "x": 72,
+              "y": 1178,
+              "w": 393,
+              "h": 82
+            },
+            "contrast": 9.14
+          },
+          {
+            "role": "disclosure",
+            "font_size": 26,
+            "lines": 1,
+            "box_width": 812,
+            "line_width": 196,
+            "rect": {
+              "x": 94,
+              "y": 1321,
+              "w": 812,
+              "h": 34
+            },
+            "contrast": 9.14
+          },
+          {
+            "role": "site",
+            "font_size": 26,
+            "lines": 1,
+            "box_width": 812,
+            "line_width": 318,
+            "rect": {
+              "x": 94,
+              "y": 1361,
+              "w": 812,
+              "h": 34
+            },
+            "contrast": 9.83
+          }
+        ],
+        "warnings": [
+          "content centred vertically (+131px)"
+        ]
       }
     }
   ]
