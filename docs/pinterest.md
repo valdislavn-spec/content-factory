@@ -92,6 +92,28 @@ Actions → **pinterest-check** → Run workflow:
 4. Запустить `channel-cards` с `platforms: pinterest` — пины уйдут через
    API v5.
 
+## Статус на 13.11.2026 (проверено)
+
+- **Trial access одобрен.** `api-sandbox.pinterest.com/v5` с токеном из секрета
+  отвечает `200`: `GET /boards` работает, `GET /user_account` отдаёт аккаунт,
+  `POST /boards` → `201`, `POST /pins` → `201` (тестовый пин создан в доске
+  `Content Factory Test`, id `1105774583449702771`).
+- **Production по-прежнему закрыт:** `api.pinterest.com/v5` → `401 code 2
+  "Authentication failed"` (токен sandbox-овый; для продакшена нужен отдельный
+  токен после Standard access).
+- Sandbox-аккаунт отдельный: доски/пины sandbox **не видны** на публичном
+  профиле (там 2 доски: `Content Factory Test`, `DSH sandbox test`).
+- `pinterest-check` умеет sandbox: добавлен input `api_base` (пусто =
+  production, `https://api-sandbox.pinterest.com/v5` = sandbox); переменная
+  `PINTEREST_API_BASE` (используется и `pins-generate`) **не менялась**.
+- Секрет `PINTEREST_ACCESS_TOKEN` обновлён рабочим sandbox-токеном (13.11.2026).
+- **Дальше:** залогиниться в developers.pinterest.com → запросить
+  **Standard access** → сгенерировать production-токен со scope `pins:write`,
+  `boards:write` → обновить секреты `PINTEREST_ACCESS_TOKEN` и
+  `PINTEREST_BOARD_ID` (боевая доска) → `pinterest-check` без `api_base`.
+  Кабинет/почта сейчас недоступны из окружения (сессии Chrome слетели из-за
+  Keychain), нужен вход владельца.
+
 ## Ограничения
 
 - Pinterest API требует OAuth-токен: без него постинг невозможен (поэтому
