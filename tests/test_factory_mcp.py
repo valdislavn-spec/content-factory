@@ -15,12 +15,13 @@ class FactoryMcpTest(unittest.TestCase):
         conn = sqlite3.connect(self.db)
         conn.executescript(
             """
-            CREATE TABLE posts (channel_id TEXT, status TEXT);
-            INSERT INTO posts VALUES ('ai-news', 'generated');
-            INSERT INTO posts VALUES ('ai-news', 'published');
-            INSERT INTO posts VALUES ('crypto-news', 'published');
-            CREATE TABLE runs (channel_id TEXT, status TEXT, started_at TEXT, posts_published INT);
-            INSERT INTO runs VALUES ('ai-news', 'ok', '2026-11-07T19:00:00+00:00', 1);
+            CREATE TABLE posts (channel_id TEXT, format TEXT, created_at TEXT, status TEXT);
+            INSERT INTO posts VALUES ('ai-news', 'story', '2026-11-07T19:00:00+00:00', 'generated');
+            INSERT INTO posts VALUES ('ai-news', 'story', '2026-11-07T19:01:00+00:00', 'published');
+            INSERT INTO posts VALUES ('crypto-news', 'story', '2026-11-07T19:02:00+00:00', 'published');
+            -- Реальная схема runs: без status (его не должно требовать).
+            CREATE TABLE runs (channel_id TEXT, started_at TEXT, posts_published INT);
+            INSERT INTO runs VALUES ('ai-news', '2026-11-07T19:00:00+00:00', 1);
             """
         )
         conn.commit()
@@ -109,6 +110,8 @@ class FactoryMcpTest(unittest.TestCase):
         except Exception as exc:  # конфиг каналов в тестовом окружении может не найтись
             self.skipTest(f"config недоступен: {exc}")
         self.assertTrue(isinstance(result, dict))
+        self.assertNotIn("db_error", result, result.get("db_error"))
+        self.assertEqual(result["latest_runs"][0]["channel_id"], "ai-news")
         self.assertIn("db", result)
 
 

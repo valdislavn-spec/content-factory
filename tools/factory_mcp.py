@@ -95,8 +95,10 @@ def tool_factory_status() -> Dict[str, Any]:
                 """SELECT channel_id, format, created_at, status
                    FROM posts ORDER BY created_at DESC LIMIT 12"""
             ).fetchall()
+            # В реальной схеме у runs нет колонки status (в отличие от
+            # тестового старого фикстура); берём только общие поля.
             runs = conn.execute(
-                """SELECT channel_id, status, started_at, posts_published
+                """SELECT channel_id, started_at, posts_published
                    FROM runs ORDER BY started_at DESC LIMIT 10"""
             ).fetchall()
             payload["latest_posts"] = [dict(row) for row in posts]

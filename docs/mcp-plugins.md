@@ -78,6 +78,28 @@ mcp-config-set(server="tavily", config={...})
 После перезапуска MCP в сессии появятся инструменты `factory_status`,
 `factory_query`, `trends_now`, `web_search`.
 
+### MCP Inspector
+
+Официальный Inspector умеет работать в CLI-режиме без браузера:
+
+```bash
+npx @modelcontextprotocol/inspector --cli .venv/bin/python tools/factory_mcp.py \
+  --method tools/list
+
+npx @modelcontextprotocol/inspector --cli .venv/bin/python tools/factory_mcp.py \
+  --method tools/call --tool-name factory_status
+```
+
+Веб-интерфейс:
+
+```bash
+npx @modelcontextprotocol/inspector .venv/bin/python tools/factory_mcp.py
+```
+
+Inspector сразу показал баг: `factory_status` запрашивал у `runs` колонку
+`status`, которой нет в реальной схеме. Запрос исправлен на реальные поля
+(`channel_id`, `started_at`, `posts_published`), тест обновлён.
+
 ### Проверка без DSH
 
 ```bash
