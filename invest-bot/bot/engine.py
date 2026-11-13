@@ -103,6 +103,15 @@ class Engine:
                 "last_tick": self.last_tick,
                 "uptime_seconds": int(time.time() - self.started_at),
                 "trades": trades,
+                "risk": {
+                    "max_position_rub": self.cfg.max_position_rub,
+                    "max_total_exposure_rub": self.cfg.max_total_exposure_rub,
+                    "max_positions": self.cfg.max_positions,
+                    "allow_loss_exit": self.cfg.allow_loss_exit,
+                    "stop_loss": self.cfg.stop_loss,
+                    "take_profit": self.cfg.take_profit,
+                },
+                "exposure_rub": round(self._exposure(), 2),
             }
 
     def _cash(self) -> float:
