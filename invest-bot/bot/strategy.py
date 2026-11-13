@@ -5,12 +5,12 @@ from .indicators import ema, rsi
 from .models import Candle, Position, Signal
 
 
-def evaluate(ticker: str, candles: list[Candle], position: Position | None, cfg: Config) -> Signal | None:
+def evaluate(ticker: str, candles: list[Candle], position: Position | None, cfg: Config, forming: bool = True) -> Signal | None:
     """EMA(9/21) crossover + RSI filter. Long-only; exits on cross, stop or take-profit."""
     if len(candles) < 35:
         return None
     # last candle may still be forming; use the previous closed candle
-    closed = candles[:-1] if len(candles) > 1 else candles
+    closed = candles[:-1] if forming and len(candles) > 1 else candles
     closes = [c.close for c in closed]
     fast = ema(closes, 9)
     slow = ema(closes, 21)
