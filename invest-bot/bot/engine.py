@@ -11,6 +11,7 @@ from .broker import BrokerError, PaperBroker, TinkoffBroker
 from .config import Config
 from .models import Position, Signal
 from .moex import MSK, MoexData
+from .risk import hard_loss_hit, loss_from_start, max_drawdown_pct
 from .strategy import evaluate
 from .orb import evaluate as evaluate_orb
 
@@ -65,6 +66,9 @@ class Engine:
         self.day_start_equity = cfg.start_equity
         self.trades_today = 0
         self.notifier = Notifier(cfg.telegram_bot_token, cfg.telegram_chat_id)
+        self.trading_enabled = cfg.trading_enabled
+        self.kill_switch = False
+        self.kill_reason = ""
 
         if cfg.live_broker:
             self.broker = TinkoffBroker(
@@ -76,9 +80,29 @@ class Engine:
         else:
             self.broker = PaperBroker(cfg.state_path, cfg.start_equity, cfg.fee)
             self.data = MoexData(class_code=cfg.tinkoff_class_code, interval=10)
+        try:
+            self.risk_start_equity = float(self._equity())
+        except Exception:
+            self.risk_start_equity = float(cfg.start_equity)
+        self.peak_equity = self.risk_start_equity
+        if hard_loss_hit(self.risk_start_equity, self.risk_start_equity, cfg.max_total_loss_rub):
+            self._set_kill("already at loss limit")
 
     def stop(self) -> None:
         self._stop.set()
+
+    def _set_kill(self, reason: str) -> None:
+        if not self.kill_switch:
+            self.kill_switch = True
+            self.kill_reason = reason
+            log.error("RISK KILL SWITCH: %s", reason)
+            self.notifier.send(f"🛑 RISK KILL SWITCH: {reason}\nMode: {self.cfg.mode}")
+
+    def _risk_check(self, equity: float) -> None:
+        self.peak_equity = max(self.peak_equity, equity)
+        if hard_loss_hit(equity, self.risk_start_equity, self.cfg.max_total_loss_rub):
+            loss = loss_from_start(equity, self.risk_start_equity)
+            self._set_kill(f"loss {loss:.2f} RUB >= limit {self.cfg.max_total_loss_rub:.2f} RUB")
 
     # ---------- status ----------
     def status(self) -> dict:
@@ -117,6 +141,14 @@ class Engine:
                     "trades_today": self.trades_today,
                 },
                 "exposure_rub": round(self._exposure(), 2),
+                "risk_guard": {
+                    "trading_enabled": self.trading_enabled,
+                    "kill_switch": self.kill_switch,
+                    "kill_reason": self.kill_reason,
+                    "max_total_loss_rub": self.cfg.max_total_loss_rub,
+                    "loss_from_start_rub": round(loss_from_start(equity, self.risk_start_equity), 2),
+                    "drawdown_from_peak_pct": round(max_drawdown_pct(self.peak_equity, equity), 3),
+                },
             }
 
     def _cash(self) -> float:
@@ -202,9 +234,13 @@ class Engine:
             if not execute:
                 results.append({"signal": signal.action, "ticker": ticker, "price": signal.price})
                 continue
+            if not self.cfg.trading_enabled:
+                continue
             if not market_open(now):
                 continue
             if signal.action == "BUY":
+                if self.kill_switch:
+                    continue
                 if not entry_allowed(now) or len(self._positions()) >= self.cfg.max_positions:
                     continue
                 if self.trades_today >= self.cfg.max_trades_per_day:
@@ -233,6 +269,7 @@ class Engine:
                     self.notifier.send(f"🔴 SELL {ticker} @ {price:.2f}{extra}\n{signal.reason}\nMode: {self.cfg.mode}")
         if execute and force_close_time(now):
             results.extend(self.close_all(now, reason="end of session"))
+        self._risk_check(self._equity())
         self.last_tick = now.isoformat()
         return results
 
