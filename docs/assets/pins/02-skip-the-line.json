@@ -1,0 +1,204 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-skip-the-line.png",
+  "file": "docs/assets/pins/02-skip-the-line.png",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+    "travel tips",
+    "city breaks",
+    "budget travel",
+    "travel guide",
+    "skip-the-line",
+    "tickets",
+    "attractions",
+    "worth"
+  ],
+  "variant": "gradient",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Skip-the-line tickets: which attractions are worth it",
+    "description": "Timed-entry tickets vs city passes: where skip-the-line actually saves hours, and where it is a waste of money. Get tickets. Ad · affiliate link",
+    "alt_text": "Skip the line. Tickets for the sights worth it.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-skip-the-line.png"
+    },
+    "link": "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html"
+  },
+  "metrics": {
+    "variant": "gradient",
+    "width": 1000,
+    "height": 1500,
+    "aspect_ratio": 0.6667,
+    "margin": 72,
+    "margins": {
+      "left": 72,
+      "top": 72,
+      "right": 72,
+      "bottom": 72
+    },
+    "min_font_size": 24,
+    "contrast": {
+      "tag": 17.61,
+      "brandmark": 5.22,
+      "brandmark_text": 17.16,
+      "headline": 16.93,
+      "subtitle": 16.92,
+      "bullet_1": 17.6,
+      "bullet_2": 17.6,
+      "bullet_3": 17.6,
+      "cta": 5.22,
+      "disclosure": 5.22,
+      "site": 9.83
+    },
+    "min_body_contrast": 5.22,
+    "min_heading_contrast": 16.93,
+    "blocks": [
+      {
+        "role": "tag",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 135,
+        "line_width": 91,
+        "rect": {
+          "x": 72,
+          "y": 72,
+          "w": 135,
+          "h": 48
+        },
+        "contrast": 17.61
+      },
+      {
+        "role": "brandmark_text",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 262,
+        "line_width": 234,
+        "rect": {
+          "x": 666,
+          "y": 80,
+          "w": 262,
+          "h": 31
+        },
+        "contrast": 17.16
+      },
+      {
+        "role": "headline",
+        "font_size": 136,
+        "lines": 1,
+        "box_width": 856,
+        "line_width": 755,
+        "rect": {
+          "x": 72,
+          "y": 340,
+          "w": 856,
+          "h": 158
+        },
+        "contrast": 16.93
+      },
+      {
+        "role": "subtitle",
+        "font_size": 44,
+        "lines": 1,
+        "box_width": 856,
+        "line_width": 605,
+        "rect": {
+          "x": 72,
+          "y": 560,
+          "w": 856,
+          "h": 59
+        },
+        "contrast": 16.92
+      },
+      {
+        "role": "bullet_1",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 542,
+        "rect": {
+          "x": 144,
+          "y": 667,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "bullet_2",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 611,
+        "rect": {
+          "x": 144,
+          "y": 759,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "bullet_3",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 373,
+        "rect": {
+          "x": 144,
+          "y": 851,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "cta",
+        "font_size": 38,
+        "lines": 1,
+        "box_width": 311,
+        "line_width": 239,
+        "rect": {
+          "x": 72,
+          "y": 1178,
+          "w": 311,
+          "h": 82
+        },
+        "contrast": 5.22
+      },
+      {
+        "role": "disclosure",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 812,
+        "line_width": 196,
+        "rect": {
+          "x": 94,
+          "y": 1321,
+          "w": 812,
+          "h": 34
+        },
+        "contrast": 5.22
+      },
+      {
+        "role": "site",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 812,
+        "line_width": 318,
+        "rect": {
+          "x": 94,
+          "y": 1361,
+          "w": 812,
+          "h": 34
+        },
+        "contrast": 9.83
+      }
+    ],
+    "warnings": [
+      "content centred vertically (+180px)"
+    ]
+  }
+}
