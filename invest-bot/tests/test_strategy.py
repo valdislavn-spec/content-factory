@@ -27,3 +27,12 @@ def test_stop_loss_triggers_sell():
     candles[-2] = Candle(candles[-2].ts, 98.0, 98.0, 98.0, 98.0, 1000)
     signal = evaluate("SBER", candles, pos, Config(stop_loss=0.012, take_profit=0.02, allow_loss_exit=True))
     assert signal is not None and signal.action == "SELL"
+
+
+def test_default_holds_losing_position():
+    closes = [100.0] * 40
+    candles = make_candles(closes)
+    pos = Position("SBER", 10, 100.0)
+    candles[-2] = Candle(candles[-2].ts, 98.0, 98.0, 98.0, 98.0, 1000)
+    signal = evaluate("SBER", candles, pos, Config())
+    assert signal is None
