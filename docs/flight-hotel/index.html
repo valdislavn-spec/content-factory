@@ -200,6 +200,24 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 2px dashed #e2e8f0; co
 .cta a:hover { filter: brightness(1.06); }
 .toc a.ext { background: linear-gradient(90deg,#6366f1,#ec4899); color: #fff; border-color: transparent; }
 .tap-hint { margin: 10px 0 0; font-size: 13px; color: #6b7280; }
+
+/* promo-partners */
+.promo-sec{max-width:1080px;margin:28px auto 0;padding:0 22px}
+.promo-sec h2{font-size:22px;margin:0 0 6px}
+.promo-lead{margin:0 0 14px;font-size:13.5px;opacity:.75}
+.promo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.promo-card{display:flex;flex-direction:column;gap:4px;padding:15px 16px;border-radius:16px;
+  border:1px solid rgba(124,58,237,.3);background:rgba(124,58,237,.07);text-decoration:none;
+  color:inherit;transition:transform .15s,border-color .15s}
+.promo-card:hover{transform:translateY(-2px);border-color:rgba(124,58,237,.6)}
+.promo-ico{font-size:21px;line-height:1.1}
+.promo-t{font-weight:800;font-size:15px}
+.promo-d{font-size:12.5px;opacity:.75}
+.promo-cta{margin-top:6px;font-size:12.5px;font-weight:700;color:#7c3aed}
+.promo-note{margin:10px 0 0;font-size:11.5px;opacity:.6}
+.promo-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:14px 0 0}
+.promo-mini{border-left:3px solid rgba(124,58,237,.6);padding:4px 0 4px 12px;font-size:13px;opacity:.9}
+.promo-mini b{font-weight:800}
 </style>
 </head>
 <body>
@@ -218,6 +236,13 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 2px dashed #e2e8f0; co
 <p class="lead">Живые цены пакетов (авиабилет + проживание в одной цене) и полная отельная база Travelata.</p>
 <div class='hero'><div class='hero-kicker'>🔥 самый дешёвый пакет</div><div class='hero-price'>15 339 ₽</div><div class='hero-meta'>Россия · Афалина (Afalina) · База отдыха · 9 ночей · вылет: Москва</div><div class='hero-chips'><span class='hero-chip'>✈️ перелёт + отель в цене</span><span class='hero-chip'>👥 на 2 взрослых</span><span class='hero-chip'>🌙 5–9 ночей</span></div></div>
 <div class="cta"><a href="https://travelata.ru/search#?fromCity=2&amp;dateFrom=17.11.2026&amp;dateTo=17.12.2026&amp;nightFrom=5&amp;nightTo=9&amp;adults=2&amp;hotelClass=all&amp;meal=all" target="_blank" rel="noopener sponsored">Смотреть туры на Travelata →</a></div>
+<section class="promo-sec" data-promo="cheap"><!-- promo-partners -->
+<h2>🎁 Промо к самому дешёвому пакету</h2>
+<p class="promo-lead">Пакет уже включает перелёт и отель, а акции партнёров помогают добрать поездку дешевле: билеты, трансфер, eSIM и билеты в музеи.</p>
+<div class="promo-grid"><a class="promo-card" href="https://aviasales.tpk.ro/2ZW95Xpf" target="_blank" rel="noopener sponsored"><span class="promo-ico">✈️</span><span class="promo-t">Aviasales</span><span class="promo-d">Акции на перелёты и сравнение цен</span><span class="promo-cta">Смотреть билеты →</span></a><a class="promo-card" href="https://kiwitaxi.tpk.ro/xmQYmqIl" target="_blank" rel="noopener sponsored"><span class="promo-ico">🚕</span><span class="promo-t">Kiwitaxi</span><span class="promo-d">Трансфер из аэропорта по фиксированной цене</span><span class="promo-cta">Заказать трансфер →</span></a><a class="promo-card" href="https://saily.tpk.ro/QSNyiXp7" target="_blank" rel="noopener sponsored"><span class="promo-ico">📶</span><span class="promo-t">Saily</span><span class="promo-d">eSIM: интернет за границей без роуминга</span><span class="promo-cta">Подключить eSIM →</span></a><a class="promo-card" href="https://tiqets.tpk.ro/ufgJDVmO" target="_blank" rel="noopener sponsored"><span class="promo-ico">🎟</span><span class="promo-t">Tiqets</span><span class="promo-d">Билеты в музеи и парки без очереди</span><span class="promo-cta">Смотреть билеты →</span></a></div>
+<p class="promo-note">Партнёрские ссылки: мы можем получить комиссию — цена для вас не меняется. Акции, скидки и условия — на сайте партнёра.</p>
+</section>
+
 <div class="kpis">
 <div class='kpi' style='--a:#6366f1'><div class='kpi-ico'>📦</div><div class='kpi-k'>предложений</div><div class='kpi-v'>1 072</div></div>
 <div class='kpi' style='--a:#10b981'><div class='kpi-ico'>💸</div><div class='kpi-k'>мин. на человека</div><div class='kpi-v'>7 670 ₽</div></div>
@@ -345,6 +370,13 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 2px dashed #e2e8f0; co
 <div class='insight' style='--c:#6366f1'><span class='insight-ico'>💰</span><p>Самое дешёвое направление — <b>Россия</b>: от 15 339 ₽ (7 670 ₽/чел.). Самое дорогое — <b>Италия</b>: от 240 442 ₽.</p></div><div class='insight' style='--c:#8b5cf6'><span class='insight-ico'>📊</span><p>Медиана пакета по городам вылета: <b>Москва</b> — 93 245 ₽, <b>Новосибирск</b> — 165 352 ₽ (+77% к самому дешёвому городу).</p></div><div class='insight' style='--c:#d946ef'><span class='insight-ico'>🏖️</span><p>Почти не представлены в живых предложениях при большой отельной базе: Греция (7 предл. на 18 111 отелей), Испания (4 предл. на 20 043 отелей), Италия (2 предл. на 21 605 отелей) — низкий сезон для этих направлений на выбранные даты.</p></div><div class='insight' style='--c:#ec4899'><span class='insight-ico'>🍽️</span><p>Самый частый тариф питания в выборке — <b>BB</b> (46,3% предложений).</p></div><div class='insight' style='--c:#f43f5e'><span class='insight-ico'>⭐</span><p>Отельная база качественная: 72,6% отелей с рейтингом имеют оценку ≥ 4.0, медианный рейтинг — 4,34.</p></div><div class='insight' style='--c:#f97316'><span class='insight-ico'>📈</span><p>Разброс минимальных цен по направлениям — в 15,7 раза: от 15 339 ₽ до 240 442 ₽ за пакет на 2 взрослых.</p></div><div class='insight' style='--c:#f59e0b'><span class='insight-ico'>🗺️</span><p>Без предложений на даты сводки остались 30 комбинаций «направление — город вылета» (например, Турция — Минск, Таиланд — Минск, Индонезия — Новосибирск) — сезонность или отсутствие рейсов.</p></div>
 </div>
 </section>
+<section class="promo-sec" data-promo="expensive"><!-- promo-partners -->
+<h2>💰 Как сэкономить на самом дорогом направлении</h2>
+<p class="promo-lead">Италия дороже всех в сводке — вот где ещё можно срезать цену: музеи без очереди, экскурсии, авто и поезда.</p>
+<div class="promo-grid"><a class="promo-card" href="https://tiqets.tpk.ro/ufgJDVmO" target="_blank" rel="noopener sponsored"><span class="promo-ico">🎟</span><span class="promo-t">Tiqets</span><span class="promo-d">Билеты в музеи и парки без очереди</span><span class="promo-cta">Смотреть билеты →</span></a><a class="promo-card" href="https://wegotrip.tpk.ro/TcEWZpeL" target="_blank" rel="noopener sponsored"><span class="promo-ico">🎧</span><span class="promo-t">WeGoTrip</span><span class="promo-d">Аудиогиды и экскурсии по городам</span><span class="promo-cta">Выбрать экскурсию →</span></a><a class="promo-card" href="https://localrent.tpk.ro/edD3Ejwe" target="_blank" rel="noopener sponsored"><span class="promo-ico">🚗</span><span class="promo-t">Localrent</span><span class="promo-d">Аренда авто у местных прокатчиков</span><span class="promo-cta">Найти авто →</span></a><a class="promo-card" href="https://kiwi.tpk.ro/RJINNJJm" target="_blank" rel="noopener sponsored"><span class="promo-ico">🚆</span><span class="promo-t">Kiwi.com</span><span class="promo-d">Поезда и автобусы между городами</span><span class="promo-cta">Смотреть маршруты →</span></a></div><div class="promo-pair"><div class="promo-mini">🥇 <b>Дешевле всего — Россия</b> — трансфер, eSIM и экскурсии по акциям: <a href="https://kiwitaxi.tpk.ro/xmQYmqIl" target="_blank" rel="noopener sponsored">Kiwitaxi</a> · <a href="https://saily.tpk.ro/QSNyiXp7" target="_blank" rel="noopener sponsored">Saily</a> · <a href="https://tiqets.tpk.ro/ufgJDVmO" target="_blank" rel="noopener sponsored">Tiqets</a></div><div class="promo-mini">💎 <b>Дороже всего — Италия</b> — музеи, авто и поезда дешевле: <a href="https://tiqets.tpk.ro/ufgJDVmO" target="_blank" rel="noopener sponsored">Tiqets</a> · <a href="https://localrent.tpk.ro/edD3Ejwe" target="_blank" rel="noopener sponsored">Localrent</a> · <a href="https://kiwi.tpk.ro/RJINNJJm" target="_blank" rel="noopener sponsored">Kiwi</a></div></div>
+<p class="promo-note">Партнёрские ссылки: мы можем получить комиссию — цена для вас не меняется. Акции, скидки и условия — на сайте партнёра.</p>
+</section>
+
 
 <footer>
 <p>Источник: Travelata · данные на 10.11.2026. <b>Не является офертой.</b></p>
