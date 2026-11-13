@@ -14,7 +14,7 @@ class Config:
     tickers: tuple[str, ...] = ("SBER", "GAZP", "LKOH", "YDEX", "ROSN", "VTBR", "TATN", "MTSS")
     start_equity: float = 100_000.0
     risk_per_trade: float = 0.10
-    max_positions: int = 3
+    max_positions: int = 1
     daily_loss_limit: float = 0.02
     take_profit: float = 0.02
     stop_loss: float = 0.012
@@ -31,6 +31,9 @@ class Config:
     tinkoff_allow_live: bool = False
     tinkoff_sandbox_topup: float = 100_000.0
     tinkoff_verify_tls: bool = True
+    max_position_rub: float = 3000.0
+    max_total_exposure_rub: float = 3000.0
+    allow_loss_exit: bool = False
 
     @property
     def live_broker(self) -> bool:
@@ -66,6 +69,9 @@ class Config:
             tinkoff_allow_live=_env_bool("TINKOFF_ALLOW_LIVE", False),
             tinkoff_sandbox_topup=float(os.getenv("TINKOFF_SANDBOX_TOPUP", default.tinkoff_sandbox_topup)),
             tinkoff_verify_tls=_env_bool("TINKOFF_VERIFY_TLS", True),
+            max_position_rub=float(os.getenv("MAX_POSITION_RUB", default.max_position_rub)),
+            max_total_exposure_rub=float(os.getenv("MAX_TOTAL_EXPOSURE_RUB", default.max_total_exposure_rub)),
+            allow_loss_exit=_env_bool("ALLOW_LOSS_EXIT", default.allow_loss_exit),
         )
 
     def validate(self) -> None:
@@ -77,3 +83,5 @@ class Config:
             raise ValueError("prod mode requires TINKOFF_ALLOW_LIVE=1 (safety guard)")
         if not (0 < self.risk_per_trade <= 1):
             raise ValueError("RISK_PER_TRADE must be in (0, 1]")
+        if self.max_position_rub <= 0 or self.max_total_exposure_rub <= 0:
+            raise ValueError("position/exposure limits must be positive")
