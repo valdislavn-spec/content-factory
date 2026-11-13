@@ -81,3 +81,25 @@ python -m pytest -q tests
 To enable Tinkoff sandbox: add `TINKOFF_TOKEN` to the Northflank service env
 (secret), set `MODE=sandbox`, redeploy/restart. Start with paper results first.
 For live `prod`: additionally set `TINKOFF_ALLOW_LIVE=1`; do not do this casually.
+
+## Current deployment status
+
+- Mode: **sandbox** (Tinkoff Invest sandbox, virtual money).
+- Tinkoff sandbox account: created and funded with 100 000 RUB.
+- Public URL: `https://http--invest-bot--sm4j47bvw78l.code.run`
+- `/status` now reports Tinkoff portfolio equity and live Tinkoff 10-min candles.
+- The MOEX session is closed at deploy time; trading starts in the next session
+  (10:00–17:30 MSK entries, forced close 17:45 MSK).
+- Tinkoff endpoint uses certificates from the Russian Trusted Root/Sub CA. They are
+  bundled under `certs/` (source: https://github.com/koenrh/russian-trusted-root-ca)
+  so Python `requests` can verify the T-Bank chain normally; `TINKOFF_VERIFY_TLS=0`
+  exists only as an emergency escape hatch.
+- The API token is stored only as a Northflank secret and in the local, git-ignored
+  `.local/tinkoff/` directory. Rotate/revoke it after testing.
+
+## Sandbox order test (already performed)
+
+- Opened sandbox account, paid in 100 000 RUB.
+- Resolved `SBER` FIGI, fetched last price.
+- Sent a market BUY for 1 lot, status `EXECUTION_REPORT_STATUS_FILL`.
+- Sent a market SELL to flatten the position; no open SBER position remains.
