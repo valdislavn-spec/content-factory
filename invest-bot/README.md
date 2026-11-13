@@ -106,3 +106,35 @@ For live `prod`: additionally set `TINKOFF_ALLOW_LIVE=1`; do not do this casuall
 - Resolved `SBER` FIGI, fetched last price.
 - Sent a market BUY for 1 lot, status `EXECUTION_REPORT_STATUS_FILL`.
 - Sent a market SELL to flatten the position; no open SBER position remains.
+
+## ORB strategy (experimental)
+
+`STRATEGY=orb` selects the Opening Range Breakout module. It uses Tinkoff 5-minute
+candles in sandbox/prod mode (MOEX 10-minute candles in paper mode), a 15-minute
+opening range, VWAP, relative volume, ATR filters and the same 3000 RUB exposure
+limits. A signal is evaluated on completed candles only.
+
+Recommended experimental config:
+
+```env
+STRATEGY=orb
+CANDLE_INTERVAL=CANDLE_INTERVAL_5_MIN
+OR_MINUTES=15
+ENTRY_CUTOFF=16:30
+REL_VOL_MIN=1.4
+ATR_PERIOD=14
+ATR_MIN_PCT=0.0015
+ATR_MAX_PCT=0.015
+MAX_TRADES_PER_DAY=2
+ALLOW_LOSS_EXIT=1        # required for the ORB stop; 0 = hold losers
+STOP_LOSS=0.01
+TAKE_PROFIT=0.02
+```
+
+Backtest on Tinkoff 5-minute history:
+
+```bash
+TINKOFF_TOKEN=... python -m bot.backtest --days 90 --out backtest_results_90d.json
+```
+
+The default deployed strategy remains `ema_rsi` until the ORB results are reviewed.
