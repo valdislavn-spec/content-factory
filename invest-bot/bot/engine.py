@@ -67,7 +67,7 @@ class Engine:
         if cfg.live_broker:
             self.broker = TinkoffBroker(
                 cfg.tinkoff_token, cfg.mode, cfg.tinkoff_class_code,
-                cfg.tinkoff_sandbox_topup,
+                cfg.tinkoff_sandbox_topup, verify_tls=cfg.tinkoff_verify_tls,
             )
             self.broker.connect()
             self.data = self.broker
