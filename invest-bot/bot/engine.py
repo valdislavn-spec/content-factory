@@ -12,6 +12,7 @@ from .config import Config
 from .models import Position, Signal
 from .moex import MSK, MoexData
 from .strategy import evaluate
+from .orb import evaluate as evaluate_orb
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ class Engine:
         self._stop = threading.Event()
         self.day = ""
         self.day_start_equity = cfg.start_equity
+        self.trades_today = 0
         self.notifier = Notifier(cfg.telegram_bot_token, cfg.telegram_chat_id)
 
         if cfg.live_broker:
@@ -110,6 +112,9 @@ class Engine:
                     "allow_loss_exit": self.cfg.allow_loss_exit,
                     "stop_loss": self.cfg.stop_loss,
                     "take_profit": self.cfg.take_profit,
+                    "strategy": self.cfg.strategy,
+                    "max_trades_per_day": self.cfg.max_trades_per_day,
+                    "trades_today": self.trades_today,
                 },
                 "exposure_rub": round(self._exposure(), 2),
             }
@@ -157,6 +162,7 @@ class Engine:
         day = now.date().isoformat()
         if self.day != day:
             self.day = day
+            self.trades_today = 0
             self.day_start_equity = self._equity() if self.prices else self.cfg.start_equity
             if isinstance(self.broker, PaperBroker):
                 self.broker.update_day(now, self.day_start_equity)
@@ -164,7 +170,10 @@ class Engine:
         results: list[dict] = []
         for ticker in self.cfg.tickers:
             try:
-                candles = self.data.candles(ticker, days=self.cfg.moex_days)
+                if self.cfg.strategy == "orb" and isinstance(self.broker, TinkoffBroker):
+                    candles = self.broker.candles(ticker, days=self.cfg.moex_days, interval=self.cfg.candle_interval)
+                else:
+                    candles = self.data.candles(ticker, days=self.cfg.moex_days)
             except Exception as exc:
                 self.last_error = f"{ticker}: {exc}"
                 log.warning("candles %s failed: %s", ticker, exc)
@@ -174,7 +183,11 @@ class Engine:
             price = candles[-1].close
             self.prices[ticker] = price
             pos = self._position(ticker)
-            signal = evaluate(ticker, candles, pos, self.cfg)
+            signal = (
+                evaluate_orb(ticker, candles, pos, self.cfg)
+                if self.cfg.strategy == "orb"
+                else evaluate(ticker, candles, pos, self.cfg)
+            )
             if not signal:
                 continue
             self.last_signals[ticker] = {
@@ -182,6 +195,7 @@ class Engine:
                 "reason": signal.reason,
                 "price": round(signal.price, 3),
                 "rsi": round(signal.rsi, 1) if signal.rsi is not None else None,
+                "meta": signal.meta,
                 "ts": now.isoformat(),
             }
             log.info("SIGNAL %s %s %s", ticker, signal.action, signal.reason)
@@ -192,6 +206,8 @@ class Engine:
                 continue
             if signal.action == "BUY":
                 if not entry_allowed(now) or len(self._positions()) >= self.cfg.max_positions:
+                    continue
+                if self.trades_today >= self.cfg.max_trades_per_day:
                     continue
                 equity = self._equity()
                 if self.day_start_equity and equity < self.day_start_equity * (1 - self.cfg.daily_loss_limit):
@@ -205,6 +221,7 @@ class Engine:
                     continue
                 filled = self.broker.buy(ticker, price, budget, signal.reason, now)
                 if filled:
+                    self.trades_today += 1
                     results.append(filled)
                     self.notifier.send(f"🟢 BUY {ticker} @ {price:.2f}\n{signal.reason}\nMode: {self.cfg.mode}")
             elif signal.action == "SELL" and pos:
@@ -224,10 +241,12 @@ class Engine:
         for pos in self._positions():
             ticker = pos["ticker"]
             price = self.prices.get(ticker, float(pos["avg_price"]))
-            if not self.cfg.allow_loss_exit and price < float(pos["avg_price"]):
+            entry = float(pos["avg_price"])
+            net_profit = price * (1 - self.cfg.fee) > entry * (1 + self.cfg.fee)
+            if not self.cfg.allow_loss_exit and not net_profit:
                 self.notifier.send(
-                    f"⏸️ HOLD {ticker} @ {price:.2f} (entry {pos['avg_price']:.2f}): "
-                    f"not selling at a loss\nMode: {self.cfg.mode}"
+                    f"⏸️ HOLD {ticker} @ {price:.2f} (entry {entry:.2f}): "
+                    f"not selling at a net loss\nMode: {self.cfg.mode}"
                 )
                 continue
             try:
