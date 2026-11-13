@@ -4,6 +4,9 @@ services:
     image: content-factory:local
     env_file:
       - .env
+    # Base compose never calls an LLM. The ML overlay enables it explicitly.
+    environment:
+      CLUSTER_VERIFIER: "off"
     volumes:
       - ./data:/app/data
     command: ["daemon"]

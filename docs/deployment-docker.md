@@ -20,8 +20,10 @@ docker compose run --rm daemon run --channel all --dry-run
 
 ### Ollama для ML-верификатора кластеризации
 
-Обычный `docker compose up` не тянет тяжёлую модель. Чтобы включить локальный
-LLM-верификатор неоднозначных пар, используйте overlay:
+Обычный `docker compose up` не тянет тяжёлую модель и явно выставляет
+`CLUSTER_VERIFIER=off` — даже если в скопированном `.env` осталось
+`CLUSTER_VERIFIER=ollama` с локальной машины. To enable the local LLM verifier,
+use the overlay:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ml.yml up -d --build
