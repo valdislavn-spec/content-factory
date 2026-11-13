@@ -31,9 +31,10 @@ def evaluate(ticker: str, candles: list[Candle], position: Position | None, cfg:
 
     stop = position.avg_price * (1 - cfg.stop_loss)
     take = position.avg_price * (1 + cfg.take_profit)
-    if crossed_down:
+    profit = cur.close > position.avg_price
+    if crossed_down and (cfg.allow_loss_exit or profit):
         return Signal(ticker, "SELL", cur.close, "EMA9/21 bearish cross", fast[-1], slow[-1], strength[-1])
-    if cur.close <= stop:
+    if cfg.allow_loss_exit and cfg.stop_loss > 0 and cur.close <= stop:
         return Signal(ticker, "SELL", cur.close, f"stop loss < {stop:.2f}", fast[-1], slow[-1], strength[-1])
     if cur.close >= take:
         return Signal(ticker, "SELL", cur.close, f"take profit > {take:.2f}", fast[-1], slow[-1], strength[-1])
