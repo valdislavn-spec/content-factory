@@ -200,3 +200,30 @@ Stop-loss is enabled despite the earlier no-loss experiment: the 90/180-day
 backtests showed that carrying losers is not a reliable edge. The first 3–5
 sessions are for live sandbox statistics; the deposit/exposure is not increased
 until the results are reviewed. This is still virtual money.
+
+## Production token and account
+
+Trading tokens are issued **only on the T-Bank website**, not in the mobile app:
+`https://www.tbank.ru/invest/settings/api/` (official guide:
+`https://developer.tbank.ru/invest/intro/intro/token`).
+
+Token types:
+
+- `Read-only` — monitoring only, cannot place orders.
+- `Full-access` — required for real order execution.
+- `Sandbox token` — sandbox only; it does not work with production methods.
+- `Transfer-access` — full access plus transfers; not needed by this bot.
+
+To prepare production (do not enable yet):
+
+```env
+MODE=prod
+TINKOFF_TOKEN=<full-access production token>
+TINKOFF_ALLOW_LIVE=1
+TINKOFF_ACCOUNT_ID=<production brokerage account id>
+```
+
+`TINKOFF_ACCOUNT_ID` is optional but strongly recommended: without it the bot
+uses the first account returned by `UsersService/GetAccounts`, which may be the
+wrong account. Token and account id belong in Northflank secrets, never in git.
+The bot will not start `prod` without `TINKOFF_ALLOW_LIVE=1`.
