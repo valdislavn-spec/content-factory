@@ -74,6 +74,7 @@ class Engine:
             self.broker = TinkoffBroker(
                 cfg.tinkoff_token, cfg.mode, cfg.tinkoff_class_code,
                 cfg.tinkoff_sandbox_topup, verify_tls=cfg.tinkoff_verify_tls,
+                account_id=cfg.tinkoff_account_id,
             )
             self.broker.connect()
             self.data = self.broker
