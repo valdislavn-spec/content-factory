@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sqlite3
+import tempfile
 import threading
 import time
 import uuid
@@ -14,6 +15,26 @@ import requests
 
 log = logging.getLogger(__name__)
 MSK = timezone(timedelta(hours=3))
+
+
+def _ca_bundle_path() -> str:
+    """certifi + Russian Trusted Root/Sub CA (used by T-Bank/Tinkoff endpoints)."""
+    bundle = Path(tempfile.gettempdir()) / "tinkoff-ca-bundle.pem"
+    if bundle.exists():
+        return str(bundle)
+    try:
+        import certifi
+        parts = [Path(certifi.where()).read_text()]
+        cert_dir = Path(__file__).resolve().parent.parent / "certs"
+        for name in ("russian_trusted_root_ca.pem", "russian_trusted_sub_ca.pem"):
+            p = cert_dir / name
+            if p.exists():
+                parts.append(p.read_text())
+        bundle.write_text("\n".join(parts))
+        return str(bundle)
+    except Exception as exc:
+        log.warning("cannot build Tinkoff CA bundle: %s", exc)
+        return True  # type: ignore[return-value]
 
 
 class BrokerError(RuntimeError):
@@ -211,7 +232,7 @@ class TinkoffBroker:
         self.timeout = timeout
         self.base = self.SANDBOX if mode == "sandbox" else self.PROD
         self.session = requests.Session()
-        self.session.verify = verify_tls
+        self.session.verify = _ca_bundle_path() if verify_tls else False
         if not verify_tls:
             log.warning("Tinkoff TLS verification disabled (TINKOFF_VERIFY_TLS=0); use only with trusted network")
         self.session.headers.update(
