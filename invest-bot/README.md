@@ -166,3 +166,16 @@ risk-free.
 For a production account, keep the loss guard enabled, use only a separate
 production token after sandbox validation, and be prepared to stop the service
 manually. Never enable `MODE=prod` or `TINKOFF_ALLOW_LIVE=1` for experiments.
+
+## Current safety mode (2026-11-13)
+
+- `TRADING_ENABLED=0` — no new entries.
+- `ALLOW_LOSS_EXIT=1` — stop-loss and loss exits are allowed again; this
+  supersedes the earlier "never sell at a loss" experiment.
+- `STOP_LOSS=0.01` — 1% price stop for the EMA strategy (and the ORB fallback).
+- `MAX_TOTAL_LOSS_RUB=3000` — hard kill switch blocks new buys after 3000 RUB loss.
+
+While entries are disabled, the engine still processes protective exits for any
+already-open position (stop-loss, take-profit, end-of-session exit), so enabling
+stops is meaningful even with `TRADING_ENABLED=0`. To eliminate all order flow,
+stop the service instead.
