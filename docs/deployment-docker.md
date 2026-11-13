@@ -18,6 +18,27 @@ docker compose logs -f daemon
 docker compose run --rm daemon run --channel all --dry-run
 ```
 
+### GPU для Ollama (Linux/NVIDIA)
+
+Если у VPS есть NVIDIA GPU и установлен `nvidia-container-toolkit`, добавьте
+ещё один overlay:
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.ml.yml \
+  -f docker-compose.gpu.yml up -d --build
+```
+
+Проверка, что Docker видит GPU:
+
+```bash
+docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+```
+
+Без этого Ollama в контейнере работает на CPU. На macOS Docker Desktop не
+пробрасывает Metal/GPU в Linux-контейнер — там используйте Ollama на хосте.
+
 ### Ollama для ML-верификатора кластеризации
 
 Обычный `docker compose up` не тянет тяжёлую модель и явно выставляет
