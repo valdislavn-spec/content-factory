@@ -305,28 +305,59 @@ class TinkoffBroker:
         self._ticker_by_figi[info["figi"]] = ticker
         return info
 
-    def candles(self, ticker: str, days: int = 7) -> list:
+    def candles(self, ticker: str, days: int = 7, interval: str = "CANDLE_INTERVAL_10_MIN") -> list:
         from .models import Candle
 
         info = self.instrument(ticker)
         now = datetime.now(timezone.utc)
-        data = self._post("MarketDataService", "GetCandles", {
-            "figi": info["figi"],
-            "from": (now - timedelta(days=days)).isoformat().replace("+00:00", "Z"),
-            "to": now.isoformat().replace("+00:00", "Z"),
-            "interval": "CANDLE_INTERVAL_10_MIN",
-        })
-        out = []
-        for c in data.get("candles", []):
-            try:
-                ts = datetime.fromisoformat(c["time"].replace("Z", "+00:00")).astimezone(MSK)
-                out.append(Candle(
-                    ts=ts, open=_money(c["open"]), high=_money(c["high"]),
-                    low=_money(c["low"]), close=_money(c["close"]),
-                    volume=float(c.get("volume", 0) or 0),
-                ))
-            except (KeyError, TypeError, ValueError) as exc:
-                log.warning("Tinkoff bad candle %s: %s", ticker, exc)
+        # Tinkoff limits the period per request for intraday intervals.
+        max_days = {
+            "CANDLE_INTERVAL_1_MIN": 1,
+            "CANDLE_INTERVAL_5_MIN": 7,
+            "CANDLE_INTERVAL_15_MIN": 7,
+            "CANDLE_INTERVAL_30_MIN": 30,
+            "CANDLE_INTERVAL_10_MIN": 30,
+            "CANDLE_INTERVAL_HOUR": 90,
+        }.get(interval, 7)
+        out: list = []
+        seen: set[datetime] = set()
+        chunk_start = now - timedelta(days=days)
+        while chunk_start < now:
+            chunk_end = min(chunk_start + timedelta(days=max_days), now)
+            cursor = chunk_start
+            for _ in range(50):
+                data = self._post("MarketDataService", "GetCandles", {
+                    "figi": info["figi"],
+                    "from": cursor.isoformat().replace("+00:00", "Z"),
+                    "to": chunk_end.isoformat().replace("+00:00", "Z"),
+                    "interval": interval,
+                })
+                raw = data.get("candles", [])
+                added = 0
+                last_ts = None
+                for c in raw:
+                    try:
+                        ts = datetime.fromisoformat(c["time"].replace("Z", "+00:00")).astimezone(MSK)
+                        last_ts = ts
+                        if ts in seen:
+                            continue
+                        seen.add(ts)
+                        out.append(Candle(
+                            ts=ts, open=_money(c["open"]), high=_money(c["high"]),
+                            low=_money(c["low"]), close=_money(c["close"]),
+                            volume=float(c.get("volume", 0) or 0),
+                        ))
+                        added += 1
+                    except (KeyError, TypeError, ValueError) as exc:
+                        log.warning("Tinkoff bad candle %s: %s", ticker, exc)
+                if len(raw) < 1000 or added == 0 or last_ts is None:
+                    break
+                nxt = last_ts.astimezone(timezone.utc) + timedelta(seconds=1)
+                if nxt >= chunk_end:
+                    break
+                cursor = nxt
+            chunk_start = chunk_end
+        out.sort(key=lambda c: c.ts)
         return out
 
     def _last_price(self, ticker: str) -> float:
