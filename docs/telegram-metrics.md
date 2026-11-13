@@ -42,12 +42,19 @@ Telethon — необязательная зависимость. Без нег�
 ```bash
 TG_API_ID=123456
 TG_API_HASH=abcdef1234567890
-TG_SESSION=content_factory
+TG_SESSION=data/telegram.session
 ```
 
 `api_id`/`api_hash` — бесплатно на <https://my.telegram.org>.
-При первом запуске Telethon попросит номер телефона и код; сессия сохранится
-в файл `TG_SESSION` (храните его как пароль, не коммитьте).
+Создайте сессию один раз (интерактивно; Telethon спросит номер и код):
+
+```bash
+./.venv/bin/python scripts/telegram_auth.py --session data/telegram.session
+```
+
+Скрипт проверит наличие ключей и Telethon, сохранит сессию в `TG_SESSION`/указанный
+путь и покажет следующий шаг. Сессия = доступ к аккаунту: не коммитьте её и
+держите права `600`.
 
 Нужен **user-аккаунт**, который состоит в каналах или администрирует их.
 Бот-токен для чтения просмотров не подходит — Bot API их не отдаёт.
@@ -106,7 +113,7 @@ Telegram-метрики: 3 каналов
 
 ```bash
 # 1. Локально создайте сессию (Telethon спросит телефон/код):
-TG_SESSION=content_factory.session \
+TG_SESSION=data/telegram.session \
   python -m content_factory telegram-metrics --channel sport-news --limit 1
 
 # 2. Закодируйте файл и положите в GitHub Secret TG_SESSION_B64:
