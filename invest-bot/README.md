@@ -69,3 +69,15 @@ If `STATUS_TOKEN` is set, pass `X-Api-Token: ...` or `?token=...`.
 ```bash
 python -m pytest -q tests
 ```
+
+## Deployed
+
+- Northflank service: `invest-bot` (project `default`), public URL:
+  `https://http--invest-bot--sm4j47bvw78l.code.run`
+- Health: `/health`; status: `/status`; trades: `/trades`.
+- Default deployed mode is `paper` with MOEX ISS data. No Tinkoff token is stored in
+  the repo or deployed yet.
+
+To enable Tinkoff sandbox: add `TINKOFF_TOKEN` to the Northflank service env
+(secret), set `MODE=sandbox`, redeploy/restart. Start with paper results first.
+For live `prod`: additionally set `TINKOFF_ALLOW_LIVE=1`; do not do this casually.
