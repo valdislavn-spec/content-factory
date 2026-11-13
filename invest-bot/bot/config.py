@@ -30,6 +30,7 @@ class Config:
     tinkoff_class_code: str = "TQBR"
     tinkoff_allow_live: bool = False
     tinkoff_sandbox_topup: float = 100_000.0
+    tinkoff_verify_tls: bool = True
 
     @property
     def live_broker(self) -> bool:
@@ -64,6 +65,7 @@ class Config:
             tinkoff_class_code=os.getenv("TINKOFF_CLASS_CODE", default.tinkoff_class_code),
             tinkoff_allow_live=_env_bool("TINKOFF_ALLOW_LIVE", False),
             tinkoff_sandbox_topup=float(os.getenv("TINKOFF_SANDBOX_TOPUP", default.tinkoff_sandbox_topup)),
+            tinkoff_verify_tls=_env_bool("TINKOFF_VERIFY_TLS", True),
         )
 
     def validate(self) -> None:
