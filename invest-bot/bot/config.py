@@ -34,6 +34,18 @@ class Config:
     max_position_rub: float = 3000.0
     max_total_exposure_rub: float = 3000.0
     allow_loss_exit: bool = False
+    strategy: str = "ema_rsi"  # ema_rsi | orb
+    candle_interval: str = "CANDLE_INTERVAL_5_MIN"
+    or_minutes: int = 15
+    entry_cutoff: str = "16:30"
+    rel_vol_min: float = 1.4
+    rel_vol_lookback: int = 20
+    atr_period: int = 14
+    atr_min_pct: float = 0.0015
+    atr_max_pct: float = 0.015
+    breakout_buffer: float = 0.0005
+    max_trades_per_day: int = 2
+    take_r: float = 2.0
 
     @property
     def live_broker(self) -> bool:
@@ -72,6 +84,18 @@ class Config:
             max_position_rub=float(os.getenv("MAX_POSITION_RUB", default.max_position_rub)),
             max_total_exposure_rub=float(os.getenv("MAX_TOTAL_EXPOSURE_RUB", default.max_total_exposure_rub)),
             allow_loss_exit=_env_bool("ALLOW_LOSS_EXIT", default.allow_loss_exit),
+            strategy=os.getenv("STRATEGY", default.strategy).strip().lower(),
+            candle_interval=os.getenv("CANDLE_INTERVAL", default.candle_interval),
+            or_minutes=int(os.getenv("OR_MINUTES", default.or_minutes)),
+            entry_cutoff=os.getenv("ENTRY_CUTOFF", default.entry_cutoff),
+            rel_vol_min=float(os.getenv("REL_VOL_MIN", default.rel_vol_min)),
+            rel_vol_lookback=int(os.getenv("REL_VOL_LOOKBACK", default.rel_vol_lookback)),
+            atr_period=int(os.getenv("ATR_PERIOD", default.atr_period)),
+            atr_min_pct=float(os.getenv("ATR_MIN_PCT", default.atr_min_pct)),
+            atr_max_pct=float(os.getenv("ATR_MAX_PCT", default.atr_max_pct)),
+            breakout_buffer=float(os.getenv("BREAKOUT_BUFFER", default.breakout_buffer)),
+            max_trades_per_day=int(os.getenv("MAX_TRADES_PER_DAY", default.max_trades_per_day)),
+            take_r=float(os.getenv("TAKE_R", default.take_r)),
         )
 
     def validate(self) -> None:
@@ -85,3 +109,7 @@ class Config:
             raise ValueError("RISK_PER_TRADE must be in (0, 1]")
         if self.max_position_rub <= 0 or self.max_total_exposure_rub <= 0:
             raise ValueError("position/exposure limits must be positive")
+        if self.strategy not in {"ema_rsi", "orb"}:
+            raise ValueError("STRATEGY must be ema_rsi or orb")
+        if self.strategy == "orb" and not (0 < self.or_minutes <= 60):
+            raise ValueError("OR_MINUTES must be in (0, 60]")
