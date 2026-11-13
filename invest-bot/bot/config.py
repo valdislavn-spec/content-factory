@@ -46,6 +46,8 @@ class Config:
     breakout_buffer: float = 0.0005
     max_trades_per_day: int = 2
     take_r: float = 2.0
+    trading_enabled: bool = True
+    max_total_loss_rub: float = 3000.0
 
     @property
     def live_broker(self) -> bool:
@@ -96,6 +98,8 @@ class Config:
             breakout_buffer=float(os.getenv("BREAKOUT_BUFFER", default.breakout_buffer)),
             max_trades_per_day=int(os.getenv("MAX_TRADES_PER_DAY", default.max_trades_per_day)),
             take_r=float(os.getenv("TAKE_R", default.take_r)),
+            trading_enabled=_env_bool("TRADING_ENABLED", default.trading_enabled),
+            max_total_loss_rub=float(os.getenv("MAX_TOTAL_LOSS_RUB", default.max_total_loss_rub)),
         )
 
     def validate(self) -> None:
@@ -111,5 +115,7 @@ class Config:
             raise ValueError("position/exposure limits must be positive")
         if self.strategy not in {"ema_rsi", "orb"}:
             raise ValueError("STRATEGY must be ema_rsi or orb")
+        if self.max_total_loss_rub < 0:
+            raise ValueError("MAX_TOTAL_LOSS_RUB must be >= 0")
         if self.strategy == "orb" and not (0 < self.or_minutes <= 60):
             raise ValueError("OR_MINUTES must be in (0, 60]")
