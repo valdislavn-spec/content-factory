@@ -222,7 +222,7 @@ class TinkoffBroker:
 
     def __init__(self, token: str, mode: str, class_code: str = "TQBR",
                  sandbox_topup: float = 100_000.0, timeout: int = 20,
-                 verify_tls: bool = True):
+                 verify_tls: bool = True, account_id: str = ""):
         if mode not in {"sandbox", "prod"}:
             raise ValueError("TinkoffBroker mode must be sandbox or prod")
         self.token = token
@@ -265,7 +265,12 @@ class TinkoffBroker:
         if self.mode == "sandbox":
             data = self._post("SandboxService", "GetSandboxAccounts", {})
             accounts = data.get("accounts", [])
-            if accounts:
+            ids = [a.get("id", "") for a in accounts]
+            if self.preferred_account_id:
+                if self.preferred_account_id not in ids:
+                    raise BrokerError("TINKOFF_ACCOUNT_ID not found among sandbox accounts")
+                self.account_id = self.preferred_account_id
+            elif accounts:
                 self.account_id = accounts[0]["id"]
             else:
                 created = self._post("SandboxService", "OpenSandboxAccount", {})
@@ -285,7 +290,13 @@ class TinkoffBroker:
             accounts = data.get("accounts", [])
             if not accounts:
                 raise BrokerError("no Tinkoff accounts available")
-            self.account_id = accounts[0]["id"]
+            ids = [a.get("id", "") for a in accounts]
+            if self.preferred_account_id:
+                if self.preferred_account_id not in ids:
+                    raise BrokerError("TINKOFF_ACCOUNT_ID not found among production accounts")
+                self.account_id = self.preferred_account_id
+            else:
+                self.account_id = accounts[0]["id"]
         log.info("Tinkoff %s connected: account=%s", self.mode, self.account_id[:4] + "***")
         return self.account_id
 
