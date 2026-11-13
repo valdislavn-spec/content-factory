@@ -196,6 +196,12 @@ def process_table(block: str, mode: str, cities: dict[str, str], countries: dict
 
 
 def humanize_dates(html: str) -> str:
+    # дата уже есть в шапке — в футере оставляем только подпись-источник
+    html = html.replace(
+        '<div class="foot-links">\n  <span class="chip"><span class="chip-ico">🕒</span>'
+        + SNAPSHOT_ISO + "</span>\n</div>\n",
+        "",
+    )
     html = html.replace(f"· снимок {SNAPSHOT_ISO}.", f"· данные на {SNAPSHOT_HUMAN}.")
     html = html.replace(f"снимок {SNAPSHOT_ISO}", SNAPSHOT_HUMAN)
     return html.replace(SNAPSHOT_ISO, SNAPSHOT_HUMAN)
