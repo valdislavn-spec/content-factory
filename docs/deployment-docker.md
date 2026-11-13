@@ -22,8 +22,8 @@ docker compose run --rm daemon run --channel all --dry-run
 
 Обычный `docker compose up` не тянет тяжёлую модель и явно выставляет
 `CLUSTER_VERIFIER=off` — даже если в скопированном `.env` осталось
-`CLUSTER_VERIFIER=ollama` с локальной машины. To enable the local LLM verifier,
-use the overlay:
+`CLUSTER_VERIFIER=ollama` с локальной машины. Чтобы включить локальный
+LLM-верификатор, используйте overlay:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ml.yml up -d --build
