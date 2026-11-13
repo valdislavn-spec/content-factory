@@ -18,10 +18,10 @@ No broker token is needed.
 
 - Universe: `SBER,GAZP,LKOH,YDEX,ROSN,VTBR,TATN,MTSS` (override with `TICKERS`).
 - 10-minute candles; EMA(9)/EMA(21) bullish crossover + RSI(14) 45..72.
-- Long-only, max 3 positions, 10% equity per entry.
-- Exit: opposite EMA cross, stop-loss −1.2%, take-profit +2.0%, or 17:45 MSK.
-- Daily loss limit 2% of day-start equity.
-- This is an educational strategy, not investment advice.
+- Long-only, **max 1 position**, **max 3000 RUB total exposure** and max 3000 RUB per entry.
+- Exit: take-profit +2.0%, or profit-taking on an opposite EMA cross.
+- **No loss exits by default:** stop-loss is disabled and end-of-day does not sell a losing position; it is held until it turns profitable. Set `ALLOW_LOSS_EXIT=1` to enable stop-loss/loss exits again.
+- This is an educational strategy, not investment advice. Holding losers can be riskier than taking a small stop.
 
 ## Run locally
 
@@ -40,7 +40,10 @@ MODE=paper
 TICKERS=SBER,GAZP,LKOH,YDEX,ROSN,VTBR,TATN,MTSS
 START_EQUITY=100000
 RISK_PER_TRADE=0.10
-MAX_POSITIONS=3
+MAX_POSITION_RUB=3000          # cap per entry
+MAX_TOTAL_EXPOSURE_RUB=3000    # cap for all open positions
+ALLOW_LOSS_EXIT=0              # 0 = never sell at a loss
+MAX_POSITIONS=1
 DAILY_LOSS_LIMIT=0.02
 TAKE_PROFIT=0.02
 STOP_LOSS=0.012
@@ -84,7 +87,7 @@ For live `prod`: additionally set `TINKOFF_ALLOW_LIVE=1`; do not do this casuall
 
 ## Current deployment status
 
-- Mode: **sandbox** (Tinkoff Invest sandbox, virtual money).
+- Mode: **sandbox** (Tinkoff Invest sandbox, virtual money), max exposure 3000 RUB, no loss exits.
 - Tinkoff sandbox account: created and funded with 100 000 RUB.
 - Public URL: `https://http--invest-bot--sm4j47bvw78l.code.run`
 - `/status` now reports Tinkoff portfolio equity and live Tinkoff 10-min candles.
