@@ -290,22 +290,26 @@ class TelegramPublisher(Publisher):
                     )
 
             image_url = str((post.meta or {}).get("image_url") or "").strip()
+            photo_file_id = str((post.meta or {}).get("photo_file_id") or "").strip()
+            # photo_file_id — фото, загруженное рекламодателем в бота; image_url —
+            # картинка статьи. Оба отправляются через sendPhoto.
+            photo_ref = photo_file_id or image_url
+            photo_ok = bool(photo_file_id) or image_url.startswith(("http://", "https://"))
             caption_ok = (
-                image_url.startswith(("http://", "https://"))
+                photo_ok
                 and len(parts) == 1
                 and len(strip_html(parts[0])) <= 1000
             )
-            if caption_ok and not card_message_id:
+            if photo_ok and not card_message_id:
                 try:
-                    photo_result = self._call(
-                        "sendPhoto",
-                        {
-                            "chat_id": chat_id,
-                            "photo": image_url,
-                            "caption": parts[0],
-                            "parse_mode": parse_mode,
-                        },
-                    )
+                    fields: Dict[str, Any] = {
+                        "chat_id": chat_id,
+                        "photo": photo_ref,
+                        "parse_mode": parse_mode,
+                    }
+                    if caption_ok:
+                        fields["caption"] = parts[0]
+                    photo_result = self._call("sendPhoto", fields)
                     message_id = ""
                     if isinstance(photo_result, dict):
                         message_id = str(photo_result.get("message_id") or "")
@@ -315,14 +319,22 @@ class TelegramPublisher(Publisher):
                         if username and message_id
                         else ""
                     )
+                    if caption_ok:
+                        logger.info(
+                            "Telegram: пост %s канала %s опубликован фото-карточкой (id=%s)",
+                            post.id,
+                            channel.id,
+                            message_id or "-",
+                        )
+                        return self._result(
+                            post, channel, ok=True, external_id=message_id, url=url
+                        )
+                    card_message_id = message_id
                     logger.info(
-                        "Telegram: пост %s канала %s опубликован фото-карточкой (id=%s)",
+                        "Telegram: фото поста %s канала %s загружено (id=%s), далее текст",
                         post.id,
                         channel.id,
                         message_id or "-",
-                    )
-                    return self._result(
-                        post, channel, ok=True, external_id=message_id, url=url
                     )
                 except TelegramAPIError as exc:
                     logger.warning(

@@ -141,7 +141,8 @@ CREATE TABLE IF NOT EXISTS ad_orders (
     invoice_url   TEXT DEFAULT '',
     paid_at       TEXT DEFAULT '',
     queue_file    TEXT DEFAULT '',
-    payment_charge_id TEXT DEFAULT ''
+    payment_charge_id TEXT DEFAULT '',
+    photo_file_id TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_ad_orders_status ON ad_orders (status, created_at);
 """
@@ -164,6 +165,7 @@ class AdOrder:
     paid_at: str = ""
     queue_file: str = ""
     payment_charge_id: str = ""
+    photo_file_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -182,6 +184,7 @@ class AdOrder:
             "paid_at": self.paid_at,
             "queue_file": self.queue_file,
             "payment_charge_id": self.payment_charge_id,
+            "photo_file_id": self.photo_file_id,
         }
 
 
@@ -208,6 +211,8 @@ class AdOrderStore:
         }
         if "payment_charge_id" not in columns:
             self.conn.execute("ALTER TABLE ad_orders ADD COLUMN payment_charge_id TEXT DEFAULT ''")
+        if "photo_file_id" not in columns:
+            self.conn.execute("ALTER TABLE ad_orders ADD COLUMN photo_file_id TEXT DEFAULT ''")
 
     def close(self) -> None:
         try:
@@ -253,8 +258,8 @@ class AdOrderStore:
             """INSERT INTO ad_orders
             (id, created_at, updated_at, channel_id, tariff, amount, payload,
              buyer_id, buyer_username, ad_text, status, invoice_url, paid_at, queue_file,
-             payment_charge_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+             payment_charge_id, photo_file_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 order.id,
                 order.created_at,
@@ -271,6 +276,7 @@ class AdOrderStore:
                 order.paid_at,
                 order.queue_file,
                 order.payment_charge_id,
+                order.photo_file_id,
             ),
         )
         self.conn.commit()
@@ -348,6 +354,7 @@ class AdOrderStore:
             paid_at=str(data.get("paid_at") or ""),
             queue_file=str(data.get("queue_file") or ""),
             payment_charge_id=str(data.get("payment_charge_id") or ""),
+            photo_file_id=str(data.get("photo_file_id") or ""),
         )
 
 
@@ -439,7 +446,12 @@ def plan_update_actions(
     # --- сообщения ---
     message = update.get("message") or {}
     if message:
-        text = str(message.get("text") or "")
+        text = str(message.get("text") or message.get("caption") or "")
+        photo = message.get("photo") or []
+        photo_file_id = ""
+        if isinstance(photo, list) and photo:
+            largest = photo[-1] if isinstance(photo[-1], dict) else {}
+            photo_file_id = str(largest.get("file_id") or "")
         chat = message.get("chat") or {}
         user = message.get("from") or {}
         chat_id = chat.get("id")
@@ -498,8 +510,8 @@ def plan_update_actions(
                     }
                 )
                 return actions
-        # текст рекламы после оплаты
-        if text and not text.startswith("/"):
+        # текст (и/или фото) рекламы после оплаты
+        if (text or photo_file_id) and not text.startswith("/"):
             order = store.latest_for_buyer(user_id, "awaiting_text")
             if order is not None and len(text) > 3000:
                 actions.append(
@@ -513,31 +525,52 @@ def plan_update_actions(
                 )
                 return actions
             if order is not None:
-                order = store.update(order.id, ad_text=text, status="moderation")
+                order = store.update(
+                    order.id,
+                    ad_text=text,
+                    photo_file_id=photo_file_id,
+                    status="moderation",
+                )
+                accepted = "Фото и текст" if (text and photo_file_id) else ("Фото" if photo_file_id else "Текст")
                 actions.append(
                     {
                         "method": "sendMessage",
                         "payload": {
                             "chat_id": chat_id,
-                            "text": "Спасибо! Текст отправлен на модерацию. Ответим здесь же.",
+                            "text": f"Спасибо! {accepted} отправлен(ы) на модерацию. Ответим здесь же.",
                         },
                     }
                 )
                 if admin_chat_id:
-                    actions.append(
-                        {
-                            "method": "sendMessage",
-                            "payload": {
-                                "chat_id": _chat_id(admin_chat_id),
-                                "text": (
-                                    f"🆕 Заявка {order.id}\n"
-                                    f"Канал: {order.channel_id} · тариф {order.tariff} · {order.amount} ⭐\n"
-                                    f"Покупатель: {_username(user) or user_id}\n\n{text[:3000]}"
-                                ),
-                                "reply_markup": _moderation_keyboard(order.id),
-                            },
-                        }
+                    header = (
+                        f"🆕 Заявка {order.id}\n"
+                        f"Канал: {order.channel_id} · тариф {order.tariff} · {order.amount} ⭐\n"
+                        f"Покупатель: {_username(user) or user_id}\n\n"
                     )
+                    if photo_file_id:
+                        caption = (header + text)[:1024]
+                        actions.append(
+                            {
+                                "method": "sendPhoto",
+                                "payload": {
+                                    "chat_id": _chat_id(admin_chat_id),
+                                    "photo": photo_file_id,
+                                    "caption": caption,
+                                    "reply_markup": _moderation_keyboard(order.id),
+                                },
+                            }
+                        )
+                    else:
+                        actions.append(
+                            {
+                                "method": "sendMessage",
+                                "payload": {
+                                    "chat_id": _chat_id(admin_chat_id),
+                                    "text": (header + text[:3000]),
+                                    "reply_markup": _moderation_keyboard(order.id),
+                                },
+                            }
+                        )
                 return actions
 
     # --- callback-кнопки ---
@@ -680,8 +713,8 @@ def plan_update_actions(
                 "method": "sendMessage",
                 "payload": {
                     "chat_id": chat_id,
-                    "text": "Оплата получена ✅ Пришлите текст рекламного поста одним сообщением.",
-                    "reply_markup": {"force_reply": True, "input_field_placeholder": "Текст поста"},
+                    "text": "Оплата получена ✅ Пришлите текст и/или фото рекламного поста одним сообщением.",
+                    "reply_markup": {"force_reply": True, "input_field_placeholder": "Текст или фото поста"},
                 },
             }
         )
@@ -712,24 +745,31 @@ def _moderation_keyboard(order_id: str) -> Dict[str, Any]:
 
 
 def ad_order_to_post(order: AdOrder, text: Optional[str] = None) -> GeneratedPost:
-    """Одобренная заявка → GeneratedPost для публикатора Telegram."""
+    """Одобренная заявка → GeneratedPost для публикатора Telegram.
+
+    Поддерживает текст, фото (Telegram ``file_id``) или оба варианта.
+    """
     body = str(text if text is not None else order.ad_text or "").strip()
-    if not body:
-        raise MonetizationError(f"заявка {order.id}: пустой текст поста")
+    photo_file_id = str(order.photo_file_id or "").strip()
+    if not body and not photo_file_id:
+        raise MonetizationError(f"заявка {order.id}: пустой текст и нет фото")
+    meta = {
+        "ad_order_id": order.id,
+        "ad_tariff": order.tariff,
+        "ad_amount": order.amount,
+        "ad_buyer": order.buyer_id,
+    }
+    if photo_file_id:
+        meta["photo_file_id"] = photo_file_id
     return GeneratedPost(
         id=f"ad-{order.id}",
         channel_id=order.channel_id,
         cluster_id="",
         format="story",
-        text=body,
+        text=body or "Реклама",
         hashtags=[],
         sources=[],
-        meta={
-            "ad_order_id": order.id,
-            "ad_tariff": order.tariff,
-            "ad_amount": order.amount,
-            "ad_buyer": order.buyer_id,
-        },
+        meta=meta,
     )
 
 

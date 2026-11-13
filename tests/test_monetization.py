@@ -241,6 +241,31 @@ class FlowTests(MonetizationTestCase):
         self.callback(f"adno:{order.id}", user_id=999)
         self.assertEqual(self.store.get(order.id).status, "rejected")
 
+    def test_photo_ad_goes_to_admin_as_photo(self):
+        order, _ = self.buy()
+        self.pay(order)
+        actions = plan_update_actions(
+            {
+                "update_id": 8,
+                "message": {
+                    "caption": "Текст рекламы",
+                    "photo": [{"file_id": "small"}, {"file_id": "large-photo"}],
+                    "chat": {"id": 111},
+                    "from": {"id": 111},
+                },
+            },
+            self.store,
+            self.offers,
+            self.admin,
+            self.queue_dir,
+        )
+        stored = self.store.get(order.id)
+        self.assertEqual(stored.status, "moderation")
+        self.assertEqual(stored.photo_file_id, "large-photo")
+        admin_actions = [action for action in actions if action["method"] == "sendPhoto"]
+        self.assertEqual(len(admin_actions), 1)
+        self.assertEqual(admin_actions[0]["payload"]["photo"], "large-photo")
+
     def test_payment_unknown_payload_ignored(self):
         actions = plan_update_actions(
             {"update_id": 7, "message": {"successful_payment": {"invoice_payload": "unknown"}}},

@@ -339,6 +339,24 @@ class TelegramPublisherTests(PublisherTestCase):
         self.assertIn("<b>Привет</b>", payload["text"])
         self.assertIn("disable_web_page_preview", payload)
 
+    def test_ad_photo_file_id_is_sent_as_photo(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post(text="Рекламный текст")
+        post.meta["photo_file_id"] = "AgACAgIAAxkBAAI"
+        requests, fake_urlopen = self._capture(
+            [FakeResponse({"ok": True, "result": {"message_id": 55}})]
+        )
+        with mock.patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "123:test-token"}), mock.patch(
+            "content_factory.publishers.telegram.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = TelegramPublisher(settings).publish(post, channel, settings)
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(len(requests), 1)
+        self.assertIn("/sendPhoto", requests[0]["url"])
+        self.assertEqual(requests[0]["payload"]["photo"], "AgACAgIAAxkBAAI")
+        self.assertEqual(requests[0]["payload"]["caption"], "Рекламный текст")
+
     def test_api_error_is_returned_not_raised(self) -> None:
         settings = self.make_settings(dry_run=False)
         channel = self.make_channel()
