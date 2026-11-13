@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import unittest
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from content_factory.models import Article
 from content_factory.nlp.cluster_verifier import (
@@ -54,6 +56,21 @@ class ClusterVerifierTest(unittest.TestCase):
     def test_off_by_default(self) -> None:
         settings = SimpleNamespace(pipeline={}, llm={"providers": {}})
         self.assertIsNone(make_cluster_verifier(settings))
+
+    def test_model_and_host_overrides(self) -> None:
+        settings = SimpleNamespace(
+            pipeline={},
+            llm={"providers": {"ollama": {"base_url": "http://ollama:11434"}}},
+        )
+        with patch.dict(
+            os.environ,
+            {"CLUSTER_VERIFIER": "ollama", "CLUSTER_VERIFIER_MODEL": "qwen3:1.7b"},
+            clear=False,
+        ):
+            verifier = make_cluster_verifier(settings)
+        self.assertIsNotNone(verifier)
+        self.assertEqual(verifier.client.model, "qwen3:1.7b")
+        self.assertEqual(verifier.client.base_url, "http://ollama:11434")
 
 
 if __name__ == "__main__":

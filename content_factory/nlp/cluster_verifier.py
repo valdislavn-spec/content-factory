@@ -122,6 +122,9 @@ def make_cluster_verifier(settings: Any) -> Optional[ClusterVerifier]:
             # В settings.yaml секция llm.ollama лежит на верхнем уровне llm,
             # а в других конфигах — внутри llm.providers. Поддерживаем оба.
             config = dict(llm_config.get("ollama") or {})
+        model_override = env("CLUSTER_VERIFIER_MODEL", "")
+        if model_override:
+            config["model"] = model_override
         config.setdefault("timeout", 20)
         timeout_raw = env("CLUSTER_VERIFIER_TIMEOUT", "") or settings.pipeline.get(
             "cluster_verifier_timeout", config["timeout"]

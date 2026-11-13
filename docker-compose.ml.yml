@@ -1,0 +1,43 @@
+# Optional ML overlay: local Ollama for the ambiguous-pair cluster verifier.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ml.yml up -d --build
+#
+# First start downloads the verifier model (~7.6 GB for qwen3.5:9b). On CPU
+# inference is slow; use a GPU host or a smaller model:
+#   CLUSTER_VERIFIER_MODEL=qwen3:1.7b docker compose ... up -d
+services:
+  daemon:
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      CLUSTER_VERIFIER: ollama
+      CLUSTER_VERIFIER_MODEL: ${CLUSTER_VERIFIER_MODEL:-qwen3.5:9b}
+      CLUSTER_VERIFIER_TIMEOUT: ${CLUSTER_VERIFIER_TIMEOUT:-60}
+    depends_on:
+      ollama-pull:
+        condition: service_started
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    restart: "no"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/ollama"]
+    command: ["pull", "${CLUSTER_VERIFIER_MODEL:-qwen3.5:9b}"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+volumes:
+  ollama-models:

@@ -18,6 +18,34 @@ docker compose logs -f daemon
 docker compose run --rm daemon run --channel all --dry-run
 ```
 
+### Ollama для ML-верификатора кластеризации
+
+Обычный `docker compose up` не тянет тяжёлую модель. Чтобы включить локальный
+LLM-верификатор неоднозначных пар, используйте overlay:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ml.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.ml.yml logs -f ollama-pull
+```
+
+- `ollama` — локальный сервер в контейнере, модели в named volume
+  `ollama-models` (переживают перезапуск);
+- `ollama-pull` — one-shot: скачивает `CLUSTER_VERIFIER_MODEL` при первом
+  запуске (~7.6 ГБ для `qwen3.5:9b`);
+- `daemon` получает `OLLAMA_HOST=http://ollama:11434`,
+  `CLUSTER_VERIFIER=ollama` и таймаут 60 с. Он не блокируется, если загрузка
+  модели ещё идёт: первые прогоны используют эвристику, следующие — LLM.
+
+На CPU 9B-модель медленная; для VPS возьмите модель меньше:
+
+```bash
+CLUSTER_VERIFIER_MODEL=qwen3:1.7b \
+  docker compose -f docker-compose.yml -f docker-compose.ml.yml up -d --build
+```
+
+Если Ollama недоступна/модель не скачалась, кластеризация не падает: через
+таймаут верификатор отключается и работает быстрая эвристика.
+
 Для ботов (long-polling) используйте **отдельный** контейнер/процесс с тем же
 образом, но другим `command`, и отдельный токен — один getUpdates на токен:
 

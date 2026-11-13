@@ -118,7 +118,9 @@ Windows (cmd): вместо `source .venv/bin/activate` — `.venv\Scripts\activ
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
+docker compose up -d --build          # без LLM
+# или с локальной Ollama для ML-верификатора кластеризации:
+docker compose -f docker-compose.yml -f docker-compose.ml.yml up -d --build
 docker compose logs -f daemon
 ```
 
