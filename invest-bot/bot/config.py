@@ -27,6 +27,7 @@ class Config:
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
     tinkoff_token: str = ""
+    tinkoff_account_id: str = ""
     tinkoff_class_code: str = "TQBR"
     tinkoff_allow_live: bool = False
     tinkoff_sandbox_topup: float = 100_000.0
@@ -79,6 +80,7 @@ class Config:
             telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
             telegram_chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
             tinkoff_token=os.getenv("TINKOFF_TOKEN", ""),
+            tinkoff_account_id=os.getenv("TINKOFF_ACCOUNT_ID", "").strip(),
             tinkoff_class_code=os.getenv("TINKOFF_CLASS_CODE", default.tinkoff_class_code),
             tinkoff_allow_live=_env_bool("TINKOFF_ALLOW_LIVE", False),
             tinkoff_sandbox_topup=float(os.getenv("TINKOFF_SANDBOX_TOPUP", default.tinkoff_sandbox_topup)),
