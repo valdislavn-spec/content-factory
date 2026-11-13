@@ -234,11 +234,11 @@ class Engine:
             if not execute:
                 results.append({"signal": signal.action, "ticker": ticker, "price": signal.price})
                 continue
-            if not self.cfg.trading_enabled:
-                continue
             if not market_open(now):
                 continue
             if signal.action == "BUY":
+                if not self.cfg.trading_enabled:
+                    continue
                 if self.kill_switch:
                     continue
                 if not entry_allowed(now) or len(self._positions()) >= self.cfg.max_positions:
