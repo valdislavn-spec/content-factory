@@ -102,7 +102,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(post.text)
         return 0
     if args.loop:
-        engine.run_forever(args.interval or float(config.get("interval_seconds") or 60))
+        try:
+            with single_instance(settings.data_dir, "price-alerts"):
+                engine.run_forever(args.interval or float(config.get("interval_seconds") or 60))
+        except LockError as exc:
+            print(f"Price alerts уже запущены: {exc}")
+            return 2
         return 0
     results = engine.run_once()
     if not results:

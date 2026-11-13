@@ -167,6 +167,15 @@ class Storage:
         ensure_dir(self.path.parent)
         self.conn = sqlite3.connect(str(self.path), timeout=30)
         self.conn.row_factory = sqlite3.Row
+        # WAL + busy_timeout lets the scheduler/CLI/report readers coexist with
+        # one writer; it does not make two daemons safe (see locking.py).
+        try:
+            self.conn.execute("PRAGMA journal_mode=WAL")
+            self.conn.execute("PRAGMA synchronous=NORMAL")
+            self.conn.execute("PRAGMA busy_timeout=30000")
+            self.conn.execute("PRAGMA foreign_keys=ON")
+        except sqlite3.DatabaseError:  # pragma: no cover - exotic filesystems
+            pass
         self.conn.executescript(SCHEMA)
         self.conn.commit()
 

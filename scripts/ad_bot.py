@@ -32,6 +32,7 @@ from content_factory.monetization import (  # noqa: E402
     load_offers,
 )
 from content_factory.utils import env  # noqa: E402
+from content_factory.locking import LockError, single_instance, telegram_lock_name  # noqa: E402
 
 
 def parse_args(argv=None) -> argparse.Namespace:
@@ -71,21 +72,25 @@ def main(argv=None) -> int:
         print("Нужен TELEGRAM_BOT_TOKEN в .env")
         return 2
     try:
-        with AdOrderStore(settings.db_path) as store:
-            bot = AdSalesBot(
-                token=token,
-                store=store,
-                offers=offers,
-                admin_chat_id=admin_chat_id,
-                queue_dir=queue_dir,
-            )
-            if args.once:
-                processed = bot.poll_once(timeout=0)
-                print(f"Обработано обновлений: {processed}")
-                return 0
-            print("Слушаю заказы (Ctrl+C для остановки)...")
-            while True:
-                bot.poll_once(timeout=args.timeout)
+        with single_instance(settings.data_dir, telegram_lock_name(token)):
+            with AdOrderStore(settings.db_path) as store:
+                bot = AdSalesBot(
+                    token=token,
+                    store=store,
+                    offers=offers,
+                    admin_chat_id=admin_chat_id,
+                    queue_dir=queue_dir,
+                )
+                if args.once:
+                    processed = bot.poll_once(timeout=0)
+                    print(f"Обработано обновлений: {processed}")
+                    return 0
+                print("Слушаю заказы (Ctrl+C для остановки)...")
+                while True:
+                    bot.poll_once(timeout=args.timeout)
+    except LockError as exc:
+        print(f"Этот бот уже слушает другой процесс: {exc}")
+        return 2
     except KeyboardInterrupt:
         print("\nОстановлено.")
         return 0

@@ -32,6 +32,7 @@ from content_factory.integrations.telegram_growth import (  # noqa: E402
 )
 from content_factory.storage import Storage  # noqa: E402
 from content_factory.utils import env  # noqa: E402
+from content_factory.locking import LockError, single_instance, telegram_lock_name  # noqa: E402
 
 
 def parse_args(argv=None) -> argparse.Namespace:
@@ -64,15 +65,19 @@ def main(argv=None) -> int:
             )
         return 0
     try:
-        with Storage(settings.db_path) as storage:
-            bot = TelegramGrowthBot(token, username, storage, channels, settings)
-            if args.once:
-                processed = bot.poll_once(timeout=0)
-                print(f"Обработано обновлений: {processed}")
-                return 0
-            print("Слушаю обновления (Ctrl+C для остановки)...")
-            while True:
-                bot.poll_once(timeout=args.timeout)
+        with single_instance(settings.data_dir, telegram_lock_name(token)):
+            with Storage(settings.db_path) as storage:
+                bot = TelegramGrowthBot(token, username, storage, channels, settings)
+                if args.once:
+                    processed = bot.poll_once(timeout=0)
+                    print(f"Обработано обновлений: {processed}")
+                    return 0
+                print("Слушаю обновления (Ctrl+C для остановки)...")
+                while True:
+                    bot.poll_once(timeout=args.timeout)
+    except LockError as exc:
+        print(f"Этот бот уже слушает другой процесс: {exc}")
+        return 2
     except KeyboardInterrupt:
         print("\nОстановлено.")
         return 0

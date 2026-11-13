@@ -25,6 +25,7 @@ from typing import List, Optional
 from . import __version__
 from .config import Settings, load_channels, load_network_channels
 from .logging_setup import setup_logging
+from .locking import LockError, single_instance
 from .models import GeneratedPost
 from .pipeline import (
     preview_channel,
@@ -236,13 +237,17 @@ def cmd_daemon(args: argparse.Namespace, settings: Settings) -> int:
         + ". Остановка: Ctrl+C"
     )
     try:
-        daemon_loop(
-            settings,
-            channels_provider=channels_provider,
-            callback=callback,
-            once=args.once,
-            interval=args.interval,
-        )
+        with single_instance(settings.data_dir, "daemon"):
+            daemon_loop(
+                settings,
+                channels_provider=channels_provider,
+                callback=callback,
+                once=args.once,
+                interval=args.interval,
+            )
+    except LockError as exc:
+        print(f"Демон уже запущен: {exc}")
+        return 2
     except KeyboardInterrupt:
         print("\nОстановлено пользователем.")
     return 0
