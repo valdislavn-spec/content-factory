@@ -129,6 +129,13 @@ class Engine:
             self.last_error = str(exc)
             return []
 
+    def _exposure(self) -> float:
+        total = 0.0
+        for p in self._positions():
+            price = self.prices.get(p["ticker"], float(p["avg_price"]))
+            total += float(price) * int(p["qty"])
+        return total
+
     def _position(self, ticker: str) -> Position | None:
         row = next((p for p in self._positions() if p["ticker"] == ticker), None)
         if not row:
@@ -181,7 +188,12 @@ class Engine:
                 if self.day_start_equity and equity < self.day_start_equity * (1 - self.cfg.daily_loss_limit):
                     log.warning("daily loss limit reached; skip buy")
                     continue
-                budget = min(equity * self.cfg.risk_per_trade, self._cash() if not self.cfg.live_broker else equity * self.cfg.risk_per_trade)
+                budget = min(equity * self.cfg.risk_per_trade, self.cfg.max_position_rub)
+                if not self.cfg.live_broker:
+                    budget = min(budget, self._cash())
+                budget = min(budget, self.cfg.max_total_exposure_rub - self._exposure())
+                if budget <= 0:
+                    continue
                 filled = self.broker.buy(ticker, price, budget, signal.reason, now)
                 if filled:
                     results.append(filled)
@@ -203,6 +215,12 @@ class Engine:
         for pos in self._positions():
             ticker = pos["ticker"]
             price = self.prices.get(ticker, float(pos["avg_price"]))
+            if not self.cfg.allow_loss_exit and price < float(pos["avg_price"]):
+                self.notifier.send(
+                    f"⏸️ HOLD {ticker} @ {price:.2f} (entry {pos['avg_price']:.2f}): "
+                    f"not selling at a loss\nMode: {self.cfg.mode}"
+                )
+                continue
             try:
                 filled = self.broker.sell(ticker, price, reason, now)
                 if filled:
@@ -212,6 +230,7 @@ class Engine:
                 self.last_error = str(exc)
                 log.warning("close %s failed: %s", ticker, exc)
         return out
+
 
     def run_forever(self) -> None:
         log.info("engine started: mode=%s tickers=%s", self.cfg.mode, ",".join(self.cfg.tickers))
