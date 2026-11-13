@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Добавляет кликабельные ссылки на Travelata в опубликованную страницу /flight-hotel/.
+"""Добавляет кликабельные ссылки на Travelata в опубликованную страницу /package-tours/.
 
 Страница статическая (сборка travelata-api/scripts/build_summary.py), поэтому ссылки
 вставляются пост-обработкой HTML:
@@ -12,7 +12,7 @@
 * «снимок 2026-11-10T18:55:47Z» заменяется человеческой датой.
 
 Использование:
-    python scripts/add_flight_hotel_links.py [--page docs/flight-hotel/index.html] \
+    python scripts/add_package_tours_links.py [--page docs/package-tours/index.html] \
         [--data ../travelata-api/data/csv]
 """
 from __future__ import annotations
@@ -200,14 +200,14 @@ OG_TAGS = """\n<meta property="og:type" content="website">
 <meta property="og:site_name" content="Travelata">
 <meta property="og:title" content="Перелёт + отель: пакетные туры Travelata — сводка цен на ноябрь–декабрь 2026">
 <meta property="og:description" content="1 072 живых предложения по 13 направлениям: Россия от 15 339 ₽, Абхазия от 18 473 ₽, Турция от 41 754 ₽. У каждого отеля — кликабельная карточка на Travelata.">
-<meta property="og:url" content="https://valdislavn-spec.github.io/content-factory/flight-hotel/">
-<meta property="og:image" content="https://valdislavn-spec.github.io/content-factory/flight-hotel/preview-social.png">
+<meta property="og:url" content="https://valdislavn-spec.github.io/content-factory/package-tours/">
+<meta property="og:image" content="https://valdislavn-spec.github.io/content-factory/package-tours/preview-social.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="800">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Перелёт + отель: пакетные туры Travelata — сводка цен">
 <meta name="twitter:description" content="1 072 предложения по 13 направлениям, от 15 339 ₽ за двоих. У каждого отеля — карточка на Travelata.">
-<meta name="twitter:image" content="https://valdislavn-spec.github.io/content-factory/flight-hotel/preview-social.png">"""
+<meta name="twitter:image" content="https://valdislavn-spec.github.io/content-factory/package-tours/preview-social.png">"""
 
 
 def ensure_og(html: str) -> str:
@@ -233,7 +233,7 @@ def humanize_dates(html: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--page", default=str(ROOT / "docs" / "flight-hotel" / "index.html"))
+    parser.add_argument("--page", default=str(ROOT / "docs" / "package-tours" / "index.html"))
     parser.add_argument("--data", default=str(DEFAULT_DATA))
     args = parser.parse_args(argv)
 
