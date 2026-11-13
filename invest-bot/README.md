@@ -138,3 +138,31 @@ TINKOFF_TOKEN=... python -m bot.backtest --days 90 --out backtest_results_90d.js
 ```
 
 The default deployed strategy remains `ema_rsi` until the ORB results are reviewed.
+
+## Risk containment (important)
+
+No market strategy can guarantee "no loss". The only zero-market-loss states are:
+
+- `MODE=paper` or `MODE=sandbox` (virtual money), or
+- `TRADING_ENABLED=0` (monitor only; no new orders), or
+- not running the bot / keeping capital in cash or deposits.
+
+The bot does not use leverage, caps total exposure at 3000 RUB and supports a hard
+loss guard:
+
+```env
+TRADING_ENABLED=1
+MAX_TOTAL_LOSS_RUB=3000
+```
+
+`MAX_TOTAL_LOSS_RUB` is checked against realized+unrealized equity versus the
+equity at bot start. When the loss reaches the cap, the **kill switch** blocks new
+buy orders and reports the reason in `/status` (`risk_guard.kill_switch`). It does
+not force-close an open position while `ALLOW_LOSS_EXIT=0`, so the true worst case
+for a single long position is still its full market value. A hard stop-loss and/or
+`TRADING_ENABLED=0` is required to bound that case; holding a loser is not
+risk-free.
+
+For a production account, keep the loss guard enabled, use only a separate
+production token after sandbox validation, and be prepared to stop the service
+manually. Never enable `MODE=prod` or `TINKOFF_ALLOW_LIVE=1` for experiments.
