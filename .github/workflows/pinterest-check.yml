@@ -14,6 +14,10 @@ on:
         description: "board id для теста (пусто = из secrets)"
         required: false
         default: ""
+      api_base:
+        description: "API base (пусто = production; sandbox: https://api-sandbox.pinterest.com/v5)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -24,7 +28,7 @@ jobs:
     timeout-minutes: 10
     env:
       PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
-      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
+      PINTEREST_API_BASE: ${{ inputs.api_base || vars.PINTEREST_API_BASE }}
       PINTEREST_BOARD_ID: ${{ inputs.board_id || secrets.PINTEREST_BOARD_ID }}
       PINTEREST_IMAGE_URL: ${{ vars.PINTEREST_IMAGE_URL_CRYPTO_NEWS }}
       PINTEREST_LINK: ${{ vars.PINTEREST_LINK }}
