@@ -17,6 +17,7 @@ def _article(
     minutes_ago: float = 0,
     url: str = "",
     source_name: str = "",
+    summary: str = "",
 ) -> Article:
     url = url or f"https://example.com/{source_id}/{index}"
     return Article(
@@ -26,7 +27,7 @@ def _article(
         source_id=source_id,
         source_name=source_name or source_id,
         published_at=NOW - timedelta(minutes=minutes_ago),
-        summary="",
+        summary=summary,
         weighted_source_score=weight,
         meta={"url_hash": stable_id(normalize_url(url))},
     )
@@ -122,6 +123,42 @@ class ClusterArticlesTest(unittest.TestCase):
         first = {c.id for c in cluster_articles(self._same_event_articles())}
         second = {c.id for c in cluster_articles(self._same_event_articles())}
         self.assertEqual(first, second)
+
+    def test_transitive_chain_is_not_merged(self) -> None:
+        # A~B и B~C, но A и C — разные события. Старый union-find склеил бы
+        # все три; complete-linkage должен оставить A отдельно от C.
+        articles = [
+            _article("Apple выпустила iPhone 17", "a", 1),
+            _article("Apple выпустила новый iPhone", "b", 2),
+            _article("Samsung выпустила новый Galaxy", "c", 3),
+        ]
+        clusters = cluster_articles(articles)
+        self.assertEqual(sorted(len(c.articles) for c in clusters), [1, 2])
+
+    def test_summary_links_articles_with_different_titles(self) -> None:
+        summary_a = (
+            "Apple показала iPhone 17 с чипом A19, новой камерой и поддержкой "
+            "спутниковой связи. Продажи стартуют в сентябре."
+        )
+        summary_b = (
+            "Компания Apple представила смартфон iPhone 17. Новый чип A19, "
+            "улучшенная камера и спутниковая связь. Старт продаж в сентябре."
+        )
+        articles = [
+            _article("Apple представила iPhone 17", "a", 1, summary=summary_a),
+            _article("Новый iPhone: первые подробности", "b", 2, summary=summary_b),
+        ]
+        clusters = cluster_articles(articles)
+        self.assertEqual(len(clusters), 1)
+        self.assertEqual(clusters[0].coverage, 2)
+
+    def test_time_window_keeps_old_articles_apart(self) -> None:
+        articles = [
+            _article("OpenAI представила модель GPT-5", "a", 1, minutes_ago=0),
+            _article("OpenAI представила модель GPT-5", "b", 2, minutes_ago=72 * 60),
+        ]
+        clusters = cluster_articles(articles)
+        self.assertEqual(len(clusters), 2)
 
     def test_title_similarity_range(self) -> None:
         self.assertAlmostEqual(title_similarity("Одна и та же новость", "Одна и та же новость"), 1.0)

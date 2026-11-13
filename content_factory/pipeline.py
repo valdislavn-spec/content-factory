@@ -250,7 +250,13 @@ def build_clusters(
     now = now or utcnow()
     threshold = float(settings.pipeline.get("cluster_similarity", 0.34))
     min_sources = int(settings.pipeline.get("min_cluster_sources", 1))
-    clusters = cluster_articles(list(articles), threshold=threshold, min_sources=min_sources)
+    max_age_hours = float(settings.pipeline.get("cluster_max_age_hours", 48))
+    clusters = cluster_articles(
+        list(articles),
+        threshold=threshold,
+        min_sources=min_sources,
+        max_age_hours=max_age_hours,
+    )
     for cluster in clusters:
         cluster.channel_id = channel.id
         relevance = max(float(a.meta.get("relevance", 0.0)) for a in cluster.articles)

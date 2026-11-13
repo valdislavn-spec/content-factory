@@ -142,6 +142,99 @@ def title_similarity(first: str, second: str) -> float:
     return _pair_similarity(terms_a, terms_b, _proper_terms(first), _proper_terms(second))
 
 
+def _article_terms(article: Article) -> Tuple[List[str], List[str]]:
+    """Термы заголовка и тела: заголовок весит больше, тело помогает
+    связать пересказы с разными формулировками."""
+    title = _terms(article.title)
+    body_text = article.summary or (article.text or "")[:700]
+    body = [term for term in _terms(body_text) if term not in GENERIC_TERMS]
+    return title, body
+
+
+def _weighted_overlap(
+    title_a: Set[str],
+    body_a: Set[str],
+    title_b: Set[str],
+    body_b: Set[str],
+    idf: Dict[str, float],
+) -> float:
+    """Взвешенный Jaccard: термин заголовка весит 3, термин тела — 1."""
+    weights_a = {term: 3.0 for term in title_a}
+    weights_a.update({term: 1.0 for term in body_a if term not in weights_a})
+    weights_b = {term: 3.0 for term in title_b}
+    weights_b.update({term: 1.0 for term in body_b if term not in weights_b})
+    vocabulary = set(weights_a) | set(weights_b)
+    shared = union = 0.0
+    for term in vocabulary:
+        weight_a = weights_a.get(term, 0.0) * idf.get(term, 1.0)
+        weight_b = weights_b.get(term, 0.0) * idf.get(term, 1.0)
+        shared += min(weight_a, weight_b)
+        union += max(weight_a, weight_b)
+    return shared / union if union else 0.0
+
+
+def _article_similarity(
+    title_a: List[str],
+    body_a: List[str],
+    title_b: List[str],
+    body_b: List[str],
+    proper_a: Set[str],
+    proper_b: Set[str],
+    idf: Dict[str, float],
+    title_text_a: str,
+    title_text_b: str,
+) -> float:
+    """Сходство статей для кластеризации: заголовок + тело + сущности/числа."""
+    set_title_a, set_title_b = set(title_a), set(title_b)
+    if not set_title_a or not set_title_b:
+        return 0.0
+    set_body_a, set_body_b = set(body_a), set(body_b)
+    combined_a, combined_b = set_title_a | set_body_a, set_title_b | set_body_b
+    shared = set_title_a & set_title_b
+    if not shared:
+        # Совпадение только в теле — разрешаем, но с меньшим весом.
+        shared_body = set_body_a & set_body_b
+        if not shared_body:
+            return 0.0
+    weighted = _weighted_overlap(
+        set_title_a, set_body_a, set_title_b, set_body_b, idf
+    )
+    long_a = {term for term in combined_a if len(term) >= 5}
+    long_b = {term for term in combined_b if len(term) >= 5}
+    long_overlap = (
+        len(long_a & long_b) / len(long_a | long_b) if long_a and long_b else 0.0
+    )
+    containment = len(shared) / min(len(set_title_a), len(set_title_b)) if shared else 0.0
+    sequence = SequenceMatcher(None, " ".join(title_a), " ".join(title_b)).ratio()
+    bonus = min(0.12, 0.06 * len(proper_a & proper_b))
+    numbers_a, numbers_b = _numbers(set_title_a), _numbers(set_title_b)
+    if numbers_a and numbers_b:
+        bonus += 0.03 if numbers_a & numbers_b else -0.05
+    # Штраф за явно разные сущности при общем общем слове:
+    # "OpenAI GPT-5" и "OpenAI уволила сотрудников" не должны склеиваться.
+    extra_proper_a = proper_a - proper_b
+    extra_proper_b = proper_b - proper_a
+    if extra_proper_a and extra_proper_b:
+        bonus -= 0.04
+    similarity = 0.4 * weighted + 0.2 * long_overlap + 0.2 * containment + 0.2 * sequence + bonus
+    return max(0.0, min(1.0, similarity))
+
+
+def _within_window(
+    first: Article,
+    second: Article,
+    max_age_hours: float,
+) -> bool:
+    """Не склеиваем материалы, разнесённые по времени больше окна."""
+    if max_age_hours <= 0:
+        return True
+    left = _as_utc(first.published_at)
+    right = _as_utc(second.published_at)
+    if left is None or right is None:
+        return True
+    return abs((left - right).total_seconds()) <= max_age_hours * 3600.0
+
+
 # ---------------------------------------------------------------------------
 # Кластеризация
 # ---------------------------------------------------------------------------
@@ -320,12 +413,21 @@ def cluster_articles(
     articles: List[Article],
     threshold: float = 0.34,
     min_sources: int = 1,
+    max_age_hours: float = 48.0,
 ) -> List[StoryCluster]:
     """Группирует статьи об одном событии в сюжеты.
 
+    В отличие от старого union-find по заголовкам, здесь:
+    * учитывается тело статьи (summary/text) — пересказы с разными
+      заголовками могут встретиться;
+    * используется complete-linkage: сюжет не растёт транзитивно, если
+      крайние статьи уже не похожи друг на друга;
+    * статьи, разнесённые по времени больше ``max_age_hours``, не склеиваются.
+
     :param articles: статьи канала (могут быть из разных источников)
-    :param threshold: порог сходства заголовков (0..1); по умолчанию 0.34
+    :param threshold: порог сходства (0..1); по умолчанию 0.34
     :param min_sources: минимальное число разных source_id в сюжете
+    :param max_age_hours: максимальное расстояние по времени внутри сюжета
     :return: сюжеты, отсортированные по убыванию оценки
     """
     items = [article for article in articles if article is not None]
@@ -333,15 +435,24 @@ def cluster_articles(
         return []
     threshold = max(0.0, min(1.0, float(threshold)))
     min_sources = max(1, int(min_sources))
+    max_age_hours = max(0.0, float(max_age_hours))
     now = utcnow()
 
-    terms = [_terms(article.title) for article in items]
-    proper = [_proper_terms(article.title) for article in items]
+    title_terms: List[List[str]] = []
+    body_terms: List[List[str]] = []
+    proper: List[Set[str]] = []
+    title_text: List[str] = []
+    for article in items:
+        title, body = _article_terms(article)
+        title_terms.append(title)
+        body_terms.append(body)
+        proper.append(_proper_terms(article.title))
+        title_text.append(article.title or "")
 
-    # IDF по заголовкам набора: редкие слова весят больше частых.
+    # IDF по заголовкам и телам: редкие сущности весят больше частых слов.
     document_frequency: Dict[str, int] = {}
-    for article_terms in terms:
-        for term in set(article_terms):
+    for index in range(len(items)):
+        for term in set(title_terms[index]) | set(body_terms[index]):
             document_frequency[term] = document_frequency.get(term, 0) + 1
     total = len(items)
     idf = {
@@ -349,9 +460,29 @@ def cluster_articles(
         for term, frequency in document_frequency.items()
     }
 
-    union_find = _UnionFind(total)
+    # Матрица сходства; 0.0 для пар вне временного окна.
+    similarities = [[0.0] * total for _ in range(total)]
+    for first in range(total):
+        for second in range(first + 1, total):
+            if not title_terms[first] or not title_terms[second]:
+                continue
+            if not _within_window(items[first], items[second], max_age_hours):
+                continue
+            value = _article_similarity(
+                title_terms[first],
+                body_terms[first],
+                title_terms[second],
+                body_terms[second],
+                proper[first],
+                proper[second],
+                idf,
+                title_text[first],
+                title_text[second],
+            )
+            similarities[first][second] = similarities[second][first] = value
 
-    # Точные дубли (один и тот же URL в разных лентах) склеиваем безусловно.
+    # Точные дубли URL склеиваем безусловно (даже если заголовки разные).
+    union_find = _UnionFind(total)
     by_key: Dict[str, int] = {}
     for index, article in enumerate(items):
         key = _article_key(article)
@@ -362,26 +493,39 @@ def cluster_articles(
         else:
             by_key[key] = index
 
-    for first in range(total):
-        if not terms[first]:
-            continue
-        for second in range(first + 1, total):
-            if union_find.find(first) == union_find.find(second):
-                continue
-            if not terms[second]:
-                continue
-            similarity = _pair_similarity(
-                terms[first], terms[second], proper[first], proper[second], idf=idf
-            )
-            if similarity >= threshold:
-                union_find.union(first, second)
+    grouped: Dict[int, List[int]] = {}
+    for index in range(total):
+        grouped.setdefault(union_find.find(index), []).append(index)
+    groups: List[List[int]] = list(grouped.values())
 
-    groups: Dict[int, List[Article]] = {}
-    for index, article in enumerate(items):
-        groups.setdefault(union_find.find(index), []).append(article)
+    # Complete linkage: пара групп сливается, только если ВСЕ статьи на
+    # границе похожи не меньше порога. Это не даёт цепочке A~B~C склеить
+    # A и C, которые друг на друга не похожи.
+    while True:
+        best_score = -1.0
+        best_pair: Optional[Tuple[int, int]] = None
+        for left in range(len(groups)):
+            for right in range(left + 1, len(groups)):
+                cross = [
+                    similarities[a][b]
+                    for a in groups[left]
+                    for b in groups[right]
+                ]
+                if not cross:
+                    continue
+                score = min(cross)
+                if score >= threshold and score > best_score:
+                    best_score = score
+                    best_pair = (left, right)
+        if best_pair is None:
+            break
+        left, right = best_pair
+        groups[left].extend(groups[right])
+        del groups[right]
 
     clusters: List[StoryCluster] = []
-    for group_articles in groups.values():
+    for group in groups:
+        group_articles = [items[index] for index in group]
         coverage = len({article.source_id for article in group_articles})
         if coverage < min_sources:
             continue
@@ -395,7 +539,6 @@ def cluster_articles(
         )
     )
     return clusters
-
 
 # ---------------------------------------------------------------------------
 # Защита от повторных заголовков
