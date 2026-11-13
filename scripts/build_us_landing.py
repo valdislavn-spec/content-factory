@@ -69,6 +69,23 @@ TOOLS = [
 ]
 
 
+#: brand (lowercase, как в us-promos.json) → трекинговая ссылка Travelpayouts
+BRAND_LINKS = {
+    "aviasales": "aviasales", "tiqets": "tiqets", "klook": "klook",
+    "airalo": "airalo", "yesim": "yesim", "saily": "saily",
+    "kiwitaxi": "kiwitaxi", "gettransfer": "gettransfer", "welcomepickups": "welcomepickups",
+    "gocity": "gocity", "kiwi": "kiwi", "radicalstorage": "radicalstorage",
+    "airhelp": "airhelp", "compensair": "compensair",
+    "economybookings": "economybookings", "localrent": "localrent", "qeeq": "qeeq",
+    "kkday": "kkday",
+}
+
+
+def tracked(brand: str) -> str:
+    key = BRAND_LINKS.get(re.sub(r"[^a-z0-9]", "", brand.lower()))
+    return LINKS.get(key or "", "")
+
+
 def load_promos() -> list[dict]:
     if not PROMOS_JSON.exists():
         return []
@@ -95,7 +112,7 @@ def promos_html(promos: list[dict]) -> str:
         terms = esc(p.get("terms", ""))
         code = p.get("promo_code") or ""
         until = p.get("valid_until") or ""
-        url = p.get("affiliate_url") or p.get("source_url") or "#"
+        url = p.get("affiliate_url") or tracked(brand) or p.get("source_url") or "#"
         code_html = f'<span class="code">{esc(code)}</span>' if code else ""
         until_html = f'<span class="until">until {esc(until)}</span>' if until else ""
         cards.append(
@@ -241,7 +258,7 @@ footer a {{ color:#a5b4fc; }}
   <div class="kpis">
     <div class="kpi"><b>12</b><span>easy destinations</span></div>
     <div class="kpi"><b>10+</b><span>travel partners</span></div>
-    <div class="kpi"><b>{kpi_promos}</b><span>deals section</span></div>
+    <div class="kpi"><b>{kpi_promos}</b><span>partner deals</span></div>
     <div class="kpi"><b>0</b><span>hidden fees</span></div>
   </div>
 </div></div>
