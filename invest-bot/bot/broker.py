@@ -200,7 +200,8 @@ class TinkoffBroker:
     PREFIX = "/tinkoff.public.invest.api.contract.v1."
 
     def __init__(self, token: str, mode: str, class_code: str = "TQBR",
-                 sandbox_topup: float = 100_000.0, timeout: int = 20):
+                 sandbox_topup: float = 100_000.0, timeout: int = 20,
+                 verify_tls: bool = True):
         if mode not in {"sandbox", "prod"}:
             raise ValueError("TinkoffBroker mode must be sandbox or prod")
         self.token = token
@@ -210,6 +211,9 @@ class TinkoffBroker:
         self.timeout = timeout
         self.base = self.SANDBOX if mode == "sandbox" else self.PROD
         self.session = requests.Session()
+        self.session.verify = verify_tls
+        if not verify_tls:
+            log.warning("Tinkoff TLS verification disabled (TINKOFF_VERIFY_TLS=0); use only with trusted network")
         self.session.headers.update(
             {
                 "Authorization": f"Bearer {token}",
