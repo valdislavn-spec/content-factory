@@ -124,6 +124,15 @@ docker compose logs -f daemon
 
 Подробно: [deployment-docker.md](docs/deployment-docker.md).
 
+Проверить конфигурацию перед запуском:
+
+```bash
+python -m content_factory doctor
+```
+
+Команда проверяет `.env`, chat_id каналов, SQLite/блокировки, наличие
+Telethon-ключей и подсказывает, чего не хватает.
+
 ### 2. Демо без токенов и сети
 
 ```bash

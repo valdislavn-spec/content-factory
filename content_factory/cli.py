@@ -34,7 +34,8 @@ from .pipeline import (
     select_channels,
 )
 from .storage import Storage
-from .utils import ConfigError, ensure_dir
+from .utils import ConfigError, ensure_dir, env
+from .locking import FileLock, LockError
 
 log = logging.getLogger("content_factory.cli")
 
@@ -114,6 +115,97 @@ def cmd_init(args: argparse.Namespace, settings: Settings) -> int:
 def cmd_channels(args: argparse.Namespace, settings: Settings) -> int:
     channels = load_channels(settings)
     _print_channel_table(channels, settings)
+    return 0
+
+
+
+def cmd_doctor(args: argparse.Namespace, settings: Settings) -> int:
+    """Проверить окружение без публикации: ключи, chat_id, БД, блокировки."""
+    settings.ensure_dirs()
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    print(f"Content Factory doctor (root: {settings.root})")
+
+    # data dir + SQLite
+    try:
+        probe = Path(settings.data_dir) / ".doctor-write-test"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink()
+        print("  OK   data/: запись разрешена")
+    except OSError as exc:
+        errors.append(f"data/: нет записи ({exc})")
+        print(f"  FAIL data/: нет записи ({exc})")
+    try:
+        with Storage(settings.db_path) as storage:
+            mode = storage.conn.execute("PRAGMA journal_mode").fetchone()[0]
+            storage.conn.execute("SELECT 1 FROM articles LIMIT 1").fetchone()
+        print(f"  OK   SQLite: {settings.db_path} (journal_mode={mode})")
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"SQLite: {exc}")
+        print(f"  FAIL SQLite: {exc}")
+
+    # channel chat_id
+    try:
+        channels = load_network_channels(settings)
+        missing = [c.id for c in channels if not c.telegram_chat_id]
+        if settings.dry_run:
+            print(f"  INFO каналов: {len(channels)}; chat_id не нужен в dry-run")
+        elif missing:
+            warnings.append("нет chat_id: " + ", ".join(missing))
+            print(f"  WARN нет chat_id: {', '.join(missing)} — эти каналы будут пропущены")
+        else:
+            print(f"  OK   chat_id задан для всех каналов ({len(channels)})")
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"каналы: {exc}")
+        print(f"  FAIL каналы: {exc}")
+
+    # env for real publishing / analytics
+    token = env("TELEGRAM_BOT_TOKEN", "")
+    if not token:
+        (warnings if settings.dry_run else errors).append("TELEGRAM_BOT_TOKEN не задан")
+        print(f"  {'WARN' if settings.dry_run else 'FAIL'} TELEGRAM_BOT_TOKEN не задан")
+    else:
+        print("  OK   TELEGRAM_BOT_TOKEN задан")
+    for key in ("TELEGRAM_ADMIN_CHAT_ID", "TELEGRAM_GROWTH_BOT_USERNAME"):
+        if env(key, ""):
+            print(f"  OK   {key} задан")
+        else:
+            warnings.append(f"{key} не задан")
+            print(f"  WARN {key} не задан")
+    if env("TG_API_ID", "") and env("TG_API_HASH", ""):
+        print("  OK   Telethon: TG_API_ID/TG_API_HASH заданы")
+    else:
+        warnings.append("нет TG_API_ID/TG_API_HASH — просмотры/реакции не собираются")
+        print("  WARN Telethon не настроен (просмотры/реакции недоступны)")
+
+    # single-instance locks
+    try:
+        with FileLock(settings.data_dir, "daemon"):
+            print("  OK   daemon lock свободен")
+    except LockError as exc:
+        print(f"  INFO daemon уже запущен: {exc}")
+        warnings.append("daemon уже запущен — не запускайте второй экземпляр")
+    lock_dir = Path(settings.data_dir) / "locks"
+    bot_locks = sorted(lock_dir.glob("telegram-bot-*.lock")) if lock_dir.is_dir() else []
+    if bot_locks:
+        print(f"  INFO Telegram-боты: {len(bot_locks)} lock-файл(ов) в {lock_dir}")
+
+    # deployment assets
+    for name in ("Dockerfile", "docker-compose.yml"):
+        ok = (settings.root / name).is_file()
+        print(f"  {'OK  ' if ok else 'INFO'} {name}: {'есть' if ok else 'нет (не обязательно)'}")
+
+    if warnings:
+        print("\nПредупреждения:")
+        for item in warnings:
+            print(f"  - {item}")
+    if errors:
+        print("\nОшибки:")
+        for item in errors:
+            print(f"  - {item}")
+        return 1
+    print("\nВсё критичное в порядке.")
     return 0
 
 
@@ -584,6 +676,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_channels = sub.add_parser("channels", help="Показать 6 каналов и расписание")
     p_channels.set_defaults(func=cmd_channels)
+
+    p_doctor = sub.add_parser("doctor", help="Проверить ключи, chat_id, БД и блокировки перед запуском")
+    p_doctor.set_defaults(func=cmd_doctor)
 
     p_sources = sub.add_parser("sources", help="Работа с источниками")
     sources_sub = p_sources.add_subparsers(dest="sources_command", required=True)
