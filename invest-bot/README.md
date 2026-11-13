@@ -178,3 +178,25 @@ While entries are disabled, the engine still processes take-profit exits for any
 already-open position. A losing position is held across sessions until it turns
 profitable; this is deferred risk, not eliminated risk. To eliminate all order
 flow, stop the service instead.
+
+## Ramp-up run (current)
+
+First sessions run in **sandbox** with deliberately small risk:
+
+```env
+TRADING_ENABLED=1
+ALLOW_LOSS_EXIT=1
+STOP_LOSS=0.01
+TAKE_PROFIT=0.02
+MAX_POSITION_RUB=3000
+MAX_TOTAL_EXPOSURE_RUB=3000
+MAX_POSITIONS=1
+MAX_TRADES_PER_DAY=2
+DAILY_LOSS_LIMIT=0.01
+MAX_TOTAL_LOSS_RUB=3000
+```
+
+Stop-loss is enabled despite the earlier no-loss experiment: the 90/180-day
+backtests showed that carrying losers is not a reliable edge. The first 3–5
+sessions are for live sandbox statistics; the deposit/exposure is not increased
+until the results are reviewed. This is still virtual money.
