@@ -112,7 +112,9 @@ def promos_html(promos: list[dict]) -> str:
         terms = esc(p.get("terms", ""))
         code = p.get("promo_code") or ""
         until = p.get("valid_until") or ""
-        url = p.get("affiliate_url") or tracked(brand) or p.get("source_url") or "#"
+        track = p.get("affiliate_url") or tracked(brand)
+        url = track or p.get("source_url") or "#"
+        ext = "" if track else '<span class="ext">official page</span>'
         code_html = f'<span class="code">{esc(code)}</span>' if code else ""
         until_html = f'<span class="until">until {esc(until)}</span>' if until else ""
         cards.append(
@@ -120,7 +122,7 @@ def promos_html(promos: list[dict]) -> str:
             f'<span class="p-brand">{brand}</span>'
             f'<span class="p-offer">{offer}</span>'
             f'<span class="p-terms">{terms}</span>'
-            f'<span class="p-meta">{code_html}{until_html}</span></a>')
+            f'<span class="p-meta">{code_html}{until_html}{ext}</span></a>')
     return f"""
 <section class="sec" id="promos">
   <h2>🔥 Deals &amp; promo codes right now</h2>
@@ -228,6 +230,8 @@ h2 {{ font-size:22px; margin:6px 0 10px; }}
   background:rgba(251,191,36,.16); border:1px dashed rgba(251,191,36,.6);
   border-radius:8px; padding:2px 8px; }}
 .until {{ font-size:11.5px; opacity:.7; align-self:center; }}
+.ext {{ font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:#94a3c6;
+  border:1px solid rgba(148,163,255,.35); border-radius:6px; padding:1px 6px; align-self:center; }}
 .card {{ background:rgba(255,255,255,.045); border:1px solid rgba(148,163,255,.18);
   border-radius:16px; padding:16px; }}
 .card-top {{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }}
