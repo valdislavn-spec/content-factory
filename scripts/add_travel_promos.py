@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Промо-блоки партнёров на travel-лендингах (скидки/акции других партнёрок).
 
-Страницы: docs/package-tours/index.html и docs/flight-hotel-abroad/index.html.
+Страницы: docs/nezabyvaemoe-puteshestvie/index.html и docs/flight-hotel-abroad/index.html.
 Ссылки — Travelpayouts короткие (config/affiliate_links.yaml + seo_en из
 travel-affiliate/config/links.generated.json), поэтому клики засчитываются.
 
@@ -19,7 +19,7 @@ LINKS_YAML = ROOT / "config" / "affiliate_links.yaml"
 GENERATED = ROOT.parent / "travel-affiliate" / "config" / "links.generated.json"
 
 PAGES = {
-    "package-tours": ROOT / "docs" / "package-tours" / "index.html",
+    "nezabyvaemoe-puteshestvie": ROOT / "docs" / "nezabyvaemoe-puteshestvie" / "index.html",
     "flight-hotel-abroad": ROOT / "docs" / "flight-hotel-abroad" / "index.html",
 }
 
@@ -109,7 +109,7 @@ def mini(links: dict[str, str], emoji: str, title: str, text: str, pairs: list[t
     return f'<div class="promo-mini">{emoji} <b>{title}</b> — {text} {refs}</div>'
 
 
-def inject_package_tours(html: str, links: dict[str, str]) -> str:
+def inject_ru_landing(html: str, links: dict[str, str]) -> str:
     html = html.replace("</style>", CSS + "</style>", 1)
     # 1) промо к самому дешёвому пакету (сразу после CTA в герое)
     cheap = section(
@@ -162,7 +162,7 @@ def inject_abroad(html: str, links: dict[str, str]) -> str:
 
 def main() -> int:
     links = load_links()
-    handlers = {"package-tours": inject_package_tours, "flight-hotel-abroad": inject_abroad}
+    handlers = {"nezabyvaemoe-puteshestvie": inject_ru_landing, "flight-hotel-abroad": inject_abroad}
     for name, path in PAGES.items():
         if not path.exists():
             print(f"{name}: нет файла {path}")
