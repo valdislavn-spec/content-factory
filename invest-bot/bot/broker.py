@@ -320,11 +320,10 @@ class TinkoffBroker:
         total = 0.0
         for pos in data.get("positions", []):
             qty = _money(pos.get("quantity"))
-            total += qty * _money(pos.get("currentPrice"))
-        currencies = data.get("positions", [])
-        for pos in currencies:
             if pos.get("instrumentType") == "currency":
-                total += _money(pos.get("quantity"))
+                total += qty
+            else:
+                total += qty * _money(pos.get("currentPrice"))
         return total
 
     def positions(self) -> list[dict]:
@@ -386,7 +385,8 @@ class TinkoffBroker:
         held = next((p for p in self.positions() if p["ticker"] == ticker), None)
         if not held:
             return None
-        lots = int(held["qty"] // info["lot"])
+        # Tinkoff portfolio quantity for shares is already expressed in lots.
+        lots = int(held["qty"])
         if lots < 1:
             return None
         data = self._post("OrdersService", "PostOrder", {
