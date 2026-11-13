@@ -25,5 +25,5 @@ def test_stop_loss_triggers_sell():
     pos = Position("SBER", 10, 100.0)
     # force a low last closed candle by mutating the list (open/high/low/close all same)
     candles[-2] = Candle(candles[-2].ts, 98.0, 98.0, 98.0, 98.0, 1000)
-    signal = evaluate("SBER", candles, pos, Config(stop_loss=0.012, take_profit=0.02))
+    signal = evaluate("SBER", candles, pos, Config(stop_loss=0.012, take_profit=0.02, allow_loss_exit=True))
     assert signal is not None and signal.action == "SELL"
