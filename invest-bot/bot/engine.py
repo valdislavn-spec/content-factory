@@ -123,7 +123,8 @@ class Engine:
         if isinstance(self.broker, PaperBroker):
             return self.broker.positions()
         try:
-            return self.broker.positions()
+            rows = self.broker.positions()
+            return [r for r in rows if r["ticker"] in self.cfg.tickers]
         except BrokerError as exc:
             self.last_error = str(exc)
             return []
