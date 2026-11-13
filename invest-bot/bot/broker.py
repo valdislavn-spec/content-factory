@@ -296,8 +296,8 @@ class TinkoffBroker:
             try:
                 ts = datetime.fromisoformat(c["time"].replace("Z", "+00:00")).astimezone(MSK)
                 out.append(Candle(
-                    ts=ts, open=float(c["open"]), high=float(c["high"]),
-                    low=float(c["low"]), close=float(c["close"]),
+                    ts=ts, open=_money(c["open"]), high=_money(c["high"]),
+                    low=_money(c["low"]), close=_money(c["close"]),
                     volume=float(c.get("volume", 0) or 0),
                 ))
             except (KeyError, TypeError, ValueError) as exc:
@@ -342,14 +342,23 @@ class TinkoffBroker:
         with self.trade_log.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
-    def _wait_order(self, order_id: str) -> str:
+    def _wait_order(self, order_id: str, initial_status: str = "") -> str:
+        if "FILL" in initial_status:
+            return initial_status
         deadline = time.time() + 15
         while time.time() < deadline:
-            data = self._post("OrdersService", "GetOrderState", {
-                "accountId": self.account_id, "orderId": order_id,
-            })
+            try:
+                data = self._post("OrdersService", "GetOrderState", {
+                    "accountId": self.account_id, "orderId": order_id,
+                })
+            except BrokerError as exc:
+                # Some sandbox deployments answer 404 for an order that already filled;
+                # do not turn a filled order into a runtime failure.
+                if "404" in str(exc):
+                    return initial_status or "SUBMITTED"
+                raise
             status = data.get("executionReportStatus", "")
-            if status == "ORDER_EXECUTION_REPORT_STATUS_FILLED":
+            if "FILL" in status:
                 return status
             if status in {
                 "ORDER_EXECUTION_REPORT_STATUS_REJECTED",
@@ -375,7 +384,7 @@ class TinkoffBroker:
         order_id = data.get("orderId", "")
         if not order_id:
             raise BrokerError(f"no orderId: {data}")
-        self._wait_order(order_id)
+        self._wait_order(order_id, data.get("executionReportStatus", ""))
         rec = {"ticker": ticker, "side": "BUY", "lots": lots, "price": price, "reason": reason}
         self._log(rec)
         return rec
@@ -400,7 +409,7 @@ class TinkoffBroker:
         order_id = data.get("orderId", "")
         if not order_id:
             raise BrokerError(f"no orderId: {data}")
-        self._wait_order(order_id)
+        self._wait_order(order_id, data.get("executionReportStatus", ""))
         rec = {"ticker": ticker, "side": "SELL", "lots": lots, "price": price, "reason": reason}
         self._log(rec)
         return rec
