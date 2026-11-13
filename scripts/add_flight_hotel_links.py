@@ -195,8 +195,32 @@ def process_table(block: str, mode: str, cities: dict[str, str], countries: dict
     return re.sub(r"<tr[^>]*>.*?</tr>", on_row, block, flags=re.S), stats
 
 
+OG_TAGS = """\n<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Travelata">
+<meta property="og:title" content="Перелёт + отель: пакетные туры Travelata — сводка цен на ноябрь–декабрь 2026">
+<meta property="og:description" content="1 072 живых предложения по 13 направлениям: Россия от 15 339 ₽, Абхазия от 18 473 ₽, Турция от 41 754 ₽. У каждого отеля — кликабельная карточка на Travelata.">
+<meta property="og:url" content="https://valdislavn-spec.github.io/content-factory/flight-hotel/">
+<meta property="og:image" content="https://valdislavn-spec.github.io/content-factory/flight-hotel/preview-social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="800">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Перелёт + отель: пакетные туры Travelata — сводка цен">
+<meta name="twitter:description" content="1 072 предложения по 13 направлениям, от 15 339 ₽ за двоих. У каждого отеля — карточка на Travelata.">
+<meta name="twitter:image" content="https://valdislavn-spec.github.io/content-factory/flight-hotel/preview-social.png">"""
+
+
+def ensure_og(html: str) -> str:
+    """Добавляет Open Graph / Twitter Card (для превью в Telegram, Pinterest, соцсетях)."""
+    if 'property="og:image"' in html:
+        return html
+    marker = '<meta name="theme-color"'
+    if marker in html:
+        return html.replace(marker, OG_TAGS.strip() + "\n" + marker, 1)
+    return html
+
+
 def humanize_dates(html: str) -> str:
-    # дата уже есть в шапке — в футере оставляем только подпись-источник
     html = html.replace(
         '<div class="foot-links">\n  <span class="chip"><span class="chip-ico">🕒</span>'
         + SNAPSHOT_ISO + "</span>\n</div>\n",
@@ -263,6 +287,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     out = humanize_dates(out)
+    out = ensure_og(out)
     out = out.replace("</style>", CSS + "</style>", 1)
     out = out.replace("</body>", ROW_JS + "</body>", 1)
 
