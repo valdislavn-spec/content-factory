@@ -30,3 +30,4 @@ class Signal:
     ema_fast: float | None = None
     ema_slow: float | None = None
     rsi: float | None = None
+    meta: dict | None = None
