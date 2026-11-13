@@ -214,6 +214,12 @@ class Engine:
 
     def run_forever(self) -> None:
         log.info("engine started: mode=%s tickers=%s", self.cfg.mode, ",".join(self.cfg.tickers))
+        # Warm prices/signals even outside the session so /status is useful on first deploy.
+        try:
+            self.tick(execute=False)
+        except Exception as exc:
+            self.last_error = str(exc)
+            log.warning("initial data warmup failed: %s", exc)
         while not self._stop.is_set():
             try:
                 if market_open():
