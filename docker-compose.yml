@@ -1,0 +1,30 @@
+services:
+  daemon:
+    build: .
+    image: content-factory:local
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    command: ["daemon"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    init: true
+    healthcheck:
+      test: ["CMD", "python", "-m", "content_factory", "--version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Optional: one-off dry run into ./data/outbox
+  demo:
+    profiles: ["tools"]
+    build: .
+    image: content-factory:local
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    command: ["demo"]
+    restart: "no"

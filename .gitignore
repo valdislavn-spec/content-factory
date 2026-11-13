@@ -22,3 +22,7 @@ assets/brand/
 
 # generated landing exports
 exports/landing/
+
+# Telethon sessions contain account access
+*.session
+*.session-journal

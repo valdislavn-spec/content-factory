@@ -114,6 +114,16 @@ python -m pip install -r requirements.txt
 
 Windows (cmd): вместо `source .venv/bin/activate` — `.venv\Scripts\activate`.
 
+Опционально — Docker (VPS, автоперезапуск):
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+docker compose logs -f daemon
+```
+
+Подробно: [deployment-docker.md](docs/deployment-docker.md).
+
 ### 2. Демо без токенов и сети
 
 ```bash
