@@ -160,6 +160,34 @@ class ClusterArticlesTest(unittest.TestCase):
         clusters = cluster_articles(articles)
         self.assertEqual(len(clusters), 2)
 
+    def test_llm_verifier_can_split_false_merge(self) -> None:
+        class FakeVerifier:
+            max_calls = 5
+
+            def same_event(self, first, second):
+                return False
+
+        articles = [
+            _article("OpenAI представила модель GPT-5", "a", 1),
+            _article("OpenAI представила модель GPT-5", "b", 2),
+        ]
+        self.assertEqual(len(cluster_articles(articles)), 1)
+        self.assertEqual(len(cluster_articles(articles, verifier=FakeVerifier())), 2)
+
+    def test_llm_verifier_can_link_paraphrase_below_threshold(self) -> None:
+        class FakeVerifier:
+            max_calls = 5
+
+            def same_event(self, first, second):
+                return True
+
+        articles = [
+            _article("Apple выпустила iPhone", "a", 1),
+            _article("Apple показала смартфон", "b", 2),
+        ]
+        self.assertGreaterEqual(len(cluster_articles(articles)), 2)
+        self.assertEqual(len(cluster_articles(articles, verifier=FakeVerifier())), 1)
+
     def test_title_similarity_range(self) -> None:
         self.assertAlmostEqual(title_similarity("Одна и та же новость", "Одна и та же новость"), 1.0)
         self.assertLess(title_similarity("OpenAI представила модель", "Погода в Москве"), 0.34)

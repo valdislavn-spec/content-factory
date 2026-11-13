@@ -251,11 +251,15 @@ def build_clusters(
     threshold = float(settings.pipeline.get("cluster_similarity", 0.34))
     min_sources = int(settings.pipeline.get("min_cluster_sources", 1))
     max_age_hours = float(settings.pipeline.get("cluster_max_age_hours", 48))
+    from .nlp.cluster_verifier import make_cluster_verifier
+
+    verifier = make_cluster_verifier(settings)
     clusters = cluster_articles(
         list(articles),
         threshold=threshold,
         min_sources=min_sources,
         max_age_hours=max_age_hours,
+        verifier=verifier,
     )
     for cluster in clusters:
         cluster.channel_id = channel.id

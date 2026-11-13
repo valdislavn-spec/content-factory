@@ -50,6 +50,9 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
         "cluster_similarity": 0.34,
         "min_cluster_sources": 1,
         "cluster_max_age_hours": 48,
+        "cluster_verifier": "off",
+        "cluster_verifier_max_calls": 10,
+        "cluster_verifier_timeout": 20,
         "max_posts_per_run": 2,
         "post_generator": "internal",  # internal | dify_app
         "dify_post_app": "posts",      # ключ из integrations.dify_apps

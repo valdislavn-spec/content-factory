@@ -409,11 +409,42 @@ def _build_cluster(articles: List[Article], now: datetime) -> StoryCluster:
     return cluster
 
 
+def _verifier_candidates(
+    similarities: List[List[float]],
+    threshold: float,
+    limit: int,
+) -> List[Tuple[float, int, int]]:
+    """Пары, где лексика неоднозначна: топ-2 соседа каждой статьи.
+
+    Верхний порог не отсекаем: LLM может и подтвердить пропущенную
+    формулировку, и отменить ложную склейку выше порога.
+    """
+    total = len(similarities)
+    candidates: Dict[Tuple[int, int], float] = {}
+    for first in range(total):
+        neighbours = sorted(
+            ((similarities[first][second], second) for second in range(total) if second != first),
+            reverse=True,
+        )
+        for value, second in neighbours[:2]:
+            if value < threshold * 0.6:
+                break
+            left, right = sorted((first, second))
+            candidates[(left, right)] = max(candidates.get((left, right), 0.0), value)
+    ordered = [
+        (value, left, right) for (left, right), value in candidates.items()
+    ]
+    # Сначала самые неоднозначные: близко к порогу.
+    ordered.sort(key=lambda item: (abs(item[0] - threshold), -item[0], item[1], item[2]))
+    return ordered[: max(0, int(limit))]
+
+
 def cluster_articles(
     articles: List[Article],
     threshold: float = 0.34,
     min_sources: int = 1,
     max_age_hours: float = 48.0,
+    verifier: Any = None,
 ) -> List[StoryCluster]:
     """Группирует статьи об одном событии в сюжеты.
 
@@ -480,6 +511,21 @@ def cluster_articles(
                 title_text[second],
             )
             similarities[first][second] = similarities[second][first] = value
+
+    # Необязательный LLM-верификатор: только для нескольких неоднозначных
+    # пар. None/ошибка = оставляем лексическое сходство без изменений.
+    if verifier is not None and total > 1:
+        max_calls = int(getattr(verifier, "max_calls", 10) or 0)
+        for _, first, second in _verifier_candidates(similarities, threshold, max_calls):
+            if _article_key(items[first]) and _article_key(items[first]) == _article_key(items[second]):
+                continue
+            verdict = verifier.same_event(items[first], items[second])
+            if verdict is True:
+                logger.debug("LLM подтвердил сюжет: %r ~ %r", items[first].title, items[second].title)
+                similarities[first][second] = similarities[second][first] = 1.0
+            elif verdict is False:
+                logger.debug("LLM разделил сюжеты: %r !~ %r", items[first].title, items[second].title)
+                similarities[first][second] = similarities[second][first] = 0.0
 
     # Точные дубли URL склеиваем безусловно (даже если заголовки разные).
     union_find = _UnionFind(total)
