@@ -263,32 +263,36 @@ def main(argv: Optional[List[str]] = None) -> int:
             )
             continue
 
-        last_error: Optional[Exception] = None
-        for attempt in range(1, 4):
-            try:
-                if not args.skip_title:
-                    call(token, "setChatTitle", {"chat_id": chat_id, "title": title})
-                call(token, "setChatDescription", {"chat_id": chat_id, "description": description})
-                photo_note = "без фото"
-                if photo and not args.skip_photo:
-                    call_photo(token, chat_id, photo)
-                    photo_note = f"фото {photo.name}"
-                print(f"✓ {channel_id} ({chat_id}): {title!r}, описание {len(description)} симв., {photo_note}")
-                applied += 1
-                last_error = None
-                break
-            except Exception as exc:  # noqa: BLE001
-                last_error = exc
-                text = str(exc)
-                transient = "Connection reset" in text or "timed out" in text or "HTTP 5" in text
-                if attempt < 3 and transient:
-                    print(f"… {channel_id}: попытка {attempt} не удалась ({text[:80]}) — повтор")
-                    time.sleep(3 * attempt)
-                    continue
-                break
-        if last_error is not None:
-            print(f"✗ {channel_id} ({chat_id}): {last_error}")
+        steps = []
+        if not args.skip_title:
+            steps.append(("title", lambda: call(token, "setChatTitle", {"chat_id": chat_id, "title": title})))
+        steps.append(("description", lambda: call(token, "setChatDescription", {"chat_id": chat_id, "description": description})))
+        if photo and not args.skip_photo:
+            steps.append(("photo", lambda: call_photo(token, chat_id, photo)))
+
+        done: List[str] = []
+        errors: List[str] = []
+        for name, action in steps:
+            for attempt in range(1, 4):
+                try:
+                    action()
+                    done.append(name)
+                    break
+                except Exception as exc:  # noqa: BLE001
+                    text = str(exc)
+                    transient = "Connection reset" in text or "timed out" in text or "HTTP 5" in text
+                    if attempt < 3 and transient:
+                        time.sleep(3 * attempt)
+                        continue
+                    errors.append(f"{name}: {text[:150]}")
+                    break
+
+        if errors:
+            print(f"✗ {channel_id} ({chat_id}): " + " | ".join(errors) + (f" · сделано: {', '.join(done)}" if done else ""))
             failed += 1
+        else:
+            print(f"✓ {channel_id} ({chat_id}): {', '.join(done)}")
+            applied += 1
 
     print(f"\nобновлено: {applied} · пропущено: {skipped} · ошибок: {failed}")
     return 0 if failed == 0 else 1
