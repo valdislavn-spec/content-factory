@@ -64,11 +64,11 @@ jobs:
           python scripts/telegram_branding.py $ARGS
       - name: Dump avatars
         if: always() && inputs.dump
-        run: python scripts/telegram_branding.py --dump-photos .avatars
+        run: python scripts/telegram_branding.py --dump-photos avatars-out
       - name: Upload avatars
         if: always() && inputs.dump
         uses: actions/upload-artifact@v4
         with:
           name: channel-avatars
-          path: .avatars/
+          path: avatars-out/
           retention-days: 7
