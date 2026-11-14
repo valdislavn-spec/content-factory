@@ -30,48 +30,240 @@
   ]
 }
 </script>
+<meta property="og:image" content="https://valdislavn-spec.github.io/content-factory/assets/og/index.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://valdislavn-spec.github.io/content-factory/assets/og/index.png">
 <style>
   :root {
-    --bg: #0b1220;
-    --card: #121b2e;
-    --card-hover: #17233c;
-    --text: #e8eefc;
-    --muted: #93a4c4;
-    --accent: #4f8cff;
-    --border: #22304d;
+    --bg: #060a13;
+    --bg-2: #0a1120;
+    --surface: rgba(255,255,255,.035);
+    --surface-hi: rgba(255,255,255,.06);
+    --text: #e9eefb;
+    --muted: #94a3c0;
+    --line: rgba(148,163,192,.18);
+    --line-hi: rgba(148,163,192,.34);
+    --crypto: #f6a723;
+    --ai: #8b7cff;
+    --sport: #2fd18b;
+    --accent: #5b8cff;
+    --radius: 18px;
+    --shell: 1080px;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: radial-gradient(1200px 600px at 20% -10%, #1b2b4d 0%, var(--bg) 55%);
+    background:
+      radial-gradient(900px 520px at 12% -8%, rgba(91,140,255,.20), transparent 62%),
+      radial-gradient(760px 460px at 92% 4%, rgba(139,124,255,.16), transparent 60%),
+      radial-gradient(680px 420px at 50% 108%, rgba(47,209,139,.10), transparent 62%),
+      var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    min-height: 100vh;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 56px 20px 64px; }
-  header h1 { font-size: clamp(26px, 5vw, 40px); line-height: 1.15; margin: 0 0 12px; }
-  header p { color: var(--muted); font-size: 17px; line-height: 1.5; margin: 0 0 8px; }
-  .badge {
-    display: inline-block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
-    color: #9dc0ff; background: rgba(79,140,255,.12); border: 1px solid rgba(79,140,255,.35);
-    padding: 6px 10px; border-radius: 999px; margin-bottom: 20px;
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  .shell { width: 100%; max-width: var(--shell); margin: 0 auto; padding: 0 22px; }
+
+  /* ---------- header ---------- */
+  .site-head {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(6,10,19,.92), rgba(6,10,19,.62));
+    border-bottom: 1px solid var(--line);
   }
-  h2 { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
-       margin: 44px 0 14px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
-  a.card {
-    display: block; text-decoration: none; color: inherit; background: var(--card);
-    border: 1px solid var(--border); border-radius: 16px; padding: 18px 18px 16px;
-    transition: background .18s ease, transform .18s ease, border-color .18s ease;
+  .site-head .shell {
+    display: flex; align-items: center; gap: 18px;
+    min-height: 62px;
   }
-  a.card:hover { background: var(--card-hover); transform: translateY(-2px); border-color: rgba(79,140,255,.5); }
-  .card .top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .card .icon { font-size: 24px; line-height: 1; }
-  .card .name { font-weight: 650; font-size: 17px; }
-  .card .desc { color: var(--muted); font-size: 14px; line-height: 1.45; }
-  .card .link { margin-top: 12px; font-size: 13px; color: var(--accent); font-weight: 600; }
-  footer { margin-top: 48px; color: #6f81a3; font-size: 13px; line-height: 1.6; }
-  footer a { color: #8fb4ff; text-decoration: none; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 650; letter-spacing: -.01em; }
+  .brand-mark {
+    width: 30px; height: 30px; border-radius: 9px;
+    display: grid; place-items: center;
+    background: linear-gradient(145deg, rgba(91,140,255,.95), rgba(139,124,255,.9));
+    color: #060a13; font-weight: 800; font-size: 13px; letter-spacing: -.04em;
+    box-shadow: 0 6px 18px rgba(91,140,255,.30);
+  }
+  .brand span:last-child { font-size: 15px; }
+  .nav { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .nav a {
+    text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 550;
+    padding: 8px 12px; border-radius: 9px; transition: color .16s ease, background .16s ease;
+  }
+  .nav a:hover { color: var(--text); background: var(--surface-hi); }
+  .langs { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.02); }
+  .langs a { text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); padding: 5px 9px; border-radius: 7px; }
+  .langs a:hover { color: var(--text); }
+  .langs a[aria-current="true"] { background: var(--surface-hi); color: var(--text); }
+  @media (max-width: 760px) { .nav { display: none; } .langs { margin-left: auto; } }
+
+  /* ---------- hero ---------- */
+  .hero { padding-top: 72px; padding-bottom: 8px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 650; letter-spacing: .16em; text-transform: uppercase;
+    color: #a9c1ff; margin: 0 0 22px;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: currentColor; opacity: .7; }
+  h1 {
+    margin: 0 0 18px; font-size: clamp(32px, 5.6vw, 58px); line-height: 1.04;
+    letter-spacing: -.028em; font-weight: 720; max-width: 20ch; text-wrap: balance;
+  }
+  .grad {
+    background: linear-gradient(100deg, #8fb4ff 0%, #a89bff 46%, #63e6b0 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede { margin: 0 0 10px; color: var(--muted); font-size: clamp(16px, 1.6vw, 18px); max-width: 62ch; }
+  .lede-es { color: #7f8fae; font-size: 15px; }
+  .stats {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; padding: 0; list-style: none;
+  }
+  .stats li {
+    display: inline-flex; align-items: baseline; gap: 7px;
+    padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface); font-size: 13px; color: var(--muted);
+  }
+  .stats b { color: var(--text); font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; margin: 30px 0 0; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px; text-decoration: none;
+    font-size: 14.5px; font-weight: 650; padding: 12px 18px; border-radius: 12px;
+    border: 1px solid transparent; transition: transform .16s ease, background .16s ease, border-color .16s ease;
+  }
+  .btn-primary { background: linear-gradient(145deg, #6f9bff, #7f74ff); color: #08101f; box-shadow: 0 10px 26px rgba(91,140,255,.28); }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-ghost { border-color: var(--line-hi); color: var(--text); background: var(--surface); }
+  .btn-ghost:hover { background: var(--surface-hi); border-color: rgba(148,163,192,.5); }
+  .btn svg { width: 17px; height: 17px; }
+
+  /* ---------- sections ---------- */
+  section { scroll-margin-top: 78px; }
+  .block { padding-top: 56px; }
+  .block-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 20px; }
+  .block-head h2 {
+    margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text);
+  }
+  .block-head .rule { flex: 1; height: 1px; background: var(--line); }
+  .block-head .count { font-size: 12.5px; color: var(--muted); letter-spacing: .04em; }
+  .block-sub { margin: -8px 0 22px; color: var(--muted); font-size: 14.5px; }
+
+  /* ---------- channel cards ---------- */
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  .chan {
+    position: relative; display: flex; flex-direction: column; gap: 14px;
+    text-decoration: none; padding: 20px 20px 18px; border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--surface), rgba(255,255,255,.012));
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    overflow: hidden;
+  }
+  .chan::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+    background: linear-gradient(90deg, var(--topic), transparent 80%); opacity: .8;
+  }
+  .chan:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--topic) 55%, transparent);
+    box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--topic) 60%, transparent);
+    background: linear-gradient(180deg, var(--surface-hi), rgba(255,255,255,.02));
+  }
+  .chan-top { display: flex; align-items: center; gap: 11px; }
+  .ico {
+    width: 38px; height: 38px; flex: 0 0 38px; border-radius: 11px; display: grid; place-items: center;
+    color: var(--topic);
+    background: color-mix(in srgb, var(--topic) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--topic) 28%, transparent);
+  }
+  .ico svg { width: 20px; height: 20px; }
+  .chan-name { font-size: 16.5px; font-weight: 660; letter-spacing: -.012em; line-height: 1.25; }
+  .chan-desc { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0; }
+  .chan-foot {
+    margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 12.5px; color: color-mix(in srgb, var(--topic) 82%, white 18%); font-weight: 600;
+    letter-spacing: .01em;
+  }
+  .chan-foot .dot { color: var(--muted); font-weight: 500; }
+  .chan-foot svg { width: 15px; height: 15px; transition: transform .18s ease; }
+  .chan:hover .chan-foot svg { transform: translate(2px, -2px); }
+
+  /* ---------- travel ---------- */
+  .travel-featured { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 820px) { .travel-featured { grid-template-columns: 1fr; } }
+  .tcard {
+    display: flex; gap: 14px; align-items: flex-start; text-decoration: none;
+    padding: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
+    transition: border-color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .tcard:hover { border-color: rgba(246,167,35,.45); background: var(--surface-hi); transform: translateY(-2px); }
+  .tcard .ico { --topic: var(--crypto); }
+  .tcard h3 { margin: 0 0 4px; font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+  .tcard p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .tcard p a { color: #a9c1ff; text-decoration: none; border-bottom: 1px solid rgba(169,193,255,.3); }
+  .tcard p a:hover { color: #dfe9ff; border-bottom-color: rgba(223,233,255,.7); }
+  .tcard:hover h3 { color: #fff; }
+
+  .guides {
+    margin: 16px 0 0; padding: 4px; list-style: none;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 18px;
+    border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.015);
+  }
+  @media (max-width: 700px) { .guides { grid-template-columns: 1fr; } }
+  .guides a {
+    display: flex; align-items: center; gap: 10px; justify-content: space-between;
+    text-decoration: none; padding: 12px 14px; border-radius: 11px; font-size: 14px; color: #cfd9ee;
+    transition: background .15s ease, color .15s ease;
+  }
+  .guides a:hover { background: var(--surface-hi); color: #fff; }
+  .guides a span { display: inline-flex; align-items: center; gap: 9px; }
+  .guides svg { width: 15px; height: 15px; color: var(--muted); flex: 0 0 15px; }
+  .guides .arrow { width: 14px; height: 14px; opacity: 0; transition: opacity .15s ease, transform .15s ease; color: var(--crypto); }
+  .guides a:hover .arrow { opacity: 1; transform: translate(2px,-2px); }
+
+  /* ---------- panels ---------- */
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 56px 0 0; }
+  @media (max-width: 780px) { .panels { grid-template-columns: 1fr; } }
+  .panel {
+    padding: 20px 22px; border-radius: 16px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012));
+  }
+  .panel h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; letter-spacing: .02em; }
+  .panel p { margin: 0 0 10px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+  .panel p:last-child { margin-bottom: 0; }
+  .panel a { color: #9dbcff; text-decoration: none; border-bottom: 1px solid rgba(157,188,255,.28); }
+  .panel a:hover { color: #cfe0ff; border-bottom-color: rgba(207,224,255,.6); }
+  .fineprint { color: #6f7f9d; font-size: 12.5px; line-height: 1.5; }
+
+  /* ---------- footer ---------- */
+  footer { margin-top: 64px; border-top: 1px solid var(--line); padding: 34px 0 54px; }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 26px; }
+  @media (max-width: 820px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .foot-grid { grid-template-columns: 1fr; } }
+  .foot-brand p { margin: 10px 0 0; color: #7c8aa6; font-size: 13px; max-width: 34ch; }
+  .foot-col h4 {
+    margin: 0 0 10px; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: #7c8aa6; font-weight: 700;
+  }
+  .foot-col a { display: block; text-decoration: none; color: #b9c6de; font-size: 13.5px; padding: 4px 0; }
+  .foot-col a:hover { color: #fff; }
+  .foot-bottom {
+    margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+    color: #6f7f9d; font-size: 12.5px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
 </style>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LC39S1FD7B"></script>
@@ -91,101 +283,267 @@
         document.head.appendChild(script);
     })();
   </script>
-
-<meta property="og:image" content="https://valdislavn-spec.github.io/content-factory/assets/og/index.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:image" content="https://valdislavn-spec.github.io/content-factory/assets/og/index.png">
 </head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="badge">Telegram network · 6 channels</div>
-    <h1>Daily crypto, AI &amp; sports news — no fluff.</h1>
-    <p>Sourced coverage from CoinDesk, The Block, TechCrunch, MIT Technology Review, ESPN and more.
-       English and Spanish channels, 15 posts a day each.</p>
-    <p>Noticias diarias de cripto, IA y deporte — en inglés y en español.</p>
-  </header>
+<body id="top">
 
-  <h2>English</h2>
-  <div class="grid">
-    <a class="card" href="https://t.me/HOOPY0007">
-      <div class="top"><span class="icon">₿</span><span class="name">Crypto &amp; Blockchain</span></div>
-      <div class="desc">Bitcoin, Ethereum, markets, regulation and blockchain. US-focused: CoinDesk, The Block, Decrypt, SEC/CFTC filings.</div>
-      <div class="link">t.me/HOOPY0007 →</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-coin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M10 7.5h3.2a2.2 2.2 0 0 1 0 4.4H10m0 0h3.5a2.2 2.2 0 0 1 0 4.4H10m0-8.8v8.8M11.6 6v1.5m0 9v1.5"/>
+    </symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/><rect x="10" y="10" width="4" height="4" rx="1"/>
+      <path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3"/>
+    </symbol>
+    <symbol id="i-football" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.6 15.6c-1.9-3.6.6-8.2 4.6-9.8 4-1.6 8.4.3 9.4 3.4 1 3-1.6 6.6-5.4 8-3.2 1.2-6.9.5-8.6-1.6Z"/>
+      <path d="M8.2 11.4l4.2-1.6 4.1 1.7M9.6 13.6l2.6 3.4M16.2 12.2l-1.9 4.3"/>
+    </symbol>
+    <symbol id="i-ball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 7.6l3.4 2.4-1.3 3.9h-4.2L9.6 10 12 7.6Z"/>
+      <path d="M12 3v4.6M20.6 9.6l-5.2.4M17.6 19.4l-3.5-3.9M6.4 19.4l3.5-3.9M3.4 9.6l5.2.4"/>
+    </symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.5 3.2a1.6 1.6 0 0 1 3 0l1.1 6.3 5.4 3.1v2.1l-5.4-1.6-.6 4 2 1.5v1.6L12 19.4l-4 0.8v-1.6l2-1.5-.6-4-5.4 1.6v-2.1l5.4-3.1L10.5 3.2Z"/>
+    </symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5.6 8h12.8l-1 11.2a1.6 1.6 0 0 1-1.6 1.5H8.2a1.6 1.6 0 0 1-1.6-1.5L5.6 8Z"/>
+      <path d="M9 8V6.4a3 3 0 0 1 6 0V8"/>
+    </symbol>
+    <symbol id="i-palm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20V11"/><path d="M12 11c-3.2-3.9-7.6-2.5-7.6.6M12 11c3.2-3.9 7.6-2.5 7.6.6M12 11c-1.4-4.4 1.5-7.4 4.4-6.4M12 11C10.6 6.6 7.7 3.6 4.8 4.6"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 17 17 7M9 7h8v8"/>
+    </symbol>
+    <symbol id="i-tg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 4.5 3.6 11.2c-.8.3-.8 1.4.1 1.6l4.4 1.3 1.6 4.6c.3.8 1.3.9 1.8.2l2.3-3 4.2 3.1c.7.5 1.7.1 1.9-.8L21.9 5.4c.2-.7-.4-1.3-.9-.9Z"/>
+      <path d="M8.1 14.1 17.4 7"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 5.5A2 2 0 0 1 6 3.5h13v17H6a2 2 0 0 0-2 2v-17Z"/><path d="M4 18.5h15"/>
+    </symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="8.5" cy="8.5" r="4"/><path d="M11.4 11.4 20 20m-3-3 2-2m-4 0 2-2"/>
+    </symbol>
+    <symbol id="i-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15.5h16M5.5 15.5v2.2M18.5 15.5v2.2"/><path d="M5.2 15.5 6.8 9a2 2 0 0 1 2-1.5h6.4a2 2 0 0 1 2 1.5l1.6 6.5"/>
+      <circle cx="8" cy="12.5" r=".8"/><circle cx="16" cy="12.5" r=".8"/>
+    </symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 21s6.5-6.1 6.5-10.5a6.5 6.5 0 1 0-13 0C5.5 14.9 12 21 12 21Z"/><circle cx="12" cy="10.4" r="2.3"/>
+    </symbol>
+    <symbol id="i-sim" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 3.5h6.8L19 8.7v11.8H7V3.5Z"/><rect x="9.8" y="12.4" width="6.4" height="5.2" rx="1"/>
+    </symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2.5 2.5 0 0 0 0 5v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a2.5 2.5 0 0 0 0-5v-1Z"/>
+      <path d="M13.5 8v1.6m0 2.4v1.4m0 2.6V18"/>
+    </symbol>
+    <symbol id="i-locker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M12 3.5v17M8.2 9.5v2M15.8 9.5v2"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="site-head">
+  <div class="shell">
+    <a class="brand" href="#top" aria-label="Content Factory — home">
+      <span class="brand-mark">CF</span>
+      <span>content factory</span>
     </a>
-    <a class="card" href="https://t.me/AINEWS0007">
-      <div class="top"><span class="icon">🤖</span><span class="name">AI News</span></div>
-      <div class="desc">Model releases, products, policy and the companies building them. Daily from TechCrunch, The Verge, MIT TR, Wired, OpenAI, NVIDIA.</div>
-      <div class="link">t.me/AINEWS0007 →</div>
-    </a>
-    <a class="card" href="https://t.me/SPORTNews0007">
-      <div class="top"><span class="icon">🏈</span><span class="name">US Sports News</span></div>
-      <div class="desc">NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis — 16 updates a day.</div>
-      <div class="link">t.me/SPORTNews0007 →</div>
-    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#en">Channels</a>
+      <a href="#travel">Travel</a>
+      <a href="#support">Support</a>
+    </nav>
+    <div class="langs" role="group" aria-label="Language">
+      <a href="#en" aria-current="true">EN</a>
+      <a href="#es">ES</a>
+    </div>
   </div>
+</header>
 
-  <h2>Español</h2>
-  <div class="grid">
-    <a class="card" href="https://t.me/TechnologiesNews01">
-      <div class="top"><span class="icon">₿</span><span class="name">ES Crypto &amp; Blockchain</span></div>
-      <div class="desc">Bitcoin, Ethereum, mercados y regulación en español. CriptoNoticias, BeInCrypto, CriptoTendencia y Observatorio Blockchain.</div>
-      <div class="link">t.me/TechnologiesNews01 →</div>
-    </a>
-    <a class="card" href="https://t.me/WORLDNews0007">
-      <div class="top"><span class="icon">🤖</span><span class="name">ES AI News</span></div>
-      <div class="desc">Inteligencia artificial en español: modelos, productos, empresas y políticas. Hipertextual, ABC Tecnología, FayerWayer, La Nación.</div>
-      <div class="link">t.me/WORLDNews0007 →</div>
-    </a>
-    <a class="card" href="https://t.me/SPORTSAnalytics007">
-      <div class="top"><span class="icon">⚽</span><span class="name">ES Sports News</span></div>
-      <div class="desc">Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS, Champions. Resultados, fichajes y análisis. 18+.</div>
-      <div class="link">t.me/SPORTSAnalytics007 →</div>
-    </a>
-  </div>
+<main>
+  <section class="hero shell">
+    <p class="eyebrow">Telegram network · 6 channels</p>
+    <h1>Daily crypto, AI &amp; sports news — <span class="grad">sourced, not spun</span>.</h1>
+    <p class="lede">Sourced coverage from CoinDesk, The Block, TechCrunch, MIT Technology Review, ESPN and more. English and Spanish channels, 15 posts a day each.</p>
+    <p class="lede lede-es">Noticias diarias de cripto, IA y deporte — en inglés y en español.</p>
 
-  
-  <!-- travel-block: internal links for SEO & traffic -->
-  <div id="travel-block" style="margin-top:28px;padding:20px 22px;border:1px solid #dfe3ea;border-radius:14px;background:#fbfcff">
-    <h2 style="margin:0 0 12px;font-size:20px">Travel guides</h2>
-    <p style="margin:0 0 10px"><a href="https://deals-finds.deed.page/" style="color:#2563eb;text-decoration:none;font-weight:600">🛒 Deals &amp; finds — AliExpress, Sugargoo и другие товарные партнёрки — live picks</a></p>
-<p style="margin:0 0 10px"><a href="tours/" style="color:#2563eb;text-decoration:none;font-weight:600">🏝 Package tours from Minsk &amp; Astana — live prices</a></p>
-    <p style="margin:0 0 10px"><a href="flights/almaty/" style="color:#2563eb;text-decoration:none;font-weight:600">✈️ Cheap flights from Almaty — updated daily</a> · <a href="flights/minsk/" style="color:#2563eb;text-decoration:none;font-weight:600">from Minsk</a></p>
-    <ul style="margin:0;padding-left:20px;line-height:1.9">
-      <li><a href="travel/europe-under-300.html">Europe for under $300</a></li>
-      <li><a href="travel/bali-budget.html">Bali on a budget</a></li>
-      <li><a href="travel/rome-48-hours.html">48 hours in Rome</a></li>
-      <li><a href="travel/travel-esim.html">Travel eSIM: internet abroad</a></li>
-      <li><a href="travel/car-rental-europe.html">Car rental without hidden fees</a></li>
-      <li><a href="travel/airport-transfer-guide.html">Airport transfers: fixed price</a></li>
-      <li><a href="travel/luggage-storage-guide.html">Luggage storage guide</a></li>
-      <li><a href="travel/skip-the-line-tickets-guide.html">Skip-the-line tickets</a></li>
-      <li><a href="travel/almaty-48-hours.html">48 hours in Almaty</a></li>
-      <li><a href="travel/minsk-weekend.html">Minsk weekend guide</a></li>
+    <ul class="stats">
+      <li><b>6</b> channels</li>
+      <li><b>2</b> languages</li>
+      <li><b>15–18</b> posts a day</li>
+      <li><b>0</b> paywalls</li>
     </ul>
+
+    <div class="cta">
+      <a class="btn btn-primary" href="#en"><svg aria-hidden="true"><use href="#i-tg"/></svg>Browse channels</a>
+      <a class="btn btn-ghost" href="https://t.me/HOOPY0007">Open in Telegram<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </section>
+
+  <section id="en" class="block shell">
+    <div class="block-head">
+      <h2>English</h2><span class="rule"></span><span class="count">3 channels</span>
+    </div>
+    <div class="grid">
+      <a class="chan" style="--topic: var(--crypto)" href="https://t.me/HOOPY0007">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-coin"/></svg></span>
+          <span class="chan-name">Crypto &amp; Blockchain</span>
+        </div>
+        <p class="chan-desc">Bitcoin, Ethereum, markets, regulation and blockchain. US-focused: CoinDesk, The Block, Decrypt, SEC/CFTC filings.</p>
+        <span class="chan-foot">t.me/HOOPY0007 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+
+      <a class="chan" style="--topic: var(--ai)" href="https://t.me/AINEWS0007">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-chip"/></svg></span>
+          <span class="chan-name">AI News</span>
+        </div>
+        <p class="chan-desc">Model releases, products, policy and the companies building them. Daily from TechCrunch, The Verge, MIT TR, Wired, OpenAI, NVIDIA.</p>
+        <span class="chan-foot">t.me/AINEWS0007 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+
+      <a class="chan" style="--topic: var(--sport)" href="https://t.me/SPORTNews0007">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-football"/></svg></span>
+          <span class="chan-name">US Sports News</span>
+        </div>
+        <p class="chan-desc">NFL, NBA, MLB, NHL and college football: scores, trades, injuries and analysis — 16 updates a day.</p>
+        <span class="chan-foot">t.me/SPORTNews0007 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <section id="es" class="block shell">
+    <div class="block-head">
+      <h2>Español</h2><span class="rule"></span><span class="count">3 canales</span>
+    </div>
+    <div class="grid">
+      <a class="chan" style="--topic: var(--crypto)" href="https://t.me/TechnologiesNews01">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-coin"/></svg></span>
+          <span class="chan-name">ES Crypto &amp; Blockchain</span>
+        </div>
+        <p class="chan-desc">Bitcoin, Ethereum, mercados y regulación en español. CriptoNoticias, BeInCrypto, CriptoTendencia y Observatorio Blockchain.</p>
+        <span class="chan-foot">t.me/TechnologiesNews01 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+
+      <a class="chan" style="--topic: var(--ai)" href="https://t.me/WORLDNews0007">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-chip"/></svg></span>
+          <span class="chan-name">ES AI News</span>
+        </div>
+        <p class="chan-desc">Inteligencia artificial en español: modelos, productos, empresas y políticas. Hipertextual, ABC Tecnología, FayerWayer, La Nación.</p>
+        <span class="chan-foot">t.me/WORLDNews0007 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+
+      <a class="chan" style="--topic: var(--sport)" href="https://t.me/SPORTSAnalytics007">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-ball"/></svg></span>
+          <span class="chan-name">ES Sports News</span>
+        </div>
+        <p class="chan-desc">Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS, Champions. Resultados, fichajes y análisis. 18+.</p>
+        <span class="chan-foot">t.me/SPORTSAnalytics007 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </section>
+
+  <section id="travel" class="block shell">
+    <div class="block-head">
+      <h2>Travel guides</h2><span class="rule"></span><span class="count">live prices · updated daily</span>
+    </div>
+    <p class="block-sub">Cheap flights, package tours and practical guides — the same desk that files the news.</p>
+
+    <div class="travel-featured">
+      <a class="tcard" href="https://deals-finds.deed.page/">
+        <span class="ico"><svg aria-hidden="true"><use href="#i-bag"/></svg></span>
+        <span>
+          <h3>Deals &amp; finds</h3>
+          <p>AliExpress, Sugargoo и другие товарные партнёрки — live picks.</p>
+        </span>
+      </a>
+      <a class="tcard" href="tours/">
+        <span class="ico"><svg aria-hidden="true"><use href="#i-palm"/></svg></span>
+        <span>
+          <h3>Package tours</h3>
+          <p>From Minsk &amp; Astana — live prices.</p>
+        </span>
+      </a>
+      <div class="tcard">
+        <span class="ico"><svg aria-hidden="true"><use href="#i-plane"/></svg></span>
+        <span>
+          <h3>Cheap flights</h3>
+          <p>Updated daily: <a href="flights/almaty/">from Almaty</a> · <a href="flights/minsk/">from Minsk</a></p>
+        </span>
+      </div>
+    </div>
+
+    <ul class="guides">
+      <li><a href="travel/europe-under-300.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>Europe for under $300</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/bali-budget.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>Bali on a budget</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/rome-48-hours.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>48 hours in Rome</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/travel-esim.html"><span><svg aria-hidden="true"><use href="#i-sim"/></svg>Travel eSIM: internet abroad</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/car-rental-europe.html"><span><svg aria-hidden="true"><use href="#i-car"/></svg>Car rental without hidden fees</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/airport-transfer-guide.html"><span><svg aria-hidden="true"><use href="#i-car"/></svg>Airport transfers: fixed price</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/luggage-storage-guide.html"><span><svg aria-hidden="true"><use href="#i-locker"/></svg>Luggage storage guide</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/skip-the-line-tickets-guide.html"><span><svg aria-hidden="true"><use href="#i-ticket"/></svg>Skip-the-line tickets</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/almaty-48-hours.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>48 hours in Almaty</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      <li><a href="travel/minsk-weekend.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>Minsk weekend guide</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+    </ul>
+  </section>
+
+  <section id="support" class="shell">
+    <div class="panels">
+      <div class="panel">
+        <h3>Поддержать проект / Support us</h3>
+        <p>Контент бесплатный. Если хотите поддержать добровольно — <a href="https://www.donationalerts.com/r/vladislavNoname?utm_source=landing&amp;utm_medium=hub&amp;utm_campaign=voluntary_support">DonationAlerts</a>. ❤️</p>
+      </div>
+      <div class="panel">
+        <h3>Partners / Партнёры</h3>
+        <p>Инструменты и площадки, с которыми мы работаем: <a href="https://mylead.global/r/dJ67Qo?utm_source=landing&amp;utm_medium=hub&amp;utm_campaign=partners">MyLead</a> · <a href="https://collaborator.pro/ru/signup?code=m9Vidx&amp;utm_source=landing&amp;utm_medium=hub&amp;utm_campaign=partners">Collaborator.pro</a>.</p>
+        <p class="fineprint">Advertising / affiliate links. We may earn a commission if you sign up. No guaranteed returns.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top"><span class="brand-mark">CF</span><span>content factory</span></a>
+        <p>Daily crypto, AI &amp; sports news in English and Spanish. Sourced, summarised, published by schedule.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Channels</h4>
+        <a href="channels/">Channel pages by region</a>
+        <a href="https://github.com/valdislavn-spec/content-factory/blob/main/CHANNELS.md">All links</a>
+        <a href="subscribe/">Weekly email digest</a>
+      </div>
+      <div class="foot-col">
+        <h4>Project</h4>
+        <a href="https://github.com/valdislavn-spec/content-factory">Source on GitHub</a>
+        <a href="travel/">Travel guides</a>
+        <a href="https://t.me/Novyi0007Bot">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h4>Legal</h4>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Use</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>Updated 14.11.2026</span>
+      <span>·</span>
+      <span>English &amp; Spanish · 6 channels</span>
+    </div>
   </div>
-<p style="margin-top:28px;padding:16px 18px;border:1px solid #dfe3ea;border-radius:12px;background:#fafbff">
-    <b>Поддержать проект / Support us</b><br>
-    Контент бесплатный. Если хотите поддержать добровольно — <a href="https://www.donationalerts.com/r/vladislavNoname?utm_source=landing&amp;utm_medium=hub&amp;utm_campaign=voluntary_support">DonationAlerts</a>. ❤️
-  </p>
+</footer>
 
-  <p style="margin-top:16px;padding:16px 18px;border:1px solid #dfe3ea;border-radius:12px;background:#fafbff">
-    <b>Partners / Партнёры</b><br>
-    Инструменты и площадки, с которыми мы работаем:
-    <a href="https://mylead.global/r/dJ67Qo?utm_source=landing&amp;utm_medium=hub&amp;utm_campaign=partners">MyLead</a> ·
-    <a href="https://collaborator.pro/ru/signup?code=m9Vidx&amp;utm_source=landing&amp;utm_medium=hub&amp;utm_campaign=partners">Collaborator.pro</a>.<br>
-    <i>Advertising / affiliate links. We may earn a commission if you sign up. No guaranteed returns.</i>
-  </p>
-
-  <footer>
-    Updated 08.11.2026 · <a href="https://github.com/valdislavn-spec/content-factory">source</a> ·
-    <a href="https://github.com/valdislavn-spec/content-factory/blob/main/CHANNELS.md">all links</a> ·
-    <a href="channels/">channel pages by region</a> · <a href="travel/">travel guides</a> ·
-    <a href="subscribe/">weekly email digest</a><br>
-    <a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> ·
-    <a href="https://t.me/Novyi0007Bot">Contact</a>
-  </footer>
-</div>
 </body>
 </html>
