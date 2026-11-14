@@ -19,7 +19,7 @@
     "name": "Yesim",
     "label": "Mobile data for the trip",
     "label_es": "Datos móviles para el viaje",
-    "display": "is.gd/TravelData",
+    "display": "Travel data →",
     "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-yesim"
   }
 }

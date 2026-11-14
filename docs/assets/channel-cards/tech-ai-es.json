@@ -19,7 +19,7 @@
     "name": "Aviasales",
     "label": "Compare flight deals",
     "label_es": "Comparar vuelos baratos",
-    "display": "is.gd/Flights",
+    "display": "Flights →",
     "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-aviasales"
   }
 }

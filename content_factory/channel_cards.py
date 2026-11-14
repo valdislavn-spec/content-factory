@@ -103,8 +103,8 @@ CARDS: Dict[str, ChannelCard] = {
         handle="@HOOPY0007",
         telegram_url="https://t.me/HOOPY0007",
         hashtags=["#Crypto", "#Bitcoin", "#Telegram"],
-        accent="#FFC107",
-        base="#1E1206",
+        accent="#F5A524",
+        base="#070B14",
         logo="crypto-news.png",
     ),
     "ai-news": ChannelCard(
@@ -125,8 +125,8 @@ CARDS: Dict[str, ChannelCard] = {
         handle="@AINEWS0007",
         telegram_url="https://t.me/AINEWS0007",
         hashtags=["#AI", "#MachineLearning", "#Telegram"],
-        accent="#4FC3F7",
-        base="#08142A",
+        accent="#8B7CFF",
+        base="#070B14",
         logo="ai-news.png",
     ),
     "sport-news": ChannelCard(
@@ -147,8 +147,8 @@ CARDS: Dict[str, ChannelCard] = {
         handle="@SPORTNews0007",
         telegram_url="https://t.me/SPORTNews0007",
         hashtags=["#NFL", "#NBA", "#Telegram"],
-        accent="#FFD166",
-        base="#0E141C",
+        accent="#2FD18B",
+        base="#070B14",
         logo="sport-news.png",
     ),
     "crypto-es": ChannelCard(
@@ -169,8 +169,8 @@ CARDS: Dict[str, ChannelCard] = {
         handle="@TechnologiesNews01",
         telegram_url="https://t.me/TechnologiesNews01",
         hashtags=["#Cripto", "#Bitcoin", "#Telegram"],
-        accent="#FFD54F",
-        base="#221408",
+        accent="#F5A524",
+        base="#070B14",
         logo="crypto-es.png",
     ),
     "tech-ai-es": ChannelCard(
@@ -191,8 +191,8 @@ CARDS: Dict[str, ChannelCard] = {
         handle="@WORLDNews0007",
         telegram_url="https://t.me/WORLDNews0007",
         hashtags=["#InteligenciaArtificial", "#IA", "#Telegram"],
-        accent="#81C7FF",
-        base="#10133E",
+        accent="#8B7CFF",
+        base="#070B14",
         logo="tech-ai-es.png",
     ),
     "futbol-es": ChannelCard(
@@ -213,8 +213,8 @@ CARDS: Dict[str, ChannelCard] = {
         handle="@SPORTSAnalytics007",
         telegram_url="https://t.me/SPORTSAnalytics007",
         hashtags=["#Fútbol", "#Deporte", "#Telegram"],
-        accent="#FFD166",
-        base="#062218",
+        accent="#2FD18B",
+        base="#070B14",
         logo="futbol-es.png",
     ),
 }
@@ -300,7 +300,8 @@ def render_card(
     width, height = size
     root = Path(__file__).resolve().parents[1]
     font_dir = Path(font_dir) if font_dir else root / "assets" / "fonts"
-    logo_dir = Path(logo_dir) if logo_dir else root / "assets" / "logos"
+    logo_dir = Path(logo_dir) if logo_dir else root / "assets" / "avatars"
+    legacy_logo_dir = root / "assets" / "logos"
     travel = travel or travel_offer(0)
 
     def rgb(hex_value: str, fallback=(20, 24, 40)):
@@ -393,6 +394,8 @@ def render_card(
     draw.text((margin + 18, 56 + 10), badge_text, font=badge_font, fill=(240, 246, 255))
 
     logo_path = logo_dir / (card.logo or f"{card.id}.png")
+    if not logo_path.exists():
+        logo_path = legacy_logo_dir / (card.logo or f"{card.id}.png")
     logo_size = 168
     logo_x, logo_y = margin, 136
     if logo_path.exists():
@@ -468,15 +471,9 @@ def render_card(
         fill=accent + (235,),
     )
     draw.text(
-        (margin + 34, cta_top + 20),
+        (margin + 34, cta_top + 40),
         card.cta,
         font=sans_bold,
-        fill=(14, 18, 28),
-    )
-    draw.text(
-        (margin + 34, cta_top + 68),
-        "t.me/" + card.handle.lstrip("@"),
-        font=sans,
         fill=(14, 18, 28),
     )
     # arrow chevron
@@ -496,9 +493,13 @@ def render_card(
     travel_label_text = travel.get("label") if card.language == "en" else travel.get("label_es", travel.get("label"))
     draw.text((margin + 28, strip_top + 20), travel_label, font=small, fill=accent)
     draw.text((margin + 28, strip_top + 58), travel["display"], font=sans_bold, fill=(255, 255, 255))
+    suffix = " · Ad" if card.language == "en" else " · Anuncio"
+    label_text = str(travel_label_text or "")
+    if label_text and not label_text.lower().startswith(str(travel["display"]).lower().rstrip("→ ").strip()):
+        suffix = f" · {label_text}" + suffix
     draw.text(
         (margin + 28 + int(draw.textlength(travel["display"], font=sans_bold)) + 16, strip_top + 62),
-        "· " + str(travel_label_text) + (" · Ad" if card.language == "en" else " · Anuncio"),
+        suffix.lstrip(" ·"),
         font=small,
         fill=(206, 218, 240),
     )
@@ -509,12 +510,6 @@ def render_card(
         "Free Telegram channels · EN / ES" if card.language == "en" else "Canales gratis en Telegram · EN / ES",
         font=small,
         fill=(150, 166, 196),
-    )
-    draw.text(
-        (margin, height - 76),
-        " ".join(card.hashtags),
-        font=small,
-        fill=accent,
     )
     return image
 

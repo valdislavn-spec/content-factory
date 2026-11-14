@@ -19,7 +19,7 @@
     "name": "Kiwitaxi",
     "label": "Book an airport transfer",
     "label_es": "Traslado al aeropuerto",
-    "display": "is.gd/AirportTaxi",
+    "display": "Transfer →",
     "url": "https://links-tracker.valdislav-n.workers.dev/r/travel-kiwitaxi"
   }
 }
