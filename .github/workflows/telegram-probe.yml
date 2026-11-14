@@ -1,0 +1,39 @@
+name: telegram-probe
+
+# Живая проверка инлайн-кнопки под карточкой: отправляет сообщение и удаляет его.
+on:
+  workflow_dispatch:
+    inputs:
+      chat_env:
+        description: "Переменная с chat_id"
+        required: true
+        default: "TELEGRAM_CHAT_ID_FUTBOL_ES"
+      keep:
+        description: "Оставить сообщение (не удалять)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
+      TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_SIGNALS: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_SIGNALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe
+        run: |
+          ARGS="--chat-env ${{ inputs.chat_env }}"
+          if [ "${{ inputs.keep }}" = "true" ]; then ARGS="$ARGS --keep"; fi
+          python scripts/telegram_card_probe.py $ARGS
