@@ -45,6 +45,13 @@ def main(argv=None) -> int:
     for stale in out.glob("*"):
         if stale.is_file() and stale.name not in wanted:
             stale.unlink()
+        elif stale.is_dir():
+            # Редиректы плоские: вложенные папки — следствие повторного запуска
+            # с другим --out. Удаляем только безопасное (пусто или только html).
+            leftovers = [item for item in stale.rglob("*") if item.is_file()]
+            if all(item.suffix in (".html", ".txt") for item in leftovers):
+                shutil.rmtree(stale, ignore_errors=True)
+                print("removed nested dir:", stale)
     print(f"redirects: {len(wanted)} → {out}")
     return 0
 

@@ -1,0 +1,31 @@
+name: affiliate-stats
+
+# Отчёт по кликам партнёрских ссылок (links-tracker).
+# Actions → affiliate-stats → Run workflow. Результат — таблица в логе job.
+
+on:
+  workflow_dispatch:
+    inputs:
+      top:
+        description: "Сколько строк показать (0 = все)"
+        required: false
+        default: "0"
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      LINK_TRACKER_BASE: ${{ secrets.LINK_TRACKER_BASE }}
+      LINK_TRACKER_STATS_TOKEN: ${{ secrets.LINK_TRACKER_STATS_TOKEN }}
+      LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Report
+        run: python scripts/affiliate_stats.py --top "${{ inputs.top }}"
