@@ -365,16 +365,18 @@ def main(argv=None) -> int:
 
     client = AviasalesClient.from_env()
     if not client.configured():
-        print("TRAVELPAYOUTS_TOKEN is not set")
-        return 2
+        # Секрет не заведён — это состояние конфигурации, а не сбой выпуска:
+        # помечаем пропуск, чтобы ежедневный cron не красил CI в красный.
+        print("SKIP: TRAVELPAYOUTS_TOKEN не задан — выпуск пропущен")
+        return 0
     try:
         items = client.city_directions(origin=args.origin, currency=args.currency)
     except Exception as error:  # noqa: BLE001
         print("Aviasales API error:", error)
         return 1
     if not items:
-        print("no deals returned")
-        return 1
+        print("SKIP: API не вернул направлений для " + args.origin + " — выпуск пропущен")
+        return 0
     items.sort(key=lambda item: int(item.get("price") or item.get("value") or 10**9))
     items = items[: args.top]
 

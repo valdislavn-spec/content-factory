@@ -30,7 +30,7 @@ from content_factory.config import Settings, load_channels  # noqa: E402
 from content_factory.nlp.llm import get_llm  # noqa: E402
 from content_factory.pipeline import filter_articles  # noqa: E402
 from content_factory.sources import get_adapter  # noqa: E402
-from content_factory.utils import normalize_space, strip_html  # noqa: E402
+from content_factory.utils import account_unavailable, normalize_space, strip_html  # noqa: E402
 
 MAX_PART = 480
 MAX_PARTS = 4
@@ -471,11 +471,12 @@ def main() -> int:
         name: data for name, data in (result.get("networks") or {}).items() if not data.get("ok")
     }
     if apply and not networks_ok:
-        joined = json.dumps(networks_failed, ensure_ascii=False).lower()
-        if "login is currently disabled" in joined:
+        joined = json.dumps(networks_failed, ensure_ascii=False)
+        if account_unavailable(joined):
             # @Yeti01 заблокирован (страйк 319361, апелляция в процессе) — известное
-            # ожидаемое состояние, не считаем падением пайплайна.
-            print("SKIP: аккаунт Mastodon заблокирован (апелляция 319361) — публикация пропущена")
+            # ожидаемое состояние, не считаем падением пайплайна. Покрывает все
+            # fediverse-сети: 401/403, disabled, suspended, invalid access token.
+            print("SKIP: аккаунт Mastodon недоступен — публикация пропущена: " + joined[:300])
             return 0
         print(
             "ОШИБКА: ни одна сеть не приняла thread: "

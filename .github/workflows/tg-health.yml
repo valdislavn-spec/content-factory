@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: tg-health
+  cancel-in-progress: false
+
 jobs:
   health:
     runs-on: ubuntu-latest

@@ -29,6 +29,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: pins-generate
+  cancel-in-progress: false
+
 jobs:
   pins:
     runs-on: ubuntu-latest
