@@ -68,7 +68,7 @@ def main() -> int:
     draw.text((168, 96), "CONTENT FACTORY", font=font(BOLD, 22), fill=TEXT)
 
     chip = font(BOLD, 17)
-    label = "6 CHANNELS · EN + ES"
+    label = "6 NEWS · 1 SIGNALS"
     box = draw.textbbox((0, 0), label, font=chip)
     cw = box[2] - box[0]
     draw.rounded_rectangle([W - 80 - cw - 34, 88, W - 80, 132], radius=22,
@@ -81,7 +81,7 @@ def main() -> int:
     draw.text((80, 312), "— sourced, not spun.", font=head, fill=BLUE)
 
     sub = font(REG, 26)
-    draw.text((80, 424), "Six Telegram channels in English and Spanish.", font=sub, fill=MUTED)
+    draw.text((80, 424), "Six news channels in English and Spanish + crypto signals.", font=sub, fill=MUTED)
     draw.text((80, 462), "CoinDesk · TechCrunch · ESPN · 15+ posts a day", font=sub, fill=(120, 134, 160))
 
     draw.line([80, 540, 200, 540], fill=GREEN, width=3)

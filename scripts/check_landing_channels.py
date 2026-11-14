@@ -45,6 +45,25 @@ def load_channels() -> List[Dict[str, str]]:
                 "title": str(channel.get("title") or "").strip(),
                 "url": url,
             })
+
+    # Каналы вне новостных конфигов (например, signals): название берём из
+    # реестра оформления, ссылку — из channel_links.yaml.
+    branding_path = ROOT / "config" / "channel_branding.yaml"
+    if branding_path.exists():
+        branding = yaml.safe_load(branding_path.read_text(encoding="utf-8")) or {}
+        known = {c["id"] for c in out}
+        for entry in branding.get("channels") or []:
+            if not isinstance(entry, dict):
+                continue
+            channel_id = str(entry.get("id") or "")
+            url = str(links.get(channel_id) or "").strip()
+            if not channel_id or channel_id in known or not url:
+                continue
+            out.append({
+                "id": channel_id,
+                "title": str(entry.get("title") or "").strip(),
+                "url": url,
+            })
     return out
 
 

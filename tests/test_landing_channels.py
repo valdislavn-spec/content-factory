@@ -21,7 +21,7 @@ def test_every_channel_has_card_and_link() -> None:
     channels = load_channels()
     page = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
     cards = parse_landing(page)
-    assert len(channels) == len(cards) == 6
+    assert len(channels) == len(cards) == 7
     assert {c["url"] for c in channels} == {c["url"] for c in cards}
 
 

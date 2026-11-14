@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Crypto, AI &amp; US Sports News in Telegram — EN/ES | Content Factory</title>
 <meta name="twitter:card" content="summary_large_image">
-<meta name="description" content="Daily crypto, AI and US sports news in Telegram. Six channels in English and Spanish — sourced headlines from CoinDesk, TechCrunch and ESPN, 15+ posts a day.">
+<meta name="description" content="Daily crypto, AI and US sports news in Telegram. Six news channels in English and Spanish plus crypto signals — sourced headlines from CoinDesk, TechCrunch and ESPN, 15+ posts a day.">
 <meta property="og:title" content="Our Telegram channels — crypto, AI &amp; sports news">
 <meta property="og:description" content="Daily crypto, AI and US sports news in Telegram. English and Spanish channels — sourced, no hype.">
 <meta property="og:type" content="website">
@@ -51,21 +51,22 @@
   "name": "Our Telegram channels — crypto, AI and sports news",
   "description": "Daily crypto, AI and sports news channels in Telegram, English and Spanish.",
   "url": "https://valdislavn-spec.github.io/content-factory/",
-  "numberOfItems": 6,
+  "numberOfItems": 7,
   "itemListElement": [
     {"@type": "ListItem", "position": 1, "name": "Crypto & Blockchain", "url": "https://t.me/HOOPY0007"},
     {"@type": "ListItem", "position": 2, "name": "AI News", "url": "https://t.me/AINEWS0007"},
     {"@type": "ListItem", "position": 3, "name": "US Sports News", "url": "https://t.me/SPORTNews0007"},
     {"@type": "ListItem", "position": 4, "name": "ES Crypto & Blockchain", "url": "https://t.me/TechnologiesNews01"},
     {"@type": "ListItem", "position": 5, "name": "ES AI News", "url": "https://t.me/WORLDNews0007"},
-    {"@type": "ListItem", "position": 6, "name": "ES Sports News", "url": "https://t.me/SPORTSAnalytics007"}
+    {"@type": "ListItem", "position": 6, "name": "ES Sports News", "url": "https://t.me/SPORTSAnalytics007"},
+    {"@type": "ListItem", "position": 7, "name": "Signal Crypto", "url": "https://t.me/BESTsignal0007"}
       ]
     },
     {
       "@type": "FAQPage",
       "@id": "https://valdislavn-spec.github.io/content-factory/#faq",
       "mainEntity": [
-        {"@type": "Question", "name": "What is Content Factory?", "acceptedAnswer": {"@type": "Answer", "text": "A small news desk that publishes six Telegram channels: crypto, AI and US sports in English, plus the same three beats in Spanish."}},
+        {"@type": "Question", "name": "What is Content Factory?", "acceptedAnswer": {"@type": "Answer", "text": "A small news desk that runs six news channels — crypto, AI and US sports in English, plus the same three beats in Spanish — and one crypto signals channel."}},
         {"@type": "Question", "name": "How often are the channels updated?", "acceptedAnswer": {"@type": "Answer", "text": "Each channel gets 15 to 18 posts a day, scheduled through the day."}},
         {"@type": "Question", "name": "Where do the stories come from?", "acceptedAnswer": {"@type": "Answer", "text": "CoinDesk, The Block, Decrypt, TechCrunch, MIT Technology Review, ESPN and regional Spanish outlets. Every post links to the original source."}},
         {"@type": "Question", "name": "Are the channels free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. There is no paywall; support is optional."}}
@@ -240,6 +241,11 @@
   .chan-foot svg { width: 15px; height: 15px; transition: transform .18s ease; }
   .chan:hover .chan-foot svg { transform: translate(2px, -2px); }
 
+  /* ---------- signals ---------- */
+  .signals-row { display: grid; grid-template-columns: 1.05fr .95fr; gap: 14px; align-items: stretch; }
+  @media (max-width: 780px) { .signals-row { grid-template-columns: 1fr; } }
+  .signals-row .panel { display: flex; flex-direction: column; justify-content: center; }
+
   /* ---------- travel ---------- */
   .travel-featured { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   @media (max-width: 820px) { .travel-featured { grid-template-columns: 1fr; } }
@@ -371,6 +377,9 @@
     <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M7 17 17 7M9 7h8v8"/>
     </symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 2 5.5 13.2H11l-1 8.8 7.5-11.2H12l1-8.8Z"/>
+    </symbol>
     <symbol id="i-tg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 4.5 3.6 11.2c-.8.3-.8 1.4.1 1.6l4.4 1.3 1.6 4.6c.3.8 1.3.9 1.8.2l2.3-3 4.2 3.1c.7.5 1.7.1 1.9-.8L21.9 5.4c.2-.7-.4-1.3-.9-.9Z"/>
       <path d="M8.1 14.1 17.4 7"/>
@@ -409,6 +418,7 @@
     </a>
     <nav class="nav" aria-label="Sections">
       <a href="#en">Channels</a>
+      <a href="#signals">Signals</a>
       <a href="#travel">Travel</a>
       <a href="#faq">FAQ</a>
       <a href="#support">Support</a>
@@ -422,13 +432,13 @@
 
 <main>
   <section class="hero shell">
-    <p class="eyebrow">Telegram network · 6 channels</p>
+    <p class="eyebrow">Telegram network · 7 channels</p>
     <h1>Daily crypto, AI &amp; sports news — <span class="grad">sourced, not spun</span>.</h1>
     <p class="lede">Sourced coverage from CoinDesk, The Block, TechCrunch, MIT Technology Review, ESPN and more. English and Spanish channels, 15 posts a day each.</p>
     <p class="lede lede-es">Noticias diarias de cripto, IA y deporte — en inglés y en español.</p>
 
     <ul class="stats">
-      <li><b>6</b> channels</li>
+      <li><b>7</b> channels</li>
       <li><b>2</b> languages</li>
       <li><b>15–18</b> posts a day</li>
       <li><b>0</b> paywalls</li>
@@ -508,6 +518,27 @@
     </div>
   </section>
 
+  <section id="signals" class="block shell" aria-labelledby="h-signals">
+    <div class="block-head">
+      <h2 id="h-signals">Signals</h2><span class="rule"></span><span class="count">1 channel · 18+</span>
+    </div>
+    <div class="signals-row">
+      <a class="chan" style="--topic: var(--sport)" href="https://t.me/BESTsignal0007">
+        <div class="chan-top">
+          <span class="ico"><svg aria-hidden="true"><use href="#i-bolt"/></svg></span>
+          <span class="chan-name">Signal Crypto</span>
+        </div>
+        <p class="chan-desc">BTC, ETH, SOL: entry, stop, take. 2–4 ideas a day built from public exchange data — no paid keys, no guarantees.</p>
+        <span class="chan-foot">t.me/BESTsignal0007 <svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </a>
+      <div class="panel">
+        <h3>How the signals work</h3>
+        <p>Six exchanges are checked on 15m entries with an hourly trend filter; a signal is published only when at least two venues agree.</p>
+        <p class="fineprint">Not financial advice. Crypto is volatile — 18+. Signals are informational, not a recommendation to trade.</p>
+      </div>
+    </div>
+  </section>
+
   <section id="travel" class="block shell" aria-labelledby="h-travel">
     <div class="block-head">
       <h2 id="h-travel">Travel guides</h2><span class="rule"></span><span class="count">live prices · updated daily</span>
@@ -559,7 +590,7 @@
     <div class="faq">
       <article>
         <h3>What is Content Factory?</h3>
-        <p>A small news desk that publishes six Telegram channels: crypto, AI and US sports in English, plus the same three beats in Spanish.</p>
+        <p>A small news desk that runs six news channels — crypto, AI and US sports in English, plus the same three beats in Spanish — and one crypto signals channel.</p>
       </article>
       <article>
         <h3>How often are the channels updated?</h3>
@@ -619,7 +650,7 @@
     <div class="foot-bottom">
       <span>Updated 14.11.2026</span>
       <span>·</span>
-      <span>English &amp; Spanish · 6 channels</span>
+      <span>English &amp; Spanish · 7 channels</span>
     </div>
   </div>
 </footer>
