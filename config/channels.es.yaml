@@ -284,7 +284,7 @@ channels:
     analysis: 30
     interactive: 35
 - id: futbol-es
-  title: ES Sports Analytics
+  title: ES Sports News
   description: "Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina, MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Crypto & Blockchain @TechnologiesNews01"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_FUTBOL_ES (GitHub Secret)
   public_url: https://t.me/SPORTSAnalytics007

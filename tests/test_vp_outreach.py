@@ -26,7 +26,7 @@ class BuildMessageTest(unittest.TestCase):
 
     def test_es_message_mentions_channel_and_18(self):
         text = vp_outreach.build_message({"partner": "@x"}, "es")
-        self.assertIn("ES Sports Analytics", text)
+        self.assertIn("ES Sports News", text)
         self.assertIn("18+", text)
         self.assertIn("SPORTSAnalytics007", text)
 

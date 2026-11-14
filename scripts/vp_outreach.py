@@ -29,7 +29,7 @@ OUR = {
         "stats": "3.7k subscribers, ~165 views/post, US crypto news",
     },
     "es": {
-        "name": "ES Sports Analytics",
+        "name": "ES Sports News",
         "url": "https://t.me/SPORTSAnalytics007",
         "stats": "nuevo canal de deporte con datos y cuotas (18+)",
     },
@@ -39,7 +39,7 @@ OUR = {
 def build_message(row: dict, region: str) -> str:
     if region == "es":
         return (
-            "Hola 👋 Llevamos ES Sports Analytics — deporte con datos, cuotas y "
+            "Hola 👋 Llevamos ES Sports News — deporte con datos, cuotas y "
             "análisis (18+). Estamos buscando canales de deporte en español para "
             "un intercambio nativo: nuestro post en tu canal a cambio de uno tuyo "
             "en el nuestro (24–48 h, sin spam ni casino). También podemos empezar "

@@ -15,8 +15,11 @@ class EsBettingConfigTest(unittest.TestCase):
         }
         self.channel = channels["futbol-es"]
 
-    def test_title_reflects_analytics(self):
-        self.assertIn("Analytics", self.channel.title)
+    def test_title_matches_live_channel(self):
+        # Канал переименован в Telegram: Bot API getChat 14.11.2026 отдаёт
+        # "ES Sports News" (было "ES Sports Analytics"). Держим конфиг равным
+        # фактическому названию, иначе лендинг и Telegram расходятся.
+        self.assertEqual("ES Sports News", self.channel.title)
 
     def test_language_and_strict_topics(self):
         self.assertEqual(self.channel.language, "es")
