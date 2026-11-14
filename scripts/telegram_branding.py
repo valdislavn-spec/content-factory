@@ -60,6 +60,9 @@ def call(token: str, method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
             return json.load(response)
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:300]
+        if "is not modified" in detail:
+            # Значение уже такое — Telegram отвечает 400. Для нас это успех.
+            return {"ok": True, "result": True, "unchanged": True}
         raise RuntimeError(f"{method}: HTTP {exc.code} {detail}") from exc
 
 

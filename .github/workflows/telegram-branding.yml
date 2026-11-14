@@ -23,6 +23,10 @@ on:
         description: "Скачать текущие аватары артефактом"
         type: boolean
         default: false
+      apply:
+        description: "Применять оформление"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -51,6 +55,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Apply branding
+        if: ${{ inputs.apply }}
         run: |
           ARGS=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
@@ -58,10 +63,10 @@ jobs:
           if [ "${{ inputs.verify }}" = "true" ]; then ARGS="$ARGS --verify"; fi
           python scripts/telegram_branding.py $ARGS
       - name: Dump avatars
-        if: ${{ inputs.dump }}
+        if: always() && inputs.dump
         run: python scripts/telegram_branding.py --dump-photos .avatars
       - name: Upload avatars
-        if: ${{ inputs.dump }}
+        if: always() && inputs.dump
         uses: actions/upload-artifact@v4
         with:
           name: channel-avatars
