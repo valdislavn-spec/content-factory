@@ -15,6 +15,10 @@ on:
         description: "id канала (пусто = все)"
         required: false
         default: ""
+      verify:
+        description: "Только проверить текущее оформление"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,4 +51,5 @@ jobs:
           ARGS=""
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
           if [ -n "${{ inputs.only }}" ]; then ARGS="$ARGS --only ${{ inputs.only }}"; fi
+          if [ "${{ inputs.verify }}" = "true" ]; then ARGS="$ARGS --verify"; fi
           python scripts/telegram_branding.py $ARGS

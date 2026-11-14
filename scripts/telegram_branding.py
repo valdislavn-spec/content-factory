@@ -158,6 +158,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--only", default="", help="id канала (по умолчанию все)")
     parser.add_argument("--skip-photo", action="store_true")
     parser.add_argument("--skip-title", action="store_true")
+    parser.add_argument("--verify", action="store_true", help="только прочитать текущее оформление (getChat)")
     args = parser.parse_args(argv)
 
     load_dotenv(ROOT / ".env")
@@ -179,6 +180,27 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not token and not args.dry_run:
         print("TELEGRAM_BOT_TOKEN не задан")
         return 1
+
+    if args.verify:
+        for entry in entries:
+            channel_id = str(entry.get("id"))
+            chat_id = resolve_chat_id(entry, known)
+            if not chat_id:
+                print(f"— {channel_id}: нет chat_id — пропуск")
+                continue
+            try:
+                data = call(token, "getChat", {"chat_id": chat_id}) or {}
+                chat = data.get("result") or {}
+                has_photo = bool((chat.get("photo") or {}).get("big_file_id"))
+                desc = str(chat.get("description") or "")
+                print(
+                    f"· {channel_id}: title={chat.get('title')!r} "
+                    f"photo={'есть' if has_photo else 'нет'} "
+                    f"desc={len(desc)} симв. {desc[:60]!r}"
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"✗ {channel_id}: {exc}")
+        return 0
 
     applied = skipped = failed = 0
     for entry in entries:
