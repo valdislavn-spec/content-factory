@@ -1,0 +1,167 @@
+name: checks
+
+# Ручные проверки интеграций в одном месте (было 5 отдельных workflow).
+# Actions → checks → Run workflow → выбрать проверку.
+
+on:
+  workflow_dispatch:
+    inputs:
+      check:
+        description: "Что проверить"
+        required: true
+        type: choice
+        default: "social"
+        options: ["social", "llm", "gemini", "brevo", "free"]
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  llm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: 'python -m pip install --upgrade pip
+
+        pip install -r requirements.txt
+
+        '
+    - name: Probe providers
+      run: python scripts/llm_check.py --max-tokens 300
+    if: inputs.check == 'llm'
+  free:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+    - name: Probe free providers
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      run: "python3 - <<'PY'\nimport json\nimport os\nimport urllib.error\nimport urllib.request\n\ndef post(url,\
+        \ payload, headers=None, timeout=30):\n    data = json.dumps(payload).encode()\n    hdrs = {\"Content-Type\"\
+        : \"application/json\", \"User-Agent\": \"content-factory-free-check\"}\n    hdrs.update(headers or {})\n\
+        \    request = urllib.request.Request(url, data=data, headers=hdrs)\n    with urllib.request.urlopen(request,\
+        \ timeout=timeout) as response:\n        return json.load(response)\n\nmsgs = [{\"role\": \"user\", \"content\"\
+        : \"Reply with the single word: OK\"}]\nresults = []\n\ndef probe(name, url, model, headers=None):\n    try:\n\
+        \        data = post(url, {\"model\": model, \"messages\": msgs, \"max_tokens\": 20}, headers)\n        text\
+        \ = data[\"choices\"][0][\"message\"][\"content\"]\n        results.append((name, \"OK\", str(text).strip()[:40]))\n\
+        \    except urllib.error.HTTPError as exc:\n        results.append((name, \"HTTP %s\" % exc.code, exc.read()[:160].decode(\"\
+        utf-8\", \"replace\")))\n    except Exception as exc:  # noqa: BLE001\n        results.append((name, type(exc).__name__,\
+        \ str(exc)[:160]))\n\n# 1) Pollinations — без ключа\nprobe(\"pollinations/openai\", \"https://text.pollinations.ai/openai\"\
+        , \"openai\")\n\n# 2) GitHub Models — на встроенном github.token (permissions: models: read)\ngh = (os.environ.get(\"\
+        GH_TOKEN\") or \"\").strip()\nif gh:\n    for base in (\"https://models.github.ai/inference/chat/completions\"\
+        ,\n                 \"https://models.inference.ai.azure.com/chat/completions\"):\n        for model in (\"\
+        openai/gpt-4o-mini\", \"gpt-4o-mini\", \"openai/gpt-4.1-mini\"):\n            probe(\"gh/%s/%s\" % (base.split(\"\
+        /\")[2], model), base, model,\n                  {\"Authorization\": \"Bearer \" + gh})\nelse:\n    results.append((\"\
+        github-models\", \"SKIP\", \"no token\"))\n\n# 3) OpenRouter — free-модели по ключу\norkey = (os.environ.get(\"\
+        OPENROUTER_API_KEY\") or \"\").strip()\nif orkey:\n    try:\n        request = urllib.request.Request(\n \
+        \           \"https://openrouter.ai/api/v1/models\",\n            headers={\"Authorization\": \"Bearer \"\
+        \ + orkey, \"User-Agent\": \"content-factory-free-check\"},\n        )\n        with urllib.request.urlopen(request,\
+        \ timeout=30) as response:\n            catalog = json.load(response)\n        free = [m.get(\"id\") for m\
+        \ in catalog.get(\"data\") or []\n                if str((m.get(\"pricing\") or {}).get(\"prompt\")) in (\"\
+        0\", \"0.0\", \"0.00\")]\n        results.append((\"openrouter-catalog\", \"free models: %s\" % len(free),\
+        \ \", \".join(free[:5])))\n        if free:\n            probe(\"openrouter/%s\" % free[0], \"https://openrouter.ai/api/v1/chat/completions\"\
+        ,\n                  free[0], {\"Authorization\": \"Bearer \" + orkey})\n    except Exception as exc:  # noqa:\
+        \ BLE001\n        results.append((\"openrouter\", type(exc).__name__, str(exc)[:160]))\n\nprint(\"=== FREE\
+        \ PROVIDER PROBE ===\")\nfor name, status, detail in results:\n    print(\"%-46s %-8s %s\" % (name, status,\
+        \ detail))\nPY\n"
+    if: inputs.check == 'free'
+  brevo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Check Brevo
+      run: "python scripts/brevo_check.py | tee brevo-check.log\n{\n  echo \"### Brevo check\"\n  echo '```'\n  cat\
+        \ brevo-check.log\n  echo '```'\n} >> \"$GITHUB_STEP_SUMMARY\"\n"
+    if: inputs.check == 'brevo'
+  social:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CONTENT_FACTORY_DRY_RUN: 'false'
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+      BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+      MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
+      MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
+      MASTODON_NO_LINKS: ${{ vars.MASTODON_NO_LINKS || '0' }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      TUMBLR_CONSUMER_KEY: ${{ secrets.TUMBLR_CONSUMER_KEY }}
+      TUMBLR_CONSUMER_SECRET: ${{ secrets.TUMBLR_CONSUMER_SECRET }}
+      TUMBLR_OAUTH_TOKEN: ${{ secrets.TUMBLR_OAUTH_TOKEN }}
+      TUMBLR_OAUTH_TOKEN_SECRET: ${{ secrets.TUMBLR_OAUTH_TOKEN_SECRET }}
+      TUMBLR_BLOG: ${{ secrets.TUMBLR_BLOG }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: 'python -m pip install --upgrade pip
+
+        pip install -r requirements.txt
+
+        '
+    - name: Social check
+      run: python -m content_factory social-check
+    if: inputs.check == 'social'
+  gemini:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Gemini API checks
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: "python3 - <<'PY'\nimport json\nimport os\nimport urllib.error\nimport urllib.request\n\nraw = os.environ.get(\"\
+        GEMINI_API_KEY\") or \"\"\nkey = raw.strip()\nprint(\"secret diagnostics: len=%s stripped_len=%s whitespace=%s\"\
+        \n      % (len(raw), len(key), any(ch.isspace() for ch in raw)))\nif not key:\n    raise SystemExit(\"GEMINI_API_KEY\
+        \ secret is empty\")\n\ndef call(url, payload=None, timeout=25, headers=None):\n    data = json.dumps(payload).encode()\
+        \ if payload is not None else None\n    hdrs = {\"User-Agent\": \"content-factory-gemini-check\"}\n    hdrs.update(headers\
+        \ or {})\n    if data is not None:\n        hdrs[\"Content-Type\"] = \"application/json\"\n    request = urllib.request.Request(url,\
+        \ data=data, headers=hdrs)\n    with urllib.request.urlopen(request, timeout=timeout) as response:\n     \
+        \   return json.load(response)\n\nmodels = call(\"https://generativelanguage.googleapis.com/v1beta/models?key=\"\
+        \ + key, timeout=30)\nnames = [m.get(\"name\", \"\").split(\"/\")[-1] for m in models.get(\"models\") or []]\n\
+        print(\"models OK:\", len(names))\npreferred = [\"gemini-3.6-flash\", \"gemini-3.5-flash\", \"gemini-3.7-flash\"\
+        ,\n             \"gemini-3.8-flash\", \"gemini-3.5-flash-lite\"]\ncandidates = [n for n in preferred if n\
+        \ in names]\nif not candidates:\n    candidates = [n for n in names if \"flash\" in n and \"embedding\" not\
+        \ in n][:5]\nprint(\"candidates:\", candidates)\n\nnative_model = None\nfor model in candidates:\n    try:\n\
+        \        url = (\"https://generativelanguage.googleapis.com/v1beta/models/\"\n               + model + \"\
+        :generateContent?key=\" + key)\n        answer = call(url, {\"contents\": [{\"parts\": [{\"text\": \"Reply\
+        \ with the single word: OK\"}]}]}, timeout=30)\n        text = (answer.get(\"candidates\", [{}])[0].get(\"\
+        content\", {}).get(\"parts\", [{}])[0].get(\"text\", \"\")).strip()\n        print(\"native OK (%s): %s\"\
+        \ % (model, text))\n        native_model = model\n        break\n    except urllib.error.HTTPError as exc:\n\
+        \        print(\"native %s: HTTP %s %s\" % (model, exc.code, exc.read()[:200].decode(\"utf-8\", \"replace\"\
+        )))\n    except Exception as exc:  # noqa: BLE001\n        print(\"native %s: %s\" % (model, exc))\nif not\
+        \ native_model:\n    raise SystemExit(\"native generateContent failed on all candidates\")\n\ncompat_model\
+        \ = None\nfor model in [native_model] + [c for c in candidates if c != native_model]:\n    try:\n        url\
+        \ = \"https://generativelanguage.googleapis.com/v1beta/openai/chat/completions\"\n        answer = call(\n\
+        \            url,\n            {\"model\": model, \"messages\": [{\"role\": \"user\", \"content\": \"Reply\
+        \ with the single word: OK\"}]},\n            timeout=30,\n            headers={\"Authorization\": \"Bearer\
+        \ \" + key},\n        )\n        text = (answer.get(\"choices\", [{}])[0].get(\"message\", {}).get(\"content\"\
+        , \"\") or \"\").strip()\n        print(\"openai-compat OK (%s): %s\" % (model, text))\n        compat_model\
+        \ = model\n        break\n    except urllib.error.HTTPError as exc:\n        print(\"openai-compat %s: HTTP\
+        \ %s %s\" % (model, exc.code, exc.read()[:200].decode(\"utf-8\", \"replace\")))\n    except Exception as exc:\
+        \  # noqa: BLE001\n        print(\"openai-compat %s: %s\" % (model, exc))\nif not compat_model:\n    raise\
+        \ SystemExit(\"OpenAI-compatible endpoint failed\")\n\nprint(\"RESULT: key OK; native=%s; openai-compat=%s\"\
+        \ % (native_model, compat_model))\nPY\n"
+    if: inputs.check == 'gemini'
