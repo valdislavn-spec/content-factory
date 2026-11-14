@@ -61,3 +61,33 @@ def test_discord_publish_posts_content(monkeypatch) -> None:
     assert result.ok is True
     assert result.external_id == "999"
     assert _Handler.received["body"]["content"] == "Тест"
+
+
+def test_discord_text_is_markdown_not_html() -> None:
+    from content_factory.publishers.discord import discord_text
+
+    post = NS(
+        html='<b>Headline</b>\n\nText with <i>italic</i> and <a href="https://example.com/a">link</a>.\n\n#Crypto #Bitcoin',
+        text="", plain_text="",
+    )
+    channel = NS(id="crypto-news", language="en", title="Crypto", telegram_chat_id="",
+                 public_url="https://t.me/HOOPY0007")
+    result = discord_text(post, channel)
+
+    assert "**Headline**" in result
+    assert "*italic*" in result
+    assert "[link](https://example.com/a)" in result
+    assert "<b>" not in result and "<a " not in result
+    assert "#Crypto" not in result
+    assert result.rstrip().endswith("https://t.me/HOOPY0007")
+
+
+def test_discord_text_respects_limit() -> None:
+    from content_factory.publishers.discord import discord_text
+
+    post = NS(html="Слово " * 800, text="", plain_text="")
+    channel = NS(id="ai-news", language="en", title="AI", telegram_chat_id="",
+                 public_url="https://t.me/AINEWS0007")
+    result = discord_text(post, channel, limit=2000)
+    assert len(result) <= 2000 + len("https://t.me/AINEWS0007") + 4
+    assert result.rstrip().endswith("https://t.me/AINEWS0007")

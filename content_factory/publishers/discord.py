@@ -7,16 +7,54 @@ Webhook URL берётся из .env:
 """
 from __future__ import annotations
 
+import html as html_lib
 import logging
+import re
 from typing import Tuple
 
 from ..config import Settings
 from ..models import ChannelConfig, GeneratedPost, PublishResult
-from .social import SocialAPIError, SocialPublisher, http_json, post_text
+from .social import SocialAPIError, SocialPublisher, channel_link, http_json
 
 logger = logging.getLogger(__name__)
 
 MAX_TEXT = 2000  # лимит Discord на content
+
+
+_HASHTAG_RE = re.compile(r"(?<!\w)#[^\s#<]{1,40}")
+
+
+def discord_text(post, channel, limit: int = MAX_TEXT) -> str:
+    """Текст под Discord: markdown вместо HTML, без хэштегов, со ссылкой на канал."""
+    source = getattr(post, "html", "") or getattr(post, "text", "") or getattr(post, "plain_text", "") or ""
+    text = str(source)
+
+    # HTML → markdown Discord
+    text = re.sub(r"<a\s+[^>]*href=[\"']([^\"']+)[\"'][^>]*>(.*?)</a>", r"[\2](\1)", text, flags=re.S | re.I)
+    text = re.sub(r"<b>(.*?)</b>", r"**\1**", text, flags=re.S | re.I)
+    text = re.sub(r"<strong>(.*?)</strong>", r"**\1**", text, flags=re.S | re.I)
+    text = re.sub(r"<i>(.*?)</i>", r"*\1*", text, flags=re.S | re.I)
+    text = re.sub(r"<em>(.*?)</em>", r"*\1*", text, flags=re.S | re.I)
+    text = re.sub(r"<code>(.*?)</code>", r"`\1`", text, flags=re.S | re.I)
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.I)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html_lib.unescape(text)
+
+    # хэштеги в Discord бесполезны
+    text = _HASHTAG_RE.sub("", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    link = channel_link(channel) if channel is not None else ""
+    if link:
+        budget = max(40, limit - len(link) - 4)
+        if len(text) > budget:
+            cut = text[:budget]
+            pos = max(cut.rfind("\n"), cut.rfind(". "))
+            cut = cut[: pos + 1] if pos > budget * 0.6 else cut
+            text = cut.rstrip() + "…"
+        return f"{text}\n\n{link}"
+    return text[:limit]
 
 
 class DiscordPublisher(SocialPublisher):
@@ -41,7 +79,7 @@ class DiscordPublisher(SocialPublisher):
         if not self.check(channel)[0]:
             return self._result(post, channel, ok=False, error="Discord не настроен: нет webhook")
         url = self._env(channel, "DISCORD_WEBHOOK_URL")
-        text = post_text(post, MAX_TEXT, channel)
+        text = discord_text(post, channel, MAX_TEXT)
         try:
             data = http_json(url, payload={"content": text})
         except SocialAPIError as exc:
