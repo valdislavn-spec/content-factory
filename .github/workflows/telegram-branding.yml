@@ -19,6 +19,10 @@ on:
         description: "Только проверить текущее оформление"
         type: boolean
         default: false
+      dump:
+        description: "Скачать текущие аватары артефактом"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -53,3 +57,13 @@ jobs:
           if [ -n "${{ inputs.only }}" ]; then ARGS="$ARGS --only ${{ inputs.only }}"; fi
           if [ "${{ inputs.verify }}" = "true" ]; then ARGS="$ARGS --verify"; fi
           python scripts/telegram_branding.py $ARGS
+      - name: Dump avatars
+        if: ${{ inputs.dump }}
+        run: python scripts/telegram_branding.py --dump-photos .avatars
+      - name: Upload avatars
+        if: ${{ inputs.dump }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: channel-avatars
+          path: .avatars/
+          retention-days: 7

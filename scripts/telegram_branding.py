@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
+import urllib.request
 import mimetypes
 import os
 import sys
@@ -159,6 +160,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--skip-photo", action="store_true")
     parser.add_argument("--skip-title", action="store_true")
     parser.add_argument("--verify", action="store_true", help="только прочитать текущее оформление (getChat)")
+    parser.add_argument("--dump-photos", default="", help="скачать текущие аватары в папку")
     args = parser.parse_args(argv)
 
     load_dotenv(ROOT / ".env")
@@ -180,6 +182,41 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not token and not args.dry_run:
         print("TELEGRAM_BOT_TOKEN не задан")
         return 1
+
+    if args.dump_photos:
+        import hashlib
+
+        out_dir = ROOT / args.dump_photos
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for entry in entries:
+            channel_id = str(entry.get("id"))
+            chat_id = resolve_chat_id(entry, known)
+            if not chat_id:
+                print(f"— {channel_id}: нет chat_id")
+                continue
+            try:
+                chat = (call(token, "getChat", {"chat_id": chat_id}) or {}).get("result") or {}
+                photo = chat.get("photo") or {}
+                file_id = photo.get("big_file_id") or ""
+                if not file_id:
+                    print(f"— {channel_id}: аватара нет")
+                    continue
+                info = (call(token, "getFile", {"file_id": file_id}) or {}).get("result") or {}
+                path = str(info.get("file_path") or "")
+                base = api_base()
+                raw = urllib.request.urlopen(
+                    f"{base}/file/bot{token}/{path}", timeout=60,
+                    context=__import__("ssl").create_default_context(),
+                ).read()
+                target = out_dir / f"{channel_id}.jpg"
+                target.write_bytes(raw)
+                print(
+                    f"· {channel_id}: {photo.get('width')}x{photo.get('height')} "
+                    f"{len(raw)} байт sha256={hashlib.sha256(raw).hexdigest()[:16]} → {target.name}"
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"✗ {channel_id}: {exc}")
+        return 0
 
     if args.verify:
         for entry in entries:
