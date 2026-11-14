@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Алматы — куда угодно: подборки дешёвых билетов</title>
+<meta name="description" content="Каждый день собираем живые цены Авиасейлс в готовые подборки билетов из Алматы: до 15 000 ₽, тёплые направления, Средняя Азия и Кавказ." />
+<style>
+  :root{
+    --teal:#0f4c4c;
+    --teal-deep:#0a3535;
+    --sand:#f6f1e7;
+    --sand-deep:#efe6d6;
+    --accent:#e2703a;
+    --accent-dark:#c85c2a;
+    --ink:#13211f;
+    --muted:#5b6b68;
+    --line:rgba(15,76,76,.14);
+    --card:#fffdf8;
+    --radius:16px;
+    --max:1080px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--sand);
+    color:var(--ink);
+    font:400 17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{line-height:1.15;letter-spacing:-.02em;margin:0}
+  p{margin:0}
+  a{color:inherit}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+  .eyebrow{
+    font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--teal);opacity:.75;font-weight:600;
+  }
+
+  /* header */
+  .site-header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(246,241,231,.92);
+    backdrop-filter:saturate(140%) blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-row{display:flex;align-items:center;gap:24px;min-height:64px}
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    font-weight:700;letter-spacing:-.01em;text-decoration:none;color:var(--teal);
+  }
+  .brand-dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 0 4px rgba(226,112,58,.16);
+  }
+  .nav{margin-left:auto;display:flex;gap:22px;font-size:15px}
+  .nav a{text-decoration:none;color:var(--muted);padding:6px 0;border-bottom:2px solid transparent}
+  .nav a:hover,.nav a:focus-visible{color:var(--teal);border-bottom-color:var(--accent)}
+
+  /* hero */
+  .hero{
+    padding-block:72px 56px;position:relative;
+    background:radial-gradient(900px 420px at 85% 0%,rgba(226,112,58,.12),transparent 70%);
+  }
+  .hero h1{font-size:clamp(32px,5.2vw,58px);max-width:16ch;margin:16px 0 20px;font-weight:750}
+  .hero .lead{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:56ch}
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-height:48px;padding:0 24px;border-radius:999px;
+    font-weight:600;text-decoration:none;border:1px solid transparent;
+    transition:transform .18s ease,background-color .18s ease,box-shadow .18s ease;
+  }
+  .btn:focus-visible{outline:3px solid rgba(226,112,58,.55);outline-offset:3px}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 10px 24px -12px rgba(226,112,58,.9)}
+  .btn-primary:hover{background:var(--accent-dark);transform:translateY(-1px)}
+  .btn-secondary{border-color:var(--teal);color:var(--teal)}
+  .btn-secondary:hover{background:rgba(15,76,76,.06)}
+  .hero-note{margin-top:22px;font-size:14px;color:var(--muted)}
+  .hero-note b{color:var(--teal)}
+
+  /* sections */
+  section{padding:56px 0}
+  .section-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+  .section-head h2{font-size:clamp(24px,3vw,34px)}
+  .section-head p{color:var(--muted);font-size:15px}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+  .card{
+    display:flex;flex-direction:column;gap:10px;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;text-decoration:none;color:inherit;
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+  }
+  .card:hover,.card:focus-within{
+    transform:translateY(-3px);border-color:rgba(15,76,76,.3);
+    box-shadow:0 18px 36px -26px rgba(15,76,76,.55);
+  }
+  .card h3 a{text-decoration:none;color:inherit}
+  .card h3 a:hover{text-decoration:underline;text-underline-offset:3px}
+  .card-tag{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .card h3{font-size:20px}
+  .card-meta{font-size:14px;color:var(--muted)}
+  .card-price{margin-top:auto;padding-top:14px;border-top:1px dashed var(--line);display:flex;align-items:baseline;gap:8px}
+  .price-label{font-size:13px;color:var(--muted)}
+  .price-value{font-size:22px;font-weight:700;color:var(--teal);letter-spacing:-.02em}
+  .routes{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:6px}
+  .routes li{display:flex;align-items:baseline;gap:8px;font-size:15px}
+  .routes a{text-decoration:none;display:flex;align-items:baseline;gap:8px;width:100%;color:inherit}
+  .routes a:hover .route-city{color:var(--teal);text-decoration:underline;text-underline-offset:3px}
+  .route-city{color:var(--ink)}
+  .route-dots{flex:1;border-bottom:1px dotted rgba(15,76,76,.28);transform:translateY(-4px)}
+  .route-price{font-weight:600;color:var(--teal);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .card-cta{font-size:14px;font-weight:600;color:var(--teal);display:inline-flex;gap:6px;align-items:center;text-decoration:none}
+  .card-cta:hover{text-decoration:underline;text-underline-offset:3px}
+  .card-cta::after{content:"→";transition:transform .18s ease}
+  .card:hover .card-cta::after{transform:translateX(3px)}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;counter-reset:step}
+  .step{
+    background:transparent;border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;position:relative;
+  }
+  .step::before{
+    counter-increment:step;content:counter(step);
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:50%;
+    background:var(--teal);color:#f6f1e7;font-weight:700;font-size:15px;
+    margin-bottom:14px;
+  }
+  .step h3{font-size:18px;margin-bottom:8px}
+  .step p{font-size:15px;color:var(--muted)}
+
+  /* honesty */
+  .honesty{background:var(--sand-deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .honesty-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px}
+  .honesty h2{font-size:clamp(24px,3vw,32px);max-width:20ch}
+  .honesty p{color:var(--muted);font-size:16px}
+  .honesty p + p{margin-top:14px}
+  .honesty strong{color:var(--ink)}
+
+  /* footer */
+  .site-footer{background:var(--teal-deep);color:#dfe9e6;padding:48px 0 32px}
+  .footer-top{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+  .footer-brand{font-size:18px;font-weight:700;color:#fff}
+  .footer-link{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.35);padding-bottom:2px;font-size:15px}
+  .footer-link:hover{border-bottom-color:var(--accent)}
+  .footer-bottom{
+    margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.16);
+    display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;
+    font-size:13px;color:rgba(223,233,230,.7)
+  }
+
+  @media (max-width:640px){
+    .hero{padding-block:48px 40px}
+    .nav{gap:14px;font-size:14px}
+    .header-row{min-height:58px}
+    section{padding:44px 0}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .btn,.card,.card-cta::after{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>Алматы — куда угодно</a>
+    <nav class="nav" aria-label="Разделы страницы">
+      <a href="#collections">Подборки</a>
+      <a href="#how-it-works">Как работает</a>
+      <a href="#about-prices">Про цены</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero wrap">
+    <p class="eyebrow">Живые цены · обновляем каждый день</p>
+    <h1>Билеты из Алматы дешевле, чем кажется</h1>
+    <p class="lead">Каждый день собираем живые цены Авиасейлс в готовые подборки — без перелётов с четырьмя пересадками и ночёвок в аэропорту.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="https://valdislavn-spec.github.io/content-factory/collections/">Смотреть подборки</a>
+      <a class="btn btn-secondary" href="#how-it-works">Как это работает</a>
+    </div>
+    <p class="hero-note"><b>26 направлений</b> в пяти подборках · снимок цен на 12 ноября 2026</p>
+  </section>
+
+  <section id="collections" class="wrap">
+    <div class="section-head">
+      <h2>Подборки</h2>
+      <p>Пять готовых списков — выбирайте по бюджету и сезону</p>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <span class="card-tag">Бюджет</span>
+        <h3><a href="https://valdislavn-spec.github.io/content-factory/collections/do-15-000/">Билеты до 15 000 ₽</a></h3>
+        <p class="card-meta">7 направлений · обновлено 12 ноября</p>
+        <ul class="routes">
+          <li><a href="https://aviasales.tpk.ro/GG68TZdX" rel="sponsored noopener"><span class="route-city">Шымкент</span><span class="route-dots"></span><span class="route-price">6 170 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/eF4LXkNr" rel="sponsored noopener"><span class="route-city">Астана</span><span class="route-dots"></span><span class="route-price">7 612 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/gBFvRTvZ" rel="sponsored noopener"><span class="route-city">Ташкент</span><span class="route-dots"></span><span class="route-price">10 254 ₽</span></a></li>
+        </ul>
+        <p class="card-price"><span class="price-label">от</span><span class="price-value">6 170 ₽</span></p>
+        <a class="card-cta" href="https://valdislavn-spec.github.io/content-factory/collections/do-15-000/">Все 7 направлений</a>
+      </article>
+
+      <article class="card">
+        <span class="card-tag">Сезон</span>
+        <h3><a href="https://valdislavn-spec.github.io/content-factory/collections/teplye-napravleniya/">Тёплые направления</a></h3>
+        <p class="card-meta">2 направления · включая рейс из Минска</p>
+        <ul class="routes">
+          <li><a href="https://aviasales.tpk.ro/lZh5wtfu" rel="sponsored noopener"><span class="route-city">Измир</span><span class="route-dots"></span><span class="route-price">14 315 ₽</span></a></li>
+          <li><a href="https://valdislavn-spec.github.io/content-factory/collections/teplye-napravleniya/" rel="noopener"><span class="route-city">Дубай, из Минска</span><span class="route-dots"></span><span class="route-price">20 584 ₽</span></a></li>
+        </ul>
+        <p class="card-price"><span class="price-label">от</span><span class="price-value">14 315 ₽</span></p>
+        <a class="card-cta" href="https://valdislavn-spec.github.io/content-factory/collections/teplye-napravleniya/">Открыть подборку</a>
+      </article>
+
+      <article class="card">
+        <span class="card-tag">Регион</span>
+        <h3><a href="https://valdislavn-spec.github.io/content-factory/collections/srednyaya-aziya/">Средняя Азия и Кавказ</a></h3>
+        <p class="card-meta">6 направлений · 2 из Минска</p>
+        <ul class="routes">
+          <li><a href="https://aviasales.tpk.ro/gBFvRTvZ" rel="sponsored noopener"><span class="route-city">Ташкент</span><span class="route-dots"></span><span class="route-price">10 254 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/B7Zit6pw" rel="sponsored noopener"><span class="route-city">Нукус</span><span class="route-dots"></span><span class="route-price">16 976 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/3tDqH7jQ" rel="sponsored noopener"><span class="route-city">Баку</span><span class="route-dots"></span><span class="route-price">17 260 ₽</span></a></li>
+        </ul>
+        <p class="card-price"><span class="price-label">от</span><span class="price-value">10 254 ₽</span></p>
+        <a class="card-cta" href="https://valdislavn-spec.github.io/content-factory/collections/srednyaya-aziya/">Все 6 направлений</a>
+      </article>
+
+      <article class="card">
+        <span class="card-tag">Внутри страны</span>
+        <h3><a href="https://valdislavn-spec.github.io/content-factory/collections/po-kazahstanu/">По Казахстану</a></h3>
+        <p class="card-meta">5 направлений · перелёты на выходные</p>
+        <ul class="routes">
+          <li><a href="https://aviasales.tpk.ro/GG68TZdX" rel="sponsored noopener"><span class="route-city">Шымкент</span><span class="route-dots"></span><span class="route-price">6 170 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/eF4LXkNr" rel="sponsored noopener"><span class="route-city">Астана</span><span class="route-dots"></span><span class="route-price">7 612 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/jZMT7CxQ" rel="sponsored noopener"><span class="route-city">Актау</span><span class="route-dots"></span><span class="route-price">12 093 ₽</span></a></li>
+        </ul>
+        <p class="card-price"><span class="price-label">от</span><span class="price-value">6 170 ₽</span></p>
+        <a class="card-cta" href="https://valdislavn-spec.github.io/content-factory/collections/po-kazahstanu/">Все 5 направлений</a>
+      </article>
+
+      <article class="card">
+        <span class="card-tag">Отпуск</span>
+        <h3><a href="https://valdislavn-spec.github.io/content-factory/collections/na-nedelyu/">На неделю и дольше</a></h3>
+        <p class="card-meta">6 направлений · даты под полный отпуск</p>
+        <ul class="routes">
+          <li><a href="https://aviasales.tpk.ro/gBFvRTvZ" rel="sponsored noopener"><span class="route-city">Ташкент</span><span class="route-dots"></span><span class="route-price">10 254 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/woowuLWu" rel="sponsored noopener"><span class="route-city">Стамбул</span><span class="route-dots"></span><span class="route-price">15 821 ₽</span></a></li>
+          <li><a href="https://aviasales.tpk.ro/A0B7HlNP" rel="sponsored noopener"><span class="route-city">Душанбе</span><span class="route-dots"></span><span class="route-price">18 220 ₽</span></a></li>
+        </ul>
+        <p class="card-price"><span class="price-label">от</span><span class="price-value">10 254 ₽</span></p>
+        <a class="card-cta" href="https://valdislavn-spec.github.io/content-factory/collections/na-nedelyu/">Все 6 направлений</a>
+      </article>
+    </div>
+
+  </section>
+
+  <section id="how-it-works" class="wrap">
+    <div class="section-head">
+      <h2>Как это работает</h2>
+      <p>Никакой магии — три шага и ежедневное обновление</p>
+    </div>
+    <div class="steps">
+      <article class="step">
+        <h3>Собираем цены</h3>
+        <p>Каждый день забираем живые цены Авиасейлс по направлениям из Алматы — без ручного поиска по сотне вкладок.</p>
+      </article>
+      <article class="step">
+        <h3>Отбираем направления</h3>
+        <p>Оставляем рейсы с нормальными стыковками и понятными датами. Ночёвки в аэропорту и пересадки длиннее 12 часов — мимо.</p>
+      </article>
+      <article class="step">
+        <h3>Публикуем подборку</h3>
+        <p>Складываем отобранное в готовый список и обновляем его ежедневно: цены стареют за часы, поэтому список живёт, а не пылится.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="about-prices" class="honesty">
+    <div class="wrap honesty-grid">
+      <div>
+        <h2>Про цены — честно</h2>
+      </div>
+      <div>
+        <p>Цена в подборке — это <strong>снимок на 12 ноября 2026</strong>. Она меняется каждый час, поэтому перед покупкой всегда проверяйте её на сайте авиакомпании или в поиске билетов.</p>
+        <p>В подборки не попадают билеты с ночёвкой в аэропорту и пересадками длиннее 12 часов. Часть ссылок — партнёрские: цена для вас от этого не меняется, комиссию платит сервис поиска билетов.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <span class="footer-brand">Алматы — куда угодно</span>
+      <a class="footer-link" href="https://valdislavn-spec.github.io/content-factory/collections/">Все подборки</a>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026</span>
+      <span>Цены — снимок на 12 ноября 2026, не оферта</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
