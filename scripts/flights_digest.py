@@ -23,6 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from content_factory import flights_geo  # noqa: E402
 from content_factory.integrations.apilayer import ApiLayerClient  # noqa: E402
 from content_factory.integrations.aviasales import AviasalesClient, search_path  # noqa: E402
 
@@ -119,7 +120,12 @@ COMPARE = [
 
 
 def pretty_city(code: str) -> str:
-    return CITY_NAMES.get(code.upper(), code.upper())
+    """Название города: сначала общий справочник, потом локальная карта, иначе код."""
+    key = code.upper()
+    name = flights_geo.city_name(key, "en")
+    if name and name != key:
+        return name
+    return CITY_NAMES.get(key, key)
 
 
 def format_dates(item: dict) -> str:
@@ -275,7 +281,8 @@ def render_page(rows: list, origin: str, updated: str, drops: list = None, publi
     nav = f'<p style="margin:0 0 18px"><a href="{public}/" style="color:#2563eb;text-decoration:none">← All channels</a> · <a href="{public}/travel/" style="color:#2563eb;text-decoration:none">Travel guides</a>'
     nav += f' · <a href="{public}/flights/" style="color:#2563eb;text-decoration:none">Flights from Almaty &amp; Minsk</a>'
     nav += f' · <a href="{public}/flights/almaty/" style="color:#2563eb;text-decoration:none">Almaty</a>'
-    nav += f' · <a href="{public}/flights/minsk/" style="color:#2563eb;text-decoration:none">Minsk</a></p>'
+    nav += f' · <a href="{public}/flights/minsk/" style="color:#2563eb;text-decoration:none">Minsk</a>'
+    nav += f' · <a href="{public}/collections/" style="color:#2563eb;text-decoration:none">Collections</a></p>'
     drops = drops or []
     drops_html = ""
     if drops:
@@ -344,7 +351,7 @@ def render_hub(public: str = PUB) -> str:
         '<h1 style="font-size:32px;margin:0 0 10px">Cheap flights from Almaty &amp; Minsk</h1>',
         '<p style="color:#6b7280;margin:0 0 24px">Live round-trip deals for local departures: Almaty (Kazakhstan) and Minsk (Belarus). Prices in RUB, updated every morning.</p>',
         cards_html,
-        f'<p style="font-size:14px;color:#374151;margin-top:20px">Also: <a href="{public}/tours/" style="color:#2563eb;text-decoration:none">package tours from Minsk &amp; Astana</a> · <a href="{public}/travel/travel-esim.html" style="color:#2563eb;text-decoration:none">travel eSIM</a> · <a href="{public}/travel/airport-transfer-guide.html" style="color:#2563eb;text-decoration:none">airport transfers</a></p>',
+        f'<p style="font-size:14px;color:#374151;margin-top:20px">Also: <a href="{public}/collections/" style="color:#2563eb;text-decoration:none">curated collections</a> · <a href="{public}/tours/" style="color:#2563eb;text-decoration:none">package tours from Minsk &amp; Astana</a> · <a href="{public}/travel/travel-esim.html" style="color:#2563eb;text-decoration:none">travel eSIM</a> · <a href="{public}/travel/airport-transfer-guide.html" style="color:#2563eb;text-decoration:none">airport transfers</a></p>',
         '<p style="color:#6b7280;font-size:13px;margin-top:8px">Ad · affiliate links. Prices change fast; the price is fixed at booking.</p>',
         f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · <a href="{public}/privacy.html" style="color:#6b7280">Privacy</a> · <a href="{public}/terms.html" style="color:#6b7280">Terms</a></p>',
         '</div></body></html>',

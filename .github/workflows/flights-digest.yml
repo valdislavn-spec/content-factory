@@ -33,11 +33,13 @@ jobs:
         run: |
           python scripts/flights_digest.py --origin ALA --top 12 --notify
           python scripts/flights_digest.py --origin MSQ --top 12 --notify
+      - name: Build collections (подборки)
+        run: python scripts/flights_collections.py
       - name: Commit page
         run: |
           git config user.name "dsh-agent"
           git config user.email "dsh-agent@users.noreply.github.com"
-          git add docs/flights
+          git add docs/flights docs/collections docs/sitemap.xml
           if git diff --cached --quiet; then
             echo "no changes"
             exit 0
