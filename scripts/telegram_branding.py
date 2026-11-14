@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""Оформление каналов: название, описание, аватар — из config/channel_branding.yaml.
+
+    ./.venv/bin/python scripts/telegram_branding.py --dry-run
+    ./.venv/bin/python scripts/telegram_branding.py --only signals
+    ./.venv/bin/python scripts/telegram_branding.py            # применить всё
+
+Нужен TELEGRAM_BOT_TOKEN и права администратора с «Менять информацию».
+Chat id берётся из config/channels.{en,es}.yaml либо из переменной окружения,
+указанной в поле chat_env.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import mimetypes
+import os
+import sys
+import uuid
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+import yaml  # noqa: E402
+
+from content_factory.utils import env, load_dotenv  # noqa: E402
+
+BRANDING = ROOT / "config" / "channel_branding.yaml"
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; ContentFactory/1.0; +https://t.me/) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0"
+)
+DESCRIPTION_LIMIT = 255
+TITLE_LIMIT = 128
+
+
+def api_base() -> str:
+    return (env("TELEGRAM_API_BASE", "") or "https://api.telegram.org").rstrip("/")
+
+
+def call(token: str, method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """POST application/x-www-form-urlencoded (title/description)."""
+    import urllib.parse
+    import urllib.request
+
+    body = urllib.parse.urlencode({k: v for k, v in payload.items() if v is not None}).encode()
+    request = urllib.request.Request(
+        f"{api_base()}/bot{token}/{method}",
+        data=body,
+        headers={"Content-Type": "application/x-www-form-urlencoded", "User-Agent": USER_AGENT},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=40) as response:
+        return json.load(response)
+
+
+def call_photo(token: str, chat_id: str, photo: Path) -> Dict[str, Any]:
+    """POST multipart/form-data для setChatPhoto."""
+    import urllib.request
+
+    boundary = "----CF" + uuid.uuid4().hex
+    parts: List[bytes] = []
+    for name, value in (("chat_id", chat_id),):
+        parts.append(
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n".encode()
+        )
+    mime = mimetypes.guess_type(photo.name)[0] or "image/png"
+    parts.append(
+        (
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"photo\"; "
+            f"filename=\"{photo.name}\"\r\nContent-Type: {mime}\r\n\r\n"
+        ).encode()
+    )
+    parts.append(photo.read_bytes())
+    parts.append(f"\r\n--{boundary}--\r\n".encode())
+    body = b"".join(parts)
+    request = urllib.request.Request(
+        f"{api_base()}/bot{token}/setChatPhoto",
+        data=body,
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "User-Agent": USER_AGENT,
+            "Content-Length": str(len(body)),
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=90) as response:
+        return json.load(response)
+
+
+def config_chat_ids() -> Dict[str, str]:
+    """id → chat_id из конфигов каналов (EN и ES)."""
+    out: Dict[str, str] = {}
+    for name in ("channels.en.yaml", "channels.es.yaml"):
+        path = ROOT / "config" / name
+        if not path.exists():
+            continue
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        for channel in data.get("channels") or []:
+            if not isinstance(channel, dict):
+                continue
+            chat_id = str(channel.get("telegram_chat_id") or "").strip()
+            if chat_id:
+                out[str(channel.get("id"))] = chat_id
+    return out
+
+
+def load_branding() -> List[Dict[str, Any]]:
+    data = yaml.safe_load(BRANDING.read_text(encoding="utf-8")) or {}
+    channels = [c for c in (data.get("channels") or []) if isinstance(c, dict)]
+    if not channels:
+        raise SystemExit("config/channel_branding.yaml: пустой список channels")
+    return channels
+
+
+def resolve_chat_id(entry: Dict[str, Any], known: Dict[str, str]) -> str:
+    known_id = known.get(str(entry.get("id")) or "")
+    if known_id:
+        return known_id
+    chat_env = str(entry.get("chat_env") or "").strip()
+    return (os.environ.get(chat_env, "") if chat_env else "").strip()
+
+
+def validate(entry: Dict[str, Any]) -> List[str]:
+    problems: List[str] = []
+    title = str(entry.get("title") or "")
+    description = str(entry.get("description") or "").strip()
+    if not title:
+        problems.append("пустой title")
+    if len(title) > TITLE_LIMIT:
+        problems.append(f"title {len(title)} > {TITLE_LIMIT}")
+    if not description:
+        problems.append("пустое description")
+    if len(description) > DESCRIPTION_LIMIT:
+        problems.append(f"description {len(description)} > {DESCRIPTION_LIMIT}")
+    photo = entry.get("photo")
+    if photo and not (ROOT / str(photo)).exists():
+        problems.append(f"нет файла аватара: {photo}")
+    return problems
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description="Оформление Telegram-каналов")
+    parser.add_argument("--dry-run", action="store_true", help="только показать план")
+    parser.add_argument("--only", default="", help="id канала (по умолчанию все)")
+    parser.add_argument("--skip-photo", action="store_true")
+    parser.add_argument("--skip-title", action="store_true")
+    args = parser.parse_args(argv)
+
+    load_dotenv(ROOT / ".env")
+    token = (env("TELEGRAM_BOT_TOKEN", "") or "").strip()
+    known = config_chat_ids()
+    entries = load_branding()
+    if args.only:
+        entries = [e for e in entries if str(e.get("id")) == args.only]
+        if not entries:
+            print(f"канал {args.only} не найден в реестре")
+            return 2
+
+    problems = {str(e.get("id")): validate(e) for e in entries}
+    broken = {k: v for k, v in problems.items() if v}
+    for channel_id, issues in broken.items():
+        print(f"✗ {channel_id}: " + "; ".join(issues))
+    if broken:
+        return 2
+    if not token and not args.dry_run:
+        print("TELEGRAM_BOT_TOKEN не задан")
+        return 1
+
+    applied = skipped = failed = 0
+    for entry in entries:
+        channel_id = str(entry.get("id"))
+        title = str(entry.get("title") or "").strip()
+        description = str(entry.get("description") or "").strip()
+        photo = ROOT / str(entry.get("photo") or "") if entry.get("photo") else None
+        chat_id = resolve_chat_id(entry, known)
+
+        if not chat_id:
+            hint = entry.get("chat_env") or "config/channels.*.yaml"
+            print(f"— {channel_id}: нет chat_id ({hint}) — пропуск")
+            skipped += 1
+            continue
+
+        if args.dry_run:
+            print(
+                f"· {channel_id} ({chat_id}): title={title!r} "
+                f"desc={len(description)} симв., photo={photo.name if photo else '—'}"
+            )
+            continue
+
+        try:
+            if not args.skip_title:
+                call(token, "setChatTitle", {"chat_id": chat_id, "title": title})
+            call(token, "setChatDescription", {"chat_id": chat_id, "description": description})
+            photo_note = "без фото"
+            if photo and not args.skip_photo:
+                call_photo(token, chat_id, photo)
+                photo_note = f"фото {photo.name}"
+            print(f"✓ {channel_id} ({chat_id}): {title!r}, описание {len(description)} симв., {photo_note}")
+            applied += 1
+        except Exception as exc:  # noqa: BLE001
+            print(f"✗ {channel_id} ({chat_id}): {type(exc).__name__}: {exc}")
+            failed += 1
+
+    print(f"\nобновлено: {applied} · пропущено: {skipped} · ошибок: {failed}")
+    return 0 if failed == 0 else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

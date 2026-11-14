@@ -50,6 +50,11 @@ CHANNELS = {
         c1=(14, 20, 28), c2=(168, 28, 42), icon="sport",
         title="US Sports News", tagline="NFL, NBA, MLB, NHL and college sports",
     ),
+    "signals": dict(
+        wordmark="SIGNALS", subtitle="CRYPTO", accent=(47, 209, 139),
+        c1=(4, 14, 20), c2=(10, 74, 58), icon="crypto",
+        title="Signal Crypto", tagline="BTC, ETH, SOL: entry, stop, take — public exchange data",
+    ),
     "futbol-es": dict(
         wordmark="FÚTBOL", subtitle="EN ESPAÑOL", accent=(255, 209, 102),
         c1=(6, 34, 24), c2=(26, 122, 74), icon="sport",
@@ -315,9 +320,16 @@ def make_cover(channel_id: str, spec: dict, size=(1280, 720)) -> Image.Image:
 
 
 def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Логотипы и обложки каналов")
+    parser.add_argument("--only", default="", help="id канала (по умолчанию все)")
+    args = parser.parse_args()
+
     LOGO_DIR.mkdir(parents=True, exist_ok=True)
     COVER_DIR.mkdir(parents=True, exist_ok=True)
-    for channel_id, spec in CHANNELS.items():
+    selected = {args.only: CHANNELS[args.only]} if args.only else CHANNELS
+    for channel_id, spec in selected.items():
         logo = make_logo(channel_id, spec)
         logo.save(LOGO_DIR / f"{channel_id}.png")
         cover = make_cover(channel_id, spec)

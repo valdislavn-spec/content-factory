@@ -1,0 +1,50 @@
+name: telegram-branding
+
+# Применяет название, описание и аватар ко всем каналам сети из
+# config/channel_branding.yaml. Запуск вручную: Actions → telegram-branding.
+# Бот должен быть админом с правом «Менять информацию» в каждом канале.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Только показать план"
+        type: boolean
+        default: false
+      only:
+        description: "id канала (пусто = все)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-branding
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_ES: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_ES }}
+      TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
+      TELEGRAM_CHAT_ID_CRYPTO_SIGNALS: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_SIGNALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Apply branding
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ -n "${{ inputs.only }}" ]; then ARGS="$ARGS --only ${{ inputs.only }}"; fi
+          python scripts/telegram_branding.py $ARGS

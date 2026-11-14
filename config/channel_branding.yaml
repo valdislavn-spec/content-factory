@@ -1,0 +1,73 @@
+# Единый реестр оформления каналов: название, описание, аватар.
+#
+# Источник правды для `scripts/telegram_branding.py` и для витрины
+# (docs/index.html). Меняете текст здесь — применяете одной командой.
+#
+# Требования Telegram:
+#   * title       — до 128 символов;
+#   * description — до 255 символов;
+#   * photo       — квадратный PNG/JPG, до 5 МБ (аватар обрезается в круг).
+#
+# chat_env — имя переменной окружения с chat_id (для каналов, где id не
+# прописан в config/channels.*.yaml). Если chat_env нет, id берётся из конфига.
+
+channels:
+  - id: crypto-news
+    lang: en
+    title: Crypto & Blockchain
+    description: |-
+      Bitcoin, Ethereum, markets, regulation. 15+ posts a day from CoinDesk, The Block, Decrypt.
+      🌐 AI @AINEWS0007 · Sports @SPORTNews0007
+    photo: assets/logos/crypto-news.png
+
+  - id: ai-news
+    lang: en
+    title: AI News
+    description: |-
+      Models, products, policy and the companies building them. 15+ posts a day.
+      🌐 Crypto @HOOPY0007 · Sports @SPORTNews0007
+    photo: assets/logos/ai-news.png
+
+  - id: sport-news
+    lang: en
+    title: US Sports News
+    description: |-
+      NFL, NBA, MLB, NHL, college football: scores, trades, injuries, analysis. 16 posts a day.
+      🌐 AI @AINEWS0007 · Crypto @HOOPY0007
+    photo: assets/logos/sport-news.png
+
+  - id: tech-ai-es
+    lang: es
+    chat_env: TELEGRAM_CHAT_ID_TECH_AI_ES
+    title: ES AI News
+    description: |-
+      IA en español: modelos, productos, empresas y políticas. 15+ posts al día.
+      🌐 Cripto @TechnologiesNews01 · Deporte @SPORTSAnalytics007
+    photo: assets/logos/tech-ai-es.png
+
+  - id: crypto-es
+    lang: es
+    chat_env: TELEGRAM_CHAT_ID_CRYPTO_ES
+    title: ES Crypto & Blockchain
+    description: |-
+      Bitcoin, Ethereum, mercados y regulación en español. 15+ posts al día.
+      🌐 IA @WORLDNews0007 · Deporte @SPORTSAnalytics007
+    photo: assets/logos/crypto-es.png
+
+  - id: futbol-es
+    lang: es
+    chat_env: TELEGRAM_CHAT_ID_FUTBOL_ES
+    title: ES Sports News
+    description: |-
+      Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS, Champions. Datos, fichajes, cuotas — 18+.
+      🌐 IA @WORLDNews0007 · Cripto @TechnologiesNews01
+    photo: assets/logos/futbol-es.png
+
+  - id: signals
+    lang: en
+    chat_env: TELEGRAM_CHAT_ID_CRYPTO_SIGNALS
+    title: Signal Crypto
+    description: |-
+      BTC, ETH, SOL: entry, stop, take. 2–4 ideas a day from public exchange data. Not financial advice. 18+
+      🌐 News network: @HOOPY0007 · @AINEWS0007 · @SPORTNews0007
+    photo: assets/logos/signals.png
