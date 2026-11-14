@@ -229,8 +229,29 @@ def city_name(code: str, lang: str = "ru") -> str:
     return c.en if lang == "en" and c.en else c.ru
 
 
-def country_name(code: str) -> str:
-    return COUNTRIES.get((code or "").upper(), ("", ""))[0]
+
+COUNTRIES_EN: Dict[str, str] = {
+    "KZ": "Kazakhstan", "BY": "Belarus", "RU": "Russia", "UZ": "Uzbekistan",
+    "TJ": "Tajikistan", "KG": "Kyrgyzstan", "TM": "Turkmenistan", "AZ": "Azerbaijan",
+    "AM": "Armenia", "GE": "Georgia", "TR": "Turkey", "AE": "UAE", "QA": "Qatar",
+    "SA": "Saudi Arabia", "IL": "Israel", "EG": "Egypt", "TH": "Thailand",
+    "VN": "Vietnam", "MY": "Malaysia", "SG": "Singapore", "ID": "Indonesia",
+    "LK": "Sri Lanka", "IN": "India", "MV": "Maldives", "CN": "China",
+    "HK": "Hong Kong", "KR": "South Korea", "JP": "Japan", "DE": "Germany",
+    "FR": "France", "IT": "Italy", "ES": "Spain", "PT": "Portugal",
+    "NL": "Netherlands", "CZ": "Czechia", "AT": "Austria", "PL": "Poland",
+    "LT": "Lithuania", "LV": "Latvia", "EE": "Estonia", "FI": "Finland",
+    "GR": "Greece", "CY": "Cyprus", "HU": "Hungary", "GB": "United Kingdom",
+    "IE": "Ireland", "CH": "Switzerland", "RS": "Serbia", "ME": "Montenegro",
+    "HR": "Croatia", "BG": "Bulgaria", "RO": "Romania",
+}
+
+
+def country_name(code: str, lang: str = "ru") -> str:
+    key = (code or "").upper()
+    if lang == "en":
+        return COUNTRIES_EN.get(key, COUNTRIES.get(key, ("", ""))[0])
+    return COUNTRIES.get(key, ("", ""))[0]
 
 
 def flag(code: str) -> str:

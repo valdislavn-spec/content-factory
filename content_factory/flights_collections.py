@@ -505,7 +505,8 @@ def render_hub(cols: Sequence[Collection], updated: Optional[datetime],
         f'<p style="font-size:14px;color:#374151;margin-top:18px">Полные таблицы по городам: '
         f'<a href="{public}/flights/almaty/" style="color:#2563eb;text-decoration:none">из Алматы</a> · '
         f'<a href="{public}/flights/minsk/" style="color:#2563eb;text-decoration:none">из Минска</a> · '
-        f'<a href="{public}/tours/" style="color:#2563eb;text-decoration:none">туры</a></p>',
+        f'<a href="{public}/tours/" style="color:#2563eb;text-decoration:none">туры</a>'
+        f' · <a href="{public}/collections/en/" style="color:#2563eb;text-decoration:none">English version</a></p>',
         '<p style="color:#6b7280;font-size:13px;margin-top:8px">Реклама · партнёрские ссылки. '
         "Цены меняются быстро.</p>",
         f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · '
@@ -613,7 +614,7 @@ def sitemap_urls(cols: Sequence[Collection], public: str = PUBLIC) -> List[str]:
 
 
 def update_sitemap(path: Path, urls: Sequence[str], today: Optional[date] = None,
-                   prune_prefix: str = "") -> int:
+                   prune_prefix: str = "", protect: Sequence[str] = ()) -> int:
     """Дописывает недостающие адреса и убирает устаревшие подборки.
 
     prune_prefix — префикс адресов, которые считаются «нашими»: если адрес с этим
@@ -631,6 +632,8 @@ def update_sitemap(path: Path, urls: Sequence[str], today: Optional[date] = None
             if not loc or not loc.group(1).startswith(prune_prefix):
                 continue
             if loc.group(1) in urls:
+                continue
+            if any(loc.group(1).startswith(prefix) for prefix in protect):
                 continue
             xml = xml.replace(block, "")
             removed += 1

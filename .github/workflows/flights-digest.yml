@@ -34,7 +34,7 @@ jobs:
           python scripts/flights_digest.py --origin ALA --top 12 --notify
           python scripts/flights_digest.py --origin MSQ --top 12 --notify
       - name: Build collections (подборки)
-        run: python scripts/flights_collections.py
+        run: python scripts/flights_collections.py --lang both
       - name: Commit page
         run: |
           git config user.name "dsh-agent"
