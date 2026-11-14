@@ -43,7 +43,7 @@ entries:
         Si te gusta leer el mercado, mira también el mercado deportivo: probabilidades, cuotas y modelos explicados con criterio, no con promesas.
         → https://t.me/SPORTSAnalytics007
   - source: ai-news
-    enabled: false
+    enabled: true
     target: crypto-news
     url: https://t.me/HOOPY0007
     weight: 1
@@ -82,3 +82,26 @@ entries:
       - |
         From GPT releases to GPU deals and AI regulation — <b>AI News</b> covers the business of AI every day.
         → https://t.me/AINEWS0007
+
+  - source: crypto-news
+    enabled: true
+    target: sport-news
+    url: https://t.me/SPORTNews0007
+    weight: 2
+    texts:
+      - |
+        Markets and sports run on the same fuel: attention. <b>US Sports News</b> covers NFL, NBA, MLB and NHL daily — scores, trades, injuries.
+        → https://t.me/SPORTNews0007
+      - |
+        If you read markets for a living, you will like how we read games. <b>US Sports News</b> — every US league, every day, no filler.
+        → https://t.me/SPORTNews0007
+
+  - source: sport-news
+    enabled: true
+    target: crypto-news
+    url: https://t.me/HOOPY0007
+    weight: 1
+    texts:
+      - |
+        Sports money moves like crypto money — fast, on news. <b>Crypto &amp; Blockchain</b> tracks ETF flows, regulation and market moves every day:
+        → https://t.me/HOOPY0007
