@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: travelata-digest
+  cancel-in-progress: false
+
 jobs:
   digest:
     runs-on: ubuntu-latest

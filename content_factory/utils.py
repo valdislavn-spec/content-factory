@@ -680,5 +680,24 @@ def load_dotenv(path: Any = ".env") -> None:
             os.environ[key] = value
 
 
+# Признаки того, что аккаунт в fediverse-сети недоступен (страйк, блокировка,
+# протухший токен): это состояние конфигурации/модерации, а не сбой пайплайна.
+UNAVAILABLE_MARKERS = (
+    "disabled",
+    "suspended",
+    "http 401",
+    "http 403",
+    "unauthorized",
+    "forbidden",
+    "invalid access token",
+)
+
+
+def account_unavailable(text: Any) -> bool:
+    """True, если ошибка публикации означает «аккаунт/токен недоступен»."""
+    low = str(text or "").lower()
+    return bool(low) and any(marker in low for marker in UNAVAILABLE_MARKERS)
+
+
 def chunks(sequence: Sequence[Any], size: int) -> List[Sequence[Any]]:
     return [sequence[i : i + size] for i in range(0, len(sequence), max(1, size))]

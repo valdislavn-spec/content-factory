@@ -26,7 +26,7 @@ if str(ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 
-from content_factory.utils import load_dotenv  # noqa: E402
+from content_factory.utils import account_unavailable, load_dotenv  # noqa: E402
 
 UA = {"User-Agent": "content-factory-growth/1.0", "Accept": "application/json"}
 
@@ -43,8 +43,14 @@ def api(method: str, path: str, token: str, base: str, payload: Optional[Dict[st
         data = json.dumps(payload).encode()
         headers["Content-Type"] = "application/json"
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
-    with urllib.request.urlopen(request, timeout=30) as response:
-        body = response.read().decode("utf-8", "replace")
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = response.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:300]
+        raise RuntimeError("HTTP {} {}: {}".format(exc.code, url.split("/")[2], detail)) from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError("сеть недоступна {}: {}".format(url.split("/")[2], exc.reason)) from exc
     return json.loads(body) if body.strip() else {}
 
 
@@ -269,8 +275,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     base = (os.environ.get("MASTODON_BASE_URL", "") or "").strip().rstrip("/")
     token = (os.environ.get("MASTODON_TOKEN", "") or "").strip()
     if not base or not token:
-        print("MASTODON_BASE_URL/MASTODON_TOKEN не заданы")
-        return 1
+        print("SKIP: MASTODON_BASE_URL/MASTODON_TOKEN не заданы — программа роста пропущена")
+        return 0
     config_path = Path(args.config)
     if not config_path.is_absolute():
         config_path = ROOT / config_path
@@ -283,12 +289,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         state_path = ROOT / state_path
     config["state_path"] = str(state_path)
     state = load_state(state_path)
-    if args.all or args.follow:
-        run_follow(base, token, state, config, args.dry_run, args.limit or None)
-    if args.all or args.tags:
-        follow_tags(base, token, config, args.dry_run)
-    if args.all or args.boost:
-        run_boost(base, token, state, config, args.dry_run)
+    try:
+        if args.all or args.follow:
+            run_follow(base, token, state, config, args.dry_run, args.limit or None)
+        if args.all or args.tags:
+            follow_tags(base, token, config, args.dry_run)
+        if args.all or args.boost:
+            run_boost(base, token, state, config, args.dry_run)
+    except RuntimeError as exc:
+        if account_unavailable(exc):
+            # @Yeti01 заблокирован (страйк 319361, апелляция в процессе) — известное
+            # состояние: не считаем это падением пайплайна.
+            print("SKIP: аккаунт Mastodon недоступен, рост приостановлен — {}".format(str(exc)[:300]))
+            return 0
+        raise
     if not args.dry_run:
         save_state(state_path, state)
     return 0
