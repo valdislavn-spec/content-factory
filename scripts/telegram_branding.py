@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 import mimetypes
 import os
 import sys
@@ -42,6 +43,7 @@ def api_base() -> str:
 
 def call(token: str, method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     """POST application/x-www-form-urlencoded (title/description)."""
+    import urllib.error
     import urllib.parse
     import urllib.request
 
@@ -52,12 +54,17 @@ def call(token: str, method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         headers={"Content-Type": "application/x-www-form-urlencoded", "User-Agent": USER_AGENT},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=40) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=40) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:300]
+        raise RuntimeError(f"{method}: HTTP {exc.code} {detail}") from exc
 
 
 def call_photo(token: str, chat_id: str, photo: Path) -> Dict[str, Any]:
     """POST multipart/form-data для setChatPhoto."""
+    import urllib.error
     import urllib.request
 
     boundary = "----CF" + uuid.uuid4().hex
@@ -86,8 +93,12 @@ def call_photo(token: str, chat_id: str, photo: Path) -> Dict[str, Any]:
         },
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=90) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=90) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:300]
+        raise RuntimeError(f"setChatPhoto: HTTP {exc.code} {detail}") from exc
 
 
 def config_chat_ids() -> Dict[str, str]:
@@ -190,18 +201,31 @@ def main(argv: Optional[List[str]] = None) -> int:
             )
             continue
 
-        try:
-            if not args.skip_title:
-                call(token, "setChatTitle", {"chat_id": chat_id, "title": title})
-            call(token, "setChatDescription", {"chat_id": chat_id, "description": description})
-            photo_note = "без фото"
-            if photo and not args.skip_photo:
-                call_photo(token, chat_id, photo)
-                photo_note = f"фото {photo.name}"
-            print(f"✓ {channel_id} ({chat_id}): {title!r}, описание {len(description)} симв., {photo_note}")
-            applied += 1
-        except Exception as exc:  # noqa: BLE001
-            print(f"✗ {channel_id} ({chat_id}): {type(exc).__name__}: {exc}")
+        last_error: Optional[Exception] = None
+        for attempt in range(1, 4):
+            try:
+                if not args.skip_title:
+                    call(token, "setChatTitle", {"chat_id": chat_id, "title": title})
+                call(token, "setChatDescription", {"chat_id": chat_id, "description": description})
+                photo_note = "без фото"
+                if photo and not args.skip_photo:
+                    call_photo(token, chat_id, photo)
+                    photo_note = f"фото {photo.name}"
+                print(f"✓ {channel_id} ({chat_id}): {title!r}, описание {len(description)} симв., {photo_note}")
+                applied += 1
+                last_error = None
+                break
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                text = str(exc)
+                transient = "Connection reset" in text or "timed out" in text or "HTTP 5" in text
+                if attempt < 3 and transient:
+                    print(f"… {channel_id}: попытка {attempt} не удалась ({text[:80]}) — повтор")
+                    time.sleep(3 * attempt)
+                    continue
+                break
+        if last_error is not None:
+            print(f"✗ {channel_id} ({chat_id}): {last_error}")
             failed += 1
 
     print(f"\nобновлено: {applied} · пропущено: {skipped} · ошибок: {failed}")
