@@ -11,7 +11,7 @@ import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE = "https://deals-finds.deed.page"
+BASE = "https://ofertas-finds.deed.page"
 TEMPLATE = """<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta http-equiv="refresh" content="0; url={target}">
