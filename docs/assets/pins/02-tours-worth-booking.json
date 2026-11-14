@@ -1,0 +1,204 @@
+{
+  "image_url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-tours-worth-booking.png",
+  "file": "docs/assets/pins/02-tours-worth-booking.png",
+  "niche": "travel",
+  "affiliate": true,
+  "disclosure": "Ad · affiliate link",
+  "board": "Travel ideas",
+  "keywords": [
+    "travel tips",
+    "city breaks",
+    "budget travel",
+    "travel guide",
+    "tours",
+    "experiences",
+    "worth",
+    "booking"
+  ],
+  "variant": "gradient",
+  "pin": {
+    "board_id": "<BOARD_ID>",
+    "title": "Tours & experiences: what's worth booking ahead",
+    "description": "Skip-the-line tickets, small-group tours and city passes: what to book ahead and what to buy on the spot. Browse tours. Ad · affiliate link",
+    "alt_text": "Tours worth booking. Skip-the-line and small-group picks.",
+    "media_source": {
+      "source_type": "image_url",
+      "url": "https://valdislavn-spec.github.io/content-factory/assets/pins/02-tours-worth-booking.png"
+    },
+    "link": "https://valdislavn-spec.github.io/content-factory/go/12-tours-and-experiences.html"
+  },
+  "metrics": {
+    "variant": "gradient",
+    "width": 1000,
+    "height": 1500,
+    "aspect_ratio": 0.6667,
+    "margin": 72,
+    "margins": {
+      "left": 72,
+      "top": 72,
+      "right": 72,
+      "bottom": 72
+    },
+    "min_font_size": 24,
+    "contrast": {
+      "tag": 17.61,
+      "brandmark": 7.08,
+      "brandmark_text": 17.16,
+      "headline": 16.92,
+      "subtitle": 16.81,
+      "bullet_1": 17.6,
+      "bullet_2": 17.6,
+      "bullet_3": 17.6,
+      "cta": 7.08,
+      "disclosure": 7.08,
+      "site": 9.83
+    },
+    "min_body_contrast": 7.08,
+    "min_heading_contrast": 16.92,
+    "blocks": [
+      {
+        "role": "tag",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 135,
+        "line_width": 91,
+        "rect": {
+          "x": 72,
+          "y": 72,
+          "w": 135,
+          "h": 48
+        },
+        "contrast": 17.61
+      },
+      {
+        "role": "brandmark_text",
+        "font_size": 24,
+        "lines": 1,
+        "box_width": 262,
+        "line_width": 234,
+        "rect": {
+          "x": 666,
+          "y": 80,
+          "w": 262,
+          "h": 31
+        },
+        "contrast": 17.16
+      },
+      {
+        "role": "headline",
+        "font_size": 136,
+        "lines": 2,
+        "box_width": 856,
+        "line_width": 751,
+        "rect": {
+          "x": 72,
+          "y": 291,
+          "w": 856,
+          "h": 316
+        },
+        "contrast": 16.92
+      },
+      {
+        "role": "subtitle",
+        "font_size": 44,
+        "lines": 1,
+        "box_width": 856,
+        "line_width": 745,
+        "rect": {
+          "x": 72,
+          "y": 669,
+          "w": 856,
+          "h": 59
+        },
+        "contrast": 16.81
+      },
+      {
+        "role": "bullet_1",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 373,
+        "rect": {
+          "x": 144,
+          "y": 776,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "bullet_2",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 456,
+        "rect": {
+          "x": 144,
+          "y": 868,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "bullet_3",
+        "font_size": 34,
+        "lines": 1,
+        "box_width": 758,
+        "line_width": 412,
+        "rect": {
+          "x": 144,
+          "y": 960,
+          "w": 758,
+          "h": 46
+        },
+        "contrast": 17.6
+      },
+      {
+        "role": "cta",
+        "font_size": 38,
+        "lines": 1,
+        "box_width": 356,
+        "line_width": 284,
+        "rect": {
+          "x": 72,
+          "y": 1178,
+          "w": 356,
+          "h": 82
+        },
+        "contrast": 7.08
+      },
+      {
+        "role": "disclosure",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 812,
+        "line_width": 196,
+        "rect": {
+          "x": 94,
+          "y": 1321,
+          "w": 812,
+          "h": 34
+        },
+        "contrast": 7.08
+      },
+      {
+        "role": "site",
+        "font_size": 26,
+        "lines": 1,
+        "box_width": 812,
+        "line_width": 318,
+        "rect": {
+          "x": 94,
+          "y": 1361,
+          "w": 812,
+          "h": 34
+        },
+        "contrast": 9.83
+      }
+    ],
+    "warnings": [
+      "content centred vertically (+131px)"
+    ]
+  }
+}
