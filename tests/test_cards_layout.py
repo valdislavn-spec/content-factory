@@ -46,3 +46,38 @@ def test_card_render_has_no_service_text(tmp_path) -> None:
     channel = NS(id="sport-news", language="en", title="US Sports News", telegram_username="SPORTNews0007")
     path = render_post_card(post, channel, NS(data_dir=str(tmp_path)))
     assert path is not None and path.exists() and path.stat().st_size > 20_000
+
+
+def test_card_button_points_to_source() -> None:
+    import json as _json
+    from content_factory.publishers.telegram import TelegramPublisher
+
+    post = NS(html='Смотрите <a href="https://www.coindesk.com/markets/x">источник</a>', text="", meta={})
+    channel = NS(language="en", public_url="https://t.me/HOOPY0007")
+    markup = TelegramPublisher._card_reply_markup(post, channel)
+    assert markup, "кнопка должна появиться"
+    data = _json.loads(markup)
+    button = data["inline_keyboard"][0][0]
+    assert button["url"] == "https://www.coindesk.com/markets/x"
+    assert button["text"] == "Read the source"
+
+
+def test_card_button_falls_back_to_channel() -> None:
+    import json as _json
+    from content_factory.publishers.telegram import TelegramPublisher
+
+    post = NS(html="Текст без ссылок", text="", meta={})
+    channel = NS(language="es", public_url="https://t.me/TechnologiesNews01")
+    data = _json.loads(TelegramPublisher._card_reply_markup(post, channel))
+    assert data["inline_keyboard"][0][0]["url"] == "https://t.me/TechnologiesNews01"
+    assert data["inline_keyboard"][0][0]["text"] == "Abrir el canal"
+
+
+def test_card_button_skips_telegram_links() -> None:
+    from content_factory.publishers.telegram import TelegramPublisher
+
+    post = NS(html='<a href="https://t.me/HOOPY0007/123">пост</a> <a href="https://example.com/a">статья</a>', text="", meta={})
+    channel = NS(language="ru", public_url="https://t.me/HOOPY0007")
+    import json as _json
+    data = _json.loads(TelegramPublisher._card_reply_markup(post, channel))
+    assert data["inline_keyboard"][0][0]["url"] == "https://example.com/a"

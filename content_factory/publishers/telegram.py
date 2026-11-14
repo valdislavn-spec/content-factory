@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -194,6 +195,37 @@ class TelegramPublisher(Publisher):
     # ------------------------------------------------------------------
     # публикация
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _card_reply_markup(post: Any, channel: Any) -> str:
+        """Инлайн-кнопка под фото: источник статьи, иначе — сам канал.
+
+        Картинка кликнуть нельзя, поэтому ссылка выносится в кнопку Telegram.
+        """
+        language = str(getattr(channel, "language", "en") or "en")
+        label = {"en": "Read the source", "es": "Leer la fuente", "ru": "Открыть источник"}.get(
+            language, "Read the source"
+        )
+        candidates: List[str] = []
+        for blob in (getattr(post, "html", "") or "", getattr(post, "text", "") or ""):
+            candidates.extend(re.findall(r'href="(https?://[^"]+)"', blob))
+            candidates.extend(re.findall(r"(?<![\w@])(https?://[^\s<]+)", blob))
+        source = next(
+            (url for url in candidates if "t.me/" not in url and not url.endswith((".jpg", ".png"))),
+            "",
+        )
+        if not source:
+            source = str(getattr(channel, "public_url", "") or "").strip()
+            label = {"en": "Open the channel", "es": "Abrir el canal", "ru": "Открыть канал"}.get(
+                language, "Open the channel"
+            )
+        if not source:
+            return ""
+        return json.dumps(
+            {"inline_keyboard": [[{"text": label, "url": source}]]},
+            ensure_ascii=False,
+        )
+
     def publish(
         self, post: GeneratedPost, channel: ChannelConfig, settings: Settings
     ) -> PublishResult:
@@ -253,6 +285,9 @@ class TelegramPublisher(Publisher):
                     fields: Dict[str, Any] = {"chat_id": chat_id, "parse_mode": parse_mode}
                     if caption:
                         fields["caption"] = caption
+                    markup = self._card_reply_markup(post, channel)
+                    if markup:
+                        fields["reply_markup"] = markup
                     photo_result = self._call_multipart(
                         "sendPhoto",
                         fields,
