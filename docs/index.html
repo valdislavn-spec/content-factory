@@ -3,19 +3,51 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Our Telegram channels — crypto, AI &amp; sports news</title>
+<title>Crypto, AI &amp; US Sports News in Telegram — EN/ES | Content Factory</title>
 <meta name="twitter:card" content="summary_large_image">
-<meta name="description" content="Daily crypto, AI and US sports news in Telegram. English and Spanish channels — sourced, no hype.">
+<meta name="description" content="Daily crypto, AI and US sports news in Telegram. Six channels in English and Spanish — sourced headlines from CoinDesk, TechCrunch and ESPN, 15+ posts a day.">
 <meta property="og:title" content="Our Telegram channels — crypto, AI &amp; sports news">
 <meta property="og:description" content="Daily crypto, AI and US sports news in Telegram. English and Spanish channels — sourced, no hype.">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Content Factory">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="es_ES">
+<meta name="twitter:title" content="Crypto, AI &amp; US Sports News in Telegram — EN/ES">
+<meta name="twitter:description" content="Six Telegram channels: crypto, AI and US sports news in English and Spanish. Sourced headlines, 15+ posts a day.">
 <meta property="og:url" content="https://valdislavn-spec.github.io/content-factory/">
-<meta name="robots" content="index,follow">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+<meta name="theme-color" content="#060a13">
+<meta name="author" content="Content Factory">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+<link rel="preconnect" href="https://emrld.ltd" crossorigin>
 <link rel="canonical" href="https://valdislavn-spec.github.io/content-factory/">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "ItemList",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://valdislavn-spec.github.io/content-factory/#org",
+      "name": "Content Factory",
+      "url": "https://valdislavn-spec.github.io/content-factory/",
+      "logo": "https://valdislavn-spec.github.io/content-factory/assets/apple-touch-icon.png",
+      "description": "A small news desk publishing six Telegram channels: crypto, AI and US sports news in English and Spanish."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://valdislavn-spec.github.io/content-factory/#site",
+      "url": "https://valdislavn-spec.github.io/content-factory/",
+      "name": "Content Factory",
+      "inLanguage": ["en", "es"],
+      "publisher": {"@id": "https://valdislavn-spec.github.io/content-factory/#org"}
+    },
+    {
+      "@type": "ItemList",
   "name": "Our Telegram channels — crypto, AI and sports news",
   "description": "Daily crypto, AI and sports news channels in Telegram, English and Spanish.",
   "url": "https://valdislavn-spec.github.io/content-factory/",
@@ -27,6 +59,18 @@
     {"@type": "ListItem", "position": 4, "name": "ES Crypto & Blockchain", "url": "https://t.me/TechnologiesNews01"},
     {"@type": "ListItem", "position": 5, "name": "ES AI News", "url": "https://t.me/WORLDNews0007"},
     {"@type": "ListItem", "position": 6, "name": "ES Sports News", "url": "https://t.me/SPORTSAnalytics007"}
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://valdislavn-spec.github.io/content-factory/#faq",
+      "mainEntity": [
+        {"@type": "Question", "name": "What is Content Factory?", "acceptedAnswer": {"@type": "Answer", "text": "A small news desk that publishes six Telegram channels: crypto, AI and US sports in English, plus the same three beats in Spanish."}},
+        {"@type": "Question", "name": "How often are the channels updated?", "acceptedAnswer": {"@type": "Answer", "text": "Each channel gets 15 to 18 posts a day, scheduled through the day."}},
+        {"@type": "Question", "name": "Where do the stories come from?", "acceptedAnswer": {"@type": "Answer", "text": "CoinDesk, The Block, Decrypt, TechCrunch, MIT Technology Review, ESPN and regional Spanish outlets. Every post links to the original source."}},
+        {"@type": "Question", "name": "Are the channels free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. There is no paywall; support is optional."}}
+      ]
+    }
   ]
 }
 </script>
@@ -229,6 +273,16 @@
   .guides .arrow { width: 14px; height: 14px; opacity: 0; transition: opacity .15s ease, transform .15s ease; color: var(--crypto); }
   .guides a:hover .arrow { opacity: 1; transform: translate(2px,-2px); }
 
+  /* ---------- faq ---------- */
+  .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 780px) { .faq { grid-template-columns: 1fr; } }
+  .faq article {
+    padding: 18px 20px; border-radius: 16px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+  }
+  .faq h3 { margin: 0 0 7px; font-size: 15px; font-weight: 650; letter-spacing: -.008em; }
+  .faq p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
   /* ---------- panels ---------- */
   .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 56px 0 0; }
   @media (max-width: 780px) { .panels { grid-template-columns: 1fr; } }
@@ -356,6 +410,7 @@
     <nav class="nav" aria-label="Sections">
       <a href="#en">Channels</a>
       <a href="#travel">Travel</a>
+      <a href="#faq">FAQ</a>
       <a href="#support">Support</a>
     </nav>
     <div class="langs" role="group" aria-label="Language">
@@ -385,9 +440,9 @@
     </div>
   </section>
 
-  <section id="en" class="block shell">
+  <section id="en" class="block shell" lang="en" aria-labelledby="h-en">
     <div class="block-head">
-      <h2>English</h2><span class="rule"></span><span class="count">3 channels</span>
+      <h2 id="h-en">English</h2><span class="rule"></span><span class="count">3 channels</span>
     </div>
     <div class="grid">
       <a class="chan" style="--topic: var(--crypto)" href="https://t.me/HOOPY0007">
@@ -419,9 +474,9 @@
     </div>
   </section>
 
-  <section id="es" class="block shell">
+  <section id="es" class="block shell" lang="es" aria-labelledby="h-es">
     <div class="block-head">
-      <h2>Español</h2><span class="rule"></span><span class="count">3 canales</span>
+      <h2 id="h-es">Español</h2><span class="rule"></span><span class="count">3 canales</span>
     </div>
     <div class="grid">
       <a class="chan" style="--topic: var(--crypto)" href="https://t.me/TechnologiesNews01">
@@ -453,9 +508,9 @@
     </div>
   </section>
 
-  <section id="travel" class="block shell">
+  <section id="travel" class="block shell" aria-labelledby="h-travel">
     <div class="block-head">
-      <h2>Travel guides</h2><span class="rule"></span><span class="count">live prices · updated daily</span>
+      <h2 id="h-travel">Travel guides</h2><span class="rule"></span><span class="count">live prices · updated daily</span>
     </div>
     <p class="block-sub">Cheap flights, package tours and practical guides — the same desk that files the news.</p>
 
@@ -495,6 +550,30 @@
       <li><a href="travel/almaty-48-hours.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>48 hours in Almaty</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
       <li><a href="travel/minsk-weekend.html"><span><svg aria-hidden="true"><use href="#i-pin"/></svg>Minsk weekend guide</span><svg class="arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
     </ul>
+  </section>
+
+  <section id="faq" class="block shell" lang="en" aria-labelledby="h-faq">
+    <div class="block-head">
+      <h2 id="h-faq">FAQ</h2><span class="rule"></span><span class="count">what readers ask</span>
+    </div>
+    <div class="faq">
+      <article>
+        <h3>What is Content Factory?</h3>
+        <p>A small news desk that publishes six Telegram channels: crypto, AI and US sports in English, plus the same three beats in Spanish.</p>
+      </article>
+      <article>
+        <h3>How often are the channels updated?</h3>
+        <p>Each channel gets 15–18 posts a day, scheduled through the day — not one bulk dump at midnight.</p>
+      </article>
+      <article>
+        <h3>Where do the stories come from?</h3>
+        <p>CoinDesk, The Block, Decrypt, TechCrunch, MIT Technology Review, ESPN and regional Spanish outlets. Every post links to the original source.</p>
+      </article>
+      <article>
+        <h3>Are the channels free?</h3>
+        <p>Yes. No paywall, no locked posts; support is voluntary and never required to read.</p>
+      </article>
+    </div>
   </section>
 
   <section id="support" class="shell">
