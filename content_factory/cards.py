@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent.parent
 FONT_DIR = ROOT / "assets" / "fonts"
 LOGO_DIR = ROOT / "assets" / "logos"
+AVATAR_DIR = ROOT / "assets" / "avatars"
 
 PLAYFAIR_PATH = FONT_DIR / "PlayfairDisplay.ttf"
 INTER_PATH = FONT_DIR / "Inter.ttf"
@@ -39,13 +40,14 @@ INTER_FALLBACK = [
 ]
 
 # цветовые схемы каналов (ключ — id канала; иначе по ключевым словам)
+# Палитра согласована с лендингом и аватарами: тёмно-синяя база + акцент темы.
 THEMES: Dict[str, Dict[str, Any]] = {
-    "ai-news": dict(c1=(8, 20, 42), c2=(18, 84, 168), accent=(79, 195, 247), label="AI NEWS"),
-    "tech-ai-es": dict(c1=(16, 19, 62), c2=(64, 74, 168), accent=(129, 199, 255), label="TECNOLOGÍA E IA"),
-    "crypto-news": dict(c1=(30, 18, 6), c2=(176, 88, 8), accent=(255, 193, 7), label="CRYPTO"),
-    "crypto-es": dict(c1=(34, 20, 8), c2=(196, 104, 12), accent=(255, 213, 79), label="CRIPTO"),
-    "sport-news": dict(c1=(14, 20, 28), c2=(168, 28, 42), accent=(255, 209, 102), label="US SPORTS"),
-    "futbol-es": dict(c1=(6, 34, 24), c2=(26, 122, 74), accent=(255, 209, 102), label="FÚTBOL"),
+    "ai-news": dict(c1=(7, 11, 20), c2=(26, 24, 58), accent=(139, 124, 255), label="AI NEWS"),
+    "tech-ai-es": dict(c1=(7, 11, 20), c2=(30, 26, 64), accent=(139, 124, 255), label="TECNOLOGÍA E IA"),
+    "crypto-news": dict(c1=(7, 11, 20), c2=(52, 36, 8), accent=(245, 165, 36), label="CRYPTO"),
+    "crypto-es": dict(c1=(7, 11, 20), c2=(56, 38, 8), accent=(245, 165, 36), label="CRIPTO"),
+    "sport-news": dict(c1=(7, 11, 20), c2=(8, 44, 32), accent=(47, 209, 139), label="US SPORTS"),
+    "futbol-es": dict(c1=(7, 11, 20), c2=(8, 48, 34), accent=(47, 209, 139), label="FÚTBOL"),
 }
 _FALLBACK_THEMES = [
     (("crypto", "cripto", "blockchain"), THEMES["crypto-news"]),
@@ -84,7 +86,83 @@ _EMOJI_RE = re.compile(
 )
 
 
+SERVICE_LABEL_RE = re.compile(
+    r"^(digest|дайджест|digesto|news|noticia|noticias|analysis|análisis|analisis|"
+    r"resumen|brief|бриф|разбор|story|historia|дайджест)\b", re.I,
+)
+DATE_ONLY_RE = re.compile(r"^\d{1,2}[./]\d{1,2}[./]\d{2,4}$")
+SOURCE_RE = re.compile(r"(?:source|fuente|источник)s?\s*:\s*([^\n]{2,40})", re.I)
+MONTHS = {
+    "en": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "es": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+    "ru": ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"],
+}
+
+
+def _strip_service_lines(text: str, limit: int = 2) -> str:
+    """Убирает служебные строки формата и даты в начале поста."""
+    kept: List[str] = []
+    dropped = 0
+    for line in str(text or "").splitlines():
+        bare = _clean_text(line)
+        service = bool(SERVICE_LABEL_RE.match(bare)) and len(bare) <= 40
+        if dropped < limit and (service or DATE_ONLY_RE.match(bare)):
+            dropped += 1
+            continue
+        kept.append(line)
+    return "\n".join(kept)
+
+
+def _lead(text: str, limit: int = 78) -> str:
+    """Первое содержательное предложение: без хвоста «— пересказ» и без обрыва по букве."""
+    text = _clean_text(text)
+    for sep in (" — ", " – ", " - "):
+        pos = text.find(sep)
+        if 20 <= pos <= limit:
+            text = text[:pos]
+            break
+    if len(text) > limit:
+        cut = text[:limit]
+        pos = cut.rfind(" ")
+        text = (cut[:pos] if pos > limit * 0.6 else cut).rstrip(" ,;:.") + "…"
+    return text.strip()
+
+
+def _date_label(language: str) -> str:
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    months = MONTHS.get(language, MONTHS["en"])
+    if language == "ru":
+        return f"{now.day} {months[now.month - 1]}"
+    if language == "es":
+        return f"{now.day} {months[now.month - 1]}"
+    return f"{months[now.month - 1]} {now.day}"
+
+
+def _extract_source(text: str) -> str:
+    """Источник из текста поста: «Source: X», «Fuente: X» или хвост «— ESPN / NFL»."""
+    text = _strip_service_lines(str(text or ""))
+    match = SOURCE_RE.search(str(text or ""))
+    if match:
+        return match.group(1).strip(" .·")
+    first = next((line for line in str(text or "").splitlines() if line.strip()), "").strip()
+    # «… — ESPN / NFL» или просто «… ESPN / NFL» в конце первого абзаца
+    tail = re.search(r"(?:—\s*)?([A-Z][\w .&'\-]{1,24}(?:\s*/\s*[A-Z][\w .&'\-]{1,24})?)\s*$", first)
+    if tail:
+        candidate = tail.group(1).strip(" .·—")
+        if len(candidate) >= 3:
+            return candidate
+    return ""
+
+
 def _guess_headline(text: str) -> str:
+    """Заголовок: первый содержательный абзац без служебной шапки и без «— пересказа»."""
+    cleaned = _strip_service_lines(str(text or ""))
+    paragraphs = [part.strip() for part in cleaned.splitlines() if part.strip()]
+    if not paragraphs:
+        return ""
+    return _lead(paragraphs[0])
+
     """Достаёт заголовок из текста поста, даже если переносы схлопнуты."""
     text = " ".join(str(text or "").split())
     if not text:
@@ -260,8 +338,39 @@ def _fit_headline(draw, text: str, max_width: int, max_lines: int, start_size: i
     lines = _wrap(draw, text, font, max_width) if font else []
     if len(lines) > max_lines:
         lines = lines[:max_lines]
-        lines[-1] = lines[-1].rstrip() + " …"
+        last = lines[-1]
+        while last and draw.textlength(last + " …", font=font) > max_width:
+            last = last.rsplit(" ", 1)[0] if " " in last else last[:-1]
+        lines[-1] = last.rstrip(" ,;:") + " …"
     return font, min_size, lines
+
+
+def _digest_body(body: str, source: str, max_items: int = 3, item_chars: int = 130) -> str:
+    """Тело дайджеста: 2–3 пункта, каждый с маркером, без хвоста источника."""
+    paragraphs = [part.strip() for part in str(body or "").split("\n") if part.strip()]
+    cleaned: List[str] = []
+    for paragraph in paragraphs:
+        text = re.sub(r"\s+", " ", paragraph).strip(" ·—–-")
+        if source:
+            text = text.replace(source, " ")
+        # хвост вида «... ESPN / NFL» или «... Pro Football Talk»
+        text = re.sub(r"\s+(?:—\s*)?[A-Z][\w .&'\-]{1,22}(?:\s*/\s*[A-Z][\w .&'\-]{1,22})?\s*$", " ", text)
+        text = re.sub(r"\s+(?=\d+\.\s)", " ", text)
+        text = re.sub(r"(?<=\d)(?=[A-Za-z]{2,})", " ", text)   # «2026NFL», «2025financial» → пробел
+        text = re.sub(r",(?=[^\s\d])", ", ", text)              # «20,with» → «20, with»
+        text = re.sub(r"\s+", " ", text).strip(" ·—–-.,;:")
+        text = re.sub(r"\s*[—–-]+\s*$", "", text).strip()
+        text = re.sub(r"…$", "", text).strip()
+        if len(re.sub(r"[^\w]", "", text)) < 12:
+            continue
+        if len(text) > item_chars:
+            cut = text[:item_chars]
+            pos = cut.rfind(" ")
+            text = (cut[:pos] if pos > item_chars * 0.6 else cut).rstrip(" ,;:.—–-") + "…"
+        cleaned.append("— " + text)
+        if len(cleaned) >= max_items:
+            break
+    return "\n".join(cleaned)
 
 
 def _trim_body(text: str, max_chars: int) -> str:
@@ -295,7 +404,9 @@ def _avatar(channel_id: str, size: int):
     """Круглый аватар канала из assets/logos (или None)."""
     from PIL import Image, ImageDraw
 
-    path = LOGO_DIR / f"{channel_id}.png"
+    path = AVATAR_DIR / f"{channel_id}.png"
+    if not path.is_file():
+        path = LOGO_DIR / f"{channel_id}.png"
     if not path.is_file():
         return None
     try:
@@ -370,6 +481,14 @@ def render_post_card(
                 continue
             kept.append(re.sub(r"\s*[—–]{3,}\s*", "\n", stripped))
         body = "\n".join(_clean_text(part) for part in kept)
+    body = _strip_headline_prefix(body, headline)
+    body = re.sub(
+        r"(?:Key points|Trending now|Context|In short|Why it matters|Principales|"
+        r"Puntos clave|En tendencia|Fuentes|Главное|Контекст|В тренде)\s*:\s*",
+        " ", body,
+    )
+    body = re.sub(r"^[^\w]+", "", body).strip()
+
     fmt_name = str((getattr(post, "meta", {}) or {}).get("format") or "").lower()
     if fmt_name == "digest":
         # пункты дайджеста "1. ... 2. ..." — с новой строки
@@ -383,6 +502,8 @@ def render_post_card(
         pos = body.find(marker)
         if pos > body_chars * 0.3:
             body = body[:pos]
+    body_source = _extract_source(_strip_service_lines(plain))
+    body = _digest_body(body, body_source) if body.count("\n") >= 1 else body
     body = _trim_body(body, body_chars)
 
     img = _gradient((width, height), theme["c1"], theme["c2"], angle=0.62)
@@ -413,10 +534,7 @@ def render_post_card(
     if title_font and label_font:
         channel_title = str(getattr(channel, "title", "") or getattr(channel, "id", ""))
         draw.text((ax + 132, ay + 12), channel_title, font=title_font, fill=(255, 255, 255, 245))
-        from datetime import datetime, timezone
-        today = datetime.now(timezone.utc).strftime("%d.%m.%Y")
-        lang_label = LANG_LABELS.get(language, language.upper())
-        draw.text((ax + 134, ay + 62), f"{today}  ·  {lang_label}", font=label_font, fill=accent + (235,))
+        draw.text((ax + 134, ay + 62), _date_label(language), font=label_font, fill=accent + (235,))
 
     fmt = str((getattr(post, "meta", {}) or {}).get("format") or "").strip().lower()
     labels = FORMAT_LABELS.get(language, FORMAT_LABELS["en"])
@@ -430,7 +548,7 @@ def render_post_card(
         draw.text((px + 20, ay + 33), pill, font=pill_font, fill=accent + (245,))
 
     # --- заголовок ----------------------------------------------------------
-    hfont, hsize, hlines = _fit_headline(draw, headline, width - margin * 2, max_lines=5, start_size=92, min_size=52)
+    hfont, hsize, hlines = _fit_headline(draw, headline, width - margin * 2, max_lines=3, start_size=88, min_size=54)
     y = 300
     if hfont:
         line_h = int(hsize * 1.12)
@@ -444,29 +562,66 @@ def render_post_card(
     y += 46
 
     # --- тело ---------------------------------------------------------------
-    body_font = _body_font(37, weight=400)
-    if body_font and body:
-        max_w = width - margin * 2
-        max_y = height - 210
-        line_h = int(37 * 1.55)
-        all_lines = []
-        for para in body.split("\n"):
-            all_lines.extend(_wrap(draw, para, body_font, max_w))
-        max_lines = max(1, (max_y - y) // line_h)
-        if len(all_lines) > max_lines:
-            all_lines = all_lines[:max_lines]
-            all_lines[-1] = all_lines[-1].rstrip() + " …"
-        for line in all_lines:
-            draw.text((margin, y), line, font=body_font, fill=(255, 255, 255, 214))
-            y += line_h
+    max_w = width - margin * 2
+    max_y = height - 258  # линия подвала и @handle должны остаться свободными
+    para_gap = 22
+    chosen = None
+    if body:
+        paragraphs = [part for part in body.split("\n") if part.strip()]
+        for size in (56, 52, 49, 46, 43, 40, 37):
+            candidate_font = _body_font(size, weight=400)
+            if candidate_font is None:
+                continue
+            line_h = int(size * 1.5)
+            blocks = [_wrap(draw, para, candidate_font, max_w) for para in paragraphs]
+            total_lines = sum(len(block) for block in blocks)
+            total_h = total_lines * line_h + para_gap * max(0, len(blocks) - 1)
+            if total_h <= max_y - y:
+                chosen = (candidate_font, line_h, blocks)
+                break
+        if chosen is None:
+            candidate_font = _body_font(37, weight=400)
+            line_h = int(37 * 1.5)
+            blocks = [_wrap(draw, para, candidate_font, max_w) for para in paragraphs]
+            # обрезаем по фактической высоте, последнюю строку — по словам
+            limit = max(1, (max_y - y - para_gap * max(0, len(blocks) - 1)) // line_h)
+            flat: List[str] = []
+            for block in blocks:
+                for line in block:
+                    if len(flat) >= limit:
+                        break
+                    flat.append(line)
+                if len(flat) >= limit:
+                    break
+            last = flat[-1] if flat else ""
+            while last and draw.textlength(last + " …", font=candidate_font) > max_w:
+                last = last.rsplit(" ", 1)[0] if " " in last else last[:-1]
+            if flat:
+                flat[-1] = last.rstrip(" ,;:") + " …"
+            chosen = (candidate_font, line_h, [flat])
+    if chosen:
+        body_font, line_h, blocks = chosen
+        total_lines = sum(len(block) for block in blocks)
+        free = max(0, (max_y - y) - total_lines * line_h - para_gap * max(0, len(blocks) - 1))
+        dynamic_gap = para_gap + (int(min(34, free / max(1, len(blocks) - 1))) if len(blocks) > 1 else 0)
+        for index, block in enumerate(blocks):
+            for line in block:
+                draw.text((margin, y), line, font=body_font, fill=(255, 255, 255, 214))
+                y += line_h
+            if index < len(blocks) - 1:
+                y += dynamic_gap
 
     # --- подвал -------------------------------------------------------------
     footer_y = height - 196
     draw.line((margin, footer_y - 26, width - margin, footer_y - 26), fill=(255, 255, 255, 34), width=2)
-    hashtags = [str(tag) for tag in (getattr(post, "hashtags", []) or [])[:4]]
-    if hashtags and label_font:
-        tags_font = _body_font(27, weight=600)
-        draw.text((margin, footer_y), "  ".join(hashtags), font=tags_font, fill=accent + (235,))
+    source = _extract_source(_strip_service_lines(plain))
+    footer_text = ("Source: " + source) if source else "  ".join(
+        str(tag) for tag in (getattr(post, "hashtags", []) or [])[:4]
+    )
+    if footer_text and label_font:
+        foot_font = _body_font(24, weight=600)
+        if foot_font:
+            draw.text((margin, footer_y), footer_text, font=foot_font, fill=(198, 209, 230, 235))
     channel_id = str(getattr(channel, "id", ""))
     username = str(getattr(channel, "telegram_username", "") or "").strip().lstrip("@")
     username = username or HANDLES.get(channel_id, "")
