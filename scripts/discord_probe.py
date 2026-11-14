@@ -42,6 +42,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--keep", action="store_true", help="не удалять тестовое сообщение")
     parser.add_argument("--text", default="Content Factory: проверка webhook. Сообщение удалится автоматически.")
+    parser.add_argument("--sample", action="store_true", help="отправить образец форматированного поста")
     args = parser.parse_args()
 
     url = (os.environ.get("DISCORD_WEBHOOK_URL", "") or "").strip()
@@ -49,7 +50,24 @@ def main() -> int:
         print("DISCORD_WEBHOOK_URL не задан или неверного формата")
         return 2
 
-    status, info = call(url + "?wait=true", "POST", {"content": args.text})
+    text = args.text
+    if args.sample:
+        from types import SimpleNamespace as NS
+        from content_factory.publishers.discord import discord_text
+
+        demo = NS(
+            html=("<b>Bitcoin ETF inflows hit a record $2.4B</b>\n\n"
+                  "Institutions added 12,400 BTC in a week — BlackRock led the flow. "
+                  "Read the full story on <a href=\"https://www.coindesk.com/markets\">CoinDesk</a>.\n\n"
+                  "• BlackRock: +12,400 BTC\n• ETH staking yield: 2.8%\n• SEC: new guidance\n\n"
+                  "#Crypto #Bitcoin"),
+            text="", plain_text="",
+        )
+        channel = NS(id="crypto-news", language="en", title="Crypto", telegram_chat_id="",
+                     public_url="https://t.me/HOOPY0007")
+        text = discord_text(demo, channel)
+
+    status, info = call(url + "?wait=true", "POST", {"content": text})
     if status not in (200, 204):
         print(f"ОТПРАВКА НЕ УДАЛАСЬ: HTTP {status} {json.dumps(info, ensure_ascii=False)[:300]}")
         return 1

@@ -8,6 +8,10 @@ on:
         description: "Оставить сообщение"
         type: boolean
         default: false
+      sample:
+        description: "Отправить образец форматированного поста"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -26,5 +30,6 @@ jobs:
       - name: Send test message
         run: |
           ARGS=""
-          if [ "${{ inputs.keep }}" = "true" ]; then ARGS="--keep"; fi
+          if [ "${{ inputs.keep }}" = "true" ]; then ARGS="$ARGS --keep"; fi
+          if [ "${{ inputs.sample }}" = "true" ]; then ARGS="$ARGS --sample"; fi
           python scripts/discord_probe.py $ARGS
