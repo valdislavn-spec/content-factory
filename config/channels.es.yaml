@@ -131,6 +131,46 @@ channels:
     options:
       trust: true
       max_items: 10
+  - id: xataka
+    type: rss
+    url: https://www.xataka.com/feedburner.xml
+    name: Xataka
+    weight: 1.4
+    options:
+      trust: true
+      max_items: 25
+  - id: genbeta
+    type: rss
+    url: https://feeds.weblogssl.com/genbeta
+    name: Genbeta
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
+  - id: xatakamovil
+    type: rss
+    url: https://www.xatakamovil.com/feedburner.xml
+    name: Xataka Móvil
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 20
+  - id: wwwhatsnew
+    type: rss
+    url: https://wwwhatsnew.com/feed/
+    name: WWWhat's new
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 10
+  - id: muycomputer
+    type: rss
+    url: https://www.muycomputer.com/feed/
+    name: MuyComputer
+    weight: 1.1
+    options:
+      trust: true
+      max_items: 15
   night_max_chars: 700
   night_window: 23:00-07:00
   content_mix:
@@ -269,6 +309,22 @@ channels:
     options:
       trust: true
       max_items: 10
+  - id: investing-crypto-es
+    type: rss
+    url: https://es.investing.com/rss/news_301.rss
+    name: Investing.com / Cripto
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 10
+  - id: diariobitcoin
+    type: rss
+    url: https://www.diariobitcoin.com/feed/
+    name: Diario Bitcoin
+    weight: 1.2
+    options:
+      trust: true
+      max_items: 15
   night_max_chars: 700
   night_window: 23:00-07:00
   content_mix:
