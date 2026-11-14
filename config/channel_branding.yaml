@@ -18,7 +18,7 @@ channels:
     description: |-
       Bitcoin, Ethereum, markets, regulation. 15+ posts a day from CoinDesk, The Block, Decrypt.
       🌐 AI @AINEWS0007 · Sports @SPORTNews0007
-    photo: assets/logos/crypto-news.png
+    photo: assets/avatars/crypto-news.png
 
   - id: ai-news
     lang: en
@@ -26,7 +26,7 @@ channels:
     description: |-
       Models, products, policy and the companies building them. 15+ posts a day.
       🌐 Crypto @HOOPY0007 · Sports @SPORTNews0007
-    photo: assets/logos/ai-news.png
+    photo: assets/avatars/ai-news.png
 
   - id: sport-news
     lang: en
@@ -34,7 +34,7 @@ channels:
     description: |-
       NFL, NBA, MLB, NHL, college football: scores, trades, injuries, analysis. 16 posts a day.
       🌐 AI @AINEWS0007 · Crypto @HOOPY0007
-    photo: assets/logos/sport-news.png
+    photo: assets/avatars/sport-news.png
 
   - id: tech-ai-es
     lang: es
@@ -43,7 +43,7 @@ channels:
     description: |-
       IA en español: modelos, productos, empresas y políticas. 15+ posts al día.
       🌐 Cripto @TechnologiesNews01 · Deporte @SPORTSAnalytics007
-    photo: assets/logos/tech-ai-es.png
+    photo: assets/avatars/tech-ai-es.png
 
   - id: crypto-es
     lang: es
@@ -52,7 +52,7 @@ channels:
     description: |-
       Bitcoin, Ethereum, mercados y regulación en español. 15+ posts al día.
       🌐 IA @WORLDNews0007 · Deporte @SPORTSAnalytics007
-    photo: assets/logos/crypto-es.png
+    photo: assets/avatars/crypto-es.png
 
   - id: futbol-es
     lang: es
@@ -61,7 +61,7 @@ channels:
     description: |-
       Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS, Champions. Datos, fichajes, cuotas — 18+.
       🌐 IA @WORLDNews0007 · Cripto @TechnologiesNews01
-    photo: assets/logos/futbol-es.png
+    photo: assets/avatars/futbol-es.png
 
   - id: signals
     lang: en
@@ -70,4 +70,4 @@ channels:
     description: |-
       BTC, ETH, SOL: entry, stop, take. 2–4 ideas a day from public exchange data. Not financial advice. 18+
       🌐 News network: @HOOPY0007 · @AINEWS0007 · @SPORTNews0007
-    photo: assets/logos/signals.png
+    photo: assets/avatars/signals.png
