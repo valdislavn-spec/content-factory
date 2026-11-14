@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Content Factory — travel guides</title>
+    <link>https://valdislavn-spec.github.io/content-factory/travel/</link>
+    <description>Budget travel guides: flights, eSIM, transfers, city breaks. English.</description>
+    <language>en</language>
+    <lastBuildDate>Sat, 14 Nov 2026 17:54:48 +0000</lastBuildDate>
+    <atom:link href="https://valdislavn-spec.github.io/content-factory/feed.xml" rel="self" type="application/rss+xml" xmlns:atom="http://www.w3.org/2005/Atom"/>
+    <item>
+      <title>Europe for under $300</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/europe-under-300.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/europe-under-300.html</guid>
+      <description>How to plan a 3-night European city break under $300: cheapest months, carry-on tips and booking windows.</description>
+      <category>Travel on a budget</category>
+      <pubDate>Wed, 04 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/europe-under-300-bottom.jpg" type="image/jpeg" length="353440"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/europe-under-300-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Europe for under $300</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Bali on a budget</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/bali-budget.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/bali-budget.html</guid>
+      <description>A realistic 7-day Bali budget: accommodation, food, scooter rental, beaches and when to go to avoid peak prices.</description>
+      <category>Travel on a budget</category>
+      <pubDate>Thu, 05 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/bali-budget-bottom.jpg" type="image/jpeg" length="518347"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/bali-budget-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Bali on a budget</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>48 hours in Rome</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/rome-48-hours.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/rome-48-hours.html</guid>
+      <description>Two-day Rome itinerary: skip the queues at the Colosseum and Vatican, where to eat in Trastevere, and a realistic walking route.</description>
+      <category>City breaks</category>
+      <pubDate>Fri, 06 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/rome-48-hours-bottom.jpg" type="image/jpeg" length="69270"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/rome-48-hours-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">48 hours in Rome</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Travel eSIM</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/travel-esim.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/travel-esim.html</guid>
+      <description>How travel eSIMs work, how to install one before flying, and when they beat airport SIM cards.</description>
+      <category>Travel tips</category>
+      <pubDate>Sat, 07 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/travel-esim-bottom.jpg" type="image/jpeg" length="240018"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/travel-esim-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Travel eSIM</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Car rental without surprises</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/car-rental-europe.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/car-rental-europe.html</guid>
+      <description>Booking windows, fuel policy and excess cover: how to rent a car in Europe without hidden fees.</description>
+      <category>Travel tips</category>
+      <pubDate>Sun, 08 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/car-rental-europe-bottom.jpg" type="image/jpeg" length="293858"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/car-rental-europe-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Car rental without surprises</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Airport transfer guide</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/airport-transfer-guide.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/airport-transfer-guide.html</guid>
+      <description>How to book a reliable airport transfer: fixed prices, meet-and-greet, luggage and late-flight cover.</description>
+      <category>Travel tips</category>
+      <pubDate>Mon, 09 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/airport-transfer-guide-bottom.jpg" type="image/jpeg" length="332699"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/airport-transfer-guide-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Airport transfer guide</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Luggage storage guide</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/luggage-storage-guide.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/luggage-storage-guide.html</guid>
+      <description>Where to leave bags between check-out and your flight: prices, stations and booking tips.</description>
+      <category>Travel tips</category>
+      <pubDate>Tue, 10 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/luggage-storage-guide-bottom.jpg" type="image/jpeg" length="73626"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/luggage-storage-guide-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Luggage storage guide</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Skip-the-line tickets</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/skip-the-line-tickets-guide.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/skip-the-line-tickets-guide.html</guid>
+      <description>Timed entry vs city passes: where skip-the-line actually saves hours, and where it is a waste of money.</description>
+      <category>City breaks</category>
+      <pubDate>Wed, 11 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/skip-the-line-tickets-guide-bottom.jpg" type="image/jpeg" length="70421"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/skip-the-line-tickets-guide-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Skip-the-line tickets</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>48 hours in Almaty</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/almaty-48-hours.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/almaty-48-hours.html</guid>
+      <description>A two-day Almaty itinerary: mountains, Green Bazaar, cable car, where to eat and how much it costs.</description>
+      <category>City breaks</category>
+      <pubDate>Thu, 12 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/almaty-48-hours-bottom.jpg" type="image/jpeg" length="67753"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/almaty-48-hours-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">48 hours in Almaty</media:title>
+      </media:content>
+    </item>
+    <item>
+      <title>Minsk weekend guide</title>
+      <link>https://valdislavn-spec.github.io/content-factory/travel/minsk-weekend.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel/minsk-weekend.html</guid>
+      <description>A weekend in Minsk: Independence Avenue, old town, museums, food markets and a realistic budget.</description>
+      <category>City breaks</category>
+      <pubDate>Fri, 13 Nov 2026 17:54:48 +0000</pubDate>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/minsk-weekend-bottom.jpg" type="image/jpeg" length="72968"/>
+      <media:content url="https://valdislavn-spec.github.io/content-factory/assets/pins-travel/minsk-weekend-bottom.jpg" medium="image" type="image/jpeg">
+        <media:title type="plain">Minsk weekend guide</media:title>
+      </media:content>
+    </item>
+  </channel>
+</rss>
