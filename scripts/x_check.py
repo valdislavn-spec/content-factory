@@ -33,6 +33,42 @@ def request(url: str, headers=None, timeout: float = 20.0):
         return None, "%s: %s" % (type(error).__name__, error)
 
 
+def write_probe() -> bool:
+    """Check POST /2/tweets permission without creating a tweet.
+
+    An empty JSON payload is rejected by X (HTTP 400/422) when OAuth has write
+    permission. A read-only app/token returns HTTP 401/403. This request never
+    creates a post.
+    """
+    url = "https://api.x.com/2/tweets"
+    header = oauth1_header(
+        "POST", url, CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET
+    )
+    req = urllib.request.Request(
+        url,
+        data=b"{}",
+        method="POST",
+        headers={
+            "Authorization": header,
+            "Content-Type": "application/json",
+            "User-Agent": "content-factory-x-check",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as response:
+            status = response.status
+            body = response.read().decode("utf-8", "replace")[:220]
+    except urllib.error.HTTPError as error:
+        status = error.code
+        body = error.read().decode("utf-8", "replace")[:220]
+    except Exception as error:  # noqa: BLE001
+        status = None
+        body = "%s: %s" % (type(error).__name__, error)
+    print("oauth1 POST /2/tweets empty-payload probe: HTTP %s | %s" % (status, body))
+    # 400/422 proves the endpoint accepted OAuth and only rejected the empty body.
+    return status in (400, 422)
+
+
 def main() -> int:
     print(
         "X_API_KEY len:", len(CONSUMER_KEY),
@@ -57,8 +93,14 @@ def main() -> int:
                 print("  USER:", user.get("username"), "| id:", user.get("id"))
             except ValueError:
                 pass
-            print("RESULT: OAuth 1.0a user context works")
-            return 0
+            if write_probe():
+                print("RESULT: OAuth 1.0a write permission works")
+                return 0
+            print(
+                "RESULT: OAuth 1.0a credentials are valid, but the app/token "
+                "does not have write permission"
+            )
+            return 1
 
     if not BLOB:
         print("no blob; no working OAuth1 env credentials")
