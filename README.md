@@ -46,8 +46,9 @@
 - **Русский и английский** — язык задаётся у канала (`language: ru|en`),
   готовый набор английских каналов — `config/channels.en.yaml`
   (см. [english.md](docs/english.md)).
-- **Публикация** — Telegram Bot API (по умолчанию) и ВКонтакте
-  (опционально); dry-run в файлы.
+- **Публикация** — Telegram Bot API (основное направление) плюс
+  кросспостинг в Mastodon/Discord/Bluesky/Akkoma и другие соцсети;
+  dry-run в файлы.
 - **Расписание** — 3 публикации в день на канал по московскому времени;
   демон проверяет слоты и переживает перезапуски.
 - **Аналитика** — `report.html` + `report.md`: посты, публикации, ошибки,
@@ -256,6 +257,8 @@ python -m content_factory daemon
 | `python -m content_factory channels` | список каналов, расписание, режим публикации |
 | `python -m content_factory sources check` | проверка доступности источников (всех каналов) |
 | `python -m content_factory sources check --channel tech-ai` | проверка источников одного канала |
+| `python -m content_factory social-check --strict` | проверить, что у всех включённых направлений публикации есть креды |
+| `python -m content_factory social-check --json` | машинный отчёт по подключениям каналов |
 | `python -m content_factory run --channel all` | один прогон каналов (режим из настроек) |
 | `python -m content_factory run --channel tech-ai --dry-run` | прогон без публикации, посты в `data/outbox/` |
 | `python -m content_factory run --publish` | принудительная реальная публикация |

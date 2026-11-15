@@ -1,4 +1,4 @@
-# API-ключи: инвентаризация и бесплатные лимиты (09.11.2026)
+# API-ключи: инвентаризация и бесплатные лимиты (обновлено 15.11.2026)
 
 Цель — максимум бесплатного доступа для завода каналов: постинг, аналитика,
 SEO, email, travel-монетизация, LLM/новости. Значения ключей здесь не
@@ -16,11 +16,11 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Категория | Сервисы | Статус |
 |---|---|---|
 | Telegram | Bot API (`TELEGRAM_BOT_TOKEN`), chat_id каналов | ✅ работает |
-| Fediverse | Mastodon (`MASTODON_*`), Akkoma (`AKKOMA_*`), Pixelfed (`PIXELFED_*`) | ✅ работает |
-| Tumblr | OAuth1 (`TUMBLR_*`), фото/текст | ✅ работает |
+| Fediverse | Mastodon (`MASTODON_*`) на 5 каналах, Akkoma (`AKKOMA_*`) на `crypto-news` | ✅ работает, проброшено в Actions |
+| Tumblr | OAuth1 (`TUMBLR_*`), фото/текст | ✅ креды есть; дайджест приостановлен |
 | Buffer | X / Bluesky / Facebook через Buffer (`BUFFER_API_KEY`) | ✅ 3 канала, очередь |
-| X | `X_API_KEY`/`X_API_SECRET`/`X_ACCOUNT_BLOB` | ✅ настроено (проверять через `x-check`) |
-| Pinterest | `PINTEREST_ACCESS_TOKEN` | ⚠️ токен не работает: приложение на trial-ревью; пины — через Business Hub CSV |
+| X | `X_API_KEY`/`X_API_SECRET`/`X_ACCOUNT_BLOB` | ⚠️ не хватает пары access token/secret для публикатора |
+| Pinterest | `PINTEREST_ACCESS_TOKEN` | ✅ sandbox API работает; production ожидает Standard access |
 | Reddit | — | ⛔ API закрыт с 31.10.2026 (новые ключи не выдают) |
 | Email | — | ❌ нет провайдера (Brevo/Resend/MailerLite не подключены) |
 | LLM | OpenAI, DeepSeek, Groq, Cohere, OpenRouter, SambaNova, HuggingFace, Gemini (в GitHub), Ollama | ✅ ключи есть |

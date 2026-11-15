@@ -1,59 +1,79 @@
-# Как content-factory постит в другие соцсети
+# Кросспостинг: что подключено и как проверить
 
 ## Схема
 
-1. Пост генерируется один раз (Telegram HTML).
-2. Публикуется в Telegram (основной канал).
-3. Затем по очереди вызываются публикаторы из `publisher_ids` канала:
-   `bluesky`, `mastodon`, `discord`, `akkoma`, `tumblr`, `x`, `vk`,
-   `facebook`, `linkedin`, `medium` и т.д.
-4. Публикатор с `optional = true` (Bluesky, Mastodon, Discord, Tumblr,
-   Akkoma и др.) **тихо пропускается**, если нет кредов — пайплайн не падает.
-5. Для каждого канала можно задать отдельный аккаунт суффиксом:
-   `BLUESKY_HANDLE_AI_NEWS`, `MASTODON_TOKEN_CRYPTO_ES` и т.п.
+1. Пост генерируется один раз в Telegram HTML.
+2. Публикуется в Telegram — это основное направление каждого канала.
+3. Затем вызываются публикаторы из `publisher_ids` канала.
+4. Если у соцсети нет кредов, `optional`-публикатор пропускается и не
+   останавливает пайплайн. Но **включённое направление без кредов — ошибка
+   конфигурации**: её ловит `social-check --strict` в GitHub Actions.
+5. Для отдельного аккаунта на канал используется суффикс с id:
+   `BLUESKY_HANDLE_CRYPTO_NEWS`, `DISCORD_WEBHOOK_URL_SPORT_NEWS`,
+   `MASTODON_TOKEN_CRYPTO_ES` и т.п.
 
-## Что реально работает (08.11.2026)
+## Текущая матрица (15.11.2026)
 
-| Сеть | Статус | Как |
-|---|---|---|
-| **Telegram** | ✅ 63 публикации | основной, все каналы |
-| **Mastodon** | ✅ 2 публикации | EN-каналы; `MASTODON_NO_LINKS=1` (без ссылок) |
-| **Tumblr** | ✅ 1 публикация | отдельный workflow `tumblr-digest` раз в 5 ч, не каждый пост |
-| **Akkoma** | ⚙️ настроен | только `crypto-news`; после фикса крипто-дат должен пойти |
-| **Bluesky** | ⛔ нет кредов | нужны `BLUESKY_HANDLE`/`BLUESKY_APP_PASSWORD` |
-| **Discord** | ⛔ нет webhook | нужен `DISCORD_WEBHOOK_URL` (свой сервер) |
-| **X** | ⛔ не включён | есть `X_API_KEY/SECRET` и `X_ACCOUNT_BLOB`, но нет publisher_ids |
-| **VK** | ⛔ нет токена | нужны `VK_ACCESS_TOKEN`/`VK_GROUP_ID` |
-| **Facebook/LinkedIn/Medium** | ⛔ нет кредов | включаются добавлением в publisher_ids |
-| **Reddit** | ⚠️ dry-run | нужны `REDDIT_*`; scheduled live без них не постит |
-| **Instagram/Threads/Pinterest** | ⛔/⚙️ | Instagram/Threads без кредов; Pinterest — отдельный check |
+| Канал | Telegram | Mastodon | Discord | Bluesky | Akkoma |
+|---|---:|:---:|:---:|:---:|:---:|
+| `sport-news` | ✅ | ✅ | ✅ | — | — |
+| `ai-news` | ✅ | ✅ | ✅ | — | — |
+| `crypto-news` | ✅ | — | ✅ | ✅ | ✅ |
+| `tech-ai-es` | ✅ | ✅ | — | — | — |
+| `crypto-es` | ✅ | ✅ | — | — | — |
+| `futbol-es` | ✅ | ✅ | — | — | — |
 
-## Исправлено сейчас
+Итого: **6 каналов, 16 включённых направлений**. Discord оставлен только у
+трёх английских каналов, Bluesky/Akkoma — только у крипто-канала, чтобы один
+аккаунт не получал поток всех тем и не уходил в антиспам.
 
-У ES-каналов (`tech-ai-es`, `crypto-es`, `futbol-es`) не было
-`publisher_ids` — они постили только в Telegram. Добавил:
-`[telegram, mastodon, bluesky, discord]`.
-Bluesky/Discord без кредов будут пропускаться, Mastodon начнёт кросс-постить.
-Коммит: `1e2ed4a`.
+`Tumblr`-креды есть, но публикация включена только в отдельном дайджест-
+сценарии (сейчас приостановлен). `X`, `VK`, `Facebook`, `LinkedIn`, `Medium`,
+`Reddit`, `Instagram`, `Threads` не включены: нет полного набора токенов.
+`Pinterest` проверяется отдельно и пока работает в sandbox.
 
-## Чтобы включить
+## Проверка перед запуском
 
-1. Добавить секреты в GitHub → Settings → Secrets:
-   - Bluesky: `BLUESKY_HANDLE`, `BLUESKY_APP_PASSWORD`
-   - Discord: `DISCORD_WEBHOOK_URL`
-   - X: `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`
-   - VK: `VK_ACCESS_TOKEN`, `VK_GROUP_ID`
-   - Reddit: `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USERNAME`,
-     `REDDIT_PASSWORD`, `REDDIT_SUBREDDIT`
-2. Добавить имя в `publisher_ids` нужного канала.
-3. Проверить: `python -m content_factory run --channel <id> --dry-run`, затем
-   live-слот.
+```bash
+# только реально включённые направления; ⟶ код 1, если чего-то не хватает
+python -m content_factory social-check --strict
+
+# машинный отчёт для CI/мониторинга
+python -m content_factory social-check --json
+
+# весь каталог доступных соцсетей, включая выключенные
+python -m content_factory social-check --all
+
+# сетевая проверка Telegram (getChat + права бота)
+python scripts/telegram_check.py
+
+# сетевая проверка Discord-webhook (отправит и удалит тестовое сообщение)
+python scripts/discord_probe.py --sample
+```
+
+`social-check` не делает сетевых запросов: он проверяет наличие кредов и
+`chat_id`, поэтому безопасен для каждого запуска CI. В workflow
+`content-factory-cloud-en-es` он стоит до тика и завершает job при пропущенном
+секрете — например, если у канала включён Akkoma, а `AKKOMA_TOKEN` не проброшен
+в `env`.
+
+## Как добавить сеть
+
+1. Добавить секреты в GitHub → Settings → Secrets and variables → Actions.
+2. Пробросить их в `env:` workflow `.github/workflows/content-factory.yml`.
+3. Добавить имя публикатора в `publisher_ids` нужного канала.
+4. Выполнить `python -m content_factory social-check --strict`.
+5. Сделать `python -m content_factory run --channel <id> --dry-run`, затем
+   дождаться живого слота.
+
+Для каждого канала можно задать отдельные креды суффиксом id. Без суффикса
+используется общий аккаунт.
 
 ## Важно
 
-- Mastodon: лимиты инстанса, не спамить; сейчас без ссылок.
+- Mastodon: лимиты инстанса, не спамить; сейчас `MASTODON_NO_LINKS=1`.
 - Discord: только свои серверы, webhook = 30 сообщений/мин.
 - Bluesky: App Password, не основной пароль.
+- Akkoma/Fediverse: один аккаунт = одна тематика; не включать на все каналы.
 - X/Reddit: OAuth-токены истекают, нужен refresh.
-- Tumblr — дайджест, не по каждому посту.
-- Все публикаторы логируются в `data/logs/factory.log` и таблицу `publishes`.
+- Публикации и ошибки пишутся в `data/logs/factory.log` и таблицу `publishes`.

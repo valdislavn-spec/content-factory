@@ -160,6 +160,26 @@ def cmd_doctor(args: argparse.Namespace, settings: Settings) -> int:
         errors.append(f"каналы: {exc}")
         print(f"  FAIL каналы: {exc}")
 
+    # Направления публикации: включённый publisher без кредов — ошибка
+    # конфигурации, а не «тихо пропущенная соцсеть».
+    try:
+        from .connections import audit_channels
+
+        connections = audit_channels(load_network_channels(settings), settings)
+        missing_connections = [row for row in connections if not row.ready]
+        if missing_connections:
+            detail = "; ".join(
+                f"{row.channel_id}/{row.publisher}: {row.detail}"
+                for row in missing_connections
+            )
+            warnings.append("не готовы направления: " + detail)
+            print(f"  WARN направления: {len(connections) - len(missing_connections)}/{len(connections)} готовы")
+        else:
+            print(f"  OK   направления публикации: {len(connections)}/{len(connections)} готовы")
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"аудит направлений публикации: {exc}")
+        print(f"  WARN аудит направлений публикации: {exc}")
+
     # env for real publishing / analytics
     token = env("TELEGRAM_BOT_TOKEN", "")
     if not token:
@@ -633,31 +653,62 @@ def _split_channels(value: Optional[str]) -> List[str]:
 
 
 def cmd_social_check(args: argparse.Namespace, settings: Settings) -> int:
-    """Проверка соцсетей-публикаторов (Bluesky/Mastodon/Discord/Tumblr/Fediverse)."""
+    """Проверка направлений публикации, включённых в publisher_ids.
+
+    По умолчанию показывает только реально настроенные подключения каналов,
+    поэтому не создаёт ложного впечатления, что «всё подключено»: каждая
+    строка — это направление из конфигурации канала. ``--all`` показывает
+    полный каталог доступных соцсетей, ``--strict`` завершает команду с
+    ошибкой, если у включённого направления нет ключей/chat_id.
+    """
     from .config import load_network_channels
-    from .publishers import get_publisher
-    from .publishers.social import SocialPublisher
+    from .connections import (
+        all_supported_social_publishers,
+        audit_channel,
+        format_connection,
+        summarize,
+    )
 
     channels = load_network_channels(settings)
-    names = ["bluesky", "mastodon", "discord", "tumblr",
-             "pleroma", "akkoma", "gotosocial", "friendica", "misskey"]
-    ready_any = False
+    show_all = bool(getattr(args, "all", False))
+    rows = []
+    payload = {"channels": [], "summary": {}}
+
     for channel in channels:
-        print(f"== {channel.id} ({channel.language}) ==")
-        for name in names:
-            publisher = get_publisher(name, settings)
-            if not isinstance(publisher, SocialPublisher):
-                continue
-            try:
-                ready, detail = publisher.check(channel)  # type: ignore[call-arg]
-            except TypeError:
-                ready, detail = publisher.check()
-            except Exception as exc:  # noqa: BLE001
-                ready, detail = False, str(exc)
-            ready_any = ready_any or ready
-            print(f"  {name:11} {'✓' if ready else '—'} {detail}")
-    if not ready_any:
-        print("\nНи одна соцсеть не настроена — добавьте креды в .env (docs/fediverse.md).")
+        names = list(channel.publisher_ids)
+        if show_all:
+            names = list(dict.fromkeys(names + all_supported_social_publishers()))
+        channel_rows = audit_channel(channel, settings, names)
+        rows.extend(channel_rows)
+        payload["channels"].append(
+            {
+                "id": channel.id,
+                "language": channel.language,
+                "connections": [row.as_dict() for row in channel_rows],
+            }
+        )
+        if not getattr(args, "json", False):
+            print(f"== {channel.id} ({channel.language}) ==")
+            for row in channel_rows:
+                print(format_connection(row))
+
+    summary = summarize(rows)
+    payload["summary"] = {"channels": len(channels), **summary}
+
+    if getattr(args, "json", False):
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 1 if getattr(args, "strict", False) and summary["missing"] else 0
+
+    if not rows:
+        print("Нет включённых направлений публикации — проверьте publisher_ids.")
+        return 1
+
+    print(
+        "\nИтого: каналов {channels} · подключений {connections} · "
+        "готово {ready} · ошибок {missing}".format(**payload["summary"])
+    )
+    if summary["missing"] and getattr(args, "strict", False):
+        print("FAIL: у включённых направлений не хватает кредов — см. ✗ выше.")
         return 1
     return 0
 
@@ -723,6 +774,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_social = sub.add_parser(
         "social-check",
         help="Проверить соцсети-публикаторы (Bluesky/Mastodon/Discord/Fediverse)",
+    )
+    p_social.add_argument(
+        "--all", action="store_true",
+        help="Показать все поддерживаемые соцсети, а не только включённые в каналах",
+    )
+    p_social.add_argument(
+        "--json", action="store_true", help="Машинный JSON-отчёт",
+    )
+    p_social.add_argument(
+        "--strict", action="store_true",
+        help="Вернуть код 1, если у включённого направления нет кредов",
     )
     p_social.set_defaults(func=cmd_social_check)
 

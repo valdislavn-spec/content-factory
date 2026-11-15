@@ -127,6 +127,17 @@ _ALIASES = {
 }
 
 
+def resolve_publisher_name(name: str) -> str:
+    """Каноническое имя публикатора (алиасы ``tg``/``twitter`` и т.п.)."""
+    key = str(name or "").strip().lower()
+    return _ALIASES.get(key, key)
+
+
+def publisher_class(name: str):
+    """Класс публикатора по имени или ``None`` для неизвестного имени."""
+    return _REGISTRY.get(resolve_publisher_name(name))
+
+
 def available_publishers() -> List[str]:
     """Имена поддерживаемых публикаторов (без учёта dry-run-подмены)."""
     return sorted(_REGISTRY)
