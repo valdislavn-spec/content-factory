@@ -145,6 +145,45 @@
     }, 500);
   }
 
+  function loadWidget(wlId, containerId) {
+    var mount = document.getElementById(containerId);
+    if (mount === null) {
+      return;
+    }
+    var script = document.createElement("script");
+    script.async = true;
+    script.type = "module";
+    script.src = "https://tpwdg.com/wl_web/main.js?wl_id=" + encodeURIComponent(wlId);
+    document.head.appendChild(script);
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries += 1;
+      var root = mount.shadowRoot || mount;
+      if (root.children.length > 0) {
+        clearInterval(timer);
+        mount.setAttribute("data-wl-ready", "1");
+      } else if (tries > 30) {
+        clearInterval(timer);
+      }
+    }, 500);
+  }
+
+  // Дополнительные WL-виджеты (отели, календарь): секция показывается,
+  // только если в конфиг прописан wlId.
+  function injectExtraWidgets() {
+    var list = (config.widget && config.widget.extra) || [];
+    list.forEach(function (item) {
+      if (item.wlId === "" || item.wlId === undefined) {
+        return;
+      }
+      var section = document.getElementById(item.section);
+      if (section) {
+        section.removeAttribute("hidden");
+      }
+      loadWidget(item.wlId, item.container);
+    });
+  }
+
   function wireDealCards() {
     var cards = document.querySelectorAll("[data-affiliate-program]");
     Array.prototype.forEach.call(cards, function (card) {
@@ -175,6 +214,7 @@
 
   function init() {
     injectWidget();
+    injectExtraWidgets();
     wireDealCards();
     markYear();
   }

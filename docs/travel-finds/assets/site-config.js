@@ -19,6 +19,12 @@ window.TRAVEL_CONFIG = {
     promoId: "YOUR_WIDGET_PROMO_ID",
     campaignId: "",
     poweredBy: "true",
+    // Дополнительные WL-проекты (отели, календарь цен). Пустой wlId = блок скрыт.
+    // Заводится в кабинете TravelPayouts: White Label → новый проект → тип виджета.
+    extra: [
+      { name: "hotels", wlId: "", container: "tpwl-hotels", section: "hotels" },
+      { name: "calendar", wlId: "", container: "tpwl-calendar", section: "cheap-dates" },
+    ],
   },
   // У каждой программы своя короткая ссылка на язык (sub_id seo_en/seo_es
   // зашит при создании). fallback — url для остальных случаев.
