@@ -136,7 +136,10 @@ def discord_text(post: Any, channel: Optional[ChannelConfig], limit: int = MAX_T
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
 
-    link = channel_link(channel) if channel is not None else ""
+    if channel is not None:
+        link = str(_channel_meta(channel).get("discord_cta_url") or channel_link(channel)).strip()
+    else:
+        link = ""
     cta = discord_cta(channel) if channel is not None else ""
 
     # Не дублируем CTA/ссылку, если генератор уже добавил их в текст.

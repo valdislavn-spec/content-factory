@@ -271,3 +271,19 @@ def test_discord_embed_marks_channel() -> None:
         "icon_url": "https://example.com/crypto.png",
     }
     assert embed["image"]["url"] == "https://example.com/card.png"
+
+
+def test_discord_text_uses_tracked_cta_url() -> None:
+    from content_factory.publishers.discord import discord_text
+
+    post = NS(html="Headline", text="", plain_text="")
+    channel = NS(
+        id="sport-news", language="en", title="US Sports News",
+        telegram_chat_id="", public_url="https://t.me/SPORTNews0007",
+        cta="", meta={"raw": {"meta": {
+            "discord_cta_url": "https://links-tracker.valdislav-n.workers.dev/r/discord-sport-news",
+        }}},
+    )
+    out = discord_text(post, channel)
+    assert out.rstrip().endswith("https://links-tracker.valdislav-n.workers.dev/r/discord-sport-news")
+    assert "t.me/SPORTNews0007" not in out
