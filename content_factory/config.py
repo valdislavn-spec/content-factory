@@ -223,6 +223,13 @@ class Settings:
             raise ConfigError(f"Файл настроек пуст или некорректен: {settings_file}")
         merged = _deep_merge(DEFAULT_SETTINGS, data)
         _validate_settings(merged)
+        # Ручной запуск/тест может переопределить режим постов без правки YAML.
+        # mix = обычный микс форматов (пустой post_mode).
+        post_mode_override = env("CONTENT_FACTORY_POST_MODE", "").strip().lower()
+        if post_mode_override:
+            merged.setdefault("pipeline", {})["post_mode"] = (
+                "" if post_mode_override == "mix" else post_mode_override
+            )
         # Список каналов: env-переменная важнее settings.yaml (удобно для daemon/systemd).
         channels_value = env("CONTENT_FACTORY_CHANNELS", "") or str(
             merged.get("app", {}).get("channels_file") or ""

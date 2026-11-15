@@ -69,6 +69,22 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(channel.sources[0].type, "rss")
         self.assertEqual(channel.formats, ["story", "digest"])
 
+    def test_env_overrides_post_mode(self) -> None:
+        os.environ["CONTENT_FACTORY_POST_MODE"] = "story"
+        try:
+            settings = Settings.load(root=self.root)
+        finally:
+            os.environ.pop("CONTENT_FACTORY_POST_MODE", None)
+        self.assertEqual(settings.pipeline.get("post_mode"), "story")
+
+    def test_env_post_mode_mix_clears_value(self) -> None:
+        os.environ["CONTENT_FACTORY_POST_MODE"] = "mix"
+        try:
+            settings = Settings.load(root=self.root)
+        finally:
+            os.environ.pop("CONTENT_FACTORY_POST_MODE", None)
+        self.assertEqual(settings.pipeline.get("post_mode"), "")
+
     def test_env_overrides_chat_id(self) -> None:
         os.environ["TELEGRAM_CHAT_ID_TEST_CHANNEL"] = "-1001234567890"
         channels = load_channels(Settings.load(root=self.root))

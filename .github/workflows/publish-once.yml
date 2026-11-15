@@ -17,6 +17,12 @@ on:
         default: "en"
         type: choice
         options: ["en", "es"]
+      post_mode:
+        description: "Режим: digest, story, analysis или mix"
+        required: true
+        default: "digest"
+        type: choice
+        options: ["digest", "story", "analysis", "mix"]
       dry_run:
         description: "true = только в outbox (безопасно), false = реальная публикация"
         required: true
@@ -33,6 +39,7 @@ jobs:
     timeout-minutes: 15
     env:
       CONTENT_FACTORY_CHANNELS: config/channels.${{ inputs.language }}.yaml
+      CONTENT_FACTORY_POST_MODE: ${{ inputs.post_mode }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
       TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
