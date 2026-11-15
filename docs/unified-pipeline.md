@@ -150,13 +150,18 @@ classify ∥ research → write → critique ∥ checks ∥ ground(RAG) → edit
 источники и публикует пост по обычному расписанию. Для каждого поста «мозг»
 делает 5 модельных вызовов; результат попадает в трейс LangSmith.
 
+> **Статус 15.11.2026:** мост технически работает, но ручной preview выдал
+> неподтверждённые утверждения (в т.ч. неверную роль/имя персоны). Поэтому в
+> production по умолчанию стоит `post_generator: internal`, а `brain.enabled`
+> равен `false`. Включать только после усиления фактчека и проверки на своих каналах.
+
 Включается в `config/settings.yaml`:
 
 ```yaml
 pipeline:
-  post_generator: brain        # internal | dify_app | brain
+  post_generator: internal     # internal | dify_app | brain
 brain:
-  enabled: true
+  enabled: false
   channels: [crypto-news, ai-news]   # топ-каналы; остальные — internal
   path: ../mcp-content-factory
   python: ../mcp-content-factory/.venv/bin/python
@@ -168,10 +173,9 @@ brain:
 ```
 
 **Бесплатно.** В `mcp-content-factory/config/brain.json` цепочка моделей:
-Cloudflare Workers AI → Cohere trial → Ollama Cloud; платный DeepSeek не
-используется. Чтобы не выходить за бесплатные лимиты, по умолчанию включены
-только 2 канала (30 постов/сутки × 5 ролей ≈ 150 вызовов); остальные каналы
-генерятся встроенно. Добавить/убрать канал — `brain.channels`.
+Cohere trial → Cloudflare Workers AI → Ollama Cloud; платный DeepSeek не
+используется. Для двух каналов это ~20 постов/сутки × 5 ролей ≈ 100 вызовов;
+остальные каналы генерятся встроенно. Добавить/убрать канал — `brain.channels`.
 
 Выключить мост:
 
