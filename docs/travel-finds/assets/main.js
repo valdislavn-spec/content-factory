@@ -125,7 +125,9 @@
     var timer = setInterval(function () {
       tries += 1;
       var rendered = mounts.some(function (node) {
-        return node.children.length > 0 && node.textContent.trim().length > 0;
+        // White Label Web рендерит виджет в shadow DOM внутри контейнера.
+        var root = node.shadowRoot || node;
+        return root.children.length > 0;
       });
       if (rendered) {
         clearInterval(timer);
