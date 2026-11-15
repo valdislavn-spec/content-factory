@@ -114,3 +114,14 @@ BREVO_API_KEY и RU-список в Brevo (сейчас списки пусты�
 
 Проверено с этой машины: API и SMTP всех перечисленных провайдеров доступны (TCP 587 открыт,
 HTTP-эндпоинты отвечают 401/403/405 без ключей).
+
+## Gmail App Password (готово к включению)
+
+- `scripts/setup_gmail_email.py` — интерактивная настройка: принимает адрес + 16-символьный
+  App Password (ввод скрыт), проверяет SMTP-логин (`smtp.gmail.com:587`, STARTTLS), отправляет
+  тестовое брендированное письмо и прописывает в `.env`: `EMAIL_PROVIDER=gmail`, `GMAIL_USER`,
+  `GMAIL_APP_PASSWORD`, `EMAIL_FROM` (старый `.env` бэкапится в `.env.bak-<ts>`).
+- В `email_providers.py` добавлен пресет `gmail` (хост/порт/креды, AUTH PLAIN fallback).
+- Проверено: SMTP-путь живой — с неверным паролем Gmail отвечает `535 5.7.8 BadCredentials`
+  (то есть сеть и TLS в порядке, нужен только настоящий App Password).
+- Лимит Gmail: ~500 писем/сутки, From = `valdislav.n@gmail.com` + отображаемое имя бренда.

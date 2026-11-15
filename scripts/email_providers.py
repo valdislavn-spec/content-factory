@@ -87,7 +87,7 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
     sender = formataddr((name, address))
     text = text or "HTML-письмо: откройте в клиенте с поддержкой HTML."
 
-    if provider == "smtp":
+    if provider in ("smtp", "gmail"):
         return _send_smtp(sender, to, subject, html, text)
     if provider == "resend":
         key = env("RESEND_API_KEY")
@@ -152,10 +152,16 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
 
 
 def _send_smtp(sender: str, to: str, subject: str, html: str, text: str) -> str:
-    host = env("EMAIL_SMTP_HOST", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_HOST") or "smtp-relay.brevo.com")
-    port = int(env("EMAIL_SMTP_PORT", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_PORT") or "587"))
-    user = env("EMAIL_SMTP_USER", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_USER") or "")
-    password = env("EMAIL_SMTP_PASSWORD", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_PASSWORD") or "")
+    if provider_name() == "gmail":
+        host = env("EMAIL_SMTP_HOST", "smtp.gmail.com")
+        port = int(env("EMAIL_SMTP_PORT", "587"))
+        user = env("GMAIL_USER", env_file(CF / ".env", "EMAIL_FROM") or "")
+        password = env("GMAIL_APP_PASSWORD", env("EMAIL_SMTP_PASSWORD", "")).replace(" ", "")
+    else:
+        host = env("EMAIL_SMTP_HOST", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_HOST") or "smtp-relay.brevo.com")
+        port = int(env("EMAIL_SMTP_PORT", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_PORT") or "587"))
+        user = env("EMAIL_SMTP_USER", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_USER") or "")
+        password = env("EMAIL_SMTP_PASSWORD", env_file(WS / "listmonk" / ".env", "LISTMONK_SMTP_PASSWORD") or "")
     if not user or not password:
         raise RuntimeError("нет SMTP-креденшелов (EMAIL_SMTP_* или LISTMONK_SMTP_*)")
 
@@ -182,9 +188,14 @@ def report() -> str:
         "postmark": "POSTMARK_TOKEN", "unisender": "UNISENDER_API_KEY",
     }
     lines = [f"провайдер: {provider}", f"отправитель: {address}"]
-    if provider == "smtp":
-        lines.append(f"SMTP: {env('EMAIL_SMTP_HOST', 'smtp-relay.brevo.com')}:{env('EMAIL_SMTP_PORT', '587')}")
-        lines.append(f"есть SMTP-пароль: {'да' if env('EMAIL_SMTP_PASSWORD') or env_file(WS / 'listmonk' / '.env', 'LISTMONK_SMTP_PASSWORD') else 'нет'}")
+    if provider in ("smtp", "gmail"):
+        if provider == "gmail":
+            lines.append(f"SMTP: {env('EMAIL_SMTP_HOST', 'smtp.gmail.com')}:{env('EMAIL_SMTP_PORT', '587')} (STARTTLS)")
+            lines.append(f"GMAIL_USER: {env('GMAIL_USER') or '—'}")
+            lines.append(f"GMAIL_APP_PASSWORD: {'задан' if env('GMAIL_APP_PASSWORD') else 'НЕ задан (создай в Google → Security → App passwords)'}")
+        else:
+            lines.append(f"SMTP: {env('EMAIL_SMTP_HOST', 'smtp-relay.brevo.com')}:{env('EMAIL_SMTP_PORT', '587')}")
+            lines.append(f"есть SMTP-пароль: {'да' if env('EMAIL_SMTP_PASSWORD') or env_file(WS / 'listmonk' / '.env', 'LISTMONK_SMTP_PASSWORD') else 'нет'}")
     else:
         key_name = keys.get(provider, "")
         lines.append(f"{key_name}: {'задан' if env(key_name) else 'НЕ задан'}")
