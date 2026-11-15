@@ -7,6 +7,10 @@ on:
         description: "Discord Guild ID"
         required: true
         default: "1467224878875807878"
+      fix_install:
+        description: "Disable OAuth2 code grant requirement"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -23,4 +27,7 @@ jobs:
       - name: Create channels and invite
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        run: python scripts/discord_setup_channels.py --guild-id "${{ inputs.guild_id }}" --apply
+        run: |
+          FLAG=""
+          if [ "${{ inputs.fix_install }}" = "true" ]; then FLAG="--fix-install"; fi
+          python scripts/discord_setup_channels.py --guild-id "${{ inputs.guild_id }}" --apply $FLAG

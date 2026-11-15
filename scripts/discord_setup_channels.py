@@ -46,6 +46,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--guild-id", required=True)
     p.add_argument("--apply", action="store_true")
+    p.add_argument("--fix-install", action="store_true")
     a = p.parse_args()
     gid = a.guild_id
     ast, app = api("GET", "/oauth2/applications/@me")
@@ -54,6 +55,16 @@ def main():
         print("APP_INFO=" + json.dumps({k: app.get(k) for k in keys}, ensure_ascii=False))
     else:
         print("APP_INFO_ERROR=%s %s" % (ast, app))
+    if a.fix_install:
+        fs, upd = api("PATCH", "/applications/@me", {
+            "bot_public": True,
+            "bot_require_code_grant": False,
+            "integration_public": True,
+            "integration_require_code_grant": False,
+        })
+        keys = ("bot_public", "bot_require_code_grant",
+                "integration_public", "integration_require_code_grant")
+        print("FIX_INSTALL=" + json.dumps({"status": fs, **{k: upd.get(k) for k in keys}}, ensure_ascii=False))
     gs, guilds = api("GET", "/users/@me/guilds")
     if gs == 200:
         print("BOT_GUILDS=" + json.dumps([[g.get("id"), g.get("name")] for g in guilds], ensure_ascii=False))
