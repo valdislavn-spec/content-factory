@@ -133,6 +133,19 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Groq model catalog
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          token = os.environ.get("GROQ_API_KEY", "")
+          req = urllib.request.Request(
+              "https://api.groq.com/openai/v1/models",
+              headers={"Authorization": "Bearer " + token, "User-Agent": "content-factory-llm-check"},
+          )
+          with urllib.request.urlopen(req, timeout=25) as response:
+              data = json.load(response)
+          print("groq models:", [m.get("id") for m in data.get("data") or []])
+          PY
       - run: python scripts/llm_check.py --max-tokens 120 --strict
 
   dify:
