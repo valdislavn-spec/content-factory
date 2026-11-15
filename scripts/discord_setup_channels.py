@@ -1,6 +1,6 @@
 import json, os, sys, urllib.error, urllib.request
 API = "https://discord.com/api/v10"
-UA = "Mozilla/5.0 (compatible; ContentFactory/1.0)"
+UA = "DiscordBot (https://github.com/valdislavn-spec/content-factory, 1.0)"
 NAMES = {
  "sport-news": ("us-sports", "US Sports News"),
  "ai-news": ("ai-news", "AI News"),
