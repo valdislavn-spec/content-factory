@@ -142,7 +142,7 @@ def graph(d: dict, url: str) -> str:
 
 def page(d: dict) -> str:
     url = f"{GH}/destinations/{d['slug']}/"
-    title = f"Тур {d['phrase']} {DATES.split('–')[0].strip()} — от {d['price']} ₽ за двоих"
+    title = f"Тур {d['phrase']}: ноябрь–декабрь 2026 — от {d['price']} ₽ за двоих"
     desc = (f"Пакетный тур {d['phrase']}: перелёт + отель, от {d['price']} ₽ за двоих, "
             f"{d['nights']}, заезды {DATES}. Цены и отели в сводке Travelata.")[:165]
     faq_html = "".join(
