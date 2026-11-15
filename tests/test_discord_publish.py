@@ -254,3 +254,20 @@ def test_discord_publish_uses_bot_channel_api(monkeypatch) -> None:
     assert calls["headers"]["User-Agent"].startswith("DiscordBot")
     assert "username" not in calls["payload"]
     assert result.url == "https://discord.com/channels/888/777/42"
+
+
+def test_discord_embed_marks_channel() -> None:
+    from content_factory.publishers.discord import discord_embed
+
+    post = NS(meta={"image_url": "https://example.com/card.png"})
+    channel = NS(
+        id="crypto-news", title="Crypto & Blockchain",
+        meta={"raw": {"meta": {"discord_avatar_url": "https://example.com/crypto.png"}}},
+    )
+    embed = discord_embed(post, channel)
+    assert embed["color"] == 0xF39C12
+    assert embed["author"] == {
+        "name": "Crypto & Blockchain",
+        "icon_url": "https://example.com/crypto.png",
+    }
+    assert embed["image"]["url"] == "https://example.com/card.png"
