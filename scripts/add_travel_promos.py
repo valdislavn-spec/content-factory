@@ -160,6 +160,22 @@ def inject_abroad(html: str, links: dict[str, str]) -> str:
     return html
 
 
+def _seo_pass() -> None:
+    try:
+        from seo_enhance import enhance_abroad, enhance_package
+    except Exception:  # noqa: BLE001
+        return
+    pairs = ((PAGES.get("flight-hotel-abroad"), enhance_abroad),
+             (PAGES.get("nezabyvaemoe-puteshestvie"), enhance_package))
+    for path, func in pairs:
+        if path is None or not path.exists():
+            continue
+        before = path.read_text(encoding="utf-8")
+        after = func(before)
+        if after != before:
+            path.write_text(after, encoding="utf-8")
+
+
 def main() -> int:
     links = load_links()
     handlers = {"nezabyvaemoe-puteshestvie": inject_ru_landing, "flight-hotel-abroad": inject_abroad}
@@ -178,6 +194,7 @@ def main() -> int:
         path.write_text(after, encoding="utf-8")
         n = after.count("promo-card")
         print(f"{name}: добавлено карточек {n - before.count('promo-card')}, файл {path}")
+    _seo_pass()
     return 0
 
 

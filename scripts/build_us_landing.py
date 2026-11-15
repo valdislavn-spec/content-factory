@@ -277,6 +277,8 @@ footer a {{ color:#a5b4fc; }}
 
 
 def main() -> int:
+    from seo_enhance import enhance_us
+    html = enhance_us(html)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     html = build()
     OUT.write_text(html, encoding="utf-8")
