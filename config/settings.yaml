@@ -152,6 +152,11 @@ llm:
       base_url: https://api.groq.com/openai/v1
       api_key_env: GROQ_API_KEY
       model: openai/gpt-oss-120b
+      # gpt-oss — reasoning-модель: при коротком max_tokens content бывает пустым.
+      # Низкий reasoning + минимальный бюджет 400 токенов дают стабильный ответ.
+      min_max_tokens: 400
+      extra_body:
+        reasoning_effort: low
     openrouter:
       # Из РФ 403 «Access denied by security policy» — нужен VPN / GitHub Actions.
       base_url: https://openrouter.ai/api/v1

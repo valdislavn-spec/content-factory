@@ -274,6 +274,13 @@ class OpenAICompatibleLLM(LLMClient):
         self.api_key = env(self.api_key_env, "") or ""
         # Доп. поля тела запроса (reasoning_effort, thinking budget и т.п.).
         self.extra_body = dict((config or {}).get("extra_body") or {})
+        # Reasoning-модели (gpt-oss) могут вернуть пустой content, если
+        # max_tokens меньше бюджета рассуждений. Не даём опустить лимит ниже
+        # настроенного минимума.
+        try:
+            self.min_max_tokens = max(0, int((config or {}).get("min_max_tokens") or 0))
+        except (TypeError, ValueError):
+            self.min_max_tokens = 0
 
     def _generate(
         self,
@@ -292,8 +299,10 @@ class OpenAICompatibleLLM(LLMClient):
             "temperature": float(temperature if temperature is not None else self.temperature),
             # max_tokens иногда не поддерживается старыми серверами — отправляем только если задан.
         }
-        if max_tokens:
-            payload["max_tokens"] = int(max_tokens)
+        requested = int(max_tokens) if max_tokens else 0
+        token_limit = max(requested, self.min_max_tokens)
+        if token_limit:
+            payload["max_tokens"] = token_limit
         if self.extra_body:
             payload.update(self.extra_body)
         headers = dict((self.config.get("headers") or {}))
