@@ -56,6 +56,22 @@ def _is_webhook_url(url: str) -> bool:
     return bool(url) and url.startswith(_WEBHOOK_PREFIXES)
 
 
+BOT_API = "https://discord.com/api/v10"
+# Discord edge блокирует bot-запросы с браузерным User-Agent (40333).
+BOT_USER_AGENT = "DiscordBot (https://github.com/valdislavn-spec/content-factory, 1.0)"
+
+
+def _bot_token() -> str:
+    from ..utils import env
+
+    return env("DISCORD_BOT_TOKEN", "").strip()
+
+
+def _channel_id(channel: ChannelConfig) -> str:
+    value = str(_channel_meta(channel).get("discord_channel_id") or "").strip()
+    return value if value.isdigit() else ""
+
+
 def _channel_meta(channel: ChannelConfig) -> Dict[str, Any]:
     """Достаёт публичные meta-настройки канала из разных форм ChannelConfig."""
     meta = getattr(channel, "meta", None)
@@ -182,6 +198,8 @@ class DiscordPublisher(SocialPublisher):
     name = "discord"
 
     def check(self, channel: ChannelConfig = None) -> Tuple[bool, str]:
+        if channel is not None and _bot_token() and _channel_id(channel):
+            return True, "Discord: bot-канал настроен"
         if channel is None:
             from ..utils import env
 
@@ -189,22 +207,44 @@ class DiscordPublisher(SocialPublisher):
         else:
             url = _webhook_url(channel)
         if not _is_webhook_url(url):
-            return False, "DISCORD_WEBHOOK_URL не задан/неверный"
+            return False, "DISCORD_BOT_TOKEN/канал или DISCORD_WEBHOOK_URL не заданы"
         return True, "Discord: webhook настроен"
 
     def publish(
         self, post: GeneratedPost, channel: ChannelConfig, settings: Settings
     ) -> PublishResult:
         if not self.check(channel)[0]:
-            return self._result(post, channel, ok=False, error="Discord не настроен: нет webhook")
-        url = _webhook_url(channel)
+            return self._result(post, channel, ok=False, error="Discord не настроен")
         payload = discord_payload(post, channel)
-        try:
-            # wait=true возвращает объект сообщения (id/channel_id) вместо 204.
-            data = http_json(_with_query(url, wait="true"), payload=payload)
-        except SocialAPIError as exc:
-            logger.warning("Discord: публикация не удалась: %s", exc)
-            return self._result(post, channel, ok=False, error=str(exc))
+        webhook_payload = dict(payload)
+        channel_id = _channel_id(channel)
+        token = _bot_token()
+        data: Dict[str, Any] = {}
+        if token and channel_id:
+            # Bot API не принимает webhook-only поля username/avatar_url.
+            payload.pop("username", None)
+            payload.pop("avatar_url", None)
+            try:
+                data = http_json(
+                    f"{BOT_API}/channels/{channel_id}/messages",
+                    payload=payload,
+                    headers={
+                        "Authorization": f"Bot {token}",
+                        "User-Agent": BOT_USER_AGENT,
+                    },
+                )
+            except SocialAPIError as exc:
+                logger.warning("Discord bot API: %s; пробую webhook", exc)
+        if not data:
+            url = _webhook_url(channel)
+            if not _is_webhook_url(url):
+                return self._result(post, channel, ok=False, error="Discord: нет рабочего способа публикации")
+            try:
+                # wait=true возвращает объект сообщения (id/channel_id) вместо 204.
+                data = http_json(_with_query(url, wait="true"), payload=webhook_payload)
+            except SocialAPIError as exc:
+                logger.warning("Discord: публикация не удалась: %s", exc)
+                return self._result(post, channel, ok=False, error=str(exc))
         message_id = str(data.get("id") or "")
         channel_id = str(data.get("channel_id") or "")
         guild_id = str(data.get("guild_id") or "")

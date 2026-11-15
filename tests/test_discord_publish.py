@@ -227,3 +227,30 @@ def test_discord_identity_reads_nested_yaml_meta() -> None:
         meta={"raw": {"meta": {"discord_avatar_url": "https://example.com/ai.png"}}},
     )
     assert discord_identity(channel) == ("AI News", "https://example.com/ai.png")
+
+
+def test_discord_publish_uses_bot_channel_api(monkeypatch) -> None:
+    calls = {}
+
+    def fake_http_json(url, payload=None, headers=None, **kwargs):
+        calls["url"] = url
+        calls["payload"] = payload
+        calls["headers"] = headers or {}
+        return {"id": "42", "channel_id": "777", "guild_id": "888"}
+
+    monkeypatch.setattr(discord_mod, "http_json", fake_http_json)
+    monkeypatch.setenv("DISCORD_BOT_TOKEN", "bot-token")
+    monkeypatch.delenv("DISCORD_WEBHOOK_URL", raising=False)
+    channel = NS(
+        id="ai-news", language="en", title="AI News", telegram_chat_id="",
+        public_url="", cta="", meta={"raw": {"meta": {"discord_channel_id": "777"}}},
+    )
+    post = NS(plain_text="Hello", text="Hello", html="Hello", id="t1", meta={})
+    result = DiscordPublisher(settings=NS()).publish(post, channel, NS())
+
+    assert result.ok is True
+    assert calls["url"] == "https://discord.com/api/v10/channels/777/messages"
+    assert calls["headers"]["Authorization"] == "Bot bot-token"
+    assert calls["headers"]["User-Agent"].startswith("DiscordBot")
+    assert "username" not in calls["payload"]
+    assert result.url == "https://discord.com/channels/888/777/42"

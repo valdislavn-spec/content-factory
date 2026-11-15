@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
+      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       DISCORD_WEBHOOK_URL_SPORT_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_SPORT_NEWS }}
       DISCORD_WEBHOOK_URL_AI_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_AI_NEWS }}

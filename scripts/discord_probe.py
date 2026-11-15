@@ -24,17 +24,21 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from content_factory.config import Settings, load_network_channels  # noqa: E402
 from content_factory.models import GeneratedPost  # noqa: E402
-from content_factory.publishers.discord import DiscordPublisher  # noqa: E402
+from content_factory.publishers.discord import (  # noqa: E402
+    BOT_API, BOT_USER_AGENT, DiscordPublisher, _bot_token, _channel_id,
+)
 from content_factory.publishers.social import channel_suffix, env_for_channel  # noqa: E402
 
 UA = "Mozilla/5.0 (compatible; ContentFactory/1.0)"
 
 
-def call(url: str, method: str = "GET", payload: dict | None = None) -> tuple[int, dict]:
+def call(url: str, method: str = "GET", payload: dict | None = None,
+         headers: dict | None = None) -> tuple[int, dict]:
     data = json.dumps(payload).encode() if payload is not None else None
+    request_headers = {"Content-Type": "application/json", "User-Agent": UA}
+    request_headers.update(headers or {})
     request = urllib.request.Request(
-        url, data=data, method=method,
-        headers={"Content-Type": "application/json", "User-Agent": UA},
+        url, data=data, method=method, headers=request_headers,
     )
     try:
         with urllib.request.urlopen(request, timeout=25) as response:
@@ -107,30 +111,50 @@ def main() -> int:
 
     reports = []
     seen: dict[str, list[str]] = {}
+    bot_token = _bot_token()
     for channel in channels:
-        url = env_for_channel(channel, "DISCORD_WEBHOOK_URL", "").strip()
-        has_specific = bool((os.environ.get("DISCORD_WEBHOOK_URL_" + channel_suffix(channel), "") or "").strip())
-        source = "channel" if has_specific else "global"
-        report = {"channel_id": channel.id, "source": source, "ok": False, "detail": ""}
+        configured_id = _channel_id(channel)
+        use_bot = bool(bot_token and configured_id)
+        report = {
+            "channel_id": channel.id,
+            "source": "bot" if use_bot else "webhook",
+            "ok": False,
+            "detail": "",
+        }
         reports.append(report)
-        if not url.startswith(("https://discord.com/api/webhooks/", "https://discordapp.com/api/webhooks/")):
-            report["detail"] = "DISCORD_WEBHOOK_URL не задан/неверный"
-            continue
-        report["webhook_id"] = _webhook_id(url)
-        seen.setdefault(report["webhook_id"], []).append(channel.id)
-
-        status, info = call(url, "GET")
-        if status != 200:
-            report["detail"] = f"GET webhook: HTTP {status}"
-            continue
-        discord_channel_id = str(info.get("channel_id") or "")
-        if not discord_channel_id:
-            report["detail"] = "GET webhook: нет channel_id"
-            continue
-        report["guild_id"] = str(info.get("guild_id") or "")
-        if report["guild_id"]:
-            # Публичный widget (если включён в настройках сервера) даёт имя
-            # сервера и instant_invite — их можно использовать для промо.
+        bot_headers = {
+            "Authorization": f"Bot {bot_token}",
+            "User-Agent": BOT_USER_AGENT,
+        }
+        if use_bot:
+            report["discord_channel_id"] = configured_id
+            status, info = call(f"{BOT_API}/channels/{configured_id}", headers=bot_headers)
+            if status != 200:
+                report["detail"] = f"GET bot channel: HTTP {status}"
+                continue
+            report["guild_id"] = str(info.get("guild_id") or "")
+            report["channel_name"] = str(info.get("name") or "")
+            url = ""
+        else:
+            url = env_for_channel(channel, "DISCORD_WEBHOOK_URL", "").strip()
+            has_specific = bool((os.environ.get("DISCORD_WEBHOOK_URL_" + channel_suffix(channel), "") or "").strip())
+            report["source"] = "channel" if has_specific else "global"
+            if not url.startswith(("https://discord.com/api/webhooks/", "https://discordapp.com/api/webhooks/")):
+                report["detail"] = "DISCORD_WEBHOOK_URL не задан/неверный"
+                continue
+            report["webhook_id"] = _webhook_id(url)
+            seen.setdefault(report["webhook_id"], []).append(channel.id)
+            status, info = call(url, "GET")
+            if status != 200:
+                report["detail"] = f"GET webhook: HTTP {status}"
+                continue
+            discord_channel_id = str(info.get("channel_id") or "")
+            if not discord_channel_id:
+                report["detail"] = "GET webhook: нет channel_id"
+                continue
+            report["discord_channel_id"] = discord_channel_id
+            report["guild_id"] = str(info.get("guild_id") or "")
+        if report.get("guild_id"):
             widget_status, widget = call(
                 f"https://discord.com/api/v10/guilds/{report['guild_id']}/widget.json"
             )
@@ -138,8 +162,6 @@ def main() -> int:
                 report["guild_name"] = str(widget.get("name") or "")
                 report["invite_url"] = str(widget.get("instant_invite") or "")
 
-        # Важно: проверяем не только webhook, но и реальный путь публикатора
-        # (конвертация HTML, CTA, User-Agent, ?wait=true, allowed_mentions).
         publisher = DiscordPublisher(settings)
         result = publisher.publish(
             _probe_post(channel, args.sample, args.text), channel, settings
@@ -148,14 +170,21 @@ def main() -> int:
             report["detail"] = f"publish: {result.error}"
             continue
         message_id = str(result.external_id or "")
+        dest = report.get("discord_channel_id") or "?"
+        kind = "bot" if use_bot else f"webhook={report.get('webhook_id', '?')}"
         report.update({
             "ok": True,
-            "detail": f"webhook={report['webhook_id']}, channel={discord_channel_id}, message={message_id or 'no-id'}",
+            "detail": f"{kind}, channel={dest}, message={message_id or 'no-id'}",
             "message_id": message_id,
-            "discord_channel_id": discord_channel_id,
         })
         if not args.keep and message_id:
-            status, _ = call(f"{url.rstrip('/')}/messages/{message_id}", "DELETE")
+            if use_bot:
+                status, _ = call(
+                    f"{BOT_API}/channels/{dest}/messages/{message_id}",
+                    "DELETE", headers=bot_headers,
+                )
+            else:
+                status, _ = call(f"{url.rstrip('/')}/messages/{message_id}", "DELETE")
             if status not in (200, 204):
                 report.update({"ok": False, "detail": f"POST ok, DELETE: HTTP {status}"})
 
