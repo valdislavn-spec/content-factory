@@ -26,3 +26,12 @@ jobs:
         run: python -m compileall -q content_factory scripts
       - name: Full test suite
         run: pytest -q
+
+      - name: Discord live probe (manual only)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL_SPORT_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_SPORT_NEWS }}
+          DISCORD_WEBHOOK_URL_AI_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_AI_NEWS }}
+          DISCORD_WEBHOOK_URL_CRYPTO_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_CRYPTO_NEWS }}
+        run: python scripts/discord_probe.py --all --sample --json
