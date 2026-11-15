@@ -188,6 +188,12 @@ def page(d: dict) -> str:
 <h2>Другие направления</h2>
 <div class="grid">{others}</div>
 
+<section id="subscribe" style="margin:40px 0 0;padding:22px 24px;border-radius:16px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.4)">
+<h2 style="font-size:22px;margin:0 0 8px">Новые цены — раз в неделю</h2>
+<p style="margin:0 0 14px;color:#c7d2fe;font-size:15px">Сводка обновляется каждую неделю: новые даты, цены и промо партнёров. Подпишитесь, чтобы не искать заново.</p>
+<p style="margin:0"><a class="btn" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Подписаться в Telegram</a>
+<a href="mailto:valdislav.n@gmail.com?subject=%D0%9F%D0%BE%D0%B4%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D1%81%D0%B2%D0%BE%D0%B4%D0%BA%D1%83%20%D1%82%D1%83%D1%80%D0%BE%D0%B2" style="margin-left:14px;color:#a5b4fc;font-size:15px">Получать на email</a></p>
+</section>
 <nav><a href="{GH}/flight-hotel-abroad/">Все 12 стран со ценами</a><a href="{GH}/destinations/">Хаб направлений</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata, сводка обновлена {UPDATED} · цены за двоих · не является офертой.</footer>
 </div></body></html>
@@ -223,6 +229,12 @@ def hub() -> str:
 <h1>Направления: 12 стран с ценами</h1>
 <p class="lead">Одна сводка — все зарубежные направления сезона. Цены за двоих, перелёт + отель, заезды {DATES}. Обновлено {UPDATED}.</p>
 <div class="grid">{items}</div>
+<section id="subscribe" style="margin:40px 0 0;padding:22px 24px;border-radius:16px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.4)">
+<h2 style="font-size:22px;margin:0 0 8px">Новые цены — раз в неделю</h2>
+<p style="margin:0 0 14px;color:#c7d2fe;font-size:15px">Сводка обновляется каждую неделю: новые даты, цены и промо партнёров. Подпишитесь, чтобы не искать заново.</p>
+<p style="margin:0"><a class="btn" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Подписаться в Telegram</a>
+<a href="mailto:valdislav.n@gmail.com?subject=%D0%9F%D0%BE%D0%B4%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D1%81%D0%B2%D0%BE%D0%B4%D0%BA%D1%83%20%D1%82%D1%83%D1%80%D0%BE%D0%B2" style="margin-left:14px;color:#a5b4fc;font-size:15px">Получать на email</a></p>
+</section>
 <nav><a href="{ABROAD}">Полная сводка цен</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata · цены за двоих · не является офертой.</footer>
 </div></body></html>

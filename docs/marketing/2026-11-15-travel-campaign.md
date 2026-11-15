@@ -45,3 +45,24 @@ Brevo активен (free 300 писем/сутки), но списки пус�
 - 100 переходов на abroad, 50 на US, 20 кликов по партнёрским ссылкам (`*.tpk.ro` в Travelpayouts).
 - Pinterest: 4 пина → ≥3% saves/impressions.
 - Индексация: 3 страницы с JSON-LD (WebPage + BreadcrumbList + ItemList + FAQPage) — проверено на живых страницах 15.11.
+
+## Уже опубликовано (15.11.2026)
+
+- Bluesky (EN): https://bsky.app/profile/b-rave007.bsky.social/post/3n2efvx7jcm2r — анонс 12 направлений + US deals
+- Akkoma (RU): https://miraiverse.xyz/notice/BCTfzHag17J0ODjaIi — 12 стран с ценами
+- Telegram TRAVEL (RU): https://t.me/GOODTRAVEL007/6 — хаб направлений с ценами и ссылками
+- Pinterest: 4 пина (pin/1105774514796612676, …612694, …612725, …612744)
+
+## Programmatic SEO (новое, 13 страниц)
+
+- Хаб: https://valdislavn-spec.github.io/content-factory/destinations/
+- 12 страниц: /destinations/abkhaziya/, /turciya/, /oae/, /egipet/, /kipr/, /greciya/, /tailand/,
+  /vietnam/, /indoneziya/, /maldivy/, /ispaniya/, /italiya/ — у каждой canonical, JSON-LD
+  (WebPage + BreadcrumbList + Product/Offer + FAQPage), видимый FAQ, перелинковка и партнёрские CTA.
+- Все 13 URL добавлены в sitemap.xml.
+
+## Подписка
+
+На страницах направлений и хабе стоит блок «Новые цены — раз в неделю»: основной CTA — Telegram-канал
+(работает), email-вариант — mailto до подключения Brevo. Для полноценного double opt-in нужен
+BREVO_API_KEY и RU-список в Brevo (сейчас списки пустые, ключа в .env нет).
