@@ -26,6 +26,9 @@ from .base import Publisher
 logger = logging.getLogger(__name__)
 
 _HTTP_TIMEOUT = 25.0
+# Cloudflare перед Discord отдаёт 1010 на дефолтный Python-urllib User-Agent.
+# Представляемся обычным клиентом; конкретные публикаторы могут переопределить.
+DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; ContentFactory/1.0)"
 _HANDLE_RE = re.compile(r"@([A-Za-z][A-Za-z0-9_]{3,31})")
 
 
@@ -92,7 +95,10 @@ def http_json(
     timeout: float = _HTTP_TIMEOUT,
 ) -> Dict[str, Any]:
     """JSON-запрос к API соцсети; все сетевые/HTTP-ошибки → SocialAPIError."""
-    request_headers = {"Accept": "application/json"}
+    request_headers = {
+        "Accept": "application/json",
+        "User-Agent": DEFAULT_USER_AGENT,
+    }
     body: Optional[bytes] = None
     if payload is not None:
         if form:

@@ -20,7 +20,11 @@ LOG = Path("data/logs/factory.log")
 PATTERNS = {
     "slots": re.compile(r"слотов обработано (\d+)"),
     "published": re.compile(r"опубликован \(telegram\)"),
-    "publish_errors": re.compile(r"Telegram: канал .*?ошибк|ОШИБКА отправки|паблишер.*ошибк", re.IGNORECASE),
+    "publish_errors": re.compile(
+        r"Telegram: канал .*?ошибк|ОШИБКА отправки|паблишер.*ошибк|"
+        r"Не удалось опубликовать .*? через \w+",
+        re.IGNORECASE,
+    ),
     "run_errors": re.compile(r"Ошибка источника"),
 }
 

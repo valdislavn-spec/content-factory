@@ -23,7 +23,8 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from content_factory.config import Settings, load_network_channels  # noqa: E402
-from content_factory.publishers.discord import discord_text  # noqa: E402
+from content_factory.models import GeneratedPost  # noqa: E402
+from content_factory.publishers.discord import DiscordPublisher  # noqa: E402
 from content_factory.publishers.social import channel_suffix, env_for_channel  # noqa: E402
 
 UA = "Mozilla/5.0 (compatible; ContentFactory/1.0)"
@@ -67,16 +68,25 @@ def _select_channels(settings: Settings, requested: list[str]) -> list:
     return [ch for ch in channels if ch.id in wanted]
 
 
-def _sample_text(channel) -> str:
-    from types import SimpleNamespace as NS
+def _probe_post(channel, sample: bool, message: str) -> GeneratedPost:
+    from uuid import uuid4
 
-    demo = NS(
-        html=("<b>Probe: канал жив и готов к автоматизации</b>\n\n"
-              "Это тестовое сообщение из content-factory. Оно будет удалено "
-              "автоматически.\n\n#Probe #Automation"),
-        text="", plain_text="",
+    if sample:
+        text = (
+            "<b>Probe: канал жив и готов к автоматизации</b>\n\n"
+            "Это тестовое сообщение из content-factory. Оно будет удалено "
+            "автоматически.\n\n#Probe #Automation"
+        )
+    else:
+        text = message
+    return GeneratedPost(
+        id="discord-probe-" + uuid4().hex[:10],
+        channel_id=channel.id,
+        cluster_id="discord-probe",
+        format="story",
+        text=text,
+        meta={},
     )
-    return discord_text(demo, channel)
 
 
 def main() -> int:
@@ -118,18 +128,19 @@ def main() -> int:
             report["detail"] = "GET webhook: нет channel_id"
             continue
 
-        text = _sample_text(channel) if args.sample else args.text
-        status, sent = call(_with_query(url, wait="true"), "POST", {
-            "content": text,
-            "allowed_mentions": {"parse": []},
-        })
-        if status not in (200, 204):
-            report["detail"] = f"POST: HTTP {status}"
+        # Важно: проверяем не только webhook, но и реальный путь публикатора
+        # (конвертация HTML, CTA, User-Agent, ?wait=true, allowed_mentions).
+        publisher = DiscordPublisher(settings)
+        result = publisher.publish(
+            _probe_post(channel, args.sample, args.text), channel, settings
+        )
+        if not result.ok:
+            report["detail"] = f"publish: {result.error}"
             continue
-        message_id = str(sent.get("id") or "")
+        message_id = str(result.external_id or "")
         report.update({
             "ok": True,
-            "detail": f"webhook={report['webhook_id']}, channel={discord_channel_id}, message={message_id or '204'}",
+            "detail": f"webhook={report['webhook_id']}, channel={discord_channel_id}, message={message_id or 'no-id'}",
             "message_id": message_id,
             "discord_channel_id": discord_channel_id,
         })
