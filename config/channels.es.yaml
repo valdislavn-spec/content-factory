@@ -18,7 +18,7 @@ channels:
   description: "Inteligencia artificial en español: modelos, productos, empresas y políticas de IA.\n🌐 Nuestra red: ES Crypto & Blockchain @TechnologiesNews01 · ES Sports News @SPORTSAnalytics007"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_TECH_AI_ES (GitHub Secret)
   public_url: https://t.me/WORLDNews0007
-  publisher_ids: [telegram, mastodon]
+  publisher_ids: [telegram]  # mastodon paused: 403 login disabled
   language: es
   topics:
   - inteligencia artificial
@@ -190,7 +190,7 @@ channels:
   description: "Bitcoin, Ethereum y el mercado cripto en español: regulación, mercados y tecnología blockchain.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Sports News @SPORTSAnalytics007"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_CRYPTO_ES (GitHub Secret)
   public_url: https://t.me/TechnologiesNews01
-  publisher_ids: [telegram, mastodon]
+  publisher_ids: [telegram]  # mastodon paused: 403 login disabled
   language: es
   # Живая строка рынка в конце каждого поста
   market_line:
@@ -344,7 +344,7 @@ channels:
   description: "Deporte en español con datos y análisis: LaLiga, Liga MX, Argentina, MLS, Champions, tenis y baloncesto. Cuotas y mercados de apuestas — 18+.\n🌐 Nuestra red: ES AI News @WORLDNews0007 · ES Crypto & Blockchain @TechnologiesNews01"
   telegram_chat_id: ''   # TELEGRAM_CHAT_ID_FUTBOL_ES (GitHub Secret)
   public_url: https://t.me/SPORTSAnalytics007
-  publisher_ids: [telegram, mastodon]
+  publisher_ids: [telegram]  # mastodon paused: 403 login disabled
   language: es
   topics:
   - fútbol
