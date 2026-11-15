@@ -56,6 +56,17 @@ def _is_webhook_url(url: str) -> bool:
     return bool(url) and url.startswith(_WEBHOOK_PREFIXES)
 
 
+def discord_identity(channel: ChannelConfig) -> Tuple[str, str]:
+    """Имя и аватар, которые webhook показывает в общей ленте Discord."""
+    meta = getattr(channel, "meta", None)
+    meta = meta if isinstance(meta, dict) else {}
+    username = str(meta.get("discord_username") or getattr(channel, "title", "") or "").strip()
+    avatar = str(meta.get("discord_avatar_url") or "").strip()
+    if avatar and not avatar.startswith(("http://", "https://")):
+        avatar = ""
+    return username[:80], avatar
+
+
 def discord_cta(channel: ChannelConfig) -> str:
     """Короткий призыв к действию из конфига канала.
 
@@ -144,6 +155,11 @@ def discord_payload(post: Any, channel: ChannelConfig) -> Dict[str, Any]:
     embed = discord_embed(post)
     if embed:
         payload["embeds"] = [embed]
+    username, avatar = discord_identity(channel)
+    if username:
+        payload["username"] = username
+    if avatar:
+        payload["avatar_url"] = avatar
     return payload
 
 

@@ -127,6 +127,16 @@ def main() -> int:
         if not discord_channel_id:
             report["detail"] = "GET webhook: нет channel_id"
             continue
+        report["guild_id"] = str(info.get("guild_id") or "")
+        if report["guild_id"]:
+            # Публичный widget (если включён в настройках сервера) даёт имя
+            # сервера и instant_invite — их можно использовать для промо.
+            widget_status, widget = call(
+                f"https://discord.com/api/v10/guilds/{report['guild_id']}/widget.json"
+            )
+            if widget_status == 200:
+                report["guild_name"] = str(widget.get("name") or "")
+                report["invite_url"] = str(widget.get("instant_invite") or "")
 
         # Важно: проверяем не только webhook, но и реальный путь публикатора
         # (конвертация HTML, CTA, User-Agent, ?wait=true, allowed_mentions).
