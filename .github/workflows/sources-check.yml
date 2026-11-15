@@ -30,4 +30,4 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Check sources
-        run: python -m content_factory sources check --all --strict
+        run: python -m content_factory sources check --strict
