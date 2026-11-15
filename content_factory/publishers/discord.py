@@ -56,10 +56,25 @@ def _is_webhook_url(url: str) -> bool:
     return bool(url) and url.startswith(_WEBHOOK_PREFIXES)
 
 
+def _channel_meta(channel: ChannelConfig) -> Dict[str, Any]:
+    """Достаёт публичные meta-настройки канала из разных форм ChannelConfig."""
+    meta = getattr(channel, "meta", None)
+    if not isinstance(meta, dict):
+        return {}
+    merged: Dict[str, Any] = {}
+    raw = meta.get("raw")
+    if isinstance(raw, dict):
+        # Loader хранит исходный YAML в meta["raw"], а вложенный meta — в raw["meta"].
+        nested = raw.get("meta")
+        if isinstance(nested, dict):
+            merged.update(nested)
+    merged.update({key: value for key, value in meta.items() if key != "raw"})
+    return merged
+
+
 def discord_identity(channel: ChannelConfig) -> Tuple[str, str]:
     """Имя и аватар, которые webhook показывает в общей ленте Discord."""
-    meta = getattr(channel, "meta", None)
-    meta = meta if isinstance(meta, dict) else {}
+    meta = _channel_meta(channel)
     username = str(meta.get("discord_username") or getattr(channel, "title", "") or "").strip()
     avatar = str(meta.get("discord_avatar_url") or "").strip()
     if avatar and not avatar.startswith(("http://", "https://")):
@@ -73,11 +88,9 @@ def discord_cta(channel: ChannelConfig) -> str:
     ``meta.discord_cta`` позволяет задать отдельный текст для Discord, не
     меняя Telegram-CTA. Если он не задан, используется обычный ``cta``.
     """
-    meta = getattr(channel, "meta", None)
-    if isinstance(meta, dict):
-        custom = str(meta.get("discord_cta") or "").strip()
-        if custom:
-            return custom
+    custom = str(_channel_meta(channel).get("discord_cta") or "").strip()
+    if custom:
+        return custom
     return str(getattr(channel, "cta", "") or "").strip()
 
 

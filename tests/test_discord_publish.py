@@ -216,3 +216,14 @@ def test_discord_payload_uses_channel_identity(monkeypatch) -> None:
     payload = discord_payload(post, channel)
     assert payload["username"] == "US Sports News"
     assert payload["avatar_url"] == "https://example.com/sport.png"
+
+
+def test_discord_identity_reads_nested_yaml_meta() -> None:
+    from content_factory.publishers.discord import discord_identity
+
+    channel = NS(
+        id="ai-news",
+        title="AI News",
+        meta={"raw": {"meta": {"discord_avatar_url": "https://example.com/ai.png"}}},
+    )
+    assert discord_identity(channel) == ("AI News", "https://example.com/ai.png")
