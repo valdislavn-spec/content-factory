@@ -1067,7 +1067,7 @@ def _valid_llm_headline(text: str, source_text: str, lang: str = "ru") -> str:
         return ""
     if not _allowed_numbers(cleaned) <= _allowed_numbers(source_text):
         return ""
-    return cleaned[:1].upper() + cleaned[1:]
+    return _fix_brand_case(cleaned[:1].upper() + cleaned[1:])
 
 
 def _valid_llm_sentence(
@@ -1921,13 +1921,32 @@ def _bold_key_number(text: str) -> str:
     return before + "<b>" + value + "</b>" + text[match.end():]
 
 
+_BRAND_CASE = {
+    "nvidia": "Nvidia", "samsung": "Samsung", "tsmc": "TSMC",
+    "openai": "OpenAI", "anthropic": "Anthropic", "google": "Google",
+    "microsoft": "Microsoft", "apple": "Apple", "meta": "Meta",
+    "amazon": "Amazon", "tesla": "Tesla", "bitcoin": "Bitcoin",
+    "ethereum": "Ethereum", "bing": "Bing", "intel": "Intel",
+    "amd": "AMD", "qualcomm": "Qualcomm", "broadcom": "Broadcom",
+    "asml": "ASML", "nfl": "NFL", "nba": "NBA", "mlb": "MLB", "nhl": "NHL",
+}
+_BRAND_RE = re.compile(r"(?:^|(?<=[^A-Za-z0-9]))(" + "|".join(re.escape(k) for k in _BRAND_CASE) + r")(?=$|[^A-Za-z0-9])", re.I)
+
+
+def _fix_brand_case(text: str) -> str:
+    def repl(match: re.Match) -> str:
+        raw = match.group(0)
+        return raw if raw[0].isupper() else _BRAND_CASE[raw.lower()]
+    return _BRAND_RE.sub(repl, str(text or ""))
+
+
 def _punch_title(title: str, lang: str = "ru") -> str:
     """Чистит заголовок: без кавычек/точки в конце, максимум 95 символов."""
     text = normalize_space(str(title or "")).strip()
     text = text.strip('"\'«»“”').rstrip(". ")
     if len(text) > 95:
         text = truncate(text, 95, suffix="…")
-    return text[:1].upper() + text[1:] if text else ""
+    return _fix_brand_case(text[:1].upper() + text[1:]) if text else ""
 
 
 def _make_post(

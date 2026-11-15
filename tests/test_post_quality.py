@@ -733,6 +733,14 @@ class GeneratorQualityTest(unittest.TestCase):
         self.assertIn("Nvidia, Samsung, TSMC, OpenAI", en)
         self.assertIn("Nvidia, Samsung, TSMC, OpenAI", es)
 
+    def test_brand_casing_is_restored(self):
+        from content_factory.nlp.generator import _fix_brand_case
+        self.assertEqual(
+            _fix_brand_case("nvidia и samsung против tsmc"),
+            "Nvidia и Samsung против TSMC",
+        )
+        self.assertEqual(_fix_brand_case("NVIDIA and OpenAI"), "NVIDIA and OpenAI")
+
     def test_prose_drops_contained_duplicate(self):
         from content_factory.nlp.generator import _prose
         sentences = [
