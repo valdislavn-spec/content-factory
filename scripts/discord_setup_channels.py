@@ -48,6 +48,11 @@ def main():
     p.add_argument("--apply", action="store_true")
     a = p.parse_args()
     gid = a.guild_id
+    gs, guilds = api("GET", "/users/@me/guilds")
+    if gs == 200:
+        print("BOT_GUILDS=" + json.dumps([[g.get("id"), g.get("name")] for g in guilds], ensure_ascii=False))
+    else:
+        print("BOT_GUILDS_ERROR=%s %s" % (gs, guilds))
     status, channels = api("GET", "/guilds/%s/channels" % gid)
     if status != 200:
         raise SystemExit("GET channels: HTTP %s %s" % (status, channels))
