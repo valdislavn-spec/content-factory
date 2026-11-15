@@ -48,6 +48,12 @@ def main():
     p.add_argument("--apply", action="store_true")
     a = p.parse_args()
     gid = a.guild_id
+    ast, app = api("GET", "/oauth2/applications/@me")
+    if ast == 200:
+        keys = ("name", "bot_public", "bot_require_code_grant", "custom_install_url")
+        print("APP_INFO=" + json.dumps({k: app.get(k) for k in keys}, ensure_ascii=False))
+    else:
+        print("APP_INFO_ERROR=%s %s" % (ast, app))
     gs, guilds = api("GET", "/users/@me/guilds")
     if gs == 200:
         print("BOT_GUILDS=" + json.dumps([[g.get("id"), g.get("name")] for g in guilds], ensure_ascii=False))
