@@ -226,7 +226,7 @@ def page(d: dict) -> str:
 <div class="grid">{others}</div>
 
 {sub_block}
-<nav><a href="{GH}/flight-hotel-abroad/">Все 12 стран со ценами</a><a href="{GH}/destinations/">Хаб направлений</a><a href="{GH}/travel/">Гайды</a></nav>
+<nav><a href="{GH}/flight-hotel-abroad/">Все 12 стран со ценами</a><a href="{GH}/resorts/">Курорты</a><a href="{GH}/seasons/">Подборки</a><a href="{GH}/destinations/">Хаб направлений</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata, сводка обновлена {UPDATED} · цены за двоих · не является офертой.</footer>
 </div></body></html>
 """
@@ -277,7 +277,7 @@ def hub() -> str:
 <p style="margin:0"><a class="btn" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Подписаться в Telegram</a>
 <a href="mailto:valdislav.n@gmail.com?subject=%D0%9F%D0%BE%D0%B4%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D1%81%D0%B2%D0%BE%D0%B4%D0%BA%D1%83%20%D1%82%D1%83%D1%80%D0%BE%D0%B2" style="margin-left:14px;color:#a5b4fc;font-size:15px">Получать на email</a></p>
 </section>
-<nav><a href="{ABROAD}">Полная сводка цен</a><a href="{GH}/travel/">Гайды</a></nav>
+<nav><a href="{GH}/resorts/">Курорты</a><a href="{GH}/seasons/">Подборки</a><a href="{ABROAD}">Полная сводка цен</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata · цены за двоих · не является офертой.</footer>
 </div></body></html>
 """
@@ -363,7 +363,7 @@ def seasonal_page(cfg):
 <div class="grid">{cards}</div>
 <p><a class="btn" href="{ABROAD}">Смотреть предложения →</a></p>
 {sub_block}
-<nav><a href="{GH}/destinations/">Все направления</a><a href="{GH}/seasons/">Подборки</a><a href="{GH}/travel/">Гайды</a></nav>
+<nav><a href="{GH}/destinations/">Все направления</a><a href="{GH}/resorts/">Курорты</a><a href="{GH}/seasons/">Подборки</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata, сводка {UPDATED} · цены за двоих · не является офертой.</footer>
 </div></body></html>
 """
@@ -386,7 +386,7 @@ def seasons_hub():
 <h1>Подборки туров</h1>
 <p class="lead">Готовые срезы сводки: по бюджету и по сезону. Цены за двоих, перелёт + отель.</p>
 <div class="grid">{cards}</div>
-<nav><a href="{GH}/destinations/">Все направления</a><a href="{ABROAD}">Полная сводка цен</a></nav>
+<nav><a href="{GH}/destinations/">Все направления</a><a href="{GH}/resorts/">Курорты</a><a href="{GH}/months/">По месяцам</a><a href="{GH}/compare/">Сравнения</a><a href="{GH}/prices/">Таблица цен</a><a href="{ABROAD}">Полная сводка цен</a></nav>
 <footer>Данные: Travelata · сводка {UPDATED} · цены за двоих.</footer>
 </div></body></html>
 """
