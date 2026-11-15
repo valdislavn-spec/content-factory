@@ -202,3 +202,11 @@ class BrainGeneratorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_plain_body_strips_markdown():
+    from content_factory.integrations.brain_posts import _plain_body
+    title, body = _plain_body("# **Title**\n\n**Bold** and [link](https://example.com/a)\n\n## Heading\n\n- item")
+    assert title == "Title"
+    assert "**" not in body and "##" not in body and "https://example.com" not in body
+    assert "Bold" in body and "link" in body

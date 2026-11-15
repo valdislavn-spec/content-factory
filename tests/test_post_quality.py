@@ -722,5 +722,13 @@ class GeneratorQualityTest(unittest.TestCase):
         self.assertIn("90", es)
 
 
+    def test_single_brace_alert_placeholders_are_detected(self):
+        from content_factory.nlp.quality import _PLACEHOLDER_RE
+
+        self.assertTrue(_PLACEHOLDER_RE.search("ETH moved {pct:+.2f}% in 60 min"))
+        self.assertTrue(_PLACEHOLDER_RE.search("BTC now {price}"))
+        self.assertFalse(_PLACEHOLDER_RE.search("Обычный текст без подстановок"))
+
+
 if __name__ == "__main__":
     unittest.main()

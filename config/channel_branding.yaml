@@ -16,7 +16,7 @@ channels:
     lang: en
     title: Crypto & Blockchain
     description: |-
-      Bitcoin, Ethereum, markets, regulation. 15+ posts a day from CoinDesk, The Block, Decrypt.
+      Bitcoin, Ethereum, markets, regulation. 12 scheduled posts a day from CoinDesk, The Block, Decrypt.
       🌐 AI @AINEWS0007 · Sports @SPORTNews0007
     photo: assets/avatars/crypto-news.png
 
@@ -24,7 +24,7 @@ channels:
     lang: en
     title: AI News
     description: |-
-      Models, products, policy and the companies building them. 15+ posts a day.
+      Models, products, policy and the companies building them. 8 scheduled posts a day.
       🌐 Crypto @HOOPY0007 · Sports @SPORTNews0007
     photo: assets/avatars/ai-news.png
 
@@ -32,7 +32,7 @@ channels:
     lang: en
     title: US Sports News
     description: |-
-      NFL, NBA, MLB, NHL, college football: scores, trades, injuries, analysis. 16 posts a day.
+      NFL, NBA, MLB, NHL, college football: scores, trades, injuries, analysis. 12 scheduled posts a day.
       🌐 AI @AINEWS0007 · Crypto @HOOPY0007
     photo: assets/avatars/sport-news.png
 
@@ -41,7 +41,7 @@ channels:
     chat_env: TELEGRAM_CHAT_ID_TECH_AI_ES
     title: ES AI News
     description: |-
-      IA en español: modelos, productos, empresas y políticas. 15+ posts al día.
+      IA en español: modelos, productos, empresas y políticas. 8 publicaciones programadas al día.
       🌐 Cripto @TechnologiesNews01 · Deporte @SPORTSAnalytics007
     photo: assets/avatars/tech-ai-es.png
 
@@ -50,7 +50,7 @@ channels:
     chat_env: TELEGRAM_CHAT_ID_CRYPTO_ES
     title: ES Crypto & Blockchain
     description: |-
-      Bitcoin, Ethereum, mercados y regulación en español. 15+ posts al día.
+      Bitcoin, Ethereum, mercados y regulación en español. 12 publicaciones programadas al día.
       🌐 IA @WORLDNews0007 · Deporte @SPORTSAnalytics007
     photo: assets/avatars/crypto-es.png
 
@@ -59,7 +59,7 @@ channels:
     chat_env: TELEGRAM_CHAT_ID_FUTBOL_ES
     title: ES Sports News
     description: |-
-      Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS, Champions. Datos, fichajes, cuotas — 18+.
+      Fútbol y deporte en español: LaLiga, Liga MX, Argentina, MLS, Champions. Datos, fichajes, cuotas — 12 publicaciones programadas al día. 18+.
       🌐 IA @WORLDNews0007 · Cripto @TechnologiesNews01
     photo: assets/avatars/futbol-es.png
 
@@ -68,6 +68,6 @@ channels:
     chat_env: TELEGRAM_CHAT_ID_CRYPTO_SIGNALS
     title: Signal Crypto
     description: |-
-      BTC, ETH, SOL: entry, stop, take. 2–4 ideas a day from public exchange data. Not financial advice. 18+
+      BTC, ETH, SOL: entrada, stop, take. Señales y pronósticos de mercados públicos. No es asesoramiento financiero. 18+
       🌐 News network: @HOOPY0007 · @AINEWS0007 · @SPORTNews0007
     photo: assets/avatars/signals.png

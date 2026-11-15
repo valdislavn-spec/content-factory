@@ -288,6 +288,18 @@ def build_clusters(
 # Ключи настроек качества: по умолчанию гейт выключен, конвейер только
 # складывает метрики в post.meta (см. docs/post-quality.md).
 QUALITY_GATE_DEFAULT_MIN_SCORE = 60
+# Артефакты разметки/шаблонов, которые нельзя публиковать ни при каком
+# качестве: они ломают вид поста и выглядят как техническая ошибка.
+_MARKDOWN_LEAK_RE = re.compile(
+    r"\*\*[^*\n]{1,120}\*\*|__[^_\n]{1,120}__|```|(?m:^\s{0,3}#{1,6}\s+\S)|"
+    r"\[[^\]\n]{1,80}\]\(\s*(?:https?://|/)[^)\n]+\)"
+)
+_PLACEHOLDER_LEAK_RE = re.compile(
+    r"\{\{|\}\}|<%|%>|\bTODO\b|\bFIXME\b|\bundefined\b|"
+    r"\{(?:pct|change|symbol|price|level|window)(?::[^{}\n]{0,24})?\}",
+    re.IGNORECASE,
+)
+
 
 # Как не дублировать в списке ошибок те же проблемы, что уже нашли старые
 # проверки quality_issues(): код рубрики -> подстроки в существующих сообщениях.
@@ -466,6 +478,10 @@ def quality_issues(post: GeneratedPost, channel: ChannelConfig, settings: Settin
     if len(post.text) > channel.max_post_chars * 1.35:
         issues.append("текст значительно длиннее лимита канала")
     lowered = plain.lower()
+    if _MARKDOWN_LEAK_RE.search(plain):
+        issues.append("в тексте остался markdown")
+    if _PLACEHOLDER_LEAK_RE.search(plain):
+        issues.append("в тексте служебная заглушка")
     for bad in settings.pipeline.get("banned_words") or []:
         if bad and str(bad).lower() in lowered:
             issues.append(f"стоп-слово: {bad}")
@@ -1061,7 +1077,33 @@ def generate_posts(
                     continue
                 if dify_post is not None:
                     _attach_image(dify_post, cluster)
+                    # Готовый пост генератора может не иметь sources/длины
+                    # внутреннего формата, но технические артефакты в нём
+                    # недопустимы: они ломают вид Telegram-поста.
+                    plain = dify_post.plain_text
+                    artifact_issues = []
+                    if _MARKDOWN_LEAK_RE.search(plain):
+                        artifact_issues.append("в тексте остался markdown")
+                    if _PLACEHOLDER_LEAK_RE.search(plain):
+                        artifact_issues.append("в тексте служебная заглушка")
+                    if artifact_issues:
+                        dify_post.meta["quality_issues"] = artifact_issues
+                        errors.append(
+                            f"пост генератора отклонён по «{cluster.title[:60]}»: "
+                            f"{'; '.join(artifact_issues)}"
+                        )
+                        log.warning(
+                            "Пост генератора отклонён проверками: %s", artifact_issues
+                        )
+                        continue
                     _attach_card(dify_post, channel, settings, cluster)
+                    _tag_slot_meta(
+                        dify_post,
+                        slot,
+                        night_mode,
+                        max_chars,
+                        slot_phase(channel, slot),
+                    )
                     posts.append(dify_post)
                     continue
             analysis = analyze_cluster(

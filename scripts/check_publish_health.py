@@ -29,6 +29,22 @@ PATTERNS = {
 }
 
 
+def analyze(text: str) -> dict:
+    """Разбирает хвост лога в счётчики. Вынесено для тестов."""
+    tail = text[-400_000:]
+    slots = sum(int(m.group(1)) for m in PATTERNS["slots"].finditer(tail))
+    published = len(PATTERNS["published"].findall(tail))
+    error_lines = [m.group(0) for m in PATTERNS["publish_errors"].finditer(tail)]
+    source_errors = len(PATTERNS["run_errors"].findall(tail))
+    return {
+        "slots": slots,
+        "published": published,
+        "publish_errors": len(error_lines),
+        "publish_error_samples": list(dict.fromkeys(error_lines))[:5],
+        "source_errors": source_errors,
+    }
+
+
 
 def llm_quota_lines() -> list[str]:
     """Краткий отчёт по лимитам LLM; предупреждение при >80% дневного лимита."""
@@ -61,21 +77,20 @@ def main() -> int:
         print("health: лог не найден — пропуск")
         return 0
     text = LOG.read_text(encoding="utf-8", errors="replace")
-    tail = text[-400_000:]
-    slots = sum(int(m.group(1)) for m in PATTERNS["slots"].finditer(tail))
-    published = len(PATTERNS["published"].findall(tail))
-    publish_errors = len(PATTERNS["publish_errors"].findall(tail))
-    source_errors = len(PATTERNS["run_errors"].findall(tail))
+    stats = analyze(text)
     print(
-        f"health: слотов={slots}, опубликовано={published}, "
-        f"ошибок публикации={publish_errors}, ошибок источников={source_errors}"
+        f"health: слотов={stats['slots']}, опубликовано={stats['published']}, "
+        f"ошибок публикации={stats['publish_errors']}, "
+        f"ошибок источников={stats['source_errors']}"
     )
+    for sample in stats["publish_error_samples"]:
+        print(f"health: ошибка публикации: {sample[:240]}")
     for line in llm_quota_lines():
         print("health:", line)
-    if publish_errors > 0:
+    if stats["publish_errors"] > 0:
         print("health: есть ошибки публикации — падаем для алерта")
         return 1
-    if slots >= 2 and published == 0:
+    if stats["slots"] >= 2 and stats["published"] == 0:
         print("health: слоты были, но публикаций нет — падаем для алерта")
         return 1
     return 0

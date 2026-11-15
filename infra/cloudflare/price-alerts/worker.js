@@ -35,15 +35,15 @@ const CHANNELS = [
 
 const TEMPLATES = {
   en: {
-    above: "🚀 {symbol} broke above ${level} — now ${price} ({change:+.2f}% / 24h).",
-    below: "🔻 {symbol} fell below ${level} — now ${price} ({change:+.2f}% / 24h).",
-    move: "⚡️ {symbol} moved {pct:+.2f}% in {window} min — now ${price}.",
+    above: "🚀 {symbol} broke above ${level} — now ${price} ({change}% / 24h).",
+    below: "🔻 {symbol} fell below ${level} — now ${price} ({change}% / 24h).",
+    move: "⚡️ {symbol} moved {pct}% in {window} min — now ${price}.",
     footer: "Data: BingX · not financial advice.",
   },
   es: {
-    above: "🚀 {symbol} superó los ${level} — ahora ${price} ({change:+.2f}% / 24h).",
-    below: "🔻 {symbol} cayó por debajo de ${level} — ahora ${price} ({change:+.2f}% / 24h).",
-    move: "⚡️ {symbol} se movió {pct:+.2f}% en {window} min — ahora ${price}.",
+    above: "🚀 {symbol} superó los ${level} — ahora ${price} ({change}% / 24h).",
+    below: "🔻 {symbol} cayó por debajo de ${level} — ahora ${price} ({change}% / 24h).",
+    move: "⚡️ {symbol} se movió {pct}% en {window} min — ahora ${price}.",
     footer: "Datos: BingX · no es asesoramiento financiero.",
   },
 };

@@ -49,6 +49,31 @@ _TITLE_RE = re.compile(r"^#\s+(.+)$")
 _HASHTAG_RE = re.compile(r"^#?")
 
 
+def _strip_markdown(text: str) -> str:
+    """Убрать markdown-разметку из готового поста мозга.
+
+    Telegram-публикатор получает уже экранированный HTML: если оставить
+    ``**bold**`` или ``## heading``, они попадут в канал как текст. Поэтому
+    мост приводит markdown к обычному тексту до ``html.escape``.
+    """
+    value = str(text or "")
+    value = re.sub(r"```.*?```", "", value, flags=re.S)
+    value = re.sub(r"`([^`]+)`", r"\1", value)
+    value = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", value)
+    value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
+    value = re.sub(r"<[^>]+>", "", value)
+    value = re.sub(r"(?m)^\s{0,3}#{1,6}\s*", "", value)
+    value = re.sub(r"(?m)^\s*>\s?", "", value)
+    value = re.sub(r"(?m)^\s*[-*+]\s+", "• ", value)
+    value = re.sub(r"\*\*(.+?)\*\*", r"\1", value, flags=re.S)
+    value = re.sub(r"__(.+?)__", r"\1", value, flags=re.S)
+    value = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", value, flags=re.S)
+    value = re.sub(r"(?<!_)_(?!_)(.+?)(?<!_)_(?!_)", r"\1", value, flags=re.S)
+    value = re.sub(r"[ \t]{2,}", " ", value)
+    value = re.sub(r"\n{3,}", "\n\n", value)
+    return value.strip()
+
+
 def _plain_body(markdown: str, fallback_title: str = "") -> tuple:
     """Разобрать markdown mcp-поста на (title, body) без блока источников."""
     title = str(fallback_title or "").strip()
@@ -64,8 +89,8 @@ def _plain_body(markdown: str, fallback_title: str = "") -> tuple:
         if stripped == _SOURCES_MARK or stripped == "---":
             break
         body_lines.append(line)
-    body = "\n".join(body_lines).strip()
-    body = re.sub(r"\n{3,}", "\n\n", body)
+    title = _strip_markdown(title)
+    body = _strip_markdown("\n".join(body_lines))
     return title, body
 
 

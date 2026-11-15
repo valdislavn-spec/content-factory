@@ -7,8 +7,8 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 ## Где хранятся ключи
 
 - **GitHub Secrets** — для облачных workflow: `Settings → Secrets and variables →
-  Actions` (51 секрет).
-- **`.env`** — локально (51 непустой ключ; не коммитится).
+  Actions` (68 секретов на 15.11.2026).
+- **`.env`** — локально (74 непустых значения; не коммитится).
 - **Cloudflare Worker secrets** — для `cf-subscribe`/трекера ссылок.
 
 ## Что уже работает (бесплатные тарифы)
@@ -16,7 +16,10 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Категория | Сервисы | Статус |
 |---|---|---|
 | Telegram | Bot API (`TELEGRAM_BOT_TOKEN`), chat_id каналов | ✅ работает |
-| Fediverse | Mastodon (`MASTODON_*`) на 5 каналах, Akkoma (`AKKOMA_*`) на `crypto-news` | ✅ работает, проброшено в Actions |
+| Fediverse | Bluesky (`BLUESKY_*`) на `crypto-news` | ✅ работает |
+| Fediverse | Mastodon (`MASTODON_*`) на 5 каналах | ⛔ `403 Your login is currently disabled` — внешний аккаунт отключён |
+| Fediverse | Akkoma (`AKKOMA_*`) на `crypto-news` | ⚠️ был `403 Cloudflare 1010`; добавлен браузерный User-Agent, нужен повторный тест |
+| Discord | Webhook (`DISCORD_WEBHOOK_URL`) на 3 EN-каналах | ⚠️ был `403 Cloudflare 1010`; добавлен браузерный User-Agent, нужен повторный тест |
 | Tumblr | OAuth1 (`TUMBLR_*`), фото/текст | ✅ креды есть; дайджест приостановлен |
 | Buffer | X / Bluesky / Facebook через Buffer (`BUFFER_API_KEY`) | ✅ 3 канала, очередь |
 | X | `X_API_KEY`/`X_API_SECRET`/`X_ACCOUNT_BLOB` | ⚠️ не хватает пары access token/secret для публикатора |

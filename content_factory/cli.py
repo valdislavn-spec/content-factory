@@ -172,10 +172,10 @@ def cmd_doctor(args: argparse.Namespace, settings: Settings) -> int:
                 f"{row.channel_id}/{row.publisher}: {row.detail}"
                 for row in missing_connections
             )
-            warnings.append("не готовы направления: " + detail)
-            print(f"  WARN направления: {len(connections) - len(missing_connections)}/{len(connections)} готовы")
+            warnings.append("не настроены направления: " + detail)
+            print(f"  WARN направления (по конфигу): {len(connections) - len(missing_connections)}/{len(connections)} настроены")
         else:
-            print(f"  OK   направления публикации: {len(connections)}/{len(connections)} готовы")
+            print(f"  OK   направления публикации (по конфигу): {len(connections)}/{len(connections)} настроены")
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"аудит направлений публикации: {exc}")
         print(f"  WARN аудит направлений публикации: {exc}")
@@ -705,7 +705,7 @@ def cmd_social_check(args: argparse.Namespace, settings: Settings) -> int:
 
     print(
         "\nИтого: каналов {channels} · подключений {connections} · "
-        "готово {ready} · ошибок {missing}".format(**payload["summary"])
+        "настроено {ready} · не настроено {missing}".format(**payload["summary"])
     )
     if summary["missing"] and getattr(args, "strict", False):
         print("FAIL: у включённых направлений не хватает кредов — см. ✗ выше.")

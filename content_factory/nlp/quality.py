@@ -465,6 +465,10 @@ _MARKDOWN_PATTERNS = (
 )
 _PLACEHOLDER_RE = re.compile(
     r"\{\{|\}\}|<%|%>|\bTODO\b|\bFIXME\b|lorem ipsum|\bundefined\b|\bNaN\b"
+    # Служебные Python-подстановки, которые иногда утекают из шаблонов алертов:
+    # {pct:+.2f}, {price}, {window}, {change:+.2f} и т.п.
+    r"|\{(?:pct|change|symbol|price|level|window)(?::[^{}\n]{0,24})?\}",
+    re.IGNORECASE,
 )
 _WEAK_FACT_RE = re.compile(
     r"(?:фигурирующ\w*\s+цифр|the figures involved|las cifras que aparecen|"

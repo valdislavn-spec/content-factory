@@ -1,31 +1,33 @@
 # Каналы: темы, источники, расписание
 
-Все каналы описаны в `config/channels.yaml`. Этот файл — «редакционный план»:
+Все каналы описаны в `config/channels.en.yaml` (3 английских) и
+`config/channels.es.yaml` (3 испанских). Эти файлы — «редакционный план»:
 тема, ключевые слова, источники, время публикации, тон и формат постов.
-Токены и id каналов в нём **не хранятся** — они в `.env`.
+Токены и chat_id в них **не хранятся** — они в `.env` / GitHub Secrets.
 
-Шесть каналов уже настроены. Их можно менять, выключать (`enabled: false`) и
-добавлять новые.
+## 1. Обзор шести новостных каналов
 
-## 1. Обзор шести каналов
+| id | Язык | Тема | Основные источники | Слотов/сутки | Пояс | Форматы |
+|---|---|---|---:|---:|---:|---|
+| `sport-news` | EN | NFL, NBA, MLB, NHL, college football | ESPN, CBS Sports, Sporting News, ClutchPoints | 12 | UTC−5 | digest, story, analysis, interactive |
+| `ai-news` | EN | AI, модели, продукты, политика | TechCrunch, The Verge, MIT TR, Wired, OpenAI, NVIDIA | 8 | UTC−5 | digest, story, analysis, interactive |
+| `crypto-news` | EN | Bitcoin, Ethereum, рынки, регуляция | CoinDesk, The Block, Decrypt, Cointelegraph, SEC/CFTC | 12 | UTC−5 | digest, story, analysis, interactive |
+| `tech-ai-es` | ES | IA en español | Hipertextual, FayerWayer, ABC Tecnología, La Nación, Xataka | 8 | UTC−6 | digest, story, analysis, interactive |
+| `crypto-es` | ES | Cripto en español | CriptoNoticias, BeInCrypto, CriptoTendencia, Investing | 12 | UTC−6 | digest, story, analysis, interactive |
+| `futbol-es` | ES | Fútbol y deporte en español | ESPN Deportes, Relevo, 90min, La Nación, Récord | 12 | UTC−6 | digest, story, analysis, interactive |
 
-| id | Название | Тема | Источники | Расписание (МСК) | Форматы | Тон |
-|---|---|---|---|---|---|---|
-| `tech-ai` | Технологии и ИИ | ИИ, нейросети, гаджеты, кибербезопасность, космос | Habr (news, ИИ), CNews, 3DNews, +пример Telegram | 09:00, 13:00, 19:00 | digest, story, analysis | expert |
-| `business-finance` | Бизнес и финансы | экономика, рынки, банки, налоги, стартапы | Коммерсантъ, РБК, Ведомости, Lenta.ru, ТАСС | 08:30, 12:30, 18:30 | story, digest, analysis | expert |
-| `science-health` | Наука и здоровье | исследования, медицина, мозг, генетика, климат | N+1, Naked Science, Элементы, ТАСС | 10:00, 15:00, 20:00 | story, analysis, digest | science |
-| `auto` | Авто и транспорт | автомобили, электромобили, ПДД, дороги, ОСАГО | Kolesa.ru, 5 колесо, М24, Lenta.ru, РИА Новости | 09:30, 14:00, 19:30 | story, digest, analysis | expert |
-| `travel` | Путешествия | направления, отели, билеты, визы, курорты | TourDom, RATA-news, М24, РИА Новости | 11:00, 16:00, 21:00 | digest, story, analysis | friendly |
-| `culture` | Культура и кино | кино, сериалы, театр, музыка, книги | InterMedia, Ревизор.ru, Кино-Новости, М24 | 10:30, 15:30, 20:30 | digest, story, analysis | friendly |
+Итого — **64 запланированных слота в сутки**. Отдельный канал `signals`
+(`@BESTsignal0007`) публикует рыночные сигналы и прогнозы и настраивается в
+`config/signals.yaml`, а не в списке новостных каналов.
 
-Все каналы публикуют по 3 поста в день; лимит длины — 3500–3800 символов.
-Расписание задано по московскому времени (`timezone_offset: 3` у каждого
-канала и в `settings.yaml`), перехода на летнее время в России нет.
+Лимит длины поста — `max_post_chars` канала (обычно 1200). Время в
+`schedule` — **локальное время канала**, а не МСК: у EN-каналов
+`timezone_offset: -5`, у ES — `-6`.
 
 ### Как читать таблицу
 
 - **id** — техническое имя; используется в командах `--channel`.
-- **Источники** — фактический список из `channels.yaml`; у каждого есть `id`,
+- **Источники** — фактический список из `config/channels.en.yaml`; у каждого есть `id`,
   `type` (`rss`/`web`/`telegram`), `url`, `weight` (вес при ранжировании).
 - **Форматы** — какие типы постов разрешены:
   - `digest` — подборка нескольких новостей/событий дня;
@@ -99,7 +101,7 @@ sources:
 | `telegram` | `limit` | сколько последних сообщений читать (по умолчанию 30) |
 | любой | `trust` | `true` — тематический источник: его лента принимается без жёсткого фильтра по ключевым словам (стоп-слова канала действуют) |
 
-Например, включить полный текст статей RSS (полезно для science-health):
+Например, включить полный текст статей RSS (полезно для ai-news):
 
 ```yaml
 - id: nplus1
@@ -122,7 +124,7 @@ Telegram работает через обычный Bot API без Telethon.
    `./.venv/bin/python -m pip install -r requirements-optional.txt`
 2. Получите `api_id`/`api_hash` на <https://my.telegram.org> (бесплатно).
 3. Пропишите в `.env`: `TG_API_ID`, `TG_API_HASH`, `TG_SESSION`.
-4. В `channels.yaml` у нужного источника поставьте `enabled: true`:
+4. В `config/channels.en.yaml` у нужного источника поставьте `enabled: true`:
 
 ```yaml
 - id: tg-ria-tech
@@ -139,24 +141,31 @@ Telegram работает через обычный Bot API без Telethon.
 
 ## 4. Расписание (`schedule`)
 
-Формат — список `"HH:MM"` по московскому времени:
+Формат — список `"HH:MM"` в локальном времени канала:
 
 ```yaml
-schedule: ["09:00", "13:00", "19:00"]
-posts_per_day: 3
+schedule:
+  - "04:20"
+  - "05:50"
+  - "07:20"
+  - "08:50"
+  - "10:20"
+  - "11:50"
+  - "13:20"
+  - "16:20"
+posts_per_day: 8
+timezone_offset: -5
 ```
 
-- Время — МСК; для другого пояса используйте `timezone_offset` (например,
-  `4` для Самары, `5` для Екатеринбурга).
-- Число слотов обычно равно `posts_per_day`; больше слотов, чем постов, —
-  нормально (демон выберет первые доступные).
+- Время трактуется в поясе канала: `timezone_offset: -5` — UTC−5,
+  `-6` — UTC−6. Это не МСК.
+- Число слотов обычно равно `posts_per_day`.
 - Не ставьте слоты слишком близко (менее 30 минут) — аудитория не любит
   «пулемёт», а Telegram может ограничить частоту.
-- Слот считается отработанным после обработки (в dry-run — когда пост попал
-  в outbox). Если процесс не смог выполнить слот целиком (например, ошибка
-  базы), отметка не ставится и слот повторится в следующем цикле. Ошибки
-  отдельных публикаций (нет прав бота, 429) слот не откатывают — они видны в
-  `publishes.error` и отчёте (см. [operations.md](operations.md)).
+- Слот считается отработанным после обработки. Ошибки отдельных публикаций
+  (нет прав бота, 429) видны в `publishes` и в health-check workflow.
+- В облачном продакшне работает только GitHub Actions. Локальный `daemon`
+  нельзя запускать одновременно с ним: это даёт дубли постов.
 
 ## 5. Тон, формат, длина
 
@@ -199,7 +208,7 @@ VK_GROUP_ID=123456789          # числовой id сообщества
 
 ## 6. Как изменить канал
 
-1. Откройте `config/channels.yaml`.
+1. Откройте `config/channels.en.yaml`.
 2. Измените поля у нужного канала (например, добавьте источник или
    поменяйте время).
 3. Проверьте конфиг:
@@ -211,7 +220,7 @@ VK_GROUP_ID=123456789          # числовой id сообщества
 4. Сделайте пробный прогон без публикации:
 
 ```bash
-./.venv/bin/python -m content_factory run --channel tech-ai --dry-run
+./.venv/bin/python -m content_factory run --channel ai-news --dry-run
 ```
 
 5. Перезапустите демон, если он работает.
@@ -222,7 +231,7 @@ VK_GROUP_ID=123456789          # числовой id сообщества
 
 ## 7. Как добавить седьмой канал
 
-1. Скопируйте блок любого канала в `config/channels.yaml`.
+1. Скопируйте блок любого канала в `config/channels.en.yaml`.
 2. Задайте уникальный `id` (латиница, цифры, `-`/`_`, например `sport`).
 3. Заполните `title`, `description`, `topics`, `exclude_keywords`.
 4. Перечислите `sources` (можно начать с 2–3 RSS).

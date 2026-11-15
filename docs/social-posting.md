@@ -16,9 +16,9 @@
 
 | Канал | Telegram | Mastodon | Discord | Bluesky | Akkoma |
 |---|---:|:---:|:---:|:---:|:---:|
-| `sport-news` | ✅ | ⛔ paused | ✅ | — | — |
-| `ai-news` | ✅ | ⛔ paused | ✅ | — | — |
-| `crypto-news` | ✅ | — | ✅ | ✅ | ✅ |
+| `sport-news` | ✅ | ⛔ paused | ⚠️ | — | — |
+| `ai-news` | ✅ | ⛔ paused | ⚠️ | — | — |
+| `crypto-news` | ✅ | — | ⚠️ | ✅ | ⚠️ |
 | `tech-ai-es` | ✅ | ⛔ paused | — | — | — |
 | `crypto-es` | ✅ | ⛔ paused | — | — | — |
 | `futbol-es` | ✅ | ⛔ paused | — | — | — |
@@ -26,6 +26,11 @@
 Итого: **6 каналов, 11 включённых направлений**. Mastodon временно снят: аккаунт отдаёт `403 Your login is currently disabled` на каждом посте. Discord оставлен только у
 трёх английских каналов, Bluesky/Akkoma — только у крипто-канала, чтобы один
 аккаунт не получал поток всех тем и не уходил в антиспам.
+
+Легенда: ✅ — сетевой тест пройден; ⚠️ — креды есть, но сетевой запрос
+возвращает ошибку; ⛔ — внешний аккаунт/сервис отключён. На 15.11.2026
+Mastodon отвечает `403 Your login is currently disabled`, Discord и Akkoma —
+`403 Cloudflare 1010` (исправлен User-Agent, нужен повторный прогон).
 
 `Tumblr`-креды есть, но публикация включена только в отдельном дайджест-
 сценарии (сейчас приостановлен). `X`, `VK`, `Facebook`, `LinkedIn`, `Medium`,

@@ -185,10 +185,14 @@ class DiscordTests(SocialTestCase):
         self.assertTrue(publisher.check(self.make_channel())[0])
         with mock.patch(
             "content_factory.publishers.discord.http_json", return_value={"id": "msg-1"}
-        ):
+        ) as http_call:
             result = publisher.publish(self.make_post(), self.make_channel(), settings)
         self.assertTrue(result.ok)
         self.assertEqual(result.external_id, "msg-1")
+        self.assertEqual(
+            http_call.call_args.args[0],
+            "https://discord.com/api/webhooks/1/abc?wait=true",
+        )
 
     def test_invalid_webhook(self):
         os.environ["DISCORD_WEBHOOK_URL"] = "https://example.com/not-a-webhook"

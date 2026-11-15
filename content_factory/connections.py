@@ -143,5 +143,6 @@ def summarize(rows: Iterable[PublisherConnection]) -> Dict[str, int]:
 
 
 def format_connection(row: PublisherConnection) -> str:
-    marker = "✓" if row.ready else "✗"
-    return f"  {row.publisher:12} {marker} {row.detail}"
+    if row.ready:
+        return f"  {row.publisher:12} ✓ настроено: {row.detail}"
+    return f"  {row.publisher:12} ✗ не настроено: {row.detail}"

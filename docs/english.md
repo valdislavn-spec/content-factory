@@ -6,11 +6,11 @@
 
 ## 1. Быстрый старт
 
-1. Готовый набор английских каналов — `config/channels.en.yaml`: 6 реальных
-   Telegram-каналов (спорт, спорт-аналитика/ставки, мир, ИИ, технологии,
-   крипто). В `telegram_chat_id` прописаны **числовые ID каналов** (не
-   `@username`): бот работает по ID, и они не меняются при переименовании
-   канала. Отдельные `TELEGRAM_CHAT_ID_*` для них не нужны.
+1. Готовый набор английских каналов — `config/channels.en.yaml`: 3 реальных
+   Telegram-канала (US Sports, AI, Crypto). В `telegram_chat_id` прописаны
+   **числовые ID каналов** (не `@username`): бот работает по ID, и они не
+   меняются при переименовании канала. Отдельные `TELEGRAM_CHAT_ID_*` для них
+   не нужны. Испанские каналы лежат в `config/channels.es.yaml`.
 2. В `config/settings.yaml`:
 
    ```yaml
@@ -28,7 +28,7 @@
 4. Запуск в безопасном режиме (посты в `data/outbox/`, без публикации):
 
    ```bash
-   ./.venv/bin/python -m content_factory run --channel tech-ai --dry-run
+   ./.venv/bin/python -m content_factory run --channel ai-news --dry-run
    ```
 
    Убедитесь, что в outbox-файле английский текст, а публикация остаётся
@@ -38,7 +38,7 @@
 Переопределить файл каналов можно без правки YAML:
 
 ```bash
-CONTENT_FACTORY_CHANNELS=config/channels.yaml ./.venv/bin/python -m content_factory run
+CONTENT_FACTORY_CHANNELS=config/channels.en.yaml ./.venv/bin/python -m content_factory run
 ```
 
 ## 2. Что именно переводится
@@ -55,14 +55,25 @@ CONTENT_FACTORY_CHANNELS=config/channels.yaml ./.venv/bin/python -m content_fact
 Не переводятся: внутренние логи, названия полей в SQLite, отчёты аналитики и
 документация — они служебные и остаются на русском.
 
-## 3. Автопостинг: раз в 90 минут в каждый канал
+## 3. Автопостинг по расписанию
 
-В `config/channels.en.yaml` **6 каналов** (спорт, спорт-аналитика/ставки, мир, ИИ, технологии, крипто)
-и у каждого **16 слотов в сутки** — пост раз в 90 минут:
-`00:00, 01:30, 03:00, 04:30, 06:00, 07:30, 09:00, 10:30, 12:00, 13:30, 15:00,
-16:30, 18:00, 19:30, 21:00, 22:30` (UTC). Итого **96 постов/сутки**.
+В `config/channels.en.yaml` **3 английских канала**:
 
-**Автозапуск на macOS** (переживает перезагрузку, перезапускается при падении):
+| Канал | Слотов в сутки |
+|---|---:|
+| `sport-news` | 12 |
+| `ai-news` | 8 |
+| `crypto-news` | 12 |
+
+Итого **32 запланированных поста в сутки** в английском наборе. Точные слоты
+заданы в `schedule` каждого канала и считаются в его `timezone_offset`
+(у EN-каналов сейчас UTC−5). Испанский набор (`config/channels.es.yaml`) —
+ещё 32 слота, всего по сети 64.
+
+**Продакшн-планировщик — GitHub Actions** (`.github/workflows/content-factory.yml`),
+он запускается по внешнему cron и делает один тик EN + один тик ES.
+
+**Локальный автозапуск на macOS** — только резервный режим для одной машины:
 
 ```bash
 bash scripts/install-launchd-macos.sh          # установить и запустить
@@ -70,28 +81,28 @@ bash scripts/install-launchd-macos.sh status   # проверить
 bash scripts/install-launchd-macos.sh uninstall# остановить
 ```
 
-Логи: `data/logs/daemon.out.log`, `data/logs/daemon.err.log` и общий
-`data/logs/factory.log`.
+⚠️ Не запускайте локальный `daemon` одновременно с облачным workflow: два
+планировщика видят разные `schedule_state.json`, отрабатывают одни и те же
+слоты и дают дубли постов. Для облачного продакшна локальный агент должен быть
+остановлен и disabled (`launchctl bootout` + `launchctl disable`).
 
-**Бесплатные лимиты** (80 запусков/сутки):
+Логи локального режима: `data/logs/daemon.out.log`,
+`data/logs/daemon.err.log` и общий `data/logs/factory.log`.
+
+**Бесплатные лимиты** (зависят от текущего набора источников и LLM-цепочки):
 
 | Ресурс | Лимит | Наш расход / защита |
 |---|---|---|
 | RSS | без ключей | основной источник, работает всегда |
-| World News API | 50 points/сутки | `daily_limit: 30` → примерно треть слотов |
-| newsdata.io | ~200 кредитов/сутки | `daily_limit: 100` (хватает на все 80) |
+| World News API | 50 points/сутки | `daily_limit` в конфиге источника |
+| newsdata.io | ~200 кредитов/сутки | `daily_limit: 100` |
 | Currents API | ~600 запросов/сутки | `daily_limit: 100` |
 | LLM (Groq/free) | лимиты провайдеров | `daily_request_limit: 300`, дальше extractive |
 | Dify-приложение | 200 кредитов Sandbox | по умолчанию выключено |
-| Telegram Bot API | бесплатно | 80 сообщений/сутки |
+| Telegram Bot API | бесплатно | 64 слота/сутки + рыночные алерты |
 
 Источники с исчерпанной квотой пропускаются (счётчики в
 `data/source_<type>_usage.json`), канал продолжает работать на RSS.
-LLM-цепочка: `Groq → OpenRouter → SambaNova → HuggingFace → OpenAI → Dify →
-extractive` (счётчик `data/llm_usage.json`).
-
-Пока `TELEGRAM_BOT_TOKEN` пуст или `dry_run: true`, демон пишет посты в
-`data/outbox/` и ничего не публикует — это безопасный режим для проверки.
 
 ## 4. Dify Cloud и язык
 

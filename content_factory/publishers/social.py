@@ -20,7 +20,7 @@ from typing import Any, Dict, Optional
 
 from ..config import Settings
 from ..models import ChannelConfig, GeneratedPost
-from ..utils import env, normalize_space, strip_html, truncate
+from ..utils import DEFAULT_USER_AGENT, env, normalize_space, strip_html, truncate
 from .base import Publisher
 
 logger = logging.getLogger(__name__)
@@ -97,6 +97,7 @@ def http_json(
     """JSON-запрос к API соцсети; все сетевые/HTTP-ошибки → SocialAPIError."""
     request_headers = {
         "Accept": "application/json",
+        # Cloudflare-фронты Discord/Akkoma банят UA «Python-urllib» (1010).
         "User-Agent": DEFAULT_USER_AGENT,
     }
     body: Optional[bytes] = None

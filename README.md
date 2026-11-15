@@ -43,14 +43,15 @@
   `yandexgpt`/`dify` — если хочется «живее».
 - **Генерация постов** — форматы `digest` (подборка), `story` (один сюжет),
   `analysis` (разбор); хештеги, CTA, лимит длины, HTML для Telegram.
-- **Русский и английский** — язык задаётся у канала (`language: ru|en`),
-  готовый набор английских каналов — `config/channels.en.yaml`
+- **Английский и испанский** — язык задаётся у канала (`language: en|es`),
+  наборы лежат в `config/channels.en.yaml` и `config/channels.es.yaml`
   (см. [english.md](docs/english.md)).
 - **Публикация** — Telegram Bot API (основное направление) плюс
   кросспостинг в Mastodon/Discord/Bluesky/Akkoma и другие соцсети;
   dry-run в файлы.
-- **Расписание** — 3 публикации в день на канал по московскому времени;
-  демон проверяет слоты и переживает перезапуски.
+- **Расписание** — 8–12 слотов в день на канал (64 слота по шести каналам),
+  часовой пояс задаётся у канала. В продакшне работает один планировщик —
+  GitHub Actions; локальный `daemon` нельзя запускать одновременно с ним.
 - **Аналитика** — `report.html` + `report.md`: посты, публикации, ошибки,
   источники, подписчики, форматы.
 - **Экономия токенов** — кэш ответов LLM, объединённый анализ (резюме+тезисы
@@ -206,14 +207,14 @@ python -m content_factory run --channel all --dry-run
 Посты — в `data/outbox/`. Посмотреть «как будет выглядеть» без публикации:
 
 ```bash
-python -m content_factory preview --channel tech-ai --limit 3
+python -m content_factory preview --channel ai-news --limit 3
 ```
 
 ### 5. Первая публикация
 
 ```bash
 # один канал
-python -m content_factory run --channel tech-ai --publish
+python -m content_factory run --channel ai-news --publish
 
 # или: CONTENT_FACTORY_DRY_RUN=false в .env и обычный запуск
 python -m content_factory run --channel all
@@ -229,23 +230,27 @@ python -m content_factory daemon
 ```
 
 Демон проверяет расписание каждые 60 секунд (настраивается
-`app.daemon_interval_sec`). Остановка — `Ctrl+C`. Для автозапуска см.
+`app.daemon_interval_sec`). Остановка — `Ctrl+C`. Это локальный/резервный
+режим: в продакшне расписание тикает GitHub Actions, а второй планировщик
+даёт дубли постов. Не запускайте оба одновременно; для автозапуска см.
 `scripts/` и [operations.md](docs/operations.md).
 
 ## Шесть каналов
 
-| id | Тема | Источники | Расписание (МСК) | Форматы |
-|---|---|---|---|---|
-| `tech-ai` | Технологии и ИИ | Habr, CNews, 3DNews, Telegram (опц.) | 09:00, 13:00, 19:00 | digest, story, analysis |
-| `business-finance` | Бизнес и финансы | Коммерсантъ, РБК, Ведомости, Lenta, ТАСС | 08:30, 12:30, 18:30 | story, digest, analysis |
-| `science-health` | Наука и здоровье | N+1, Naked Science, Элементы, ТАСС | 10:00, 15:00, 20:00 | story, analysis, digest |
-| `auto` | Авто и транспорт | Kolesa.ru, 5 колесо, М24, Lenta, РИА | 09:30, 14:00, 19:30 | story, digest, analysis |
-| `travel` | Путешествия | TourDom, RATA-news, М24, РИА | 11:00, 16:00, 21:00 | digest, story, analysis |
-| `culture` | Культура и кино | InterMedia, Ревизор.ru, Кино-Новости, М24 | 10:30, 15:30, 20:30 | digest, story, analysis |
+| id | Язык | Тема | Слотов/сутки | Часовой пояс |
+|---|---|---:|---:|---:|
+| `sport-news` | EN | NFL, NBA, MLB, NHL, college football | 12 | UTC−5 |
+| `ai-news` | EN | AI, модели, продукты, политика | 8 | UTC−5 |
+| `crypto-news` | EN | Bitcoin, Ethereum, рынки, регуляция | 12 | UTC−5 |
+| `tech-ai-es` | ES | IA: модели, продукты, компании | 8 | UTC−6 |
+| `crypto-es` | ES | Bitcoin, Ethereum, mercados, regulación | 12 | UTC−6 |
+| `futbol-es` | ES | Fútbol и спорт в Латинской Америке/Испании | 12 | UTC−6 |
 
-Все настройки — в `config/channels.yaml`; токены и id каналов — только в
-`.env`. Как менять темы, источники, расписание и добавлять 7-й канал —
-[channels.md](docs/channels.md).
+Итого 64 запланированных слота в сутки. Отдельно существует канал
+`signals` (`@BESTsignal0007`) — рыночные сигналы и прогнозы, он не входит в
+шесть новостных каналов. Все настройки — в `config/channels.en.yaml` и
+`config/channels.es.yaml`; токены и id каналов — только в `.env`. Как менять
+темы, источники, расписание и добавлять канал — [channels.md](docs/channels.md).
 
 ## Команды CLI
 
@@ -256,14 +261,14 @@ python -m content_factory daemon
 | `python -m content_factory init` | создаёт `.env` из `.env.example` и каталоги `data/` |
 | `python -m content_factory channels` | список каналов, расписание, режим публикации |
 | `python -m content_factory sources check` | проверка доступности источников (всех каналов) |
-| `python -m content_factory sources check --channel tech-ai` | проверка источников одного канала |
+| `python -m content_factory sources check --channel ai-news` | проверка источников одного канала |
 | `python -m content_factory social-check --strict` | проверить, что у всех включённых направлений публикации есть креды |
 | `python -m content_factory social-check --json` | машинный отчёт по подключениям каналов |
 | `python -m content_factory run --channel all` | один прогон каналов (режим из настроек) |
-| `python -m content_factory run --channel tech-ai --dry-run` | прогон без публикации, посты в `data/outbox/` |
+| `python -m content_factory run --channel ai-news --dry-run` | прогон без публикации, посты в `data/outbox/` |
 | `python -m content_factory run --publish` | принудительная реальная публикация |
 | `python -m content_factory run --channel all --max-posts 1` | не больше 1 поста на канал за прогон |
-| `python -m content_factory preview --channel tech-ai` | показать будущие посты, не публикуя (посты не сохраняются) |
+| `python -m content_factory preview --channel ai-news` | показать будущие посты, не публикуя (посты не сохраняются) |
 | `python -m content_factory preview --channel all --limit 5` | по 5 сюжетов на канал |
 | `python -m content_factory daemon` | автономная работа по расписанию |
 | `python -m content_factory daemon --once` | одна проверка расписания и выход (cron) |
@@ -277,7 +282,7 @@ python -m content_factory daemon
 | `python -m content_factory --root /путь/к/проекту ...` | указать корень проекта |
 
 - `--channel` принимает `all`, один id или несколько через запятую:
-  `--channel tech-ai,culture`.
+  `--channel ai-news,culture`.
 - Имена каналов — из таблицы выше; неизвестный id даст понятную ошибку.
 - После `pip install -e .` доступна короткая команда `content-factory ...`,
   но `python -m content_factory` работает всегда и не требует установки пакета.
@@ -290,7 +295,7 @@ python -m content_factory channels
 python -m content_factory sources check
 
 # посмотреть, что уйдёт в каналы
-python -m content_factory preview --channel tech-ai
+python -m content_factory preview --channel ai-news
 
 # разовый прогон, если демон не запущен (иначе он делает это сам)
 python -m content_factory run --channel all
@@ -358,7 +363,7 @@ python scripts/growth_report.py --send
 
 ## Расширение
 
-- **Новый канал** — скопировать блок в `config/channels.yaml`, задать `id`,
+- **Новый канал** — скопировать блок в `config/channels.en.yaml`, задать `id`,
   темы, источники, расписание и `TELEGRAM_CHAT_ID_*`. Код менять не нужно.
 - **Новый источник** — RSS/HTML подключается записью в `sources`; для нового
   типа нужен адаптер (`SourceAdapter` в `content_factory/sources/`).
@@ -435,7 +440,7 @@ Apple Silicon/видеокарта ускоряют, но не обязател�
 работают. Источник можно отключить (`enabled: false`) или заменить URL.
 
 **Как поменять темы/каналы?**
-Отредактируйте `config/channels.yaml` и перезапустите демон. Проверка —
+Отредактируйте `config/channels.en.yaml` и перезапустите демон. Проверка —
 `python -m content_factory channels`. Подробно — [channels.md](docs/channels.md).
 
 **Как остановить публикацию?**

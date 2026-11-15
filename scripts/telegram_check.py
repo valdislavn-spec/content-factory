@@ -80,12 +80,14 @@ def main() -> int:
     print(f"Бот: @{me.get('username')} (id {me.get('id')})")
     channels = load_channels(settings)
     ok = 0
+    expected = 0
     for channel in channels:
         chat_id = str(channel.telegram_chat_id or "").strip()
         label = f"{channel.id:18s}"
         if not chat_id:
             print(f"{label} — chat_id не задан (dry-run)")
             continue
+        expected += 1
         try:
             chat = api(token, "getChat", chat_id=chat_id)["result"]
             member = api(token, "getChatMember", chat_id=chat_id, user_id=me["id"])["result"]
@@ -93,10 +95,12 @@ def main() -> int:
             username = chat.get("username")
             status = member.get("status")
             can_post = member.get("can_post_messages")
-            ok += 1
+            posting = status in {"administrator", "creator"} and can_post is not False
+            if posting:
+                ok += 1
             print(
                 f"{label} {chat_id} | {title!r} | @{username} | {chat.get('type')} "
-                f"| бот: {status} | can_post={can_post}"
+                f"| бот: {status} | can_post={can_post} | posting={'OK' if posting else 'NO'}"
             )
         except urllib.error.HTTPError as exc:
             detail = ""
@@ -108,8 +112,10 @@ def main() -> int:
         except Exception as exc:
             print(f"{label} {chat_id} | ОШИБКА: {type(exc).__name__}: {exc}")
 
-    print(f"\nПроверено каналов: {len(channels)}, доступно боту: {ok}")
-    return 0 if ok else 2
+    print(
+        f"\nПроверено каналов: {len(channels)}, с правом публикации: {ok}/{expected}"
+    )
+    return 0 if expected > 0 and ok == expected else 2
 
 
 if __name__ == "__main__":
