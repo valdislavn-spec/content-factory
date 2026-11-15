@@ -35,6 +35,7 @@ def main() -> int:
     print("X_API_KEY len:", len(CONSUMER_KEY), "| X_API_SECRET len:", len(CONSUMER_SECRET), "| blob len:", len(BLOB))
     if not BLOB:
         print("no blob"); return 1
+    ok = False
     marker = "%3D"
     index = BLOB.find(marker)
     first = BLOB[: index + len(marker)] if index >= 0 else BLOB
@@ -49,6 +50,7 @@ def main() -> int:
         )
         print("bearer[%s]: HTTP %s | %s" % (label, status, body[:200]))
         if status == 200:
+            ok = True
             break
 
     # 2) user-context tests with candidate access token/secret pairs
@@ -64,12 +66,14 @@ def main() -> int:
         status, body = request(url, {"Authorization": header})
         print("oauth1 users/me[%s]: HTTP %s | %s" % (label, status, body[:220]))
         if status == 200:
+            ok = True
             try:
                 data = json.loads(body)
                 print("  USER:", (data.get("data") or {}).get("username"), "| id:", (data.get("data") or {}).get("id"))
             except ValueError:
                 pass
-    return 0
+            break
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

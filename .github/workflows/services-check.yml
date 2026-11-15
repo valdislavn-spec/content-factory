@@ -64,6 +64,18 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Verify Buffer API
+        run: |
+          python - <<'PY'
+          from content_factory.integrations.buffer import BufferClient
+          client = BufferClient.from_env()
+          orgs = client.organizations()
+          print("organizations:", [(o.get("id"), o.get("name")) for o in orgs])
+          if not orgs:
+              raise SystemExit("Buffer: organizations пуст")
+          channels = client.channels(orgs[0]["id"])
+          print("channels:", [(c.get("service"), c.get("name"), c.get("id")) for c in channels])
+          PY
       - run: python scripts/buffer_queue.py --services twitter,bluesky,facebook
 
   cloudflare:
@@ -97,6 +109,31 @@ jobs:
             https://cf-subscribe.valdislav-n.workers.dev/) || true
           echo "cf-subscribe: $code $(cat /tmp/cf-subscribe.json 2>/dev/null | head -c 120)"
           test "$code" = "400"
+
+
+  llm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
+      HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python scripts/llm_check.py --max-tokens 120
 
   dify:
     runs-on: ubuntu-latest
