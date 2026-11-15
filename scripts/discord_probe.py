@@ -82,6 +82,7 @@ def _sample_text(channel) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Проверка Discord-webhook(ов)")
     parser.add_argument("--channel", action="append", default=[], help="id канала; можно несколько раз или через запятую")
+    parser.add_argument("--all", action="store_true", help="все каналы с discord в publisher_ids")
     parser.add_argument("--keep", action="store_true", help="не удалять тестовое сообщение")
     parser.add_argument("--text", default="Content Factory: проверка webhook. Сообщение удалится автоматически.")
     parser.add_argument("--sample", action="store_true", help="отправить образец форматированного поста")
@@ -89,7 +90,7 @@ def main() -> int:
     args = parser.parse_args()
 
     settings = Settings.load()
-    channels = _select_channels(settings, args.channel)
+    channels = _select_channels(settings, args.channel or (["all"] if args.all else []))
     if not channels:
         print("Нет каналов с publisher_ids, содержащим discord", file=sys.stderr)
         return 2
