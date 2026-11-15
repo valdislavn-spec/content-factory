@@ -544,7 +544,7 @@ channels:
     name: newsdata.io / Apuestas
     weight: 1.2
     options:
-      query: apuestas deportivas cuotas análisis
+      query: apuestas deportivas OR cuotas OR análisis deportivo
       language: es
       max_items: 10
       daily_limit: 100

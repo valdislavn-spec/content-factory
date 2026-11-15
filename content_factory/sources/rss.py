@@ -275,11 +275,14 @@ class RSSAdapter(SourceAdapter):
         full_text = bool(options.get("full_text", False))
 
         params = request_params(settings)
+        # Некоторые CDN (Substack/Cloudflare) режут фабричный User-Agent.
+        # Источник может переопределить его через options.user_agent.
+        source_ua = str(options.get("user_agent") or params["user_agent"])
         try:
             text = http_get_text(
                 source.url,
                 timeout=params["timeout"],
-                user_agent=params["user_agent"],
+                user_agent=source_ua,
                 retries=params["retries"],
             )
         except FetchError:

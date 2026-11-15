@@ -25,6 +25,8 @@ channels:
       weight: 1.2
       options:
         max_items: 8
+        # Substack отдаёт 403 фабричному UA с IP GitHub Actions.
+        user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
     - id: substack-one-useful-thing
       type: rss
       url: https://www.oneusefulthing.org/feed

@@ -39,6 +39,14 @@ class RSSAdapterTest(unittest.TestCase):
         with mock.patch("content_factory.sources.rss.http_get_text", return_value=text):
             return self.adapter.fetch(source, SETTINGS)
 
+    def test_source_user_agent_override(self) -> None:
+        source = _source(options={"user_agent": "Mozilla/5.0 Chrome/124.0"})
+        with mock.patch(
+            "content_factory.sources.rss.http_get_text", return_value=_fixture("sources_rss2.xml")
+        ) as get_text:
+            self.adapter.fetch(source, SETTINGS)
+        self.assertEqual(get_text.call_args.kwargs["user_agent"], "Mozilla/5.0 Chrome/124.0")
+
     # ------------------------------------------------------------------
     # RSS 2.0
     # ------------------------------------------------------------------

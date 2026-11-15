@@ -157,7 +157,7 @@ channels:
     weight: 1.0
     options:
       trust: true
-      query: NFL NBA MLB NHL college football sport
+      query: NFL OR NBA OR MLB OR NHL OR football
       language: en
       max_items: 10
       daily_limit: 100
@@ -315,7 +315,7 @@ channels:
     weight: 1.0
     options:
       trust: true
-      query: artificial intelligence OpenAI Anthropic Nvidia AI policy
+      query: artificial intelligence OR OpenAI OR Anthropic OR Nvidia
       language: en
       max_items: 10
       daily_limit: 100
@@ -497,7 +497,7 @@ channels:
     weight: 1.0
     options:
       trust: true
-      query: bitcoin cryptocurrency regulation SEC ETF
+      query: bitcoin OR ethereum OR cryptocurrency OR blockchain OR crypto
       language: en
       max_items: 10
       daily_limit: 100
