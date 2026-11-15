@@ -77,6 +77,7 @@ def free_openrouter_models(timeout=25):
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--max-tokens", type=int, default=300)
+    parser.add_argument("--strict", action="store_true", help="exit 1 if any provider failed")
     args = parser.parse_args()
     settings = Settings.load()
     results = {}
@@ -155,7 +156,7 @@ def main() -> int:
     print(json.dumps(results, ensure_ascii=False, indent=2))
     bad = [name for name, item in results.items() if isinstance(item, dict) and item.get("ok") is False]
     print("\nFAILED:", ", ".join(bad) if bad else "none")
-    return 0
+    return 1 if (bad and args.strict) else 0
 
 
 if __name__ == "__main__":

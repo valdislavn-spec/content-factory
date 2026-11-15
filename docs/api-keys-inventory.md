@@ -26,7 +26,7 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Pinterest | `PINTEREST_ACCESS_TOKEN`, `PINTEREST_API_BASE`, `PINTEREST_BOARD_ID` | ✅ sandbox API проверен 15.11.2026 (`GET /boards` 200, 2 доски); production ожидает Standard access |
 | Reddit | — | ⛔ API закрыт с 31.10.2026 (новые ключи не выдают) |
 | Email | Brevo (`BREVO_API_KEY`, `BREVO_LIST_ID_EN/ES`, `EMAIL_FROM`) | ✅ API 200, free 300 писем/день, EN/ES-списки созданы; подписчиков 0, weekly-рассылка пока в архиве |
-| LLM | OpenAI, DeepSeek, Groq, Cohere, OpenRouter, SambaNova, HuggingFace, Gemini (в GitHub), Ollama | ✅ ключи есть |
+| LLM | Groq, Cloudflare, Cohere, OpenRouter, Pollinations, Gemini | ✅ реальные вызовы 15.11.2026 вернули `OK`; Ollama Cloud — `402 credits depleted`, оставлен последним fallback |
 | LLM (резерв) | GigaChat, YandexGPT | ⚠️ переменные есть, значения **пустые** |
 | Новости/поиск | GDELT, NewsData, Tavily ×2 | ✅ работает |
 | Аналитика | GA4 (`GA4_SA_JSON` + property) | ✅ работает |
