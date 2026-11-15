@@ -102,23 +102,28 @@ export default {
         return k === "v1" && v === expected;
       });
       if (!valid) return json({ ok: false, error: "bad signature" }, 401);
-      let event = {};
-      try { event = JSON.parse(raw); } catch (e) { event = {}; }
-      const type = String(event.type || event.event || "");
-      const email = String((event.subscriber && event.subscriber.email_address)
-        || event.email_address || "").toLowerCase();
+      let envelope = {};
+      try { envelope = JSON.parse(raw); } catch (e) { envelope = {}; }
+      const events = Array.isArray(envelope.events) ? envelope.events
+        : (envelope.type ? [envelope] : []);
       const now = new Date().toISOString();
-      await run(env, "INSERT INTO kit_events (event, email, payload, received_at) VALUES (?,?,?,?)",
-        [type, email, raw.slice(0, 20000), now]);
-      if (email && (type.startsWith("subscriber.created") || type.startsWith("subscriber.activated")
-        || type === "subscriber.subscribed_to_form")) {
-        await run(env, `INSERT INTO subscribers (email, source, lang, created_at, unsubscribed)
-          VALUES (?,?,?,?,0) ON CONFLICT(email) DO UPDATE SET unsubscribed = 0`,
-          [email, "kit", "ru", now]);
-      }
-      if (type === "subscriber.cancelled" || type === "subscriber.unsubscribed"
-        || type === "subscriber.complained" || type === "subscriber.bounced") {
-        await run(env, "UPDATE subscribers SET unsubscribed = 1 WHERE email = ?", [email]);
+      for (const evt of events) {
+        const type = String(evt.type || "");
+        const data = evt.data || {};
+        const subscriber = data.subscriber || {};
+        const email = String(subscriber.email_address || data.email_address || "").toLowerCase();
+        await run(env, "INSERT INTO kit_events (event, email, payload, received_at) VALUES (?,?,?,?)",
+          [type, email, JSON.stringify(evt).slice(0, 20000), now]);
+        if (email && (type === "subscriber.created" || type === "subscriber.activated"
+          || type === "subscriber.subscribed_to_form" || type === "subscriber.tag_added")) {
+          await run(env, `INSERT INTO subscribers (email, source, lang, created_at, unsubscribed)
+            VALUES (?,?,?,?,0) ON CONFLICT(email) DO UPDATE SET unsubscribed = 0`,
+            [email, "kit", "ru", now]);
+        }
+        if (email && (type === "subscriber.unsubscribed" || type === "subscriber.bounced"
+          || type === "subscriber.complained")) {
+          await run(env, "UPDATE subscribers SET unsubscribed = 1 WHERE email = ?", [email]);
+        }
       }
       return json({ ok: true });
     }
