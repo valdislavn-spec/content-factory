@@ -92,6 +92,10 @@
       }
       return;
     }
+    if (fallback) {
+      fallback.classList.remove("is-visible");
+    }
+    var mount = document.getElementById("tpwl-search") || host;
     var script = document.createElement("script");
     script.charset = "utf-8";
     script.src = widgetUrl(locale);
@@ -102,6 +106,25 @@
       }
     };
     host.appendChild(script);
+    // White Label рендерит форму в #tpwl-search: если через 8 c пусто — показываем fallback.
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries += 1;
+      var rendered = mount.children.length > 0 && mount.textContent.trim().length > 0;
+      if (rendered) {
+        clearInterval(timer);
+        if (fallback) {
+          fallback.classList.remove("is-visible");
+        }
+        return;
+      }
+      if (tries > 16) {
+        clearInterval(timer);
+        if (fallback) {
+          fallback.classList.add("is-visible");
+        }
+      }
+    }, 500);
   }
 
   function wireDealCards() {
