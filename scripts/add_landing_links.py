@@ -7,9 +7,9 @@
 * отель в строке — ссылка на его карточку: ``travelata.ru/goto/hotel/<hotelId>``
   (постоянная ссылка, сервер сам редиректит на SEO-страницу отеля);
 * страна/город — ссылка на поиск Travelata с фильтрами снимка
-  (17.11–17.12.2026, 5–9 ночей, 2 взрослых);
+  (даты берутся из шапки снимка);
 * вся строка кликабельна (все ячейки + JS-обработчик на ``tr``);
-* «снимок 2026-11-10T18:55:47Z» заменяется человеческой датой.
+* «снимок <ISO>» заменяется человеческой датой.
 
 Использование:
     python scripts/add_landing_links.py [--page docs/nezabyvaemoe-puteshestvie/index.html] \
@@ -30,8 +30,6 @@ DEFAULT_DATA = ROOT.parent / "travelata-api" / "data" / "csv"
 BASE = "https://travelata.ru/search"
 HOTEL_BASE = "https://travelata.ru/goto/hotel"
 WINDOW = {
-    "dateFrom": "17.11.2026",
-    "dateTo": "17.12.2026",
     "nightFrom": "5",
     "nightTo": "9",
     "adults": "2",
@@ -39,8 +37,21 @@ WINDOW = {
     "meal": "all",
 }
 DEFAULT_CITY = "2"  # Москва
-SNAPSHOT_ISO = "2026-11-10T18:55:47Z"
-SNAPSHOT_HUMAN = "10.11.2026"
+
+
+def configure_from_html(html: str) -> None:
+    """Берёт заезды/ночи/взрослых из шапки страницы, чтобы ссылки совпадали со снимком."""
+    m = re.search(r"🗓️</span>\s*(\d{4})-(\d{2})-(\d{2})\s*—\s*(\d{4})-(\d{2})-(\d{2})", html)
+    if m:
+        y1, mo1, d1, y2, mo2, d2 = m.groups()
+        WINDOW["dateFrom"] = f"{d1}.{mo1}.{y1}"
+        WINDOW["dateTo"] = f"{d2}.{mo2}.{y2}"
+    n = re.search(r"🌙</span>\s*(\d+)–(\d+) ночей", html)
+    if n:
+        WINDOW["nightFrom"], WINDOW["nightTo"] = n.group(1), n.group(2)
+    a = re.search(r"👥</span>\s*(\d+) взрослых", html)
+    if a:
+        WINDOW["adults"] = a.group(1)
 
 CAT_SUFFIX = re.compile(
     r"\s*(База отдыха|Гостиница|Гостевой дом|Апартаменты|Апарт-отель|Отель|Хостел|\d\*)\s*$", re.I
@@ -200,14 +211,14 @@ OG_TAGS = """\n<meta property="og:type" content="website">
 <meta property="og:site_name" content="Travelata">
 <meta property="og:title" content="Перелёт + отель: пакетные туры Travelata — сводка цен на ноябрь–декабрь 2026">
 <meta property="og:description" content="1 072 живых предложения по 13 направлениям: Россия от 15 339 ₽, Абхазия от 18 473 ₽, Турция от 41 754 ₽. У каждого отеля — кликабельная карточка на Travelata.">
-<meta property="og:url" content="https://valdislavn-spec.github.io/content-factory/nezabyvaemoe-puteshestvie/">
-<meta property="og:image" content="https://valdislavn-spec.github.io/content-factory/nezabyvaemoe-puteshestvie/preview-social.png">
+<meta property="og:url" content="https://nezabyvaemoe.surge.sh/">
+<meta property="og:image" content="https://nezabyvaemoe.surge.sh/preview-social.png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="800">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Перелёт + отель: пакетные туры Travelata — сводка цен">
 <meta name="twitter:description" content="1 072 предложения по 13 направлениям, от 15 339 ₽ за двоих. У каждого отеля — карточка на Travelata.">
-<meta name="twitter:image" content="https://valdislavn-spec.github.io/content-factory/nezabyvaemoe-puteshestvie/preview-social.png">"""
+<meta name="twitter:image" content="https://nezabyvaemoe.surge.sh/preview-social.png">"""
 
 
 def ensure_og(html: str) -> str:
@@ -220,15 +231,27 @@ def ensure_og(html: str) -> str:
     return html
 
 
+ISO_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})T[\d:]+Z")
+
+
+def _human_date(iso: str) -> str:
+    y, mo, d = iso.split("T")[0].split("-")
+    return f"{d}.{mo}.{y}"
+
+
 def humanize_dates(html: str) -> str:
-    html = html.replace(
-        '<div class="foot-links">\n  <span class="chip"><span class="chip-ico">🕒</span>'
-        + SNAPSHOT_ISO + "</span>\n</div>\n",
+    """Убирает машинные ISO-даты снимка, оставляя человеческие ДД.ММ.ГГГГ."""
+    html = re.sub(
+        r'\n<div class="foot-links">\s*<span class="chip"><span class="chip-ico">🕒</span>'
+        r"\d{4}-\d{2}-\d{2}T[\d:]+Z</span>\s*</div>\n",
         "",
+        html,
     )
-    html = html.replace(f"· снимок {SNAPSHOT_ISO}.", f"· данные на {SNAPSHOT_HUMAN}.")
-    html = html.replace(f"снимок {SNAPSHOT_ISO}", SNAPSHOT_HUMAN)
-    return html.replace(SNAPSHOT_ISO, SNAPSHOT_HUMAN)
+    html = re.sub(r"· снимок (\d{4}-\d{2}-\d{2})T[\d:]+Z\.",
+                  lambda m: f"· данные на {_human_date(m.group(0)[len('· снимок '):-1])}.", html)
+    html = re.sub(r"снимок (\d{4})-(\d{2})-(\d{2})T[\d:]+Z",
+                  lambda m: f"{m.group(3)}.{m.group(2)}.{m.group(1)}", html)
+    return ISO_RE.sub(lambda m: _human_date(m.group(0)), html)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -243,6 +266,7 @@ def main(argv: list[str] | None = None) -> int:
     countries = load_map(data_dir / "countries.csv")
 
     html = page_path.read_text(encoding="utf-8")
+    configure_from_html(html)
     if "travelata.ru/" in html:
         print("ссылки уже есть — выхожу", file=sys.stderr)
         return 0
