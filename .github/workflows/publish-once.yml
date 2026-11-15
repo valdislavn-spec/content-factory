@@ -55,6 +55,10 @@ jobs:
       DISCORD_WEBHOOK_URL_CRYPTO_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_CRYPTO_NEWS }}
       AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
       AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       # На раннере доступны OpenAI/Groq/OpenRouter, недоступные из РФ.
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
