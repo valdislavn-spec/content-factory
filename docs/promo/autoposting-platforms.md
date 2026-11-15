@@ -13,7 +13,7 @@
 | Платформа | API | Что нужно в `.env` | Контент | Статус |
 |---|---|---|---|---|
 | **Telegram** | Bot API | `TELEGRAM_BOT_TOKEN` | текст/фото/опросы | ✅ работает |
-| **X (Twitter)** | API v2, OAuth 1.0a | `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | текст 280 | ⚠️ `@NValdislav` OAuth 200, но POST → 403 `oauth1-permissions`: включить Read+Write и перевыпустить access token; публикатор уже в `crypto-news` |
+| **X (Twitter)** | Buffer API; direct — API v2 OAuth 1.0a | `BUFFER_API_KEY` (рабочий fallback); опционально `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | текст X | ✅ автопостинг `crypto-news` → `@NValdislav` работает через `buffer-x` (живой пост 15.11.2026); прямой OAuth1 ждёт права Read+Write |
 | **VK** | VK API | `VK_ACCESS_TOKEN`, `VK_GROUP_ID` | текст/фото | ✅ реализован, нужен токен |
 | **Facebook Page** | Graph API v21 | `FACEBOOK_PAGE_ID`, `FACEBOOK_PAGE_TOKEN` | текст | ✅ реализован, нужен токен |
 | **LinkedIn** | REST Posts API | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | текст | ✅ реализован, нужен токен |
