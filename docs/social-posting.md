@@ -77,3 +77,41 @@ python scripts/discord_probe.py --sample
 - Akkoma/Fediverse: один аккаунт = одна тематика; не включать на все каналы.
 - X/Reddit: OAuth-токены истекают, нужен refresh.
 - Публикации и ошибки пишутся в `data/logs/factory.log` и таблицу `publishes`.
+
+## Discord: отдельный webhook на каждый канал
+
+Один webhook привязан к одному каналу Discord. Если у `sport-news`,
+`ai-news` и `crypto-news` один общий `DISCORD_WEBHOOK_URL`, все три темы
+попадут в одну ленту. Для нормальной структуры сервера задайте отдельные
+секреты:
+
+```text
+DISCORD_WEBHOOK_URL_SPORT_NEWS
+DISCORD_WEBHOOK_URL_AI_NEWS
+DISCORD_WEBHOOK_URL_CRYPTO_NEWS
+```
+
+Общий `DISCORD_WEBHOOK_URL` остаётся fallback'ом. Имена суффиксов — это
+`channel.id` в верхнем регистре, дефисы заменены на `_`.
+
+Проверка реального webhook (GET + тестовый пост + удаление) выполняется
+workflow **`discord-check`** вручную или ежедневно:
+
+```bash
+python scripts/discord_probe.py --sample          # отправит и удалит
+python scripts/discord_probe.py --sample --keep   # оставить для осмотра
+```
+
+Пост в Discord теперь:
+
+- конвертирует Telegram HTML в Discord Markdown;
+- убирает бесполезные в Discord хэштеги;
+- добавляет CTA канала (`cta` или `meta.discord_cta`) и ссылку на Telegram;
+- добавляет `allowed_mentions: {"parse": []}` — автопост не пингует `@everyone`;
+- использует `?wait=true`, чтобы получить `message_id` и писать его в `publishes`;
+- при наличии `meta.image_url` прикрепляет картинку через embed.
+
+Проверка `social-check --strict` по-прежнему не ходит в сеть: она проверяет
+только наличие/формат кредов. Сетевой статус — только у `discord-check`.
+
+План роста и структура сервера: `docs/growth/discord-playbook.md`.

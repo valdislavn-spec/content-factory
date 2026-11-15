@@ -87,6 +87,9 @@ jobs:
       # снять через 1–2 недели активности.
       MASTODON_NO_LINKS: ${{ vars.MASTODON_NO_LINKS || '0' }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_WEBHOOK_URL_SPORT_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_SPORT_NEWS }}
+      DISCORD_WEBHOOK_URL_AI_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_AI_NEWS }}
+      DISCORD_WEBHOOK_URL_CRYPTO_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_CRYPTO_NEWS }}
       # Akkoma (Fediverse): включён в crypto-news; без этих env публикатор
       # молча пропускался бы, хотя секреты в репозитории уже есть.
       AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
