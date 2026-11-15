@@ -56,7 +56,9 @@ def main():
     else:
         print("APP_INFO_ERROR=%s %s" % (ast, app))
     if a.fix_install:
-        fs, upd = api("PATCH", "/applications/@me", {
+        app_id = str(app.get("id") or "") if ast == 200 else ""
+        target = "/applications/%s" % app_id if app_id else "/applications/@me"
+        fs, upd = api("PATCH", target, {
             "bot_public": True,
             "bot_require_code_grant": False,
             "integration_public": True,
