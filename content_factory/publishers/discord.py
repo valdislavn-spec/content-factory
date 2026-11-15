@@ -178,8 +178,9 @@ class DiscordPublisher(SocialPublisher):
             return self._result(post, channel, ok=False, error=str(exc))
         message_id = str(data.get("id") or "")
         channel_id = str(data.get("channel_id") or "")
+        guild_id = str(data.get("guild_id") or "")
         message_url = ""
-        if message_id and channel_id:
-            # Ссылка на сообщение работает только для публичных каналов.
-            message_url = f"https://discord.com/channels/@me/{channel_id}/{message_id}"
+        if message_id and channel_id and guild_id:
+            # Валидная ссылка требует guild_id; без него @me — неверный URL.
+            message_url = f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
         return self._result(post, channel, ok=True, external_id=message_id, url=message_url)

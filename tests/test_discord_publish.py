@@ -185,3 +185,20 @@ def test_discord_publish_attaches_image_embed(monkeypatch) -> None:
 
     assert publisher.publish(post, channel, NS()).ok is True
     assert seen["payload"]["embeds"][0]["image"]["url"] == "https://example.com/news.jpg"
+
+
+def test_discord_publish_builds_message_url_only_with_guild_id(monkeypatch) -> None:
+    monkeypatch.setattr(
+        discord_mod,
+        "http_json",
+        lambda *args, **kwargs: {"id": "10", "channel_id": "20", "guild_id": "30"},
+    )
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/1/token")
+    publisher = DiscordPublisher(settings=NS())
+    post = NS(plain_text="Test", text="Test", html="Test", id="t1", meta={})
+    channel = NS(
+        id="ai-news", language="en", title="AI", telegram_chat_id="",
+        public_url="https://t.me/AINEWS0007", cta="", meta={},
+    )
+    result = publisher.publish(post, channel, NS())
+    assert result.url == "https://discord.com/channels/30/20/10"
