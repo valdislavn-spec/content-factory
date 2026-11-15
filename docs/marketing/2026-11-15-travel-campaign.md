@@ -77,3 +77,20 @@
 На страницах направлений и хабе стоит блок «Новые цены — раз в неделю»: основной CTA — Telegram-канал
 (работает), email-вариант — mailto до подключения Brevo. Для полноценного double opt-in нужен
 BREVO_API_KEY и RU-список в Brevo (сейчас списки пустые, ключа в .env нет).
+
+## Брендированный email (15.11, 08:50 PST)
+
+Собрано:
+- `scripts/brand_email.py` — брендированное письмо RU/EN (тёмный дизайн, таблица 8 цен, промо партнёров,
+  CTA с трекинг-кодами `tr-mail-hub` / `tr-mail-abroad` / `tr-mail-us`, подвал с отпиской).
+  Превью: `.local/email/digest-ru.png`.
+- `scripts/send_digest.py` — рассылка по списку из D1: `--dry-run` (собирает `.eml`),
+  `--to addr` (тест), `--limit`, `--lang`. SMTP: `smtp-relay.brevo.com:587` (креды в `listmonk/.env`).
+- Отписка: `GET /unsubscribe?e=<email>&t=<sha256(email|ADMIN_TOKEN)[:32]>` на воркере — одним кликом,
+  без подтверждений; подписка снова снимает флаг (resubscribe).
+- Страница политики для дайджеста: `/privacy-digest.html` (ссылка в каждом письме).
+
+**Блокер отправки:** Brevo SMTP отвечает `525 5.7.1 Unauthorized IP address` — у аккаунта включён
+список разрешённых IP. Чтобы письма пошли, нужно в Brevo → SMTP & API → Authorized IPs добавить
+текущий IP `79.172.64.10` (или выдать `BREVO_API_KEY` для HTTP API). Код и письма готовы,
+отправка — одна команда: `python3 scripts/send_digest.py --to valdislav.n@gmail.com`.

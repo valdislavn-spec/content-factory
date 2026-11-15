@@ -6,6 +6,12 @@ const slug = (s) =>
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 
+async function unsubToken(email, secret) {
+  const data = new TextEncoder().encode(String(email).toLowerCase() + "|" + String(secret));
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
 async function all(env, sql, params = []) {
   const res = await env.DB.prepare(sql).bind(...params).all();
   return res.results || [];
@@ -85,14 +91,32 @@ export default {
       }
       const lang = ["ru", "en", "es"].includes(String(body.lang)) ? String(body.lang) : "ru";
       const source = slug(body.source || "page").slice(0, 60);
-      await run(env, "INSERT OR IGNORE INTO subscribers (email, source, lang, created_at) VALUES (?,?,?,?)",
+      await run(env, `INSERT INTO subscribers (email, source, lang, created_at, unsubscribed)
+        VALUES (?,?,?,?,0)
+        ON CONFLICT(email) DO UPDATE SET unsubscribed = 0, source = excluded.source, lang = excluded.lang`,
         [email, source, lang, new Date().toISOString()]);
       return json({ ok: true }, 200);
     }
 
+    if (path === "/unsubscribe") {
+      const email = String(url.searchParams.get("e") || "").trim().toLowerCase();
+      const token = String(url.searchParams.get("t") || "");
+      if (!email || !token) return json({ ok: false, error: "e and t required" }, 400);
+      const expected = await unsubToken(email, env.ADMIN_TOKEN);
+      if (token !== expected) return json({ ok: false, error: "bad token" }, 403);
+      await run(env, "UPDATE subscribers SET unsubscribed = 1 WHERE email = ?", [email]);
+      return new Response(`<!doctype html><meta charset="utf-8"><title>Отписка</title>
+<body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b1226;color:#eef3f8;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:24px;text-align:center">
+<div><h1 style="font-size:24px">Вы отписаны</h1><p style="opacity:.75">Больше писем на ${email} не будет. Передумаете — подпишитесь снова на сайте.</p></div></body>`,
+        { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+    }
+
     if (path === "/admin/subscribers") {
       if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: "forbidden" }, 403);
-      const rows = await all(env, "SELECT email, source, lang, created_at FROM subscribers ORDER BY created_at DESC");
+      const onlyActive = url.searchParams.get("all") !== "1";
+      const rows = await all(env,
+        "SELECT email, source, lang, created_at, unsubscribed FROM subscribers" +
+        (onlyActive ? " WHERE COALESCE(unsubscribed,0) = 0" : "") + " ORDER BY created_at DESC");
       const byLang = {};
       for (const r of rows) byLang[r.lang] = (byLang[r.lang] || 0) + 1;
       return json({ ok: true, count: rows.length, by_lang: byLang, subscribers: rows });
