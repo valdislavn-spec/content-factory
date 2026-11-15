@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "pin-01-search-dates",
+    "file": "docs/travel-finds/pins/pin-01-search-dates.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-01-search-dates.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Cheap flights + hotels: search every date instead of one",
+      "description": "A flexible-date search beats a fixed one: compare a whole month of fares at once and pick the cheapest day to fly. Free tools, no hidden fees, ad · affiliate links.",
+      "alt_text": "Cheap flights + hotels: search every date instead of one",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-01-search-dates.png"
+      },
+      "link": "https://travel-finds.surge.sh/?utm_source=pinterest&utm_medium=organic&utm_campaign=travelfinds",
+      "board": "Travel Finds | Deals",
+      "keywords": "cheap flights, hotel deals, flexible dates, travel deals, flight search, 2026"
+    }
+  },
+  {
+    "slug": "pin-02-europe-300",
+    "file": "docs/travel-finds/pins/pin-02-europe-300.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-02-europe-300.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Europe for under $300: real cheap city breaks",
+      "description": "How to do 3 nights in a European city on a $300 budget: cheapest months, carry-on only, Mon–Wed departures and the booking window that actually saves money.",
+      "alt_text": "Europe for under $300: real cheap city breaks",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-02-europe-300.png"
+      },
+      "link": "https://travel-finds.surge.sh/?utm_source=pinterest&utm_medium=organic&utm_campaign=travelfinds",
+      "board": "Travel Finds | Deals",
+      "keywords": "cheap europe, city breaks, budget travel, europe under 300, weekend trips"
+    }
+  },
+  {
+    "slug": "pin-03-flexible",
+    "file": "docs/travel-finds/pins/pin-03-flexible.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-03-flexible.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Flexible dates = cheaper flights: shift ±3 days, save up to 40%",
+      "description": "Why shifting a trip by a few days changes the fare, which weekdays are cheapest to fly, and how to compare a whole date grid in one search.",
+      "alt_text": "Flexible dates = cheaper flights: shift ±3 days, save up to 40%",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-03-flexible.png"
+      },
+      "link": "https://travel-finds.surge.sh/?utm_source=pinterest&utm_medium=organic&utm_campaign=travelfinds",
+      "board": "Travel Finds | Deals",
+      "keywords": "flexible dates, cheap flights, how to save on flights, travel hacks"
+    }
+  },
+  {
+    "slug": "pin-04-book-window",
+    "file": "docs/travel-finds/pins/pin-04-book-window.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-04-book-window.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "When to book flights: the 6–8 week window",
+      "description": "Booking too early and too late both cost more. Here is the timing window that usually captures the lowest fare, by season and route.",
+      "alt_text": "When to book flights: the 6–8 week window",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-04-book-window.png"
+      },
+      "link": "https://travel-finds.surge.sh/?utm_source=pinterest&utm_medium=organic&utm_campaign=travelfinds",
+      "board": "Travel Finds | Deals",
+      "keywords": "when to book flights, booking window, travel timing, cheap fares"
+    }
+  },
+  {
+    "slug": "pin-05-train-bus-plane",
+    "file": "docs/travel-finds/pins/pin-05-train-bus-plane.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-05-train-bus-plane.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Train vs bus vs plane: the cheapest way across Europe",
+      "description": "A side-by-side comparison of train, bus and plane for city-to-city hops in Europe: real costs, time, and when the slow option wins.",
+      "alt_text": "Train vs bus vs plane: the cheapest way across Europe",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-05-train-bus-plane.png"
+      },
+      "link": "https://travel-finds.surge.sh/?utm_source=pinterest&utm_medium=organic&utm_campaign=travelfinds",
+      "board": "Travel Finds | Deals",
+      "keywords": "train vs bus vs plane, europe travel, cheap transport, city to city"
+    }
+  }
+]
