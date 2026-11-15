@@ -121,3 +121,11 @@ python scripts/discord_probe.py --sample --keep   # оставить для ос
 только наличие/формат кредов. Сетевой статус — только у `discord-check`.
 
 План роста и структура сервера: `docs/growth/discord-playbook.md`.
+
+## Discord через Bot API
+
+Если задан `DISCORD_BOT_TOKEN` и в `meta.discord_channel_id` канала указан ID
+канала, публикатор отправляет сообщение через `POST /channels/{id}/messages`.
+Webhook остаётся fallback'ом. Для Bot API используется отдельный
+`DiscordBot (...)` User-Agent: Discord блокирует bot-запросы с браузерным UA
+кодом `40333`.
