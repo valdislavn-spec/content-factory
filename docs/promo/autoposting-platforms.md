@@ -13,7 +13,7 @@
 | Платформа | API | Что нужно в `.env` | Контент | Статус |
 |---|---|---|---|---|
 | **Telegram** | Bot API | `TELEGRAM_BOT_TOKEN` | текст/фото/опросы | ✅ работает |
-| **X (Twitter)** | API v2, OAuth 1.0a | `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | текст 280 | ✅ реализован, нужны ключи |
+| **X (Twitter)** | API v2, OAuth 1.0a | `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET` | текст 280 | ✅ включён для `crypto-news`, OAuth проверен (`@NValdislav`) |
 | **VK** | VK API | `VK_ACCESS_TOKEN`, `VK_GROUP_ID` | текст/фото | ✅ реализован, нужен токен |
 | **Facebook Page** | Graph API v21 | `FACEBOOK_PAGE_ID`, `FACEBOOK_PAGE_TOKEN` | текст | ✅ реализован, нужен токен |
 | **LinkedIn** | REST Posts API | `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN` | текст | ✅ реализован, нужен токен |
