@@ -36,6 +36,7 @@ from content_factory.brand.design import (  # noqa: E402
 )
 
 SITE = "https://travel-finds.surge.sh"
+TRACKER = "https://links-tracker.valdislav-n.workers.dev/r/"
 OUT = ROOT / "docs" / "travel-finds" / "pins"
 PHOTOS = ROOT / "docs" / "assets" / "photos"
 DISCLOSURE = "Ad · affiliate link"
@@ -45,6 +46,16 @@ SITE_LABEL = "travel-finds.surge.sh"
 
 def source_link(source: str, medium: str) -> str:
     return f"{SITE}/?utm_source={source}&utm_medium={medium}&utm_campaign=travelfinds"
+
+
+#: short link code per pin (clicks counted in links-tracker, target carries UTM)
+CODES = {
+    "pin-01-search-dates": "pin-tf-search-dates",
+    "pin-02-europe-300": "pin-tf-europe-300",
+    "pin-03-flexible": "pin-tf-flexible",
+    "pin-04-book-window": "pin-tf-book-window",
+    "pin-05-train-bus-plane": "pin-tf-transport",
+}
 
 
 PINS = [
@@ -188,13 +199,13 @@ def main() -> int:
     credits_path = PHOTOS / "credits.json"
     credits = json.loads(credits_path.read_text(encoding="utf-8")) if credits_path.exists() else {}
     OUT.mkdir(parents=True, exist_ok=True)
-    link = source_link("pinterest", "organic")
     rows, meta = [], []
     for pin in PINS:
         photo_path = PHOTOS / f"{pin['photo']}.jpg"
         if not photo_path.exists():
             print(f"photo missing: {photo_path}", file=sys.stderr)
             return 2
+        link = TRACKER + CODES[pin["slug"]]
         content = PinContent(
             niche="travel",
             headline=pin["headline"],
