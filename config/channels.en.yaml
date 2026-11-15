@@ -24,6 +24,8 @@ channels:
   telegram_chat_id: '-1003802742871'
   public_url: https://t.me/SPORTNews0007
   language: en
+  meta:
+    discord_avatar_url: https://valdislavn-spec.github.io/content-factory/assets/pins/brand/sport-news-sports-mylead.png
   topics:
   - nfl
   - nba
@@ -207,6 +209,8 @@ channels:
   telegram_chat_id: '-1004351191643'
   public_url: https://t.me/AINEWS0007
   language: en
+  meta:
+    discord_avatar_url: https://valdislavn-spec.github.io/content-factory/assets/pins/brand/ai-news-ai-mylead.png
   topics:
   - artificial intelligence
   - ai
@@ -361,6 +365,8 @@ channels:
   public_url: https://t.me/HOOPY0007
   publisher_ids: [telegram, akkoma, bluesky, discord]
   language: en
+  meta:
+    discord_avatar_url: https://valdislavn-spec.github.io/content-factory/assets/pins/brand/crypto-news-crypto-bingx.png
   # Живая строка рынка в конце каждого поста (см. docs/market-line.md)
   market_line:
     enabled: true
