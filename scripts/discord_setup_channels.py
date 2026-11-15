@@ -47,6 +47,7 @@ def main():
     p.add_argument("--guild-id", required=True)
     p.add_argument("--apply", action="store_true")
     p.add_argument("--fix-install", action="store_true")
+    p.add_argument("--redirect-uri", default="")
     a = p.parse_args()
     gid = a.guild_id
     ast, app = api("GET", "/oauth2/applications/@me")
@@ -55,9 +56,12 @@ def main():
         print("APP_INFO=" + json.dumps({k: app.get(k) for k in keys}, ensure_ascii=False))
     else:
         print("APP_INFO_ERROR=%s %s" % (ast, app))
+    app_id = str(app.get("id") or "") if ast == 200 else ""
+    target = "/applications/%s" % app_id if app_id else "/applications/@me"
+    if a.redirect_uri:
+        rs, rupd = api("PATCH", target, {"redirect_uris": [a.redirect_uri]})
+        print("SET_REDIRECT=" + json.dumps({"status": rs, "redirect_uris": rupd.get("redirect_uris")}, ensure_ascii=False))
     if a.fix_install:
-        app_id = str(app.get("id") or "") if ast == 200 else ""
-        target = "/applications/%s" % app_id if app_id else "/applications/@me"
         fs, upd = api("PATCH", target, {
             "bot_public": True,
             "bot_require_code_grant": False,
