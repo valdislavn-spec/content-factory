@@ -95,7 +95,11 @@
     if (fallback) {
       fallback.classList.remove("is-visible");
     }
-    var mount = document.getElementById("tpwl-search") || host;
+    // White Label рендерит в свой контейнер: tpwl-tickets (поиск билетов)
+    // или tpwl-search (общая форма). Проверяем оба.
+    var mounts = ["tpwl-tickets", "tpwl-search"]
+      .map(function (id) { return document.getElementById(id); })
+      .filter(Boolean);
     var script = document.createElement("script");
     script.charset = "utf-8";
     script.src = widgetUrl(locale);
@@ -110,7 +114,9 @@
     var tries = 0;
     var timer = setInterval(function () {
       tries += 1;
-      var rendered = mount.children.length > 0 && mount.textContent.trim().length > 0;
+      var rendered = mounts.some(function (node) {
+        return node.children.length > 0 && node.textContent.trim().length > 0;
+      });
       if (rendered) {
         clearInterval(timer);
         if (fallback) {
