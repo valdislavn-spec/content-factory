@@ -733,6 +733,19 @@ class GeneratorQualityTest(unittest.TestCase):
         self.assertIn("Nvidia, Samsung, TSMC, OpenAI", en)
         self.assertIn("Nvidia, Samsung, TSMC, OpenAI", es)
 
+    def test_prose_avoids_duplicate_across_paragraphs(self):
+        from content_factory.nlp.generator import _prose
+        lead = (
+            "Treasury Secretary Scott Bessent called for a significant overhaul at Nvidia "
+            "and an outside CEO. Bessent raised concerns about potential illicit chip sales "
+            "and questioned the company compliance with U.S. export controls."
+        )
+        detail = (
+            "Bessent questioned Nvidia compliance with U.S. export controls and "
+            "potential illicit chip sales."
+        )
+        self.assertEqual(_prose([detail], "en", avoid=lead), "")
+
     def test_brand_casing_is_restored(self):
         from content_factory.nlp.generator import _fix_brand_case
         self.assertEqual(

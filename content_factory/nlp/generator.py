@@ -669,13 +669,16 @@ def _prose(
     """Собирает плавный абзац из предложений без ярлыков и списков."""
     picked: List[str] = []
     avoid_text = normalize_space(str(avoid or ""))
+    avoid_sentences = split_sentences(avoid_text) if avoid_text else []
     for sentence in sentences:
         if not _fits_language(sentence, lang):
             continue
         text = normalize_space(_shorten(sentence, max_len))
         if not text or any(_is_redundant(text, previous) for previous in picked):
             continue
-        if avoid_text and _is_redundant(text, avoid_text):
+        if avoid_sentences and any(
+            _is_redundant(text, previous) for previous in avoid_sentences
+        ):
             continue
         picked.append(text)
         if len(picked) >= limit:
