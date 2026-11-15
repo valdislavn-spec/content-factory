@@ -1,0 +1,50 @@
+name: x-promo-series
+
+# Серия промо-постов для X через Buffer API.
+# По умолчанию dry-run: показывает текст, длины и время публикации.
+# live=true создаёт посты в Buffer (первый можно сразу, остальные — по расписанию).
+
+on:
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "Создать посты в Buffer"
+        type: boolean
+        default: false
+      first_now:
+        description: "Опубликовать первый пост сразу"
+        type: boolean
+        default: false
+      start_date:
+        description: "Дата старта YYYY-MM-DD (UTC)"
+        required: false
+        default: ""
+      times:
+        description: "Слоты UTC через запятую"
+        required: false
+        default: "16:00,22:00"
+
+permissions:
+  contents: read
+
+jobs:
+  series:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      BUFFER_X_CHANNEL_ID: ${{ vars.BUFFER_X_CHANNEL_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Preview or create series
+        run: |
+          ARGS=""
+          if [ "${{ inputs.live }}" = "true" ]; then ARGS="$ARGS --live"; fi
+          if [ "${{ inputs.first_now }}" = "true" ]; then ARGS="$ARGS --first-now"; fi
+          if [ -n "${{ inputs.start_date }}" ]; then ARGS="$ARGS --start-date ${{ inputs.start_date }}"; fi
+          python scripts/x_promo_series.py $ARGS --times "${{ inputs.times }}"

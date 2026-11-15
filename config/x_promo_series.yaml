@@ -1,0 +1,97 @@
+# Серия промо-постов для X/Twitter через Buffer API.
+# SEO: ключевые фразы в первом абзаце, 1–2 тематических хэштега, CTA, ссылка на хаб.
+# UTM/трекинг: ссылки ведут на партнёрские программы и посадочные страницы.
+
+campaign:
+  name: x-promo-2026-11
+  goal: telegram_subscribers
+  audience: [crypto, ai, sports, travel]
+
+series:
+  - id: network-en
+    text: |
+      AI, crypto and US sports — three free Telegram channels, zero noise.
+      🤖 https://t.me/AINEWS0007
+      🪙 https://t.me/HOOPY0007
+      🏆 https://t.me/SPORTNews0007
+      Free email digest: https://valdislavn-spec.github.io/content-factory/subscribe/
+      Follow + repost. #AI #Crypto
+
+  - id: crypto-bingx
+    text: |
+      ₿ Bitcoin, ETH and regulation — the crypto news that moves markets, daily.
+      Free Telegram: https://t.me/HOOPY0007
+      Ad · BingX referral: https://bingxdao.com/invite/WYYEGK/
+      Not financial advice. #Crypto #Bitcoin
+
+  - id: signals-bingx
+    text: |
+      📈 BTC/ETH/SOL: entry, stop, take.
+      Signals + prediction-market odds — free in Telegram.
+      https://t.me/BESTsignal0007
+      Ad · BingX: https://bingxdao.com/invite/WYYEGK/
+      18+. #Crypto #Trading
+
+  - id: ai-news
+    text: |
+      🤖 AI news without hype: model launches, products, policy, funding.
+      Daily, free, no paywall.
+      https://t.me/AINEWS0007
+      Follow + repost. #AI #TechNews
+
+  - id: sports-news
+    text: |
+      🏈 NFL, NBA, MLB, NHL, college football.
+      Scores, trades, injuries and the business of sport — 12 updates a day.
+      https://t.me/SPORTNews0007
+      #Sports #NFL
+
+  - id: es-network
+    text: |
+      🇪🇸 IA, cripto y deporte sin ruido.
+      🤖 https://t.me/WORLDNews0007
+      🪙 https://t.me/TechnologiesNews01
+      🏆 https://t.me/SPORTSAnalytics007
+      Sigue + comparte. #IA #Cripto
+
+  - id: travel-flights
+    text: |
+      ✈️ Cheap flights from the US: NYC, Miami, LA.
+      Hand-picked fares + booking windows.
+      Ad · Aviasales: https://aviasales.tpk.ro/2ZW95Xpf
+      Hub: https://valdislavn-spec.github.io/content-factory/flight-hotel-us/?utm_source=x&utm_campaign=x_promo
+      #Travel #FlightDeals
+
+  - id: travel-tours
+    text: |
+      🎟️ Rome, Bali, NYC: tickets and local experiences.
+      Ad · Tiqets: https://tiqets.tpk.ro/ia533rks
+      Klook: https://klook.tpk.ro/v1zmjFuk
+      Wegotrip: https://wegotrip.tpk.ro/JpsOLmuW
+      Book early. #Travel #CityBreak
+
+  - id: travel-esim
+    text: |
+      📱 Traveling? Get online before you land.
+      Ad · Saily: https://saily.tpk.ro/hQujMoYq
+      Airalo: https://airalo.tpk.ro/nGPgTNDu
+      Yesim: https://yesim.tpk.ro/aU7AT4LC
+      No roaming shock. #Travel #eSIM
+
+  - id: travel-cars
+    text: |
+      🚕 Transfers + car rental without surprises.
+      Ad · Kiwitaxi: https://kiwitaxi.tpk.ro/EuN6AoPO
+      Localrent: https://localrent.tpk.ro/vGHu8Vuj
+      EconomyBookings: https://economybookings.tpk.ro/Kz3xifq2
+      Qeeq: https://qeeq.tpk.ro/GyMAxFey
+      #Travel
+
+  - id: travel-help
+    text: |
+      ✈️ Flight delayed or canceled? Check compensation.
+      Ad · Compensair: https://compensair.tpk.ro/yhsBLUP1
+      AirHelp: https://airhelp.tpk.ro/WbJKruUg
+      Pickup: https://tpk.ro/a66T8gV7
+      Luggage: https://radicalstorage.tpk.ro/XilIfuay
+      No win, no fee may apply. #Travel
