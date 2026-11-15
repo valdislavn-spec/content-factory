@@ -1,0 +1,46 @@
+name: links-tracker-admin
+
+# List or upsert short links in the self-hosted links-tracker (Cloudflare Worker + D1).
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "list = показать ссылки, upsert = создать/обновить"
+        required: true
+        default: "list"
+        type: choice
+        options: ["list", "upsert"]
+      code:
+        description: "код ссылки (для upsert)"
+        required: false
+        default: ""
+        type: string
+      target:
+        description: "целевой URL (для upsert)"
+        required: false
+        default: ""
+        type: string
+      label:
+        description: "комментарий (для upsert)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  tracker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LINK_TRACKER_BASE: ${{ secrets.LINK_TRACKER_BASE }}
+      LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: List links
+        if: ${{ inputs.action == 'list' }}
+        run: python3 scripts/link_tracker_admin.py --list
+      - name: Upsert link
+        if: ${{ inputs.action == 'upsert' }}
+        run: python3 scripts/link_tracker_admin.py --upsert "${{ inputs.code }}" --target "${{ inputs.target }}" --label "${{ inputs.label }}"
