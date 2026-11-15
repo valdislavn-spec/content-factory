@@ -125,3 +125,13 @@ HTTP-эндпоинты отвечают 401/403/405 без ключей).
 - Проверено: SMTP-путь живой — с неверным паролем Gmail отвечает `535 5.7.8 BadCredentials`
   (то есть сеть и TLS в порядке, нужен только настоящий App Password).
 - Лимит Gmail: ~500 писем/сутки, From = `valdislav.n@gmail.com` + отображаемое имя бренда.
+
+## Reply-To для писем (добавлено 15.11, 09:56 PST)
+
+- В `email_providers.py` добавлен `EMAIL_REPLY_TO` / `EMAIL_REPLY_TO_NAME` и прокинут во все адаптеры:
+  SMTP (`Reply-To`), Resend (`reply_to`), MailerSend (`reply_to`), SendGrid (`reply_to`), Mailgun (`h:Reply-To`),
+  Postmark (`ReplyTo`), Unisender (`reply_to`). В dry-run `.eml` заголовок тоже присутствует.
+- Значение по умолчанию в `.env`: `EMAIL_REPLY_TO=valdislav.n+digest@gmail.com`,
+  имя «Дайджест Travelata (ответы)» — плюс-алиас Gmail: ответы падают в тот же ящик,
+  но их легко отфильтровать правилом по адресу `+digest`.
+- Проверка: `.venv/bin/python scripts/send_digest.py --check` → строка `reply-to: ...`.

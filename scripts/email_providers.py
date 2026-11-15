@@ -60,6 +60,15 @@ def from_address() -> tuple[str, str]:
     return name, raw
 
 
+def reply_to() -> str:
+    """Reply-To (не требует верификации у провайдера). Пусто = как From."""
+    return env("EMAIL_REPLY_TO", "")
+
+
+def reply_to_name() -> str:
+    return env("EMAIL_REPLY_TO_NAME", env("EMAIL_FROM_NAME", "Незабываемое путешествие · Travelata"))
+
+
 def provider_name() -> str:
     return env("EMAIL_PROVIDER", "smtp").strip().lower()
 
@@ -94,7 +103,8 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
         if not key:
             raise RuntimeError("RESEND_API_KEY не задан")
         out = _post_json("https://api.resend.com/emails",
-                         {"from": sender, "to": [to], "subject": subject, "html": html, "text": text},
+                         {"from": sender, "to": [to], "subject": subject, "html": html, "text": text,
+                          **({"reply_to": reply_to()} if reply_to() else {})},
                          {"Authorization": f"Bearer {key}"})
         return str(out.get("id", out))
     if provider == "mailersend":
@@ -103,7 +113,8 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
             raise RuntimeError("MAILERSEND_API_KEY не задан")
         out = _post_json("https://api.mailersend.com/v1/email",
                          {"from": {"email": address, "name": name}, "to": [{"email": to}],
-                          "subject": subject, "html": html, "text": text},
+                          "subject": subject, "html": html, "text": text,
+                          **({"reply_to": {"email": reply_to()}} if reply_to() else {})},
                          {"Authorization": f"Bearer {key}"})
         return str(out.get("id", out))
     if provider == "sendgrid":
@@ -113,6 +124,7 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
         out = _post_json("https://api.sendgrid.com/v3/mail/send",
                          {"personalizations": [{"to": [{"email": to}]}],
                           "from": {"email": address, "name": name},
+                          "reply_to": {"email": reply_to() or address},
                           "subject": subject,
                           "content": [{"type": "text/plain", "value": text},
                                       {"type": "text/html", "value": html}]},
@@ -125,7 +137,8 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
         import base64
         auth = base64.b64encode(f"api:{key}".encode()).decode()
         out = _post_json(f"https://api.mailgun.net/v3/{domain}/messages",
-                         {"from": sender, "to": to, "subject": subject, "html": html, "text": text},
+                         {"from": sender, "to": to, "subject": subject, "html": html, "text": text,
+                          **({"h:Reply-To": reply_to()} if reply_to() else {})},
                          {"Authorization": f"Basic {auth}"})
         return str(out.get("id", out))
     if provider == "postmark":
@@ -134,6 +147,7 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
             raise RuntimeError("POSTMARK_TOKEN не задан")
         out = _post_json("https://api.postmarkapp.com/email",
                          {"From": sender, "To": to, "Subject": subject,
+                          "ReplyTo": reply_to() or address,
                           "HtmlBody": html, "TextBody": text, "MessageStream": "broadcast"},
                          {"X-Postmark-Server-Token": token})
         return str(out.get("MessageID", out))
@@ -145,7 +159,8 @@ def send(to: str, subject: str, html: str, text: str = "") -> str:
                          {"message": {"recipients": [{"email": to}],
                                       "body": {"html": html},
                                       "subject": subject,
-                                      "from_email": address, "from_name": name}},
+                                      "from_email": address, "from_name": name,
+                                      **({"reply_to": reply_to()} if reply_to() else {})}},
                          {"X-API-KEY": key})
         return str(out.get("job_id", out))
     raise RuntimeError(f"неизвестный EMAIL_PROVIDER={provider}")
@@ -169,6 +184,8 @@ def _send_smtp(sender: str, to: str, subject: str, html: str, text: str) -> str:
     message["From"] = sender
     message["To"] = to
     message["Subject"] = subject
+    if reply_to():
+        message["Reply-To"] = formataddr((reply_to_name(), reply_to()))
     message.set_content(text)
     message.add_alternative(html, subtype="html")
     with smtplib.SMTP(host, port, timeout=30) as server:
@@ -187,7 +204,8 @@ def report() -> str:
         "sendgrid": "SENDGRID_API_KEY", "mailgun": "MAILGUN_API_KEY",
         "postmark": "POSTMARK_TOKEN", "unisender": "UNISENDER_API_KEY",
     }
-    lines = [f"провайдер: {provider}", f"отправитель: {address}"]
+    lines = [f"провайдер: {provider}", f"отправитель: {address}",
+             f"reply-to: {reply_to() or '(как From)'}"]
     if provider in ("smtp", "gmail"):
         if provider == "gmail":
             lines.append(f"SMTP: {env('EMAIL_SMTP_HOST', 'smtp.gmail.com')}:{env('EMAIL_SMTP_PORT', '587')} (STARTTLS)")

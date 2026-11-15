@@ -72,6 +72,8 @@ def write_eml(email: str, lang: str, outdir: Path) -> Path:
     msg["To"] = email
     msg["Subject"] = SUBJECT[lang]
     msg["List-Unsubscribe"] = f"<{TRACKER}/unsubscribe?e={email}>"
+    if providers.reply_to():
+        msg["Reply-To"] = formataddr((providers.reply_to_name(), providers.reply_to()))
     msg.set_content("HTML-письмо: откройте в почтовом клиенте с поддержкой HTML.")
     msg.add_alternative(build(lang, email), subtype="html")
     outdir.mkdir(parents=True, exist_ok=True)
