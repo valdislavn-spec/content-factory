@@ -202,3 +202,17 @@ def test_discord_publish_builds_message_url_only_with_guild_id(monkeypatch) -> N
     )
     result = publisher.publish(post, channel, NS())
     assert result.url == "https://discord.com/channels/30/20/10"
+
+
+def test_discord_payload_uses_channel_identity(monkeypatch) -> None:
+    from content_factory.publishers.discord import discord_payload
+
+    post = NS(plain_text="Test", text="Test", html="Test", id="t1", meta={})
+    channel = NS(
+        id="sport-news", language="en", title="US Sports News",
+        telegram_chat_id="", public_url="https://t.me/SPORTNews0007",
+        cta="", meta={"discord_avatar_url": "https://example.com/sport.png"},
+    )
+    payload = discord_payload(post, channel)
+    assert payload["username"] == "US Sports News"
+    assert payload["avatar_url"] == "https://example.com/sport.png"
