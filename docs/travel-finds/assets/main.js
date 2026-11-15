@@ -86,7 +86,10 @@
       return;
     }
     var locale = host.getAttribute("data-locale") || "ru";
-    if (isPlaceholderValue(config.widget && config.widget.promoId)) {
+    var wlId = (config.widget && config.widget.wlId) || "";
+    var legacyPromo = (config.widget && config.widget.promoId) || "";
+    var hasLegacy = isPlaceholderValue(legacyPromo) ? false : true;
+    if (wlId === "" && hasLegacy === false) {
       if (fallback) {
         fallback.classList.add("is-visible");
       }
@@ -101,15 +104,22 @@
       .map(function (id) { return document.getElementById(id); })
       .filter(Boolean);
     var script = document.createElement("script");
-    script.charset = "utf-8";
-    script.src = widgetUrl(locale);
     script.async = true;
     script.onerror = function () {
       if (fallback) {
         fallback.classList.add("is-visible");
       }
     };
-    host.appendChild(script);
+    if (wlId) {
+      // White Label Web: модульный бандл TravelPayouts.
+      script.type = "module";
+      script.src = "https://tpwdg.com/wl_web/main.js?wl_id=" + encodeURIComponent(wlId);
+      document.head.appendChild(script);
+    } else {
+      script.charset = "utf-8";
+      script.src = widgetUrl(locale);
+      host.appendChild(script);
+    }
     // White Label рендерит форму в #tpwl-search: если через 8 c пусто — показываем fallback.
     var tries = 0;
     var timer = setInterval(function () {
@@ -124,7 +134,7 @@
         }
         return;
       }
-      if (tries > 16) {
+      if (tries > 30) {
         clearInterval(timer);
         if (fallback) {
           fallback.classList.add("is-visible");

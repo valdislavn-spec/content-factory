@@ -11,8 +11,11 @@ window.TRAVEL_CONFIG = {
   marker: "674170",
   market: "non_ru",
   widget: {
-    // White Label: Tools → Widgets/White Label → promo_id (получить позже;
-    // до этого показываем fallback-кнопки).
+    // White Label Web (новый формат, 2026): идентификатор проекта wl_id.
+    // Скрипт: https://tpwdg.com/wl_web/main.js?wl_id=<wlId>
+    // Рендерится в контейнеры #tpwl-tickets / #tpwl-search / #tpwl-modals.
+    wlId: "24664",
+    // Старый формат tp.media/content?promo_id=... — оставлен как резерв.
     promoId: "YOUR_WIDGET_PROMO_ID",
     campaignId: "",
     poweredBy: "true",
