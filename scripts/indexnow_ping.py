@@ -31,6 +31,9 @@ def main() -> int:
         print("INDEXNOW_KEY is not set")
         return 2
     urls = re.findall(r"<loc>([^<]+)</loc>", SITEMAP.read_text(encoding="utf-8"))
+    # IndexNow отклоняет весь батч (422), если в нём есть URL чужого хоста
+    prefix = f"https://{HOST}{SITE_PATH}/"
+    urls = list(dict.fromkeys(u for u in urls if u.startswith(prefix)))
     if not urls:
         print("no urls in sitemap")
         return 1
