@@ -1,12 +1,14 @@
 name: deploy-surge
 
-# Publishes the "Незабываемое путешествие" landing to
-# https://nezabyvaemoe.surge.sh (free surge.sh subdomain, no github.io host).
+# Publishes the English "Travel Finds" site (docs/travel-finds) to
+# https://travel-finds.surge.sh and keeps the old address alive as a redirect
+# (docs/landing-redirect -> nezabyvaemoe.surge.sh).
 on:
   push:
     branches: [main]
     paths:
-      - "docs/nezabyvaemoe-puteshestvie/**"
+      - "docs/travel-finds/**"
+      - "docs/landing-redirect/**"
       - ".github/workflows/deploy-surge.yml"
   workflow_dispatch:
 
@@ -22,11 +24,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Publish to surge.sh
+      - name: Publish site to travel-finds.surge.sh
         env:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
-          npx --yes surge@0.57.0 ./docs/nezabyvaemoe-puteshestvie nezabyvaemoe.surge.sh
+          npx --yes surge@0.57.0 ./docs/travel-finds travel-finds.surge.sh
+      - name: Publish redirect to nezabyvaemoe.surge.sh
+        env:
+          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+        run: |
+          npx --yes surge@0.57.0 ./docs/landing-redirect nezabyvaemoe.surge.sh
       - name: Summary
-        run: echo "https://nezabyvaemoe.surge.sh/" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "https://travel-finds.surge.sh/" >> "$GITHUB_STEP_SUMMARY"
+          echo "(old: https://nezabyvaemoe.surge.sh/ -> redirect)" >> "$GITHUB_STEP_SUMMARY"

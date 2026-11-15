@@ -64,7 +64,7 @@ window.TRAVEL_CONFIG = {
       label: "Trip.com",
     },
   },
-  siteUrl: "https://nezabyvaemoe.surge.sh",
+  siteUrl: "https://travel-finds.surge.sh",
 };
 
 window.TRAVEL_PLACEHOLDER = !window.TRAVEL_CONFIG.programs.kiwi.urls.en;
