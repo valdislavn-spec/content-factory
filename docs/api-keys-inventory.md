@@ -17,9 +17,9 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 |---|---|---|
 | Telegram | Bot API (`TELEGRAM_BOT_TOKEN`), chat_id каналов | ✅ работает |
 | Fediverse | Bluesky (`BLUESKY_*`) на `crypto-news` | ✅ работает |
-| Fediverse | Mastodon (`MASTODON_*`) на 5 каналах | ⛔ `403 Your login is currently disabled` — внешний аккаунт отключён |
+| Fediverse | Mastodon (`MASTODON_*`) | ⛔ аккаунт отключён (`403 login disabled`), направление снято с публикации |
 | Fediverse | Akkoma (`AKKOMA_*`) на `crypto-news` | ⚠️ был `403 Cloudflare 1010`; добавлен браузерный User-Agent, нужен повторный тест |
-| Discord | Webhook (`DISCORD_WEBHOOK_URL`) на 3 EN-каналах | ⚠️ был `403 Cloudflare 1010`; добавлен браузерный User-Agent, нужен повторный тест |
+| Discord | Webhook (`DISCORD_WEBHOOK_URL`) на 3 EN-каналах | ✅ проверено `discord-check`: отправка и удаление работают |
 | Tumblr | OAuth1 (`TUMBLR_*`), фото/текст | ✅ креды есть; дайджест приостановлен |
 | Buffer | X / Bluesky / Facebook через Buffer (`BUFFER_API_KEY`) | ✅ 3 канала, очередь |
 | X | `X_API_KEY`/`X_API_SECRET`/`X_ACCOUNT_BLOB` | ⚠️ не хватает пары access token/secret для публикатора |
