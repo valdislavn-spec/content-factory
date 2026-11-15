@@ -1,0 +1,26 @@
+name: discord-setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      guild_id:
+        description: "Discord Guild ID"
+        required: true
+        default: "1467224878875807878"
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Create channels and invite
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python scripts/discord_setup_channels.py --guild-id "${{ inputs.guild_id }}" --apply
