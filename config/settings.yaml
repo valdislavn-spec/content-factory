@@ -88,6 +88,7 @@ llm:
   # gigachat        — GigaChat API (Сбер): есть бесплатный лимит, нужен аккаунт РФ
   # yandexgpt       — YandexGPT API: пробный грант, нужен аккаунт Yandex Cloud
   # dify            — приложение Dify (cloud.dify.ai или свой сервер) как LLM через Service API
+  # xai             — xAI Grok (OpenAI-совместимый API; из РФ 403, нужен US egress)
   # cohere          — Cohere API (Trial: 1000 запросов/мес, 20/мин; OpenAI-совместимый
   #                   Compatibility API; из РФ api.cohere.ai отдаёт 403 — нужен GitHub Actions/VPN)
   # Основной провайдер + fallback-цепочка.
@@ -111,6 +112,7 @@ llm:
     openrouter: 50      # free-лимит OpenRouter (~50/день)
     gemini: 200           # AI Studio free tier; fallback-1, расход выше
     pollinations: 100     # без ключа, анонимный лимит ~1 запрос/3 сек
+    xai: 20               # платный резерв: бережём кредиты
   # Гибрид по этапам: анализ — Cloudflare (дешёвые вызовы), генерация — Groq
   # (быстрый бесплатный лимит). Ollama Cloud не ставим первым: 15.11.2026 он
   # отдавал 402, из-за чего каждый пост ждал лишние fallback-таймауты.
@@ -207,6 +209,14 @@ llm:
       base_url: https://api.openai.com/v1
       api_key_env: OPENAI_API_KEY
       model: gpt-4o-mini
+    xai:
+      # xAI Grok — OpenAI-совместимый API. Из РФ 403 region block.
+      # Токен: console.x.ai → API Keys. Модель: grok-4.7 (флагман, 500k контекст).
+      # Платный: держим в конце fallback-цепочки и ограничиваем 20 запросами/сутки.
+      base_url: https://api.x.ai/v1
+      api_key_env: XAI_API_KEY
+      model: grok-4.7
+      min_max_tokens: 500
     cohere:
       # Cohere (Trial-/Production-ключ): OpenAI-совместимый Compatibility API.
       # Trial: 1 000 запросов/мес и 20 запросов/мин на чат-модель.

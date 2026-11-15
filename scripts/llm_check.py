@@ -31,6 +31,7 @@ PROVIDERS = [
     "gemini",
     "ollama_cloud",
     "openrouter",
+    "xai",
 ]
 PROMPT = "Reply with the single word: OK"
 

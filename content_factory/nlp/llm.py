@@ -936,6 +936,13 @@ _NAMED_PROVIDERS: Dict[str, Dict[str, str]] = {
         "api_key_env": "OPENAI_API_KEY",
         "model": "gpt-4o-mini",
     },
+    "xai": {
+        # xAI Grok: OpenAI-совместимый API. Из РФ api.x.ai отдаёт 403
+        # (region block) — работает из GitHub Actions/VPN.
+        "base_url": "https://api.x.ai/v1",
+        "api_key_env": "XAI_API_KEY",
+        "model": "grok-4.7",
+    },
     "gemini": {
         # Google Gemini через OpenAI-совместимый endpoint (AI Studio key).
         # Из РФ недоступен (400 location not supported) — работает в Actions/VPN.
