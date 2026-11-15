@@ -20,7 +20,7 @@ channels:
     # Substack: глубокие разборы AI-повестки (идеи постов, «почему это важно»)
     - id: substack-import-ai
       type: rss
-      url: https://importai.substack.com/feed
+      url: https://jack-clark.net/feed/
       name: Import AI (Substack)
       weight: 1.2
       options:
