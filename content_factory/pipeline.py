@@ -991,6 +991,10 @@ def generate_posts(
 
     # Режим «сводка за период»: один пост = все новости с прошлого поста канала.
     post_mode = str(settings.pipeline.get("post_mode") or "").strip().lower()
+    # Ручной preview/тест может принудительно выбрать story/analysis/interactive.
+    if post_mode in ("story", "analysis", "interactive") and not recap and not night_mode:
+        formats = [post_mode]
+        fmt = post_mode
     if post_mode == "digest" and not recap:
         digest, digest_errors = _build_window_digest(
             channel, clusters, settings, storage, llm, slot, max_chars
