@@ -17,6 +17,8 @@ from content_factory.publishers.x import oauth1_header  # noqa: E402
 
 CONSUMER_KEY = os.environ.get("X_API_KEY", "").strip()
 CONSUMER_SECRET = os.environ.get("X_API_SECRET", "").strip()
+ACCESS_TOKEN = os.environ.get("X_ACCESS_TOKEN", "").strip()
+ACCESS_SECRET = os.environ.get("X_ACCESS_SECRET", "").strip()
 BLOB = os.environ.get("X_ACCOUNT_BLOB", "").strip()
 
 
@@ -32,9 +34,35 @@ def request(url: str, headers=None, timeout: float = 20.0):
 
 
 def main() -> int:
-    print("X_API_KEY len:", len(CONSUMER_KEY), "| X_API_SECRET len:", len(CONSUMER_SECRET), "| blob len:", len(BLOB))
+    print(
+        "X_API_KEY len:", len(CONSUMER_KEY),
+        "| X_API_SECRET len:", len(CONSUMER_SECRET),
+        "| X_ACCESS_TOKEN len:", len(ACCESS_TOKEN),
+        "| X_ACCESS_SECRET len:", len(ACCESS_SECRET),
+        "| blob len:", len(BLOB),
+    )
+
+    # Main path: exactly the four credentials consumed by XPublisher.
+    if CONSUMER_KEY and CONSUMER_SECRET and ACCESS_TOKEN and ACCESS_SECRET:
+        url = "https://api.x.com/2/users/me"
+        header = oauth1_header(
+            "GET", url, CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET
+        )
+        status, body = request(url, {"Authorization": header})
+        print("oauth1 users/me[env]: HTTP %s | %s" % (status, body[:220]))
+        if status == 200:
+            try:
+                data = json.loads(body)
+                user = data.get("data") or {}
+                print("  USER:", user.get("username"), "| id:", user.get("id"))
+            except ValueError:
+                pass
+            print("RESULT: OAuth 1.0a user context works")
+            return 0
+
     if not BLOB:
-        print("no blob"); return 1
+        print("no blob; no working OAuth1 env credentials")
+        return 1
     ok = False
     marker = "%3D"
     index = BLOB.find(marker)
