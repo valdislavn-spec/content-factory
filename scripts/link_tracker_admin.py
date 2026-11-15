@@ -36,7 +36,14 @@ def call(method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
         base() + path,
         data=data,
         method=method,
-        headers={"x-token": admin_token(), "Content-Type": "application/json"},
+        headers={
+            "x-token": admin_token(),
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            # Cloudflare WAF (error 1010) blocks non-browser UAs
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+        },
     )
     try:
         with urllib.request.urlopen(req, timeout=40) as resp:
