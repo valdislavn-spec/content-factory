@@ -729,6 +729,20 @@ class GeneratorQualityTest(unittest.TestCase):
         self.assertIn("недоверенные", ru)
         self.assertIn("untrusted", en)
         self.assertIn("no confiables", es)
+        self.assertIn("Nvidia, Samsung, TSMC, OpenAI", ru)
+        self.assertIn("Nvidia, Samsung, TSMC, OpenAI", en)
+        self.assertIn("Nvidia, Samsung, TSMC, OpenAI", es)
+
+    def test_prose_drops_contained_duplicate(self):
+        from content_factory.nlp.generator import _prose
+        sentences = [
+            "TSMC podría estar involucrada en este plan, aunque la empresa se centra en su negocio de fundición de circuitos integrados.",
+            "TSMC se centra en su negocio de fundición de circuitos integrados.",
+            "La demanda de memoria es alta.",
+        ]
+        text = _prose(sentences, "es", limit=3)
+        self.assertNotIn("TSMC se centra en su negocio", text)
+        self.assertIn("La demanda de memoria es alta", text)
 
     def test_analyzer_prompts_treat_sources_as_untrusted(self):
         from content_factory.nlp.analyzer import (
