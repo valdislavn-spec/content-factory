@@ -1,0 +1,47 @@
+name: deploy-site-pages
+
+# Publishes docs/ to Cloudflare Pages so the site has its own address
+# (https://<project>.pages.dev) without the valdislavn-spec.github.io host.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/deploy-site-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Deploy docs to the first free project name
+        run: |
+          set -uo pipefail
+          for name in nezabyvaemoe nezabyvaemoe-trip unforgettable-journey travel-unforgettable; do
+            # create is a no-op if the project already exists in this account
+            npx --yes wrangler@3 pages project create "$name" --production-branch main >/dev/null 2>&1 || true
+            if npx --yes wrangler@3 pages deploy docs --project-name "$name" --branch main --commit-dirty=true; then
+              echo "PROJECT=$name" >> "$GITHUB_ENV"
+              {
+                echo "### Site deployed"
+                echo ""
+                echo "- https://$name.pages.dev/"
+                echo "- https://$name.pages.dev/nezabyvaemoe-puteshestvie/"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+          done
+          echo "::error::could not deploy to any candidate project name"
+          exit 1
