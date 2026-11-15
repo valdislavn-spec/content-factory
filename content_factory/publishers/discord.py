@@ -160,18 +160,35 @@ def discord_text(post: Any, channel: Optional[ChannelConfig], limit: int = MAX_T
     return f"{text}\n\n{footer}".strip()
 
 
-def discord_embed(post: Any) -> Optional[Dict[str, Any]]:
-    """Необязательный embed с картинкой поста (если она есть в meta)."""
+_EMBED_COLORS = {
+    "sport-news": 0x2ECC71,
+    "ai-news": 0x9B59B6,
+    "crypto-news": 0xF39C12,
+}
+
+
+def discord_embed(post: Any, channel: Optional[ChannelConfig] = None) -> Optional[Dict[str, Any]]:
+    """Embed с картинкой и визуальной меткой канала."""
     meta = getattr(post, "meta", None)
     if not isinstance(meta, dict):
-        return None
+        meta = {}
     image = str(meta.get("image_url") or meta.get("image") or "").strip()
-    if not image.startswith(("http://", "https://")):
-        return None
-    return {
-        "color": 0x5865F2,
-        "image": {"url": image},
-    }
+    channel_id = str(getattr(channel, "id", "") or "")
+    color = _EMBED_COLORS.get(channel_id, 0x5865F2)
+    author: Dict[str, Any] = {}
+    if channel is not None:
+        name = str(getattr(channel, "title", "") or "").strip()
+        _, icon = discord_identity(channel)
+        if name:
+            author["name"] = name[:256]
+        if icon:
+            author["icon_url"] = icon
+    embed: Dict[str, Any] = {"color": color}
+    if author:
+        embed["author"] = author
+    if image.startswith(("http://", "https://")):
+        embed["image"] = {"url": image}
+    return embed if (author or image) else None
 
 
 def discord_payload(post: Any, channel: ChannelConfig) -> Dict[str, Any]:
@@ -181,7 +198,7 @@ def discord_payload(post: Any, channel: ChannelConfig) -> Dict[str, Any]:
         # Автопосты не должны случайно пинговать @everyone/@here.
         "allowed_mentions": {"parse": []},
     }
-    embed = discord_embed(post)
+    embed = discord_embed(post, channel)
     if embed:
         payload["embeds"] = [embed]
     username, avatar = discord_identity(channel)
