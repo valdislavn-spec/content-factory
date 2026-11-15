@@ -1,0 +1,33 @@
+name: sources-check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [en, es]
+    env:
+      CONTENT_FACTORY_CHANNELS: config/channels.${{ matrix.language }}.yaml
+      NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
+      WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }}
+      CURRENTS_API_KEY: ${{ secrets.CURRENTS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check sources
+        run: python -m content_factory sources check --all --strict

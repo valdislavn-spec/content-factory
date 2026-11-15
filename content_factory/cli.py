@@ -238,6 +238,7 @@ def cmd_sources_check(args: argparse.Namespace, settings: Settings) -> int:
     channels = select_channels(settings, _split_channels(args.channel))
     total = 0
     ok_count = 0
+    empty_count = 0
     for channel in channels:
         print(f"\n[{channel.id}] {channel.title}")
         for source in channel.sources:
@@ -249,10 +250,17 @@ def cmd_sources_check(args: argparse.Namespace, settings: Settings) -> int:
                 ok, message = check_source(source, settings)
             except Exception as exc:
                 ok, message = False, str(exc)
+            empty = bool(ok and "элементов не найдено" in str(message))
             ok_count += 1 if ok else 0
-            mark = "OK  " if ok else "FAIL"
+            empty_count += 1 if empty else 0
+            mark = "EMPTY" if empty else ("OK  " if ok else "FAIL")
             print(f"  {mark} {source.name} ({source.type}): {message}")
-    print(f"\nПроверено источников: {total}, доступно: {ok_count}")
+    print(
+        f"\nПроверено источников: {total}, доступно: {ok_count}, "
+        f"пустых: {empty_count}"
+    )
+    if getattr(args, "strict", False):
+        return 0 if total > 0 and ok_count == total and empty_count == 0 else 1
     return 0 if ok_count or total == 0 else 1
 
 
@@ -735,6 +743,11 @@ def build_parser() -> argparse.ArgumentParser:
     sources_sub = p_sources.add_subparsers(dest="sources_command", required=True)
     p_check = sources_sub.add_parser("check", help="Проверить доступность источников")
     p_check.add_argument("--channel", default="all", help="id канала или all")
+    p_check.add_argument(
+        "--strict",
+        action="store_true",
+        help="Вернуть код 1, если хотя бы один источник недоступен или пуст",
+    )
     p_check.set_defaults(func=cmd_sources_check)
 
     p_run = sub.add_parser("run", help="Один прогон сбора и публикации")
