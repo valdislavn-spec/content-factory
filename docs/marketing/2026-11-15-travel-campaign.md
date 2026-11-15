@@ -1,7 +1,6 @@
 # Travel-кампания: 15–21 ноября 2026
 
 Страницы и их канонические адреса:
-- RU «Пакетные туры 2026» — https://nezabyvaemoe.surge.sh/ (дубль: github.io/nezabyvaemoe-puteshestvie/)
 - RU «Туры за рубеж» — https://valdislavn-spec.github.io/content-factory/flight-hotel-abroad/
 - EN «US travel deals» — https://valdislavn-spec.github.io/content-factory/flight-hotel-us/
 
@@ -12,7 +11,7 @@
 | Telegram TRAVEL (@GOODTRAVEL007) | работает (через relay) | RU-посты: abroad + промо |
 | Pinterest (VV) | работает | 4 новых пина (1000×1500) → abroad |
 | Bluesky (@b-rave007) | работает | EN-пост про US travel deals |
-| Akkoma (miraiverse.xyz) | работает | дубль RU-поста |
+| Akkoma (miraiverse.xyz) | работает | EN-пост (RU-контент не публикуем) |
 | Tumblr (vlad-007) | работает | лонгрид «где дешевле зимой» |
 | ES-Telegram | работает | испаноязычный дайджест |
 | X / Buffer, Mastodon, VK, Reddit, FB, IG, LinkedIn, Medium, Discord | недоступны | — |
@@ -94,3 +93,24 @@ BREVO_API_KEY и RU-список в Brevo (сейчас списки пусты�
 список разрешённых IP. Чтобы письма пошли, нужно в Brevo → SMTP & API → Authorized IPs добавить
 текущий IP `79.172.64.10` (или выдать `BREVO_API_KEY` для HTTP API). Код и письма готовы,
 отправка — одна команда: `python3 scripts/send_digest.py --to valdislav.n@gmail.com`.
+
+## Замена Brevo (варианты отправки)
+
+Отправка абстрагирована: `scripts/email_providers.py` + `EMAIL_PROVIDER` в `.env`.
+Поддержаны: `smtp`, `resend`, `mailersend`, `sendgrid`, `mailgun`, `postmark`, `unisender`.
+Проверка настроек: `.venv/bin/python scripts/send_digest.py --check`.
+
+| Провайдер | Free-tier (ориентир) | Что нужно | Комментарий |
+|---|---|---|---|
+| Resend | 3 000 писем/мес, 100/день | `RESEND_API_KEY` + домен (или onboarding@resend.dev) | самый быстрый старт, хорошая доставляемость |
+| MailerSend | 3 000 писем/мес | `MAILERSEND_API_KEY` + домен | аналог Resend |
+| SendGrid | 100 писем/день | `SENDGRID_API_KEY` + verify sender | иногда ручная проверка аккаунта |
+| Mailgun | 100 писем/день (trial) | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` | удобный sandbox-домен |
+| Postmark | 100 писем/мес (dev) | `POSTMARK_TOKEN` | лучший для транзакционных |
+| AWS SES | ~$0.10/1000 | AWS + DKIM + выход из sandbox | дешевле всех на объёме |
+| Gmail SMTP | 500 писем/день | App Password (2FA) | 0 регистраций, но подпись «via gmail» |
+| Unisender Go | 1 500 писем/мес (RU) | `UNISENDER_API_KEY` | лучшая доставляемость на mail.ru/yandex |
+| Brevo (текущий) | 300/день | добавить IP `79.172.64.10` в Authorized IPs | уже настроен, нужен один клик |
+
+Проверено с этой машины: API и SMTP всех перечисленных провайдеров доступны (TCP 587 открыт,
+HTTP-эндпоинты отвечают 401/403/405 без ключей).

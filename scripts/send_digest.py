@@ -29,6 +29,7 @@ CF = Path(__file__).resolve().parents[1]
 WS = CF.parent
 sys.path.insert(0, str(CF / "scripts"))
 from brand_email import build  # noqa: E402
+import email_providers as providers  # noqa: E402
 
 TRACKER = "https://links-tracker.valdislav-n.workers.dev"
 FROM_EMAIL = "valdislav.n@gmail.com"
@@ -84,18 +85,8 @@ def html_to_eml_bytes(msg: EmailMessage) -> bytes:
 
 
 def send_one(cfg: dict, email: str, lang: str) -> str:
-    msg = EmailMessage()
-    msg["From"] = formataddr((FROM_NAME, FROM_EMAIL))
-    msg["To"] = email
-    msg["Subject"] = SUBJECT[lang]
-    msg["List-Unsubscribe"] = f"<{TRACKER}/unsubscribe?e={email}>"
-    msg.set_content("HTML-письмо: откройте в почтовом клиенте с поддержкой HTML.")
-    msg.add_alternative(build(lang, email), subtype="html")
-    with smtplib.SMTP(cfg["host"], cfg["port"], timeout=30) as server:
-        server.starttls(context=ssl.create_default_context())
-        server.login(cfg["user"], cfg["password"])
-        server.send_message(msg)
-    return "sent"
+    return providers.send(email, SUBJECT[lang], build(lang, email),
+                          "HTML-письмо: откройте в клиенте с поддержкой HTML.")
 
 
 def main() -> int:
@@ -104,13 +95,20 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--lang", choices=["ru", "en", "all"], default="all")
+    parser.add_argument("--provider", default="", help="smtp|resend|mailersend|sendgrid|mailgun|postmark|unisender")
+    parser.add_argument("--check", action="store_true", help="показать настройки провайдера")
     args = parser.parse_args()
+    if args.provider:
+        os.environ["EMAIL_PROVIDER"] = args.provider
+    if args.check:
+        print(providers.report())
+        return 0
 
     cfg = settings()
     outdir = WS / ".local" / "email" / "outbox"
 
-    if not cfg["password"]:
-        print("нет LISTMONK_SMTP_PASSWORD в listmonk/.env")
+    if providers.provider_name() == "smtp" and not cfg["password"]:
+        print("SMTP: нет пароля (EMAIL_SMTP_PASSWORD или LISTMONK_SMTP_PASSWORD)")
         return 2
 
     if args.to:
