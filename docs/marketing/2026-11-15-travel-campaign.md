@@ -135,3 +135,24 @@ HTTP-эндпоинты отвечают 401/403/405 без ключей).
   имя «Дайджест Travelata (ответы)» — плюс-алиас Gmail: ответы падают в тот же ящик,
   но их легко отфильтровать правилом по адресу `+digest`.
 - Проверка: `.venv/bin/python scripts/send_digest.py --check` → строка `reply-to: ...`.
+
+## Kit (ConvertKit) — интеграция (15.11, 10:05 PST)
+
+Ключ `KIT_API_KEY` (22 символа, API v3) проверен: forms/tags/custom_fields/broadcasts отвечают 200,
+аккаунт пустой. Для v4 ключ не подходит (401), нужен отдельный ключ из раздела API Keys.
+
+Скрипты:
+- `scripts/kit_client.py --check` — состояние аккаунта (формы, теги, поля, черновики).
+- `scripts/kit_sync.py [--dry-run]` — импорт подписчиков из нашего D1-списка в Kit (нужен API Secret).
+- `scripts/kit_broadcast.py [--dry-run|--create|--cleanup]` — собрать брендированное письмо и создать
+  черновик рассылки в Kit; `--cleanup` удаляет пустые черновики «New Broadcast».
+
+Ограничения, проверенные вживую:
+1. **Без подтверждённого send address** Kit отвечает 422 «Please ensure your selected send address is
+   confirmed…» — черновик создаётся, но тема/контент не применяются (получается «New Broadcast»).
+   Нужно: Kit → Settings → Email → подтвердить адрес (письмо приходит на valdislav.n@gmail.com).
+2. **API v3 не умеет отправлять broadcast** (POST /broadcasts/{id}/send → 404): только создать черновик,
+   отправка — кнопкой в интерфейсе Kit.
+3. **Подписчики/кастомные поля требуют API Secret** (пока в `.env` пусто).
+
+Тест: `kit_broadcast.py --create` создал черновик id=27068393 (8 KB HTML), пустые черновики удалены.
