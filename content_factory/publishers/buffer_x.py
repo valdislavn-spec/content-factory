@@ -17,7 +17,7 @@ from .social import SocialPublisher, post_text
 
 logger = logging.getLogger(__name__)
 
-MAX_TEXT = 280
+MAX_TEXT = 240  # X считает emoji/некоторые символы >1; оставляем запас
 
 
 class BufferXPublisher(SocialPublisher):
