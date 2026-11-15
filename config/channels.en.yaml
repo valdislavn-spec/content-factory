@@ -26,6 +26,7 @@ channels:
   language: en
   meta:
     discord_avatar_url: https://valdislavn-spec.github.io/content-factory/assets/pins/brand/sport-news-sports-mylead.png
+    discord_cta_url: https://links-tracker.valdislav-n.workers.dev/r/discord-sport-news
   topics:
   - nfl
   - nba
@@ -211,6 +212,7 @@ channels:
   language: en
   meta:
     discord_avatar_url: https://valdislavn-spec.github.io/content-factory/assets/pins/brand/ai-news-ai-mylead.png
+    discord_cta_url: https://links-tracker.valdislav-n.workers.dev/r/discord-ai-news
   topics:
   - artificial intelligence
   - ai
@@ -367,6 +369,7 @@ channels:
   language: en
   meta:
     discord_avatar_url: https://valdislavn-spec.github.io/content-factory/assets/pins/brand/crypto-news-crypto-bingx.png
+    discord_cta_url: https://links-tracker.valdislav-n.workers.dev/r/discord-crypto-news
   # Живая строка рынка в конце каждого поста (см. docs/market-line.md)
   market_line:
     enabled: true
