@@ -380,11 +380,6 @@ channels:
   - eliminatorias
   - tenis
   - baloncesto
-  - fórmula 1
-  - nfl
-  - boxeo
-  - atletismo
-  - deporte
   - apuestas deportivas
   - apuestas
   - cuotas
@@ -405,9 +400,13 @@ channels:
   - patrocinado
   - horóscopo
   - cricket
-  - tennis
   - tenis
   - golf
+  - fórmula 1
+  - f1
+  - nfl
+  - boxeo
+  - atletismo
   - quiz
   - apuesta segura
   - partido arreglado

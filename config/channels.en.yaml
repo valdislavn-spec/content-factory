@@ -403,6 +403,12 @@ channels:
   - spelling
   - games
   - horoscope
+  - "stock market"
+  - "stock index"
+  - "S&P 500"
+  - "Nasdaq"
+  - "Dow Jones"
+  - "Wall Street"
   tone: expert
   hashtags:
   - Bitcoin
