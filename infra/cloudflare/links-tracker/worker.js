@@ -4,26 +4,15 @@ const json = (obj, status = 200) =>
 const slug = (s) =>
   String(s || "").toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
 
-async function num(env, key) {
-  return Number((await env.LINKS.get(key)) || 0) || 0;
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+
+async function all(env, sql, params = []) {
+  const res = await env.DB.prepare(sql).bind(...params).all();
+  return res.results || [];
 }
 
-async function putNum(env, key, value) {
-  await env.LINKS.put(key, String(value));
-}
-
-async function listLinks(env) {
-  const out = [];
-  let cursor = undefined;
-  do {
-    const page = await env.LINKS.list({ prefix: "link:", cursor });
-    for (const k of page.keys) {
-      const raw = await env.LINKS.get(k.name);
-      if (raw) out.push(JSON.parse(raw));
-    }
-    cursor = page.cursor;
-  } while (cursor);
-  return out;
+async function run(env, sql, params = []) {
+  return env.DB.prepare(sql).bind(...params).run();
 }
 
 export default {
@@ -32,14 +21,25 @@ export default {
     const path = url.pathname;
     const token = url.searchParams.get("token") || request.headers.get("x-token") || "";
 
-    if (path === "/" || path === "") {
-      return json({ ok: true, service: "cf-links", endpoints: ["/r/{code}", "/stats", "/admin/links"] });
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET,POST,OPTIONS",
+        "access-control-allow-headers": "content-type,x-token",
+      } });
     }
 
+    if (path === "/" || path === "") {
+      return json({ ok: true, service: "cf-links", storage: "d1",
+        endpoints: ["/r/{code}", "/c/{code}", "/stats", "/admin/links", "/subscribe", "/admin/subscribers"] });
+    }
+
+    // --- ссылки ---
     if (path === "/admin/links") {
       if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: "forbidden" }, 403);
       if (request.method === "GET") {
-        return json({ ok: true, links: await listLinks(env) });
+        const links = await all(env, "SELECT * FROM links ORDER BY created_at DESC");
+        return json({ ok: true, links });
       }
       if (request.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
       let body;
@@ -52,29 +52,60 @@ export default {
       const target = String(body.target || "").trim();
       if (!code) return json({ ok: false, error: "code required" }, 400);
       if (!/^https?:\/\//.test(target)) return json({ ok: false, error: "target must be http(s)" }, 400);
+      const now = new Date().toISOString();
       const record = {
-        code,
-        target,
+        code, target,
         channel: slug(body.channel || ""),
         network: String(body.network || "").slice(0, 40),
         label: String(body.label || "").slice(0, 80),
-        active: body.active !== false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        active: body.active !== false ? 1 : 0,
+        created_at: now, updated_at: now,
       };
-      await env.LINKS.put("link:" + code, JSON.stringify(record));
+      await run(env, `INSERT INTO links (code,target,channel,network,label,active,created_at,updated_at)
+        VALUES (?,?,?,?,?,?,?,?)
+        ON CONFLICT(code) DO UPDATE SET target=excluded.target, channel=excluded.channel,
+          network=excluded.network, label=excluded.label, active=excluded.active, updated_at=excluded.updated_at`,
+        [record.code, record.target, record.channel, record.network, record.label,
+         record.active, record.created_at, record.updated_at]);
       return json({ ok: true, record });
     }
 
+    // --- подписка (свой лист, без Brevo) ---
+    if (path === "/subscribe") {
+      if (request.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
+      let body;
+      try {
+        body = await request.json();
+      } catch (e) {
+        return json({ ok: false, error: "bad json" }, 400);
+      }
+      const email = String(body.email || "").trim().toLowerCase();
+      if (!EMAIL_RE.test(email) || email.length > 160) {
+        return json({ ok: false, error: "valid email required" }, 400);
+      }
+      const lang = ["ru", "en", "es"].includes(String(body.lang)) ? String(body.lang) : "ru";
+      const source = slug(body.source || "page").slice(0, 60);
+      await run(env, "INSERT OR IGNORE INTO subscribers (email, source, lang, created_at) VALUES (?,?,?,?)",
+        [email, source, lang, new Date().toISOString()]);
+      return json({ ok: true }, 200);
+    }
+
+    if (path === "/admin/subscribers") {
+      if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: "forbidden" }, 403);
+      const rows = await all(env, "SELECT email, source, lang, created_at FROM subscribers ORDER BY created_at DESC");
+      const byLang = {};
+      for (const r of rows) byLang[r.lang] = (byLang[r.lang] || 0) + 1;
+      return json({ ok: true, count: rows.length, by_lang: byLang, subscribers: rows });
+    }
+
+    // --- редирект ---
     if (path.startsWith("/r/")) {
       const code = slug(path.slice(3));
-      const raw = await env.LINKS.get("link:" + code);
-      if (!raw) return new Response("Link not found", { status: 404 });
-      const record = JSON.parse(raw);
-      if (record.active === false) return new Response("Link disabled", { status: 404 });
+      const rows = await all(env, "SELECT target, active FROM links WHERE code = ?", [code]);
+      const record = rows[0];
+      if (!record) return new Response("Link not found", { status: 404 });
+      if (!record.active) return new Response("Link disabled", { status: 404 });
 
-      // Bots and link-preview crawlers do not run JavaScript: only real
-      // browsers reach the affiliate URL and only they count as clicks.
       if (request.method === "HEAD") {
         return new Response("", { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
       }
@@ -96,68 +127,58 @@ const u=${target};document.getElementById("go").href=u;location.replace(u);})();
       });
     }
 
+    // --- учёт клика ---
     if (path.startsWith("/c/")) {
       if (request.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
       const code = slug(path.slice(3));
-      const raw = await env.LINKS.get("link:" + code);
-      if (!raw) return new Response("", { status: 404 });
-      const record = JSON.parse(raw);
-      const now = new Date();
-      const day = now.toISOString().slice(0, 10);
-      const statsKey = "stats:" + code;
-      const statsRaw = await env.LINKS.get(statsKey);
-      const stats = statsRaw ? JSON.parse(statsRaw) : { total: 0, days: {}, channels: {} };
-      stats.total += 1;
-      stats.days[day] = (stats.days[day] || 0) + 1;
-      if (record.channel) stats.channels[record.channel] = (stats.channels[record.channel] || 0) + 1;
-      stats.last_click = now.toISOString();
-      const days = Object.keys(stats.days).sort();
-      if (days.length > 60) {
-        for (const d of days.slice(0, days.length - 60)) delete stats.days[d];
-      }
-      await env.LINKS.put(statsKey, JSON.stringify(stats));
+      const rows = await all(env, "SELECT code FROM links WHERE code = ?", [code]);
+      if (!rows.length) return new Response("", { status: 404 });
+      const now = new Date().toISOString();
+      const day = now.slice(0, 10);
+      await run(env, `INSERT INTO clicks (code, day, count, last_click) VALUES (?,?,1,?)
+        ON CONFLICT(code, day) DO UPDATE SET count = clicks.count + 1, last_click = excluded.last_click`,
+        [code, day, now]);
       return new Response(null, { status: 204 });
     }
 
+    // --- статистика ---
     if (path === "/stats") {
       if (token !== env.STATS_TOKEN && token !== env.ADMIN_TOKEN) {
         return json({ ok: false, error: "forbidden" }, 403);
       }
       const code = slug(url.searchParams.get("code") || "");
       if (code) {
-        const rawLink = await env.LINKS.get("link:" + code);
-        const rawStats = await env.LINKS.get(statsKeyFor(code));
-        return json({
-          ok: true,
-          code,
-          link: rawLink ? JSON.parse(rawLink) : null,
-          stats: rawStats ? JSON.parse(rawStats) : { total: 0, days: {}, channels: {} },
+        const link = (await all(env, "SELECT * FROM links WHERE code = ?", [code]))[0] || null;
+        const rows = await all(env, "SELECT day, count, last_click FROM clicks WHERE code = ? ORDER BY day", [code]);
+        const stats = { total: 0, days: {}, channels: {}, last_click: null };
+        for (const r of rows) {
+          stats.days[r.day] = r.count;
+          stats.total += r.count;
+          if (!stats.last_click || (r.last_click && r.last_click > stats.last_click)) stats.last_click = r.last_click;
+        }
+        if (link && link.channel) stats.channels[link.channel] = stats.total;
+        return json({ ok: true, code, link, stats });
+      }
+      const links = await all(env, "SELECT * FROM links ORDER BY created_at DESC");
+      const agg = await all(env, "SELECT code, SUM(count) AS total, MAX(last_click) AS last_click FROM clicks GROUP BY code");
+      const byCode = Object.fromEntries(agg.map((r) => [r.code, r]));
+      const out = [];
+      for (const link of links) {
+        const a = byCode[link.code] || {};
+        const days = await all(env, "SELECT day, count FROM clicks WHERE code = ? ORDER BY day", [link.code]);
+        out.push({
+          code: link.code, channel: link.channel || "", network: link.network || "",
+          label: link.label || "", target: link.target || "",
+          total: Number(a.total || 0),
+          days: Object.fromEntries(days.map((d) => [d.day, d.count])),
+          channels: link.channel ? { [link.channel]: Number(a.total || 0) } : {},
+          last_click: a.last_click || null,
         });
       }
-      const links = [];
-      for (const record of await listLinks(env)) {
-        const rawStats = await env.LINKS.get(statsKeyFor(record.code));
-        const stats = rawStats ? JSON.parse(rawStats) : { total: 0, days: {}, channels: {} };
-        links.push({
-          code: record.code,
-          channel: record.channel || "",
-          network: record.network || "",
-          label: record.label || "",
-          target: record.target || "",
-          total: stats.total || 0,
-          days: stats.days || {},
-          channels: stats.channels || {},
-          last_click: stats.last_click || null,
-        });
-      }
-      links.sort((a, b) => b.total - a.total);
-      return json({ ok: true, count: links.length, links });
+      out.sort((a, b) => b.total - a.total);
+      return json({ ok: true, count: out.length, links: out });
     }
 
     return json({ ok: false, error: "not found" }, 404);
   },
 };
-
-function statsKeyFor(code) {
-  return "stats:" + code;
-}

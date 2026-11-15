@@ -279,6 +279,9 @@ footer a {{ color:#a5b4fc; }}
 def main() -> int:
     from seo_enhance import enhance_us
     html = enhance_us(html)
+    from add_subscribe_forms import EN_BLOCK, ENDPOINT
+    if 'id="subscribe"' not in html:
+        html = html.replace('<footer>', EN_BLOCK.replace('__SOURCE__', 'landing-us').replace('__ENDPOINT__', ENDPOINT) + '<footer>', 1)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     html = build()
     OUT.write_text(html, encoding="utf-8")

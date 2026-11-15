@@ -167,6 +167,11 @@ def _seo_pass() -> None:
         return
     pairs = ((PAGES.get("flight-hotel-abroad"), enhance_abroad),
              (PAGES.get("nezabyvaemoe-puteshestvie"), enhance_package))
+    try:
+        import add_subscribe_forms
+        add_subscribe_forms.main()
+    except Exception:  # noqa: BLE001
+        pass
     for path, func in pairs:
         if path is None or not path.exists():
             continue

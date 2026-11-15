@@ -85,6 +85,35 @@ FAQ_COMMON = [
     ("Как забронировать?", "Нажмите кнопку «Смотреть предложения» — откроется сводка Travelata с датами, отелями и ценами. Бронирование и оплата — на стороне партнёра."),
 ]
 
+SUBSCRIBE_TEMPLATE = """
+<section id="subscribe" style="margin:40px 0 0;padding:22px 24px;border-radius:16px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.4)">
+<h2 style="font-size:22px;margin:0 0 8px">Новые цены — раз в неделю</h2>
+<p style="margin:0 0 14px;color:#c7d2fe;font-size:15px">Сводка обновляется каждую неделю: новые даты, цены и промо партнёров. Оставьте email — пришлём дайджест.</p>
+<form class="sub-form" data-source="destinations-__SLUG__" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px">
+<input type="email" required placeholder="ваш email" aria-label="Email" class="sub-email" style="flex:1;min-width:220px;padding:13px 16px;border-radius:12px;border:1px solid rgba(148,163,255,.35);background:rgba(255,255,255,.06);color:#eef2ff;font-size:15px">
+<button type="submit" class="btn" style="border:0;cursor:pointer;padding:13px 22px">Подписаться</button>
+</form>
+<p class="sub-msg" style="margin:0 0 10px;font-size:14px;color:#6ee7b7;display:none">Готово — проверьте почту.</p>
+<p style="margin:0;font-size:14px;color:#8b98bf">Или в Telegram: <a href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener" style="color:#a5b4fc">@GOODTRAVEL007</a></p>
+<script>
+(function(){
+  var f=document.querySelector('.sub-form'); if(!f) return;
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    var input=f.querySelector('.sub-email'), msg=document.querySelector('.sub-msg');
+    fetch('https://links-tracker.valdislav-n.workers.dev/subscribe', {
+      method:'POST', headers:{'content-type':'application/json'},
+      body:JSON.stringify({email:input.value, lang:'ru', source:f.dataset.source})
+    }).then(function(r){return r.json()}).then(function(d){
+      msg.textContent = d.ok ? 'Готово — сохранили email.' : (d.error || 'Не получилось, попробуйте позже');
+      msg.style.display='block'; if(d.ok) f.reset();
+    }).catch(function(){ msg.textContent='Ошибка сети — попробуйте позже'; msg.style.display='block'; });
+  });
+})();
+</script>
+</section>
+"""
+
 CSS = """
 *{box-sizing:border-box}body{margin:0;background:#070b18;color:#eef2ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
 .wrap{max-width:900px;margin:0 auto;padding:28px 20px 70px}
@@ -142,6 +171,7 @@ def graph(d: dict, url: str) -> str:
 
 def page(d: dict) -> str:
     url = f"{GH}/destinations/{d['slug']}/"
+    sub_block = SUBSCRIBE_TEMPLATE.replace("__SLUG__", d["slug"])
     title = f"Тур {d['phrase']}: ноябрь–декабрь 2026 — от {d['price']} ₽ за двоих"
     desc = (f"Пакетный тур {d['phrase']}: перелёт + отель, от {d['price']} ₽ за двоих, "
             f"{d['nights']}, заезды {DATES}. Цены и отели в сводке Travelata.")[:165]
@@ -167,6 +197,13 @@ def page(d: dict) -> str:
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{url}">
+<meta property="og:image" content="{GH}/destinations/og/{d['slug']}.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(desc)}">
+<meta name="twitter:image" content="{GH}/destinations/og/{d['slug']}.png">
 <style>{CSS}</style>
 {graph(d, url)}
 </head><body><div class="wrap">
@@ -188,12 +225,7 @@ def page(d: dict) -> str:
 <h2>Другие направления</h2>
 <div class="grid">{others}</div>
 
-<section id="subscribe" style="margin:40px 0 0;padding:22px 24px;border-radius:16px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.4)">
-<h2 style="font-size:22px;margin:0 0 8px">Новые цены — раз в неделю</h2>
-<p style="margin:0 0 14px;color:#c7d2fe;font-size:15px">Сводка обновляется каждую неделю: новые даты, цены и промо партнёров. Подпишитесь, чтобы не искать заново.</p>
-<p style="margin:0"><a class="btn" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Подписаться в Telegram</a>
-<a href="mailto:valdislav.n@gmail.com?subject=%D0%9F%D0%BE%D0%B4%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D1%81%D0%B2%D0%BE%D0%B4%D0%BA%D1%83%20%D1%82%D1%83%D1%80%D0%BE%D0%B2" style="margin-left:14px;color:#a5b4fc;font-size:15px">Получать на email</a></p>
-</section>
+{sub_block}
 <nav><a href="{GH}/flight-hotel-abroad/">Все 12 стран со ценами</a><a href="{GH}/destinations/">Хаб направлений</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata, сводка обновлена {UPDATED} · цены за двоих · не является офертой.</footer>
 </div></body></html>
@@ -202,6 +234,7 @@ def page(d: dict) -> str:
 
 def hub() -> str:
     url = GH + "/destinations/"
+    sub_block = SUBSCRIBE_TEMPLATE.replace("__SLUG__", "hub")
     items = "".join(
         f'<a class="card" href="{GH}/destinations/{d["slug"]}/"><b>{d["name"]}</b><span>от {d["price"]} ₽ · {esc(d["nights"])}</span></a>'
         for d in sorted(DESTINATIONS, key=lambda x: int(x["price"].replace(" ", ""))))
@@ -222,6 +255,15 @@ def hub() -> str:
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="alternate" hreflang="ru" href="{url}">
 <link rel="alternate" hreflang="x-default" href="{url}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Направления 2026: 12 стран с ценами от 18 473 ₽ за двоих">
+<meta property="og:description" content="Все направления сводки Travelata: минимальные цены за двоих и даты заездов на ноябрь–декабрь 2026.">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{GH}/destinations/og/destinations.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{GH}/destinations/og/destinations.png">
 <style>{CSS}</style>
 <script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
 </head><body><div class="wrap">

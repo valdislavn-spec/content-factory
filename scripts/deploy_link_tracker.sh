@@ -17,26 +17,31 @@ SCRIPT="$WORKER_DIR/worker.js"
 TITLE="content-factory-links"
 UPDATE_ONLY="${1:-}"
 
-if [[ "$UPDATE_ONLY" != "--update" ]]; then
-  KV_ID=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-    "$API/storage/kv/namespaces?per_page=100" \
-    | python3 -c "import json,sys;d=json.load(sys.stdin);print(next((x['id'] for x in d.get('result',[]) if x.get('title')=='$TITLE'),''))")
-  if [[ -z "$KV_ID" ]]; then
-    KV_ID=$(curl -s -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
-      -d "{\"title\":\"$TITLE\"}" "$API/storage/kv/namespaces" \
-      | python3 -c "import json,sys;print(json.load(sys.stdin)['result']['id'])")
-    echo "KV создан: $KV_ID"
-  else
-    echo "KV: $KV_ID"
-  fi
+D1_NAME="links-tracker"
+D1_ID=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  "$API/d1/database" \
+  | python3 -c "import json,sys;d=json.load(sys.stdin);print(next((x['uuid'] for x in (d.get('result') or []) if x.get('name')=='$D1_NAME'),''))")
+if [[ -z "$D1_ID" ]]; then
+  D1_ID=$(curl -s -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
+    -d "{\"name\":\"$D1_NAME\"}" "$API/d1/database" \
+    | python3 -c "import json,sys;print((json.load(sys.stdin).get('result') or {}).get('uuid',''))")
+  echo "D1 создана: $D1_ID"
 else
-  KV_ID=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-    "$API/storage/kv/namespaces?per_page=100" \
-    | python3 -c "import json,sys;d=json.load(sys.stdin);print(next((x['id'] for x in d.get('result',[]) if x.get('title')=='$TITLE'),''))")
+  echo "D1: $D1_ID"
 fi
-: "${KV_ID:?KV namespace не найден}"
+: "${D1_ID:?D1 database не найдена}"
 
-META=$(python3 -c "import json;print(json.dumps({'main_module':'worker.js','compatibility_date':'2026-11-08','bindings':[{'type':'kv_namespace','name':'LINKS','namespace_id':'$KV_ID'}]}))")
+# Схема (идемпотентно)
+for SQL in \
+  "CREATE TABLE IF NOT EXISTS links (code TEXT PRIMARY KEY, target TEXT NOT NULL, channel TEXT, network TEXT, label TEXT, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT);" \
+  "CREATE TABLE IF NOT EXISTS clicks (code TEXT NOT NULL, day TEXT NOT NULL, count INTEGER DEFAULT 0, last_click TEXT, PRIMARY KEY (code, day));" \
+  "CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, source TEXT, lang TEXT, created_at TEXT);" ; do
+  curl -s -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
+    -d "$(python3 -c "import json,sys;print(json.dumps({'sql':sys.argv[1]}))" "$SQL")" \
+    "$API/d1/database/$D1_ID/query" -o /dev/null -w 'd1 schema HTTP %{http_code}\n'
+done
+
+META=$(python3 -c "import json;print(json.dumps({'main_module':'worker.js','compatibility_date':'2026-11-08','bindings':[{'type':'d1','name':'DB','id':'$D1_ID'}]}))")
 curl -s -X PUT "$API/workers/scripts/$WORKER_NAME" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   -F "metadata=$META;type=application/json" \

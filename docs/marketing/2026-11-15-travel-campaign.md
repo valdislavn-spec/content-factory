@@ -23,7 +23,7 @@
 |---|---|---|
 | Пн 16.11 | Telegram + Pinterest | «12 стран: от 18 473 ₽ за двоих — Турция, Египет, ОАЭ, Таиланд, Мальдивы. Сводка цен на ноябрь–декабрь» → abroad |
 | Вт 17.11 | Bluesky (EN) | «US travel deals: 12 winter escapes from New York — flight times, best months, verified promo codes» → US |
-| Ср 18.11 | Akkoma | повтор RU-поста + промо партнёров |
+| Ср 18.11 | Akkoma (EN) | повтор анонса направлений + промо партнёров |
 | Чт 19.11 | Tumblr | лонгрид «Куда поехать зимой дешевле: 5 направлений с ценами» |
 | Пт 20.11 | Telegram | «Абхазия от 18 473 ₽ — самое дешёвое зарубежное направление. 58 предложений, 5 ночей» |
 | Сб 21.11 | Pinterest | пин «Италия от 240 442 ₽ + промо музеев» |
@@ -49,7 +49,7 @@ Brevo активен (free 300 писем/сутки), но списки пус�
 ## Уже опубликовано (15.11.2026)
 
 - Bluesky (EN): https://bsky.app/profile/b-rave007.bsky.social/post/3n2efvx7jcm2r — анонс 12 направлений + US deals
-- Akkoma (RU): https://miraiverse.xyz/notice/BCTfzHag17J0ODjaIi — 12 стран с ценами
+- Akkoma (EN): см. пост «Destination pages are live» (RU-версия удалена по требованию: Akkoma — англоязычная площадка)
 - Telegram TRAVEL (RU): https://t.me/GOODTRAVEL007/6 — хаб направлений с ценами и ссылками
 - Pinterest: 4 пина (pin/1105774514796612676, …612694, …612725, …612744)
 
