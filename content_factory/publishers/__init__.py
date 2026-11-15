@@ -30,6 +30,7 @@ from .pinterest import PinterestPublisher
 from .reddit import RedditPublisher
 from .threads import ThreadsPublisher
 from .bluesky import BlueskyPublisher
+from .buffer_x import BufferXPublisher
 from .discord import DiscordPublisher
 from .fediverse import (
     AkkomaPublisher,
@@ -49,6 +50,7 @@ __all__ = [
     "DryRunPublisher",
     "TelegramPublisher",
     "BlueskyPublisher",
+    "BufferXPublisher",
     "MastodonPublisher",
     "DiscordPublisher",
     "PleromaPublisher",
@@ -78,6 +80,7 @@ _REGISTRY: Dict[str, Type[Publisher]] = {
     "telegram": TelegramPublisher,
     "vk": VKPublisher,
     "bluesky": BlueskyPublisher,
+    "buffer-x": BufferXPublisher,
     "mastodon": MastodonPublisher,
     "discord": DiscordPublisher,
     "pleroma": PleromaPublisher,
