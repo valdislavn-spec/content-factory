@@ -29,16 +29,27 @@
 | Сб 21.11 | Pinterest | пин «Италия от 240 442 ₽ + промо музеев» |
 | Вс 22.11 | Telegram/email | дайджест недели; лучшее по вовлечению — повторить |
 
-## Трекинг
+## Трекинг и своя база (обновлено 15.11, 08:35 PST)
 
-Короткие ссылки создаются `scripts/links_admin.py create --code tr-ab-pin --target <url> --channel pinterest`.
-Планируемые коды: `tr-ab-pin`, `tr-ab-tg`, `tr-ab-bsky`, `tr-ab-akkoma`, `tr-ab-mail`, `tr-us-pin`, `tr-us-bsky`, `tr-us-mail`, `tr-ru-tg`, `tr-ru-pin`.
+**Хранилище переехало с Cloudflare KV на D1** — дневной лимит записей KV (1000/сутки) больше не блокирует:
+воркер `links-tracker` переписан на D1 (`links`, `clicks`, `subscribers`), задеплоен, проверен end-to-end
+(создание ссылки → редирект 200 → клик 204 → статистика). Free-план D1: 100k записей/сутки.
 
-⚠️ На 15.11 06:00 PST запись кодов недоступна: Cloudflare KV исчерпал дневной лимит (HTTP 429 / CF 10048). Сброс в 00:00 UTC = 16:00 PST 15.11. Чтение статистики работает: 23 кода, 141 клик.
+Созданы 10 кодов кампании:
 
-## Email
+| Код | Канал | Цель |
+|---|---|---|
+| tr-hub-tg / tr-hub-bsky / tr-hub-akkoma | telegram / bluesky / akkoma | хаб направлений |
+| tr-ab-tg / tr-ab-pin / tr-ab-bsky / tr-ab-akkoma | telegram / pinterest / bluesky / akkoma | туры за рубеж |
+| tr-us-bsky / tr-us-pin | bluesky / pinterest | US deals |
+| tr-ru-tg | telegram | пакетные туры (surge) |
 
-Brevo активен (free 300 писем/сутки), но списки пустые: EN id=5 — 0 подписчиков, ES id=6 — 0, RU-списка нет. Рассылка невозможна до сбора базы. План: добавить форму подписки на лендинги (double opt-in) и только потом рассылать дайджест.
+Формат: `https://links-tracker.valdislav-n.workers.dev/r/<код>` · статистика: `.../stats?token=...`
+
+**Своя email-база (вместо Brevo-списка)** — на всех 12 страницах направлений, хабе и трёх лендингах
+стоит форма подписки, которая пишет email в D1 через `POST /subscribe` (lang ru/en).
+Выгрузка: `GET /admin/subscribers?token=...`. Brevo больше не обязателен: рассылку можно делать
+из выгрузки, а Brevo подключить позже (нужен ключ + импорт CSV).
 
 ## KPI недели
 
