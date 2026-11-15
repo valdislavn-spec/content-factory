@@ -158,6 +158,60 @@ def _resolve_python(root: Path, value: str) -> Path:
     return Path(sys.executable)
 
 
+_CAP_TERM_RE = re.compile(r"\b[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]{2,}\b")
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.\x21?…])\s+")
+_SKIP_CAP = frozenset(
+    "The This That These Those A An And But Or For From With Without Into Over "
+    "After Before During While When Where What Who Why How New More Most Major "
+    "La El Los Las Una Un Y Pero Para Por Con Sin Sobre Tras Antes Durante "
+    "Cuando Donde Que Como Nuevo Nueva Gran".lower().split()
+)
+_NUM_RE = re.compile(
+    r"\b(?:19|20)\d{2}\b|\d+(?:[.,]\d+)?\s?%|[$€]\s?\d[\d.,]*|\b\d{1,3}(?:[ ,]\d{3})+\b"
+)
+
+
+def _canonical_number(token: str) -> str:
+    return re.sub(r"\s+", "", str(token or "").lower()).replace(",", ".").strip(".")
+
+
+def _source_corpus(cluster: StoryCluster) -> str:
+    parts = []
+    for article in getattr(cluster, "articles", []) or []:
+        parts.append(str(getattr(article, "title", "") or ""))
+        parts.append(str(getattr(article, "summary", "") or ""))
+        parts.append(str(getattr(article, "text", "") or ""))
+    if not any(parts):
+        parts.append(str(getattr(cluster, "combined_text", "") or ""))
+    return " ".join(parts)
+
+
+def _unsupported_entities(text: str, source: str) -> list:
+    source_lower = source.lower()
+    bad = set()
+    for sentence in _SENTENCE_SPLIT_RE.split(str(text or "")):
+        words = _CAP_TERM_RE.findall(sentence)
+        if words and sentence.lstrip().startswith(words[0]):
+            words = words[1:]
+        for word in words:
+            if word.lower() in _SKIP_CAP:
+                continue
+            if word.lower() not in source_lower:
+                bad.add(word)
+    return sorted(bad)
+
+
+def _unsupported_numbers(text: str, source: str) -> list:
+    source_canon = _canonical_number(source)
+    bad = []
+    for match in _NUM_RE.finditer(str(text or "")):
+        token = _canonical_number(match.group(0))
+        if token and token not in source_canon:
+            bad.append(match.group(0))
+    return bad
+
+
+
 class BrainPostGenerator:
     """Готовый пост из mcp-content-factory (LangGraph) для топ-сюжетов."""
 
@@ -297,6 +351,21 @@ class BrainPostGenerator:
         markdown = str(data.get("markdown") or "")
         title, body = _plain_body(markdown, str(data.get("title") or cluster.title))
         if not title or not body:
+            return None
+        source_text = _source_corpus(cluster)
+        bad_entities = _unsupported_entities(body, source_text)
+        if bad_entities:
+            logger.warning(
+                "Мозг: неподтверждённые имена/термины %s — внутренняя генерация",
+                ", ".join(bad_entities[:5]),
+            )
+            return None
+        bad_numbers = _unsupported_numbers(body, source_text)
+        if bad_numbers:
+            logger.warning(
+                "Мозг: неподтверждённые числа %s — внутренняя генерация",
+                ", ".join(bad_numbers[:5]),
+            )
             return None
         hashtags = self._hashtags(channel)
         text = "<b>{}</b>\n\n{}".format(html.escape(title), html.escape(body))

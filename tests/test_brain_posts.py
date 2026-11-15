@@ -210,3 +210,20 @@ def test_plain_body_strips_markdown():
     assert title == "Title"
     assert "**" not in body and "##" not in body and "https://example.com" not in body
     assert "Bold" in body and "link" in body
+
+
+
+def test_unsupported_entities_catch_invented_name():
+    from content_factory.integrations.brain_posts import _unsupported_entities
+    source = "Treasury Secretary Scott Bessent criticized Commerce Secretary Howard Lutnick."
+    body = "Prominent investor Bill Bessent criticized Howard Lutnick."
+    bad = _unsupported_entities(body, source)
+    assert "Bill" in bad
+    assert "Bessent" not in bad
+    assert "Lutnick" not in bad
+
+
+def test_unsupported_numbers_catch_invented_figure():
+    from content_factory.integrations.brain_posts import _unsupported_numbers
+    assert _unsupported_numbers("Revenue reached  billion in 2027.", "Revenue was .2 billion in 2026.")
+    assert not _unsupported_numbers("Revenue reached .2 billion in 2026.", "Revenue was .2 billion in 2026.")
