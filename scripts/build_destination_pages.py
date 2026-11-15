@@ -283,6 +283,135 @@ def hub() -> str:
 """
 
 
+SEASONAL = [
+    {"slug": "cheap", "h1": "Дешёвые туры за рубеж 2026: 6 стран до 75 000 ₽",
+     "lead": "Самое доступное из сводки: перелёт + отель на двоих, заезды 17.11–17.12.2026. "
+             "Подборка по минимальной цене — от 18 473 ₽.",
+     "max": 75000, "title": "Дешёвые туры за рубеж 2026: 6 стран до 75 000 ₽ за двоих",
+     "desc": "Абхазия от 18 473 ₽, Турция от 41 754 ₽, ОАЭ от 66 704 ₽, Кипр от 69 302 ₽, Египет от 74 015 ₽ — "
+             "минимальные цены за двоих, перелёт + отель, заезды 17.11–17.12.2026."},
+    {"slug": "premium", "h1": "Дорогие направления 2026: 4 страны от 120 000 ₽",
+     "lead": "Премиальные варианты сводки: Мальдивы, Испания, Италия и Индонезия. "
+             "Перелёт + отель на двоих, заезды 17.11–17.12.2026.",
+     "min": 120000, "title": "Дорогие направления 2026: Мальдивы, Испания, Италия от 120 000 ₽",
+     "desc": "Мальдивы от 155 760 ₽, Испания от 171 488 ₽, Италия от 240 442 ₽, Бали от 124 999 ₽ — "
+             "премиальные направления сводки Travelata, цены за двоих."},
+    {"slug": "winter", "h1": "Куда поехать зимой 2026–2027: 12 стран с ценами",
+     "lead": "Все направления сводки на зимний сезон: тёплое море, горы и города. "
+             "Зайезды 17.11–17.12.2026, цены за двоих, перелёт + отель.",
+     "all": True, "title": "Куда поехать зимой 2026–2027: 12 стран с ценами за двоих",
+     "desc": "Зимние направления из сводки Travelata: от Абхазии за 18 473 ₽ до Италии за 240 442 ₽. "
+             "Перелёт + отель на двоих, заезды 17.11–17.12.2026."},
+    {"slug": "new-year", "h1": "Новогодние туры 2027: 12 стран, цены на двоих",
+     "lead": "Планируете Новый год — вот все направления сводки с минимальными ценами. "
+             "Наличие и цены на конкретные даты уточняйте в сводке: декабрьские заезды раскупают раньше.",
+     "all": True, "title": "Новогодние туры 2027: 12 стран, цены за двоих",
+     "desc": "Новогодние направления: Турция, Египет, ОАЭ, Таиланд, Мальдивы, Италия и ещё 6 стран. "
+             "Минимальные цены за двоих из сводки Travelata на зимний сезон."},
+]
+
+
+def _price_int(d):
+    return int(d["price"].replace(" ", ""))
+
+
+def seasonal_page(cfg):
+    items = DESTINATIONS
+    if cfg.get("max"):
+        items = [d for d in DESTINATIONS if _price_int(d) <= cfg["max"]]
+    if cfg.get("min"):
+        items = [d for d in DESTINATIONS if _price_int(d) >= cfg["min"]]
+    items = sorted(items, key=_price_int)
+    url = f"{GH}/seasons/{cfg['slug']}/"
+    sub_block = SUBSCRIBE_TEMPLATE.replace("__SLUG__", "seasons-" + cfg["slug"])
+    cards = "".join(
+        f'<a class="card" href="{GH}/destinations/{d["slug"]}/"><b>{d["name"]}</b>'
+        f'<span>от {d["price"]} ₽ · {esc(d["nights"])}</span></a>' for d in items)
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "WebPage", "@id": url + "#page", "url": url, "inLanguage": "ru", "name": cfg["h1"]},
+        {"@type": "BreadcrumbList", "@id": url + "#breadcrumb", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Главная", "item": GH + "/"},
+            {"@type": "ListItem", "position": 2, "name": "Подборки", "item": GH + "/seasons/"},
+            {"@type": "ListItem", "position": 3, "name": cfg["h1"], "item": url}]},
+        {"@type": "ItemList", "@id": url + "#list", "itemListElement": [
+            {"@type": "ListItem", "position": i, "name": d["name"],
+             "url": f"{GH}/destinations/{d['slug']}/"}
+            for i, d in enumerate(items, 1)]}]}
+    return f"""<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(cfg['title'])}</title>
+<meta name="description" content="{esc(cfg['desc'])}">
+<link rel="canonical" href="{url}">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="alternate" hreflang="ru" href="{url}">
+<link rel="alternate" hreflang="x-default" href="{url}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{esc(cfg['title'])}">
+<meta property="og:description" content="{esc(cfg['desc'])}">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{GH}/destinations/og/destinations.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{GH}/destinations/og/destinations.png">
+<style>{CSS}</style>
+<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>
+</head><body><div class="wrap">
+<p class="crumb"><a href="{GH}/">Главная</a> → <a href="{GH}/seasons/">Подборки</a> → {esc(cfg['h1'])}</p>
+<h1>{esc(cfg['h1'])}</h1>
+<p class="lead">{esc(cfg['lead'])}</p>
+<div class="grid">{cards}</div>
+<p><a class="btn" href="{ABROAD}">Смотреть предложения →</a></p>
+{sub_block}
+<nav><a href="{GH}/destinations/">Все направления</a><a href="{GH}/seasons/">Подборки</a><a href="{GH}/travel/">Гайды</a></nav>
+<footer>Данные: Travelata, сводка {UPDATED} · цены за двоих · не является офертой.</footer>
+</div></body></html>
+"""
+
+
+def seasons_hub():
+    url = GH + "/seasons/"
+    cards = "".join(
+        f'<a class="card" href="{GH}/seasons/{c["slug"]}/"><b>{esc(c["h1"].split(":")[0])}</b>'
+        f'<span>{len(_seasonal_items(c))} направлений</span></a>' for c in SEASONAL)
+    return f"""<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подборки туров 2026: дешёвые, премиум, зимние и новогодние</title>
+<meta name="description" content="Подборки пакетных туров из сводки Travelata: дешёвые до 75 000 ₽, премиальные от 120 000 ₽, зимние направления и новогодние варианты с ценами за двоих.">
+<link rel="canonical" href="{url}">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<style>{CSS}</style>
+</head><body><div class="wrap">
+<p class="crumb"><a href="{GH}/">Главная</a> → Подборки</p>
+<h1>Подборки туров</h1>
+<p class="lead">Готовые срезы сводки: по бюджету и по сезону. Цены за двоих, перелёт + отель.</p>
+<div class="grid">{cards}</div>
+<nav><a href="{GH}/destinations/">Все направления</a><a href="{ABROAD}">Полная сводка цен</a></nav>
+<footer>Данные: Travelata · сводка {UPDATED} · цены за двоих.</footer>
+</div></body></html>
+"""
+
+
+def _seasonal_items(cfg):
+    items = DESTINATIONS
+    if cfg.get("max"):
+        items = [d for d in DESTINATIONS if _price_int(d) <= cfg["max"]]
+    if cfg.get("min"):
+        items = [d for d in DESTINATIONS if _price_int(d) >= cfg["min"]]
+    return items
+
+
+def build_seasonal() -> int:
+    base = DOCS / "seasons"
+    base.mkdir(parents=True, exist_ok=True)
+    for cfg in SEASONAL:
+        target = base / cfg["slug"] / "index.html"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(seasonal_page(cfg), encoding="utf-8")
+    (base / "index.html").write_text(seasons_hub(), encoding="utf-8")
+    return len(SEASONAL) + 1
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     for d in DESTINATIONS:
@@ -306,7 +435,17 @@ def main() -> int:
     if entries:
         xml = xml.replace("</urlset>", "\n".join(entries) + "\n</urlset>")
         sitemap.write_text(xml, encoding="utf-8")
-    print(f"сгенерировано страниц: {len(DESTINATIONS)} + хаб; добавлено в sitemap: {len(entries)}")
+    pages = build_seasonal()
+    xml = sitemap.read_text(encoding="utf-8")
+    extra = []
+    for loc in [GH + "/seasons/"] + [f"{GH}/seasons/{c['slug']}/" for c in SEASONAL]:
+        if f"<loc>{loc}</loc>" not in xml:
+            extra.append(f"  <url>\n    <loc>{loc}</loc>\n    <lastmod>2026-11-15</lastmod>\n"
+                         f"    <changefreq>weekly</changefreq>\n    <priority>0.75</priority>\n  </url>")
+    if extra:
+        sitemap.write_text(xml.replace("</urlset>", "\n".join(extra) + "\n</urlset>"), encoding="utf-8")
+    print(f"сгенерировано страниц: {len(DESTINATIONS)} + хаб + подборок {pages}; "
+          f"в sitemap добавлено {len(entries) + len(extra)}")
     return 0
 
 
