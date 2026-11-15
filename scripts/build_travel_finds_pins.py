@@ -39,7 +39,7 @@ SITE = "https://travel-finds.surge.sh"
 OUT = ROOT / "docs" / "travel-finds" / "pins"
 PHOTOS = ROOT / "docs" / "assets" / "photos"
 DISCLOSURE = "Ad · affiliate link"
-BOARD = "Travel Finds | Deals"
+BOARD = "Travel ideas"  # существующая доска проекта (см. docs/pinterest.md)
 SITE_LABEL = "travel-finds.surge.sh"
 
 
