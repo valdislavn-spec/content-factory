@@ -39,7 +39,7 @@ def env_file(path: Path, key: str) -> str:
         return ""
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.startswith(key + "="):
-            return line.split("=", 1)[1].strip()
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
     return ""
 
 

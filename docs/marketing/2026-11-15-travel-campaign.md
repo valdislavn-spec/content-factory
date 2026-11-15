@@ -177,3 +177,26 @@ HTTP-эндпоинты отвечают 401/403/405 без ключей).
 
 Блокер: send address `nonamemac@icloud.com` должен быть подтверждён в Kit (Settings → Email),
 иначе отправка в 17:00Z не пройдёт. Альтернатива — сменить send address на `valdislav.n@gmail.com` в UI.
+
+## Kit API v4 + MCP + вебхуки (15.11, 10:20 PST)
+
+**MCP:** `app.kit.com/mcp` — это Kit MCP, работает через OAuth от имени владельца аккаунта: headless-подключение
+невозможно без интерактивного логина в браузере. Публичный `https://developers.kit.com/mcp` (Docs MCP) подключён
+скриптом `scripts/kit_docs_mcp.py` — через него вытаскиваем актуальные контракты v4 (broadcasts, webhooks, subscribers).
+
+**v4-ключ заработал** (`KIT_V4_API_KEY`): account, subscribers, tags, forms, custom_fields, webhook_endpoints — 200.
+
+Сделано через v4:
+- `POST /v4/subscribers` (upsert) + кастомные поля: подписчику `valdislav.n@gmail.com` проставлены
+  `language=ru`, `source=manual-lead`; поле `Language` (key `language`) создано через `POST /v4/custom_fields`.
+- `POST /v4/webhook_endpoints` → id 4100, url `https://links-tracker.valdislav-n.workers.dev/kit/webhook`,
+  события: created, activated, unsubscribed, subscribed_to_form, bounced, complained, tag_added, broadcast.sent.
+  Секрет возвращён один раз → сохранён в `.env` и в секрет воркера.
+- Воркер принимает вебхуки: проверка `X-Kit-Signature` (HMAC-SHA256 от `t.body`), пишет в D1 `kit_events`,
+  синхронизирует `subscribers` (created/activated → в список, unsubscribed/bounced/complained → флаг 1).
+  Проверено: подпись принята (200), поддельная — 401.
+- Две запланированные рассылки теперь таргетированы по тегам: RU id 27068499 → тег «Дайджест» (25918468),
+  EN id 27068583 → тег «Digest EN» (25918477).
+
+**Блокер отправки:** send address `nonamemac@icloud.com` не подтверждён в Kit — без этого Kit не отправит
+запланированные на 16.11 письма. Подтвердить: Kit → Settings → Email (или сменить на `valdislav.n@gmail.com`).

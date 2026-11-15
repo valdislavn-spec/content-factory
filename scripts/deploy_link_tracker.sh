@@ -62,6 +62,13 @@ if [[ -n "${LINK_TRACKER_STATS_TOKEN:-}" ]]; then
     -o /dev/null -w 'stats secret HTTP %{http_code}\n'
 fi
 
+if [[ -n "${KIT_WEBHOOK_SECRET:-}" ]]; then
+  curl -s -X PUT "$API/workers/scripts/$WORKER_NAME/secrets" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
+    -d "{\"name\":\"KIT_WEBHOOK_SECRET\",\"text\":\"$KIT_WEBHOOK_SECRET\",\"type\":\"secret_text\"}" \
+    -o /dev/null -w 'kit webhook secret HTTP %{http_code}\n'
+fi
+
 curl -s -X POST "$API/workers/scripts/$WORKER_NAME/subdomain" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
   -d '{"enabled":true}' -o /dev/null -w 'subdomain HTTP %{http_code}\n'

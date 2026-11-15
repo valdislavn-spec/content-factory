@@ -6,6 +6,15 @@ const slug = (s) =>
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 
+
+async function hmacHex(secret, message) {
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 async function unsubToken(email, secret) {
   const data = new TextEncoder().encode(String(email).toLowerCase() + "|" + String(secret));
   const buf = await crypto.subtle.digest("SHA-256", data);
@@ -74,6 +83,44 @@ export default {
         [record.code, record.target, record.channel, record.network, record.label,
          record.active, record.created_at, record.updated_at]);
       return json({ ok: true, record });
+    }
+
+
+    // --- вебхуки Kit: подписчики, открытия, клики ---
+    if (path === "/kit/webhook") {
+      if (request.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
+      const raw = await request.text();
+      const header = request.headers.get("X-Kit-Signature") || "";
+      const secret = env.KIT_WEBHOOK_SECRET || "";
+      if (!secret) return json({ ok: false, error: "no webhook secret" }, 500);
+      const parts = Object.fromEntries(header.split(",").map((p) => p.trim().split("="))
+        .filter((p) => p.length === 2).map(([k, v]) => [k, v]));
+      if (!parts.t || !parts.v1) return json({ ok: false, error: "bad signature header" }, 401);
+      const expected = await hmacHex(secret, `${parts.t}.${raw}`);
+      const valid = header.split(",").some((p) => {
+        const [k, v] = p.trim().split("=");
+        return k === "v1" && v === expected;
+      });
+      if (!valid) return json({ ok: false, error: "bad signature" }, 401);
+      let event = {};
+      try { event = JSON.parse(raw); } catch (e) { event = {}; }
+      const type = String(event.type || event.event || "");
+      const email = String((event.subscriber && event.subscriber.email_address)
+        || event.email_address || "").toLowerCase();
+      const now = new Date().toISOString();
+      await run(env, "INSERT INTO kit_events (event, email, payload, received_at) VALUES (?,?,?,?)",
+        [type, email, raw.slice(0, 20000), now]);
+      if (email && (type.startsWith("subscriber.created") || type.startsWith("subscriber.activated")
+        || type === "subscriber.subscribed_to_form")) {
+        await run(env, `INSERT INTO subscribers (email, source, lang, created_at, unsubscribed)
+          VALUES (?,?,?,?,0) ON CONFLICT(email) DO UPDATE SET unsubscribed = 0`,
+          [email, "kit", "ru", now]);
+      }
+      if (type === "subscriber.cancelled" || type === "subscriber.unsubscribed"
+        || type === "subscriber.complained" || type === "subscriber.bounced") {
+        await run(env, "UPDATE subscribers SET unsubscribed = 1 WHERE email = ?", [email]);
+      }
+      return json({ ok: true });
     }
 
     // --- подписка (свой лист, без Brevo) ---
