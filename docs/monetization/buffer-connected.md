@@ -1,5 +1,13 @@
 # Buffer: подключение по API-ключу (08.11.2026)
 
+> **Статус на 15.11.2026.** Это историческая справка о первичном подключении.
+> Сейчас в `config/buffer.yaml` остался только канал X (`NValdislav`);
+> Bluesky публикуется напрямую через AT Protocol, Facebook отключён.
+> Workflow `buffer-queue` перенесён в `.github/workflows-archive/` и по
+> расписанию не запускается. `BUFFER_API_KEY` рабочий: ручной dry-run
+> `python scripts/buffer_queue.py --services twitter,bluesky,facebook`
+> формирует 1 пост для X и ничего не публикует без `--live`.
+
 Аккаунт: `valdislav.n@gmail.com` (Buffer, Free Plan).
 API: GraphQL `https://api.buffer.com/graphql`, авторизация `Authorization: Bearer <key>`.
 Ключ: создан в настройках Buffer («Content Factory Agent», Personal Access),

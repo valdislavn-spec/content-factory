@@ -45,10 +45,7 @@ Variables:
 
 ## Проверка
 
-Actions → **pinterest-check** → Run workflow:
-
-1. `post=false` — покажет доски и проверит токен;
-2. `post=true` — создаст один тестовый пин на доску.
+Actions → **services-check** → job **pinterest** — покажет доски и проверит токен. Для публикации набора Travel Finds используйте **pinterest-travel-finds** (`mode=list` или `mode=publish` с `dry_run`).
 
 ## Включение в конвейер
 
@@ -61,7 +58,7 @@ Actions → **pinterest-check** → Run workflow:
 
 Важно: тогда пин будет создаваться **на каждый** опубликованный пост. Если это
 слишком часто — либо включать Pinterest только для канала с редким расписанием,
-либо использовать ручной постинг через `pinterest-check` (2–4 пина в день
+либо использовать ручной постинг через `pinterest-travel-finds` (2–4 пина в день
 достаточно; больше Pinterest считает спамом).
 
 ## Статус на 09.11.2026 (проверено)
@@ -87,8 +84,8 @@ Actions → **pinterest-check** → Run workflow:
    developers.pinterest.com; при отказе — писать в поддержку Pinterest.
 2. В приложении добавить scopes **`pins:write`**, **`boards:write`**
    (для создания пинов/досок) и заново сгенерировать токен.
-3. Обновить секреты: `PINTEREST_ACCESS_TOKEN`, `PINTEREST_BOARD_ID`
-   (ID доски можно взять из `GET /v5/boards` после одобрения).
+3. Обновить `PINTEREST_ACCESS_TOKEN` (секрет) и `PINTEREST_BOARD_ID`
+   (repository variable; ID доски можно взять из `GET /v5/boards` после одобрения).
 4. Запустить `channel-cards` с `platforms: pinterest` — пины уйдут через
    API v5.
 
@@ -103,14 +100,14 @@ Actions → **pinterest-check** → Run workflow:
   токен после Standard access).
 - Sandbox-аккаунт отдельный: доски/пины sandbox **не видны** на публичном
   профиле (там 2 доски: `Content Factory Test`, `DSH sandbox test`).
-- `pinterest-check` умеет sandbox: добавлен input `api_base` (пусто =
-  production, `https://api-sandbox.pinterest.com/v5` = sandbox); переменная
-  `PINTEREST_API_BASE` (используется и `pins-generate`) **не менялась**.
+- `services-check` и `pinterest-travel-finds` берут `PINTEREST_API_BASE` из
+  repository variable; для sandbox задано `https://api-sandbox.pinterest.com/v5`.
+  `PINTEREST_BOARD_ID` также хранится в repository variables.
 - Секрет `PINTEREST_ACCESS_TOKEN` обновлён рабочим sandbox-токеном (13.11.2026).
 - **Дальше:** залогиниться в developers.pinterest.com → запросить
   **Standard access** → сгенерировать production-токен со scope `pins:write`,
   `boards:write` → обновить секреты `PINTEREST_ACCESS_TOKEN` и
-  `PINTEREST_BOARD_ID` (боевая доска) → `pinterest-check` без `api_base`.
+  `PINTEREST_BOARD_ID` (боевая доска) → `PINTEREST_API_BASE` на production.
   Кабинет/почта сейчас недоступны из окружения (сессии Chrome слетели из-за
   Keychain), нужен вход владельца.
 

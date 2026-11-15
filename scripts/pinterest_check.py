@@ -69,6 +69,7 @@ def main() -> int:
             hint = "  ПОЧЕМУ: токен недействителен или истёк — сгенерируйте новый Access token."
         if hint:
             print(hint)
+        return 1
     boards = data.get("items") if isinstance(data, dict) else []
     for item in (boards or [])[:30]:
         print("  board:", item.get("id"), "|", item.get("name"))

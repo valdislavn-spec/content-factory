@@ -48,6 +48,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
       - run: python scripts/x_check.py
 
   buffer:
@@ -74,13 +76,27 @@ jobs:
     steps:
       - name: Probe Cloudflare APIs
         run: |
-          curl -sS -o /dev/null -w "cloudflare token: %{http_code}\n" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify
-          curl -sS -o /dev/null -w "price alerts: %{http_code}\n" https://price-alerts.valdislav-n.workers.dev/health
+          check() {
+            name="$1"; shift
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "$@") || true
+            echo "$name: $code"
+            test "$code" = "200"
+          }
+          check "cloudflare token" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify"
+          check "price alerts" "https://price-alerts.valdislav-n.workers.dev/health"
           if [ -n "$LINK_TRACKER_BASE" ]; then
-            curl -sS -o /dev/null -w "link tracker: %{http_code}\n" "$LINK_TRACKER_BASE"
+            check "link tracker" "$LINK_TRACKER_BASE"
           else
             echo "link tracker: LINK_TRACKER_BASE не задан"
+            exit 1
           fi
+          # cf-subscribe принимает только POST; пустой JSON = invalid_email (400),
+          # что подтверждает живость Worker без создания подписки.
+          code=$(curl -sS -o /tmp/cf-subscribe.json -w "%{http_code}" -X POST \
+            -H "Content-Type: application/json" -d "{}" \
+            https://cf-subscribe.valdislav-n.workers.dev/) || true
+          echo "cf-subscribe: $code $(cat /tmp/cf-subscribe.json 2>/dev/null | head -c 120)"
+          test "$code" = "400"
 
   dify:
     runs-on: ubuntu-latest

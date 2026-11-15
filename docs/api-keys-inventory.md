@@ -21,11 +21,11 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Fediverse | Akkoma (`AKKOMA_*`) на `crypto-news` | ✅ проверено живым слотом: публикация проходит |
 | Discord | Webhook (`DISCORD_WEBHOOK_URL`) на 3 EN-каналах | ✅ проверено `discord-check`: отправка и удаление работают |
 | Tumblr | OAuth1 (`TUMBLR_*`), фото/текст | ✅ креды есть; дайджест приостановлен |
-| Buffer | X / Bluesky / Facebook через Buffer (`BUFFER_API_KEY`) | ✅ 3 канала, очередь |
+| Buffer | `BUFFER_API_KEY` | ⚠️ ключ рабочий, но в `config/buffer.yaml` остался только X; workflow `buffer-queue` в архиве, автоочередь не запускается |
 | X | `X_API_KEY`/`X_API_SECRET`/`X_ACCOUNT_BLOB` | ⚠️ не хватает пары access token/secret для публикатора |
-| Pinterest | `PINTEREST_ACCESS_TOKEN` | ✅ sandbox API работает; production ожидает Standard access |
+| Pinterest | `PINTEREST_ACCESS_TOKEN`, `PINTEREST_API_BASE`, `PINTEREST_BOARD_ID` | ✅ sandbox API проверен 15.11.2026 (`GET /boards` 200, 2 доски); production ожидает Standard access |
 | Reddit | — | ⛔ API закрыт с 31.10.2026 (новые ключи не выдают) |
-| Email | — | ❌ нет провайдера (Brevo/Resend/MailerLite не подключены) |
+| Email | Brevo (`BREVO_API_KEY`, `BREVO_LIST_ID_EN/ES`, `EMAIL_FROM`) | ✅ API 200, free 300 писем/день, EN/ES-списки созданы; подписчиков 0, weekly-рассылка пока в архиве |
 | LLM | OpenAI, DeepSeek, Groq, Cohere, OpenRouter, SambaNova, HuggingFace, Gemini (в GitHub), Ollama | ✅ ключи есть |
 | LLM (резерв) | GigaChat, YandexGPT | ⚠️ переменные есть, значения **пустые** |
 | Новости/поиск | GDELT, NewsData, Tavily ×2 | ✅ работает |
@@ -34,7 +34,7 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Travel | Travelpayouts API token + marker, Twelvedata | ✅ добавлено в GitHub 09.11.2026 |
 | Ссылки | Свой трекер (`LINK_TRACKER_*`, admin token) | ✅ работает |
 | Инфраструктура | GitHub, Cloudflare (Workers/KV), Rclone | ✅ работает |
-| Автоматизация | Pipedream, Postman | ✅ добавлено в GitHub 09.11.2026 |
+| Автоматизация | Pipedream, Postman | ⚠️ секреты есть, но в коде фабрики не используются (только хранятся) |
 | MTProto | `TG_API_ID`/`TG_API_HASH`/`TG_SESSION` | ⚠️ локально есть имена, но **значения пустые** |
 
 ## Добавлено 09.11.2026 (в GitHub Secrets)
@@ -47,18 +47,17 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 
 | Сервис | Что даёт | Почему блок | Что нужно |
 |---|---|---|---|
-| **Brevo** (300 писем/день) | email-дайджест | нет аккаунта/подтверждения email | зарегистрировать на твой ящик + подтвердить ссылку (могу сделать, если дашь доступ/подтвердишь) |
+| **Brevo** (300 писем/день) | email-дайджест | аккаунт подключён, но списки EN/ES пусты, weekly workflow в архиве | включить рассылку и набрать подписчиков через `/subscribe/` |
 | **Resend** (3 000/мес) | email API | нужен свой домен для отправки чужим адресатам | домен + DNS (сейчас только `github.io`) |
 | **Google AI Studio / Gemini** | LLM free tier | профиль Google разлогинен | войти в Google в браузерном профиле — создам ключ |
 | **Google Search Console** | индексация, sitemap API | нет Google-логина | войти в Google; добавлю HTML-верификацию и service account |
 | **Bing Webmaster** | Bing-индексация + API key | нет Microsoft-логина | войти в Microsoft/Bing |
 | **Yandex Webmaster** | Яндекс-индексация | нет Yandex-логина | войти в Yandex |
-| **Discord** | вебхук в канал | нет аккаунта/сервера | создать сервер или дать доступ |
-| **Bluesky (напрямую)** | API постинга | нет app password | пока покрыто Buffer |
+| **Bluesky (напрямую)** | API постинга | ✅ работает для `crypto-news`; Buffer не нужен | — |
 | **VK** | постинг | `VK_ACCESS_TOKEN` пустой | токен из VK ID/сообщества |
 | **TikTok/YouTube/Threads/LinkedIn** | видео/посты | app review + телефон/аудит | не бесплатно «сразу», долгий ревью |
 | **Telegram MTProto** | сбор метрик/сессии | `TG_API_ID/HASH` пустые + телефон/код | заполнить my.telegram.org и код |
-| **Pinterest** | API пинов | trial pending, токены read-only | ждать аппрув Pinterest |
+| **Pinterest** | API пинов | sandbox-токен работает; production закрыт | получить Standard access и production-токен |
 
 ## Бесплатные API без ключей (можно использовать сразу)
 

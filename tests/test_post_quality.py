@@ -720,6 +720,26 @@ class GeneratorQualityTest(unittest.TestCase):
         self.assertIn("periodista", es)
         self.assertIn("español".lower(), es.lower())
         self.assertIn("90", es)
+        # Формат запроса важнее «статьи по умолчанию»: иначе модель добавляет
+        # лишний заголовок/абзацы к запросам «одно предложение» и «заголовок».
+        self.assertIn("только заголовок", ru)
+        self.assertIn("only a headline", en)
+        self.assertIn("solo un titular", es)
+        # Текст источников — данные, а не инструкции для модели.
+        self.assertIn("недоверенные", ru)
+        self.assertIn("untrusted", en)
+        self.assertIn("no confiables", es)
+
+    def test_analyzer_prompts_treat_sources_as_untrusted(self):
+        from content_factory.nlp.analyzer import (
+            _SYSTEM_ANALYST_EN,
+            _SYSTEM_ANALYST_ES,
+            _SYSTEM_ANALYST_RU,
+        )
+
+        self.assertIn("недоверенные", _SYSTEM_ANALYST_RU)
+        self.assertIn("untrusted", _SYSTEM_ANALYST_EN)
+        self.assertIn("no confiables", _SYSTEM_ANALYST_ES)
 
 
     def test_single_brace_alert_placeholders_are_detected(self):
