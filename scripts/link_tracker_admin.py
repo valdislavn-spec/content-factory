@@ -60,6 +60,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--target")
     parser.add_argument("--label", default="")
     parser.add_argument("--channel", default="")
+    parser.add_argument("--plan", metavar="JSON",
+                        help="bulk upsert: JSON array of {code,target,label,channel}")
     args = parser.parse_args(argv)
     if args.list:
         status, payload = call("GET", "/admin/links")
@@ -72,8 +74,19 @@ def main(argv: list[str] | None = None) -> int:
             flag = "on " if link.get("active", 1) else "off"
             print(f"  [{flag}] {link['code']:<24} {link.get('channel') or '-':<14} {link.get('target','')[:110]}")
         return 0
+    if args.plan:
+        items = json.loads(args.plan)
+        ok = True
+        for item in items:
+            status, payload = call("POST", "/admin/links", {
+                "code": item["code"], "target": item["target"],
+                "label": item.get("label", ""), "channel": item.get("channel", ""),
+            })
+            print(f"{item['code']}: {status} {payload}")
+            ok = ok and status in (200, 201)
+        return 0 if ok else 1
     if not args.upsert or not args.target:
-        parser.error("use --list or --upsert CODE --target URL")
+        parser.error("use --list, --upsert CODE --target URL or --plan JSON")
     status, payload = call("POST", "/admin/links", {
         "code": args.upsert,
         "target": args.target,

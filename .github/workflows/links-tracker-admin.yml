@@ -9,7 +9,7 @@ on:
         required: true
         default: "list"
         type: choice
-        options: ["list", "upsert"]
+        options: ["list", "upsert", "bulk"]
       code:
         description: "код ссылки (для upsert)"
         required: false
@@ -22,6 +22,11 @@ on:
         type: string
       label:
         description: "комментарий (для upsert)"
+        required: false
+        default: ""
+        type: string
+      plan:
+        description: 'bulk: JSON [{"code":"x","target":"https://...","label":""}]'
         required: false
         default: ""
         type: string
@@ -44,3 +49,8 @@ jobs:
       - name: Upsert link
         if: ${{ inputs.action == 'upsert' }}
         run: python3 scripts/link_tracker_admin.py --upsert "${{ inputs.code }}" --target "${{ inputs.target }}" --label "${{ inputs.label }}"
+      - name: Bulk upsert
+        if: ${{ inputs.action == 'bulk' }}
+        env:
+          PLAN: ${{ inputs.plan }}
+        run: python3 scripts/link_tracker_admin.py --plan "$PLAN"
