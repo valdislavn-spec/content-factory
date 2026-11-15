@@ -23,8 +23,8 @@ window.TRAVEL_CONFIG = {
     kiwi: {
       url: "",
       urls: {
-        en: "https://kiwi.tpk.ro/RJINNJJm",
-        es: "https://kiwi.tpk.ro/n2alia22",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwi-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwi-es",
       },
       landing: "https://www.kiwi.com/",
       label: "Kiwi.com",
@@ -32,8 +32,8 @@ window.TRAVEL_CONFIG = {
     kiwitaxi: {
       url: "",
       urls: {
-        en: "https://kiwitaxi.tpk.ro/xmQYmqIl",
-        es: "https://kiwitaxi.tpk.ro/8bXhqjhr",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwitaxi-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwitaxi-es",
       },
       landing: "https://kiwitaxi.com/",
       label: "Kiwitaxi",
@@ -41,8 +41,8 @@ window.TRAVEL_CONFIG = {
     yesim: {
       url: "",
       urls: {
-        en: "https://yesim.tpk.ro/uzjpBpju",
-        es: "https://yesim.tpk.ro/KqpvuYgm",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-yesim-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-yesim-es",
       },
       landing: "https://yesim.app/",
       label: "Yesim",
@@ -50,8 +50,8 @@ window.TRAVEL_CONFIG = {
     klook: {
       url: "",
       urls: {
-        en: "https://klook.tpk.ro/2NhHWOSD",
-        es: "https://klook.tpk.ro/RmERIKIk",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-klook-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-klook-es",
       },
       landing: "https://www.klook.com/",
       label: "Klook",
@@ -65,6 +65,12 @@ window.TRAVEL_CONFIG = {
     },
   },
   siteUrl: "https://travel-finds.surge.sh",
+  // Наш живой Telegram-канал (EN/ES-каналов пока нет — ведём один).
+  telegram: {
+    urlEn: "https://t.me/GOODTRAVEL007",
+    urlEs: "https://t.me/GOODTRAVEL007",
+    handle: "@GOODTRAVEL007",
+  },
 };
 
 window.TRAVEL_PLACEHOLDER = !window.TRAVEL_CONFIG.programs.kiwi.urls.en;

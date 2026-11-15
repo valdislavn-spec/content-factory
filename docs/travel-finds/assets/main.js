@@ -112,7 +112,7 @@
       var url = affiliateUrl(program, target);
       if (!url) {
         card.setAttribute("aria-disabled", "true");
-        card.setAttribute("title", "Партнёрские ссылки появятся после настройки site/assets/site-config.js");
+        card.setAttribute("title", "Ссылка для этой программы пока недоступна");
         card.addEventListener("click", function (event) {
           event.preventDefault();
         });

@@ -61,7 +61,7 @@
         Travel Finds
       </a>
       <nav class="header__nav" aria-label="Navigation">
-        <a href="#deals">Deals</a>
+        <a href="#guides">Guides</a>
         <a href="#how">How it works</a><a href="blog/">Guides</a>
         <a class="lang-switch" href="es.html" hreflang="es" lang="es">ES</a>
       </nav>
@@ -99,52 +99,62 @@
       -->
       <section class="search" aria-labelledby="search-title">
         <h2 id="search-title">Find a flight or a hotel</h2>
-        <p>The widget pre-fills your city, dates and guests. It is an affiliate search — the price you see is the same.</p>
+        <p>Pick a service below — each opens the partner site with our code attached. The price is the same for you.</p>
         <div id="tp-widget" data-locale="en" aria-live="polite"></div>
         <div id="widget-fallback" class="widget-fallback">
-          <span>The widget is not configured yet (placeholder in <code>site/assets/site-config.js</code>).</span>
-          <a href="https://www.kiwi.com/" data-affiliate-program="kiwi" data-affiliate-target="https://www.kiwi.com/" rel="sponsored nofollow noopener">Search flights</a>
-          <a href="https://www.trip.com/hotels/" data-affiliate-program="tripcom" data-affiliate-target="https://www.trip.com/hotels/" rel="sponsored nofollow noopener">Search hotels on Trip.com</a>
+          <div class="wf__text">
+            <strong>Find flights and airport transfers</strong>
+            <span>Search opens with our partner — the price is the same, and a small share supports this site.</span>
+          </div>
+          <div class="wf__actions">
+            <a href="https://www.kiwi.com/" data-affiliate-program="kiwi" data-affiliate-target="https://www.kiwi.com/" rel="sponsored nofollow noopener">Search flights</a>
+            <a href="https://kiwitaxi.com/" data-affiliate-program="kiwitaxi" data-affiliate-target="https://kiwitaxi.com/" rel="sponsored nofollow noopener">Book a transfer</a>
+          </div>
         </div>
         <p class="muted" style="font-size:12px;margin:12px 0 0">Ad · affiliate link. See the affiliate disclosure below.</p>
       </section>
 
-      <section class="section" id="deals" aria-labelledby="deals-title">
-        <h2 id="deals-title">Latest finds</h2>
+      <section class="section" id="guides" aria-labelledby="guides-title">
+        <h2 id="guides-title">Guides: how to actually pay less</h2>
         <p class="section__lead">
-          Three sample cards (sample data, not real fares). The generator
-          <code>tools/gen_deals.py</code> fills such cards from the TravelPayouts
-          Data API; always verify the price for your dates.
+          Short, practical guides — no fake countdowns and no invented prices.
+          Each one ends with the same partner search we use ourselves.
         </p>
         <div class="deals">
-          <!-- SAMPLE DEAL: layout example, price is made up -->
           <article class="deal">
-            <span class="sample-tag">sample</span>
-            <div class="deal__route">Flights: your city → Bangkok</div>
-            <div class="deal__meta">depart 18 Dec 2026 · return 28 Dec 2026 · sample route</div>
-            <div class="deal__price">from $249 <small>found 08 Nov 2026</small></div>
-            <a class="deal__cta" href="#" data-affiliate-program="kiwi"
-               data-affiliate-target="https://www.kiwi.com/">Compare fares on Kiwi.com</a>
+            <span class="sample-tag">guide</span>
+            <div class="deal__route">How to find cheap flights in 2026</div>
+            <div class="deal__meta">flexible dates · alternative airports · total cost</div>
+            <div class="deal__price">step-by-step playbook</div>
+            <a class="deal__cta" href="blog/how-to-find-cheap-flights-2026.html">Read the guide</a>
           </article>
-          <!-- SAMPLE DEAL: layout example, price is made up -->
           <article class="deal">
-            <span class="sample-tag">sample</span>
-            <div class="deal__route">eSIM: 5 GB for a week abroad</div>
-            <div class="deal__meta">instant activation · keep your number · sample plan</div>
-            <div class="deal__price">from $9.90 <small>checked 08 Nov 2026</small></div>
-            <a class="deal__cta" href="#" data-affiliate-program="yesim"
-               data-affiliate-target="https://yesim.app/">Compare eSIM plans on Yesim</a>
+            <span class="sample-tag">guide</span>
+            <div class="deal__route">Flexible dates: the cheapest lever you have</div>
+            <div class="deal__meta">why ±2 days beats any promo code</div>
+            <div class="deal__price">month view explained</div>
+            <a class="deal__cta" href="blog/flexible-dates-cheaper-flights.html">Read the guide</a>
           </article>
-          <!-- SAMPLE DEAL: layout example, price is made up -->
           <article class="deal">
-            <span class="sample-tag">sample</span>
-            <div class="deal__route">Airport transfer: arrivals hall → hotel</div>
-            <div class="deal__meta">fixed price · driver meets you · sample route</div>
-            <div class="deal__price">from $24 <small>checked 08 Nov 2026</small></div>
-            <a class="deal__cta" href="#" data-affiliate-program="kiwitaxi"
-               data-affiliate-target="https://kiwitaxi.com/">Book a transfer on Kiwitaxi</a>
+            <span class="sample-tag">guide</span>
+            <div class="deal__route">Train vs bus vs plane in Europe</div>
+            <div class="deal__meta">door-to-door time and money, not just the ticket</div>
+            <div class="deal__price">when each option wins</div>
+            <a class="deal__cta" href="blog/train-bus-plane-europe-compare.html">Read the guide</a>
           </article>
         </div>
+        <p class="muted" style="font-size:13px;margin:14px 0 0">
+          More: <a href="blog/">all guides</a> · <a href="blog/cheap-city-breaks-europe-2026.html">cheapest city breaks in Europe</a>
+        </p>
+      </section>
+
+      <section class="section" id="telegram" aria-labelledby="telegram-title">
+        <h2 id="telegram-title">Our Telegram channel</h2>
+        <p class="section__lead">
+          Daily travel finds and practical tips — the same picks we put on this page,
+          but as they come up. No spam, unsubscribe in one tap.
+        </p>
+        <p><a class="deal__cta" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Open @GOODTRAVEL007 →</a></p>
       </section>
 
       <section class="section" id="how" aria-labelledby="how-title">
