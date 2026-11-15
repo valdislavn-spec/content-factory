@@ -1,0 +1,48 @@
+name: pinterest-travel-finds
+
+# Lists Pinterest boards and (optionally) publishes the Travel Finds pin set
+# from docs/travel-finds/pins/meta.json. Uses repo secrets, no local token needed.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "list = показать доски, publish = опубликовать пины"
+        required: true
+        default: "list"
+        type: choice
+        options: ["list", "publish"]
+      board:
+        description: "board id для publish (пусто = PINTEREST_BOARD_ID из секретов)"
+        required: false
+        default: ""
+        type: string
+      dry_run:
+        description: "publish: true = только показать payload-ы"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+permissions:
+  contents: read
+
+jobs:
+  pinterest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: List boards
+        if: ${{ inputs.mode == 'list' }}
+        run: python3 scripts/pinterest_travel_finds.py --list
+      - name: Publish pins
+        if: ${{ inputs.mode == 'publish' }}
+        run: |
+          python3 scripts/pinterest_travel_finds.py --publish docs/travel-finds/pins/meta.json \
+            ${BOARD:+--board "$BOARD"} ${{ inputs.dry_run == 'true' && '--dry-run' || '' }}
+        env:
+          BOARD: ${{ inputs.board }}
