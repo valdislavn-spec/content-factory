@@ -54,7 +54,7 @@ def _request(url: str, method: str = "GET", payload: dict | None = None,
     for key, value in (headers or {}).items():
         request.add_header(key, value)
     try:
-        with urllib.request.urlopen(request, timeout=40) as response:
+        with urllib.request.urlopen(request, timeout=150) as response:
             body = response.read().decode() or "{}"
             try:
                 return json.loads(body)
@@ -125,13 +125,22 @@ class Kit:
     def create_subscriber(self, email: str, first_name: str = "") -> dict:
         return self.v3_post("/subscribers", {"email": email, "first_name": first_name})
 
+    def create_tag(self, name: str) -> dict:
+        return self.v3_post("/tags", {"name": name})
+
+    def subscribe_to_tag(self, tag_id: int | str, email: str) -> dict:
+        return self.v3_post(f"/tags/{tag_id}/subscribe", {"email": email})
+
     def create_custom_field(self, label: str) -> dict:
         return self.v3_post("/custom_fields", {"label": label})
 
-    def create_broadcast(self, subject: str, content: str, description: str = "") -> dict:
-        return self.v3_post("/broadcasts", {
-            "subject": subject, "content": content, "description": description,
-            "public": False, "published_at": None})
+    def create_broadcast(self, subject: str, content: str, description: str = "",
+                         send_at: str = "") -> dict:
+        payload = {"subject": subject, "content": content, "description": description,
+                   "public": False}
+        if send_at:
+            payload["send_at"] = send_at
+        return self.v3_post("/broadcasts", payload)
 
     def check_secret(self) -> str:
         try:

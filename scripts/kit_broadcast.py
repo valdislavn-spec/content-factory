@@ -32,9 +32,17 @@ def main() -> int:
     parser.add_argument("--create", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--cleanup", action="store_true", help="удалить пустые черновики New Broadcast")
+    parser.add_argument("--schedule", default="", help="ISO-время отправки, например 2026-11-16T17:00:00Z")
+    parser.add_argument("--list", action="store_true", help="показать черновики и запланированные")
     args = parser.parse_args()
 
     kit = Kit()
+
+    if args.list:
+        for broadcast in kit.broadcasts():
+            print(f"{broadcast.get('id')} | send_at={broadcast.get('send_at')} | "
+                  f"published={broadcast.get('published_at')} | {broadcast.get('subject')}")
+        return 0
 
     if args.cleanup:
         removed = 0
@@ -63,7 +71,7 @@ def main() -> int:
     before = {b.get("id") for b in kit.broadcasts()}
     error_text = ""
     try:
-        kit.create_broadcast(subject, html, description="travel digest")
+        kit.create_broadcast(subject, html, description="travel digest", send_at=args.schedule or "")
     except KitError as error:
         error_text = str(error)
     after = kit.broadcasts()

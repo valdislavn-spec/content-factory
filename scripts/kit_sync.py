@@ -61,23 +61,30 @@ def main() -> int:
             print("без KIT_API_SECRET синхронизация невозможна (v3 требует ключ+секрет для подписчиков)")
         return 0
 
+    tag_name = args.tag or "Дайджест"
     tag_id = ""
-    if args.tag:
-        try:
-            for tag in kit.tags():
-                if (tag.get("name") or "").lower() == args.tag.lower():
-                    tag_id = str(tag.get("id"))
-                    break
-        except KitError as error:
-            print(f"теги: {error}")
-        print(f"тег «{args.tag}»: {'id ' + tag_id if tag_id else 'не найден (создай в Kit UI)'}")
+    try:
+        for tag in kit.tags():
+            if (tag.get("name") or "").lower() == tag_name.lower():
+                tag_id = str(tag.get("id"))
+                break
+        if not tag_id:
+            tag_id = str(kit.create_tag(tag_name).get("id", ""))
+            print(f"тег «{tag_name}» создан: id={tag_id}")
+        else:
+            print(f"тег «{tag_name}»: id={tag_id}")
+    except KitError as error:
+        print(f"теги: {error}")
+        return 1
 
     created = failed = 0
     for person in people:
         try:
-            out = kit.create_subscriber(person["email"])
-            subscriber = out.get("subscriber") or {}
-            print(f"  ok {person['email']} id={subscriber.get('id')} state={subscriber.get('state')}")
+            out = kit.subscribe_to_tag(tag_id, person["email"])
+            subscription = out.get("subscription") or {}
+            subscriber = subscription.get("subscriber") or {}
+            print(f"  ok {person['email']} subscriber_id={subscriber.get('id')} "
+                  f"state={subscription.get('state')}")
             created += 1
         except KitError as error:
             print(f"  fail {person['email']}: {error}")
