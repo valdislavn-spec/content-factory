@@ -21,7 +21,7 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Fediverse | Akkoma (`AKKOMA_*`) на `crypto-news` | ✅ проверено живым слотом: публикация проходит |
 | Discord | Webhook (`DISCORD_WEBHOOK_URL`) на 3 EN-каналах | ✅ проверено `discord-check`: отправка и удаление работают |
 | Tumblr | OAuth1 (`TUMBLR_*`), фото/текст | ✅ креды есть; дайджест приостановлен |
-| Buffer | `BUFFER_API_KEY` | ⚠️ ключ рабочий, но в `config/buffer.yaml` остался только X; workflow `buffer-queue` в архиве, автоочередь не запускается |
+| Buffer | `BUFFER_API_KEY`, `BUFFER_X_CHANNEL_ID` | ⚠️ ключ рабочий: API видит X (`@NValdislav`) и Facebook; в `config/buffer.yaml` только X. Автоочередь `buffer-queue` в архиве, но для `crypto-news` включён `buffer-x` (shareNow) |
 | X | `X_API_KEY`/`X_API_SECRET`/`X_ACCESS_TOKEN`/`X_ACCESS_SECRET` | ⚠️ OAuth 1.0a `users/me` 200 (`@NValdislav`), но POST → 403 `oauth1-permissions`; нужны права Read+Write и новый access token. Публикатор включён в `crypto-news` |
 | Pinterest | `PINTEREST_ACCESS_TOKEN`, `PINTEREST_API_BASE`, `PINTEREST_BOARD_ID` | ✅ sandbox API проверен 15.11.2026 (`GET /boards` 200, 2 доски); production ожидает Standard access |
 | Reddit | — | ⛔ API закрыт с 31.10.2026 (новые ключи не выдают) |

@@ -2,7 +2,9 @@
 
 > **Статус на 15.11.2026.** Это историческая справка о первичном подключении.
 > Сейчас в `config/buffer.yaml` остался только канал X (`NValdislav`);
-> Bluesky публикуется напрямую через AT Protocol, Facebook отключён.
+> Bluesky публикуется напрямую через AT Protocol. API 15.11.2026 видит ещё и
+> Facebook (`The best offers`), но в автоочередь он намеренно не включён.
+> Для `crypto-news` включён `buffer-x` (shareNow) как fallback прямого X API.
 > Workflow `buffer-queue` перенесён в `.github/workflows-archive/` и по
 > расписанию не запускается. `BUFFER_API_KEY` рабочий: ручной dry-run
 > `python scripts/buffer_queue.py --services twitter,bluesky,facebook`
