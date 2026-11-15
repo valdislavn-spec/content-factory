@@ -40,6 +40,14 @@ jobs:
       TELEGRAM_CHAT_ID_FUTBOL_ES: ${{ secrets.TELEGRAM_CHAT_ID_FUTBOL_ES }}
       BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
       BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+      MASTODON_BASE_URL: ${{ secrets.MASTODON_BASE_URL }}
+      MASTODON_TOKEN: ${{ secrets.MASTODON_TOKEN }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_WEBHOOK_URL_SPORT_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_SPORT_NEWS }}
+      DISCORD_WEBHOOK_URL_AI_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_AI_NEWS }}
+      DISCORD_WEBHOOK_URL_CRYPTO_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_CRYPTO_NEWS }}
+      AKKOMA_BASE_URL: ${{ secrets.AKKOMA_BASE_URL }}
+      AKKOMA_TOKEN: ${{ secrets.AKKOMA_TOKEN }}
       # На раннере доступны OpenAI/Groq/OpenRouter, недоступные из РФ.
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

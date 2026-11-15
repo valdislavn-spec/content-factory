@@ -1,0 +1,44 @@
+name: discord-check
+
+# Сетевая проверка Discord: GET webhook, отправка и удаление тестового поста.
+# Ничего не остаётся в канале и не расходует лимит публикаций.
+on:
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: "Оставить тестовое сообщение в Discord"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+  schedule:
+    - cron: "43 8 * * *"   # ежедневно, после утреннего слота EN-каналов
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_WEBHOOK_URL_SPORT_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_SPORT_NEWS }}
+      DISCORD_WEBHOOK_URL_AI_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_AI_NEWS }}
+      DISCORD_WEBHOOK_URL_CRYPTO_NEWS: ${{ secrets.DISCORD_WEBHOOK_URL_CRYPTO_NEWS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install minimal dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML
+      - name: Probe Discord webhook
+        run: |
+          if [ "${{ inputs.keep }}" = "true" ]; then
+            python scripts/discord_probe.py --all --sample --keep --json
+          else
+            python scripts/discord_probe.py --all --sample --json
+          fi
