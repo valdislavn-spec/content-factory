@@ -1,0 +1,20 @@
+{
+  "us_car_localrent": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-car-localrent",
+  "us_car_getrentacar": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-car-getrentacar",
+  "us_car_qeeq": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-car-qeeq",
+  "us_esim_yesim": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-esim-yesim",
+  "us_esim_airalo": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-esim-airalo",
+  "us_esim_saily": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-esim-saily",
+  "us_transfer_kiwitaxi": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-transfer-kiwitaxi",
+  "us_transfer_gettransfer": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-transfer-gettransfer",
+  "us_transfer_welcome": "https://links-tracker.valdislav-n.workers.dev/r/tf-us-transfer-welcome",
+  "es_car_localrent": "https://links-tracker.valdislav-n.workers.dev/r/tf-es-car-localrent",
+  "es_car_getrentacar": "https://links-tracker.valdislav-n.workers.dev/r/tf-es-car-getrentacar",
+  "es_car_qeeq": "https://links-tracker.valdislav-n.workers.dev/r/tf-es-car-qeeq",
+  "latam_esim_yesim": "https://links-tracker.valdislav-n.workers.dev/r/tf-latam-esim-yesim",
+  "latam_esim_airalo": "https://links-tracker.valdislav-n.workers.dev/r/tf-latam-esim-airalo",
+  "latam_esim_saily": "https://links-tracker.valdislav-n.workers.dev/r/tf-latam-esim-saily",
+  "es_transfer_kiwitaxi": "https://links-tracker.valdislav-n.workers.dev/r/tf-es-transfer-kiwitaxi",
+  "es_transfer_gettransfer": "https://links-tracker.valdislav-n.workers.dev/r/tf-es-transfer-gettransfer",
+  "es_transfer_welcome": "https://links-tracker.valdislav-n.workers.dev/r/tf-es-transfer-welcome"
+}

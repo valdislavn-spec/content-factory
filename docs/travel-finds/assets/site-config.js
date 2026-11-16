@@ -16,7 +16,7 @@ window.TRAVEL_CONFIG = {
     // Рендерится в контейнеры #tpwl-tickets / #tpwl-search / #tpwl-modals.
     wlId: "24664",
     // Старый формат tp.media/content?promo_id=... — оставлен как резерв.
-    promoId: "YOUR_WIDGET_PROMO_ID",
+    promoId: "",
     campaignId: "",
     poweredBy: "true",
     // Дополнительные WL-проекты (отели, календарь цен). Пустой wlId = блок скрыт.

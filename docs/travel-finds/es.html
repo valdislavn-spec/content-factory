@@ -50,6 +50,7 @@
   }
   </script>
 <link rel="alternate" type="application/rss+xml" title="Travel Finds RSS" href="https://travel-finds.surge.sh/feed.xml">
+<script src="assets/analytics.js" defer></script>
 </head>
 <body>
   <a class="skip-link visually-hidden" href="#main">Ir al contenido</a>
@@ -92,9 +93,9 @@
 
       <!--
         TravelPayouts White Label widget.
-        Fill site/assets/site-config.js (marker, widget.promoId, widget.campaignId)
-        to enable it. While values start with YOUR_ the widget is replaced with
-        fallback buttons. Official TravelPayouts embed:
+        The White Label widget is configured by widget.wlId in
+        site/assets/site-config.js. If it does not render, the fallback buttons
+        stay visible. Legacy tp.media embed (kept for reference):
         <script charset="utf-8" src="https://tp.media/content?promo_id=...&shmarker=...&campaign_id=...&locale=en&powered_by=true"></script>
       -->
       <section class="search" aria-labelledby="search-title">
@@ -160,6 +161,14 @@
         </p>
       </section>
 
+      <section class="section" id="esenciales" aria-labelledby="esenciales-title">
+<h2 id="esenciales-title">Esenciales: coche, eSIM y traslado</h2>
+<p class="section__lead">Tres decisiones que suelen costar más que el vuelo. Compara el total antes de reservar.</p>
+<div class="deals">
+<article class="deal"><span class="sample-tag">guía</span><div class="deal__route">Alquiler de coches en España sin extras</div><div class="deal__meta">seguro · franquicia · peajes</div><div class="deal__price">checklist del total</div><a class="deal__cta" href="es/guias/alquiler-coches-espana.html">Leer la guía</a></article>
+<article class="deal"><span class="sample-tag">guía</span><div class="deal__route">Mejor eSIM para Latinoamérica</div><div class="deal__meta">Airalo · Yesim · Saily</div><div class="deal__price">cobertura y datos</div><a class="deal__cta" href="es/guias/esim-viajar-latam.html">Comparar eSIM</a></article>
+<article class="deal"><span class="sample-tag">guía</span><div class="deal__route">Traslado del aeropuerto</div><div class="deal__meta">taxi · app · traslado privado</div><div class="deal__price">precio fijo</div><a class="deal__cta" href="es/guias/traslados-aeropuerto.html">Planificar llegada</a></article>
+</div></section>
       <section class="section" id="telegram" aria-labelledby="telegram-title">
         <h2 id="telegram-title">Nuestro canal de Telegram</h2>
         <p class="section__lead">
