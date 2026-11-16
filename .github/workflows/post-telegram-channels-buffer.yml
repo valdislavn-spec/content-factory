@@ -1,0 +1,45 @@
+name: post-telegram-channels-buffer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/post-telegram-channels-buffer.yml"
+      - "scripts/post_telegram_channels_buffer.py"
+      - "growth-funnel/twitter-telegram-channels.png"
+  workflow_dispatch:
+
+concurrency:
+  group: post-telegram-channels-buffer
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Post via Buffer
+        run: python3 scripts/post_telegram_channels_buffer.py
+      - name: Save marker and diagnostics
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add growth-funnel/buffer-post-debug.json || true
+          if [ -f growth-funnel/.tweeted-telegram-channels ]; then
+            git add growth-funnel/.tweeted-telegram-channels
+          fi
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore: buffer telegram channels post [skip ci]"
+          git push
