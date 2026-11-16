@@ -54,6 +54,8 @@ class Config:
     breakout_buffer: float = 0.0005
     max_trades_per_day: int = 2
     take_r: float = 2.0
+    ml_model_path: str = "models/ml_logit.json"
+    ml_threshold: float = 0.60
     trading_enabled: bool = True
     max_total_loss_rub: float = 3000.0
 
@@ -114,6 +116,8 @@ class Config:
             breakout_buffer=float(os.getenv("BREAKOUT_BUFFER", default.breakout_buffer)),
             max_trades_per_day=int(os.getenv("MAX_TRADES_PER_DAY", default.max_trades_per_day)),
             take_r=float(os.getenv("TAKE_R", default.take_r)),
+            ml_model_path=os.getenv("ML_MODEL_PATH", default.ml_model_path),
+            ml_threshold=float(os.getenv("ML_THRESHOLD", default.ml_threshold)),
             trading_enabled=_env_bool("TRADING_ENABLED", default.trading_enabled),
             max_total_loss_rub=float(os.getenv("MAX_TOTAL_LOSS_RUB", default.max_total_loss_rub)),
         )
