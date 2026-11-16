@@ -19,3 +19,8 @@ def test_sell_lots_are_converted_from_shares(monkeypatch):
     broker._log = lambda *args, **kwargs: None
     broker.sell("MTSS", 184.25, "test", None)
     assert sent["quantity"] == "1"
+
+
+def test_preferred_account_is_initialized():
+    broker = TinkoffBroker("t.test", "sandbox", account_id="abc")
+    assert broker.preferred_account_id == "abc"
