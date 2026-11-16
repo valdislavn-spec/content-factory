@@ -369,7 +369,7 @@ def main(argv: list[str] | None = None) -> int:
         )]
 
     result = send_events(events, dry_run=(not args.send) or args.dry_run, test=args.test)
-    if args.send and result.get("ok") and args.from_d1:
+    if args.send and result.get("ok") and args.from_d1 and not args.test:
         seen = _load_state(state_path)
         seen.update(str(e.get("event_id")) for e in events)
         _save_state(state_path, seen)
