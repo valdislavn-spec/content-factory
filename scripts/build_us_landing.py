@@ -18,7 +18,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "flight-hotel-us" / "index.html"
 BASE = "https://valdislavn-spec.github.io/content-factory/flight-hotel-us"
+TELEGRAM_URL = "https://t.me/GOODTRAVEL007"
+# Direct channel link is used until a permanent public invite is generated.
+DISCORD_URL = "https://discord.com/channels/1467224878875807878/1571257984364060722"
 PROMOS_JSON = ROOT.parent / ".local" / "distribution" / "us-promos.json"
+FARES_JSON = ROOT / "docs" / "flight-hotel-us" / "fares.json"
+
+CITY_NAMES = {
+    "MIA": "Miami", "LAX": "Los Angeles", "CUN": "Cancún", "FCO": "Rome",
+    "LHR": "London", "NRT": "Tokyo", "JFK": "New York", "EWR": "New York",
+    "LGA": "New York",
+}
+AIRLINE_NAMES = {
+    "F9": "Frontier", "AS": "Alaska Airlines", "UA": "United", "TP": "TAP Air Portugal",
+    "AC": "Air Canada", "AA": "American Airlines", "B6": "JetBlue", "DL": "Delta",
+}
 
 LINKS = {
     "aviasales": "https://aviasales.tpk.ro/2ZW95Xpf",
@@ -68,6 +82,15 @@ TOOLS = [
     ("Flight delay", "🛟", "Claim compensation:", [("airhelp", "AirHelp"), ("compensair", "Compensair")]),
 ]
 
+#: Top Travelpayouts programs by outbound clicks (Oct 17 – Nov 16, 2026).
+TOP_PARTNERS = [
+    ("Airport transfers", "🚕", "Fixed-price airport rides — the most-clicked tool in the last 30 days.", "kiwitaxi", "Book a transfer"),
+    ("Flights", "✈️", "Compare fares from New York, Los Angeles, Miami, Chicago and other US hubs.", "aviasales", "Search flights"),
+    ("eSIM — Yesim", "📶", "Instant mobile data for the US and abroad — no roaming surprises.", "yesim", "Get an eSIM"),
+    ("Trains & buses", "🚆", "Book intercity travel across Europe, Japan and beyond.", "kiwi", "Find routes"),
+    ("Tours & experiences", "🎟️", "Attractions, day trips and local experiences in 100+ cities.", "klook", "Explore experiences"),
+    ("eSIM — Saily", "📱", "Affordable data plans for short trips and longer stays.", "saily", "Compare plans"),
+]
 
 #: brand (lowercase, как в us-promos.json) → трекинговая ссылка Travelpayouts
 BRAND_LINKS = {
@@ -100,6 +123,52 @@ def load_promos() -> list[dict]:
 def esc(text: str) -> str:
     return (str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace('"', "&quot;"))
+
+
+def load_fares() -> list[dict]:
+    if not FARES_JSON.exists():
+        return []
+    try:
+        data = json.loads(FARES_JSON.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    return [f for f in data.get("fares", []) if isinstance(f, dict) and f.get("price")]
+
+
+def fmt_duration(minutes: int) -> str:
+    hours, mins = divmod(int(minutes or 0), 60)
+    return f"{hours}h {mins:02d}m" if hours else f"{mins}m"
+
+
+def fares_html() -> str:
+    fares = load_fares()
+    if not fares:
+        return ""
+    cards = []
+    for f in fares:
+        origin = f.get("origin", "")
+        dest = f.get("destination", "")
+        origin_name = CITY_NAMES.get(origin, origin)
+        dest_name = CITY_NAMES.get(dest, dest)
+        stops = "nonstop" if int(f.get("transfers", 0)) == 0 else f"{f.get('transfers')} stop"
+        airline = AIRLINE_NAMES.get(f.get("airline", ""), f.get("airline", ""))
+        cards.append(
+            f'<a class="fare" href="{LINKS["aviasales"]}" target="_blank" rel="noopener sponsored">'
+            f'<span class="fare-route"><b>{esc(origin)} → {esc(dest)}</b>'
+            f'<span>{esc(origin_name)} → {esc(dest_name)}</span></span>'
+            f'<span class="fare-price">${int(f["price"]):,}</span>'
+            f'<span class="fare-meta">{esc(stops)} · {esc(fmt_duration(f.get("duration_min", 0)))} · {esc(airline)}</span>'
+            f'<span class="fare-cta">Check live price →</span></a>'
+        )
+    return f"""
+<section class="sec" id="fares">
+  <h2>Sample one-way fares from the US</h2>
+  <p class="lead">Fresh sample from Travelpayouts MCP: one-way, per person, USD, checked 2026-11-16 for departure on 2026-12-10.
+  Prices and availability change — the partner site shows the live fare.</p>
+  <div class="grid fares">{''.join(cards)}</div>
+  <p class="note">Affiliate links: we may earn a commission when you book — the price you pay stays the same.</p>
+</section>
+"""
 
 
 def promos_html(promos: list[dict]) -> str:
@@ -164,6 +233,34 @@ def tools_html() -> str:
   <h2>🧳 Trip tools</h2>
   <p class="lead">Everything around the flight — from the airport ride to staying online.</p>
   <div class="grid tools">{''.join(cards)}</div>
+</section>
+"""
+
+
+def social_html() -> str:
+    return f"""
+<div class="social-row" aria-label="Travel community links">
+  <a class="social-btn tg" href="{TELEGRAM_URL}" target="_blank" rel="noopener">Telegram deals ↗</a>
+  <a class="social-btn dc" href="{DISCORD_URL}" target="_blank" rel="noopener">Discord trip chat ↗</a>
+</div>
+<p class="social-note">Join the community for fresh fare drops, mistake fares and trip-planning help.</p>
+"""
+
+
+def top_partners_html() -> str:
+    cards = "".join(
+        f'<a class="partner" href="{LINKS[key]}" target="_blank" rel="noopener sponsored">'
+        f'<span class="partner-icon">{emoji}</span>'
+        f'<span class="partner-body"><b>{esc(title)}</b><span>{esc(text)}</span></span>'
+        f'<span class="partner-cta">{esc(cta)} →</span></a>'
+        for title, emoji, text, key, cta in TOP_PARTNERS
+    )
+    return f"""
+<section class="sec" id="start">
+  <h2>Most-clicked travel tools</h2>
+  <p class="lead">Ranked by outbound clicks from our links over the last 30 days — the tools US travelers actually use.</p>
+  <div class="grid partners">{cards}</div>
+  <p class="note">Travelpayouts, Oct 17 – Nov 16, 2026 · 557 tracked clicks. Affiliate links: we may earn a commission when you book — the price you pay stays the same.</p>
 </section>
 """
 
@@ -250,6 +347,34 @@ h2 {{ font-size:22px; margin:6px 0 10px; }}
 .note {{ font-size:11.5px; color:#8b98bf; margin:12px 0 0; }}
 footer {{ max-width:1080px; margin:16px auto 0; padding:22px; color:#7c89ad; font-size:12.5px; }}
 footer a {{ color:#a5b4fc; }}
+.social-row {{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }}
+.social-btn {{ display:inline-flex; align-items:center; justify-content:center; padding:11px 16px;
+  border-radius:12px; color:#fff; text-decoration:none; font-size:14px; font-weight:800; }}
+.social-btn.tg {{ background:#229ED9; }}
+.social-btn.dc {{ background:#5865F2; }}
+.social-btn:hover {{ filter:brightness(1.08); }}
+.social-note {{ color:#94a3c6; font-size:12.5px; margin:9px 0 0; }}
+.grid.partners {{ grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); }}
+.grid.fares {{ grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }}
+.fare {{ display:flex; flex-direction:column; gap:6px; padding:15px 16px; border-radius:16px;
+  background:rgba(255,255,255,.045); border:1px solid rgba(148,163,255,.18);
+  color:#eef2ff; text-decoration:none; }}
+.fare:hover {{ border-color:rgba(165,180,252,.6); }}
+.fare-route {{ display:flex; flex-direction:column; gap:2px; }}
+.fare-route b {{ font-size:18px; letter-spacing:.02em; }}
+.fare-route span {{ color:#94a3c6; font-size:11.5px; }}
+.fare-price {{ font-size:31px; font-weight:900; color:#fbbf24; line-height:1.1; margin-top:4px; }}
+.fare-meta {{ color:#a9b6dd; font-size:12px; }}
+.fare-cta {{ color:#c4b5fd; font-size:12px; font-weight:800; margin-top:4px; }}
+.partner {{ display:flex; align-items:flex-start; gap:12px; padding:16px; border-radius:16px;
+  background:rgba(255,255,255,.045); border:1px solid rgba(148,163,255,.18);
+  color:#eef2ff; text-decoration:none; transition:border-color .15s, transform .15s; }}
+.partner:hover {{ border-color:rgba(165,180,252,.6); transform:translateY(-1px); }}
+.partner-icon {{ font-size:22px; line-height:1.2; }}
+.partner-body {{ display:flex; flex-direction:column; gap:3px; flex:1; }}
+.partner-body b {{ font-size:15px; }}
+.partner-body span {{ color:#a9b6dd; font-size:12.5px; }}
+.partner-cta {{ color:#c4b5fd; font-size:12px; font-weight:800; white-space:nowrap; }}
 @media (max-width:820px) {{ .kpis {{ grid-template-columns:repeat(2,1fr); }} }}
 </style>
 </head>
@@ -257,17 +382,21 @@ footer a {{ color:#a5b4fc; }}
 <div class="hero"><div class="wrap">
   <span class="tag">deals · updated {date.today().isoformat()}</span>
   <h1>Travel more, <em>pay less</em></h1>
-  <p class="lead">Verified promos and locked-in partner links for US travelers: flights from New York and other hubs,
-  city passes and tours, eSIM, airport transfers and car rental — one page, no noise.</p>
+  <p class="lead">Hand-picked flight, hotel and experience deals for travelers in the United States.
+  Compare options from New York, Los Angeles, Miami, Chicago and other US hubs — flights, city passes,
+  tours, eSIM, airport transfers and car rental in one place.</p>
+  {social_html()}
   <div class="kpis">
     <div class="kpi"><b>12</b><span>easy destinations</span></div>
-    <div class="kpi"><b>10+</b><span>travel partners</span></div>
-    <div class="kpi"><b>{kpi_promos}</b><span>partner deals</span></div>
-    <div class="kpi"><b>0</b><span>hidden fees</span></div>
+    <div class="kpi"><b>{len(LINKS)}</b><span>travel partners</span></div>
+    <div class="kpi"><b>557</b><span>tracked clicks / 30 days</span></div>
+    <div class="kpi"><b>$0</b><span>hidden fees</span></div>
   </div>
 </div></div>
-{promos_html(promos)}{destinations_html()}{tools_html()}
+{top_partners_html()}{fares_html()}{promos_html(promos)}{destinations_html()}{tools_html()}
 <footer>
+  <p>Join us: <a href="{TELEGRAM_URL}" target="_blank" rel="noopener">Telegram</a> ·
+  <a href="{DISCORD_URL}" target="_blank" rel="noopener">Discord</a></p>
   <p>Partner links: we may earn a commission when you book — the price stays the same for you. Deals and terms are set by the partners.</p>
   <p>Updated {date.today().isoformat()} · <a href="{BASE}/">flight-hotel-us</a> · <b>Not an offer; prices change.</b></p>
 </footer>
@@ -277,13 +406,17 @@ footer a {{ color:#a5b4fc; }}
 
 
 def main() -> int:
+    html = build()
     from seo_enhance import enhance_us
     html = enhance_us(html)
     from add_subscribe_forms import EN_BLOCK, ENDPOINT
     if 'id="subscribe"' not in html:
-        html = html.replace('<footer>', EN_BLOCK.replace('__SOURCE__', 'landing-us').replace('__ENDPOINT__', ENDPOINT) + '<footer>', 1)
+        html = html.replace(
+            '<footer>',
+            EN_BLOCK.replace('__SOURCE__', 'landing-us').replace('__ENDPOINT__', ENDPOINT) + '<footer>',
+            1,
+        )
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    html = build()
     OUT.write_text(html, encoding="utf-8")
     promos = len(load_promos())
     print(f"written {OUT} ({len(html)} bytes, promos: {promos})")
