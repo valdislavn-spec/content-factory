@@ -1,0 +1,18 @@
+# Travelpayouts MCP (theYahia/travelpayouts-mcp, 13 tools).
+# Merge this insert into ~/.dsh/profiles/desktop/cordis.patch.yml and restart DSH.
+- insert:
+    - id: travelpayouts-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: travelpayouts
+        transport: stdio
+        command: /bin/bash
+        args:
+          - /Users/vd/Documents/deepseek-harness/default-workspace/content-factory/scripts/run_tp_mcp.sh
+        toolCallTimeoutMs: 180000
+        failOnStartupError: false
+        reconnect:
+          enabled: true
+          initialDelayMs: 1000
+          maxDelayMs: 30000
+          maxAttempts: 10
