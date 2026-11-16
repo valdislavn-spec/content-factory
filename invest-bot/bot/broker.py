@@ -461,8 +461,9 @@ class TinkoffBroker:
         held = next((p for p in self.positions() if p["ticker"] == ticker), None)
         if not held:
             return None
-        # Tinkoff portfolio quantity for shares is already expressed in lots.
-        lots = int(held["qty"])
+        # Portfolio quantity is in shares; PostOrder quantity is in lots.
+        shares = int(held["qty"])
+        lots = shares // info["lot"]
         if lots < 1:
             return None
         data = self._post("OrdersService", "PostOrder", {
