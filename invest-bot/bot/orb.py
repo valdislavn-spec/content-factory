@@ -10,6 +10,7 @@ from datetime import date, datetime, time
 from statistics import fmean
 
 from .config import Config
+from .indicators import ema
 from .models import Candle, Position, Signal
 
 SESSION_OPEN_MINUTE = 10 * 60
@@ -126,6 +127,10 @@ def evaluate(ticker: str, candles: list[Candle], position: Position | None, cfg:
         return None
     if cur.close <= cur.open:
         return None
+    if cfg.trend_filter:
+        trend = ema([c.close for c in closed], cfg.trend_ema)[-1]
+        if trend is None or cur.close <= trend:
+            return None
     vwap = session_vwap(closed, day)
     if not vwap or cur.close <= vwap:
         return None
