@@ -18,6 +18,13 @@ class Config:
     daily_loss_limit: float = 0.02
     take_profit: float = 0.02
     stop_loss: float = 0.012
+    ema_fast: int = 9
+    ema_slow: int = 21
+    rsi_period: int = 14
+    rsi_min: float = 45.0
+    rsi_max: float = 72.0
+    trend_filter: bool = False
+    trend_ema: int = 200
     fee: float = 0.0005
     poll_seconds: int = 60
     port: int = 8000
@@ -71,6 +78,13 @@ class Config:
             daily_loss_limit=float(os.getenv("DAILY_LOSS_LIMIT", default.daily_loss_limit)),
             take_profit=float(os.getenv("TAKE_PROFIT", default.take_profit)),
             stop_loss=float(os.getenv("STOP_LOSS", default.stop_loss)),
+            ema_fast=int(os.getenv("EMA_FAST", default.ema_fast)),
+            ema_slow=int(os.getenv("EMA_SLOW", default.ema_slow)),
+            rsi_period=int(os.getenv("RSI_PERIOD", default.rsi_period)),
+            rsi_min=float(os.getenv("RSI_MIN", default.rsi_min)),
+            rsi_max=float(os.getenv("RSI_MAX", default.rsi_max)),
+            trend_filter=_env_bool("TREND_FILTER", default.trend_filter),
+            trend_ema=int(os.getenv("TREND_EMA", default.trend_ema)),
             fee=float(os.getenv("FEE", default.fee)),
             poll_seconds=int(os.getenv("POLL_SECONDS", default.poll_seconds)),
             port=int(os.getenv("PORT", default.port)),
