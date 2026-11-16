@@ -244,6 +244,7 @@ class TinkoffBroker:
             }
         )
         self.account_id = ""
+        self.preferred_account_id = account_id.strip()
         self._instruments: dict[str, dict] = {}
         self._ticker_by_figi: dict[str, str] = {}
         self.trade_log = Path(os.getenv("TRADE_LOG", "/tmp/invest-bot/trades.jsonl"))
