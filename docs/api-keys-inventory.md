@@ -24,6 +24,7 @@ SEO, email, travel-монетизация, LLM/новости. Значения 
 | Buffer | `BUFFER_API_KEY`, `BUFFER_X_CHANNEL_ID` | ⚠️ ключ рабочий: API видит X (`@NValdislav`) и Facebook; в `config/buffer.yaml` только X. Автоочередь `buffer-queue` в архиве, но для `crypto-news` включён `buffer-x` (shareNow) |
 | X | `BUFFER_API_KEY` (+ `X_*` для direct) | ✅ автопостинг `crypto-news` → `@NValdislav` работает через Buffer (`buffer-x`), живой пост 15.11.2026. Прямой OAuth1: `users/me` 200, но POST → 403 `oauth1-permissions`; нужны права Read+Write и новый access token |
 | Pinterest | `PINTEREST_ACCESS_TOKEN`, `PINTEREST_API_BASE`, `PINTEREST_BOARD_ID` | ✅ sandbox API проверен 15.11.2026 (`GET /boards` 200, 2 доски); production ожидает Standard access |
+| Pinterest CAPI | `PINTEREST_CAPI_TOKEN`, `PINTEREST_AD_ACCOUNT_ID` | ✅ 16.11.2026: `ads:write` проверен test-событием (`num_events_processed: 1`), ad account `549769603178` |
 | Reddit | — | ⛔ API закрыт с 31.10.2026 (новые ключи не выдают) |
 | Email | Brevo (`BREVO_API_KEY`, `BREVO_LIST_ID_EN/ES`, `EMAIL_FROM`) | ✅ API 200, free 300 писем/день, EN/ES-списки созданы; подписчиков 0, weekly-рассылка пока в архиве |
 | LLM | Groq, Cloudflare, Cohere, OpenRouter, Pollinations, Gemini | ✅ реальные вызовы 15.11.2026 вернули `OK`; Ollama Cloud — `402 credits depleted`, оставлен последним fallback |

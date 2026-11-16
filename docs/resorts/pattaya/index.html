@@ -82,9 +82,10 @@ nav{margin:26px 0;font-size:14px;line-height:2}nav a{margin-right:16px;text-deco
   f.addEventListener('submit', function(e){
     e.preventDefault();
     var input=f.querySelector('.sub-email'), msg=document.querySelector('.sub-msg');
+    var epik=(new URLSearchParams(location.search)).get('epik')||'';
     fetch('https://links-tracker.valdislav-n.workers.dev/subscribe', {
       method:'POST', headers:{'content-type':'application/json'},
-      body:JSON.stringify({email:input.value, lang:'ru', source:f.dataset.source})
+      body:JSON.stringify({email:input.value, lang:'ru', source:f.dataset.source, epik:epik, url:location.href})
     }).then(function(r){return r.json()}).then(function(d){
       msg.textContent = d.ok ? 'Готово — сохранили email.' : (d.error || 'Не получилось, попробуйте позже');
       msg.style.display='block'; if(d.ok) f.reset();

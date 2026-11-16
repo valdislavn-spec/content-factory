@@ -69,6 +69,19 @@ if [[ -n "${KIT_WEBHOOK_SECRET:-}" ]]; then
     -o /dev/null -w 'kit webhook secret HTTP %{http_code}\n'
 fi
 
+if [[ -n "${PINTEREST_CAPI_TOKEN:-}" ]]; then
+  curl -s -X PUT "$API/workers/scripts/$WORKER_NAME/secrets" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
+    -d "{\"name\":\"PINTEREST_CAPI_TOKEN\",\"text\":\"$PINTEREST_CAPI_TOKEN\",\"type\":\"secret_text\"}" \
+    -o /dev/null -w 'pinterest capi token HTTP %{http_code}\n'
+fi
+if [[ -n "${PINTEREST_AD_ACCOUNT_ID:-}" ]]; then
+  curl -s -X PUT "$API/workers/scripts/$WORKER_NAME/secrets" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
+    -d "{\"name\":\"PINTEREST_AD_ACCOUNT_ID\",\"text\":\"$PINTEREST_AD_ACCOUNT_ID\",\"type\":\"secret_text\"}" \
+    -o /dev/null -w 'pinterest ad account HTTP %{http_code}\n'
+fi
+
 curl -s -X POST "$API/workers/scripts/$WORKER_NAME/subdomain" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
   -d '{"enabled":true}' -o /dev/null -w 'subdomain HTTP %{http_code}\n'

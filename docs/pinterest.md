@@ -61,6 +61,18 @@ Actions → **services-check** → job **pinterest** — покажет доск
 либо использовать ручной постинг через `pinterest-travel-finds` (2–4 пина в день
 достаточно; больше Pinterest считает спамом).
 
+## Conversions API (серверные конверсии)
+
+16.11.2026 добавлена отправка серверных конверсий (`lead`) через Pinterest
+Conversions API v5. Токен для конверсий отдельный от токена для пинов и требует
+scope `ads:write`; также нужен `PINTEREST_AD_ACCOUNT_ID` из Ads Manager.
+
+- клиент и CLI: `scripts/pinterest_conversions.py`;
+- автоматическая отправка при `/subscribe` в `links-tracker`;
+- 50 лендингов передают `epik` для атрибуции клика.
+
+Инструкция и текущий статус: [`pinterest-conversions.md`](pinterest-conversions.md).
+
 ## Статус на 09.11.2026 (проверено)
 
 - Приложение **Depseek007** (App ID `1636122`): **Trial access на рассмотрении**,

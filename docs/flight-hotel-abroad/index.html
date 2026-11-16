@@ -172,8 +172,9 @@ footer a { color:#a5b4fc; }
 (function(){var f=document.querySelector('.sub-form');if(!f)return;
 f.addEventListener('submit',function(e){e.preventDefault();
 var i=f.querySelector('.sub-email'),m=document.querySelector('.sub-msg');
-fetch('https://links-tracker.valdislav-n.workers.dev/subscribe',{method:'POST',headers:{'content-type':'application/json'},
-body:JSON.stringify({email:i.value,lang:'ru',source:f.dataset.source})})
+var epik=(new URLSearchParams(location.search)).get('epik')||'';
+    fetch('https://links-tracker.valdislav-n.workers.dev/subscribe',{method:'POST',headers:{'content-type':'application/json'},
+body:JSON.stringify({email:i.value,lang:'ru',source:f.dataset.source,epik:epik,url:location.href})})
 .then(function(r){return r.json()}).then(function(d){m.textContent=d.ok?'Готово — сохранили email.':(d.error||'Не получилось, попробуйте позже');m.style.display='block';if(d.ok)f.reset();})
 .catch(function(){m.textContent='Ошибка сети — попробуйте позже';m.style.display='block';});});})();
 </script>

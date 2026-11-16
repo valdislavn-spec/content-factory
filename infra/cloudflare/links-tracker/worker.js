@@ -22,6 +22,64 @@ async function unsubToken(email, secret) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
 }
 
+const PINTEREST_EVENTS = new Set(["add_to_cart", "checkout", "custom", "lead", "page_visit", "search", "signup", "view_category", "watch_video"]);
+
+async function sha256Hex(value) {
+  const data = new TextEncoder().encode(String(value));
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Server-side Pinterest Conversions API event. No-op unless both secrets are set.
+async function sendPinterestEvent(env, body, request, allowTest) {
+  const token = String(env.PINTEREST_CAPI_TOKEN || "");
+  const adAccount = String(env.PINTEREST_AD_ACCOUNT_ID || "");
+  if (token.length === 0 || adAccount.length === 0) return { skipped: true, reason: "not configured" };
+  const email = String(body.email || "").trim().toLowerCase();
+  const epik = String(body.epik || body.click_id || "").trim();
+  if (email.length === 0 && epik.length === 0) return { skipped: true, reason: "email or click_id required" };
+  const eventName = PINTEREST_EVENTS.has(String(body.event_name || "lead")) ? String(body.event_name || "lead") : "lead";
+  const userData = {};
+  if (email.length > 0) {
+    userData.em = [await sha256Hex(email)];
+    userData.external_id = [await sha256Hex(String(body.external_id || ("email:" + email)))];
+  } else if (body.external_id) {
+    userData.external_id = [await sha256Hex(String(body.external_id))];
+  }
+  if (epik.length > 0) userData.click_id = epik;
+  const clientIp = String(request.headers.get("cf-connecting-ip") || "").trim();
+  const userAgent = String(request.headers.get("user-agent") || "").trim();
+  if (clientIp.length > 0) userData.client_ip_address = clientIp;
+  if (userAgent.length > 0) userData.client_user_agent = userAgent.slice(0, 500);
+  const event = {
+    event_name: eventName,
+    action_source: "web",
+    event_time: Math.floor(Date.now() / 1000),
+    event_id: (await sha256Hex(email.length > 0 ? (eventName + "|" + email) : (eventName + "|" + epik))).slice(0, 32),
+    user_data: userData,
+  };
+  const sourceUrl = String(body.url || request.headers.get("referer") || env.PINTEREST_EVENT_SOURCE_URL || "https://valdislavn-spec.github.io/content-factory/").trim();
+  if (sourceUrl.length > 0) event.event_source_url = sourceUrl.slice(0, 1000);
+  const custom = {};
+  if (body.source) custom.source = String(body.source).slice(0, 60);
+  if (body.lang) custom.lang = String(body.lang).slice(0, 10);
+  if (body.value) {
+    custom.value = Number(body.value).toFixed(2);
+    custom.currency = String(body.currency || "USD").toUpperCase();
+  }
+  if (Object.keys(custom).length > 0) event.custom_data = custom;
+  const base = String(env.PINTEREST_CAPI_API_BASE || "https://api.pinterest.com/v5").replace(/\/+$/, "");
+  let url = base + "/ad_accounts/" + encodeURIComponent(adAccount) + "/events";
+  if (allowTest === true && body.test === true) url = url + "?test=true";
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "authorization": "Bearer " + token, "content-type": "application/json" },
+    body: JSON.stringify({ data: [event] }),
+  });
+  const text = await response.text();
+  return { skipped: false, ok: response.ok, status: response.status, response: text.slice(0, 500) };
+}
+
 async function all(env, sql, params = []) {
   const res = await env.DB.prepare(sql).bind(...params).all();
   return res.results || [];
@@ -32,7 +90,7 @@ async function run(env, sql, params = []) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
     const token = url.searchParams.get("token") || request.headers.get("x-token") || "";
@@ -47,7 +105,7 @@ export default {
 
     if (path === "/" || path === "") {
       return json({ ok: true, service: "cf-links", storage: "d1",
-        endpoints: ["/r/{code}", "/c/{code}", "/stats", "/admin/links", "/subscribe", "/admin/subscribers"] });
+        endpoints: ["/r/{code}", "/c/{code}", "/stats", "/admin/links", "/subscribe", "/admin/subscribers", "/admin/conversion", "/admin/pinterest-status"] });
     }
 
     // --- ссылки ---
@@ -148,6 +206,9 @@ export default {
         VALUES (?,?,?,?,0)
         ON CONFLICT(email) DO UPDATE SET unsubscribed = 0, source = excluded.source, lang = excluded.lang`,
         [email, source, lang, new Date().toISOString()]);
+      if (ctx && typeof ctx.waitUntil === "function") {
+        ctx.waitUntil(sendPinterestEvent(env, body, request, false).catch(function () {}));
+      }
       return json({ ok: true }, 200);
     }
 
@@ -175,6 +236,33 @@ export default {
       return json({ ok: true, count: rows.length, by_lang: byLang, subscribers: rows });
     }
 
+
+    if (path === "/admin/conversion") {
+      if (token === env.ADMIN_TOKEN) {
+        if (request.method === "POST") {
+          let body;
+          try {
+            body = await request.json();
+          } catch (e) {
+            return json({ ok: false, error: "bad json" }, 400);
+          }
+          const result = await sendPinterestEvent(env, body, request, true);
+          return json({ ok: result.skipped === false && result.ok === true, result });
+        }
+        return json({ ok: false, error: "method not allowed" }, 405);
+      }
+      return json({ ok: false, error: "forbidden" }, 403);
+    }
+
+    if (path === "/admin/pinterest-status") {
+      if (token === env.ADMIN_TOKEN) {
+        const tokenSet = String(env.PINTEREST_CAPI_TOKEN || "").length > 0;
+        const accountSet = String(env.PINTEREST_AD_ACCOUNT_ID || "").length > 0;
+        return json({ ok: true, configured: tokenSet && accountSet, token_set: tokenSet, ad_account_set: accountSet });
+      }
+      return json({ ok: false, error: "forbidden" }, 403);
+    }
+
     // --- редирект ---
     if (path.startsWith("/r/")) {
       const code = slug(path.slice(3));
@@ -188,7 +276,16 @@ export default {
       }
       await recordClick(env, request, code);
       const dest = String(record.target || "");
-      return new Response(null, { status: 302, headers: { location: dest, "cache-control": "no-store" } });
+      let location = dest;
+      try {
+        const destUrl = new URL(dest);
+        for (const key of ["epik", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]) {
+          const value = url.searchParams.get(key);
+          if (value && destUrl.searchParams.has(key) === false) destUrl.searchParams.set(key, value);
+        }
+        location = destUrl.toString();
+      } catch (e) {}
+      return new Response(null, { status: 302, headers: { location, "cache-control": "no-store" } });
     }
 
     // --- учёт клика ---
