@@ -1,0 +1,49 @@
+{
+  "x_api_key_len": 25,
+  "x_api_secret_len": 50,
+  "x_account_blob_len": 114,
+  "x_access_token_len": 50,
+  "x_access_secret_len": 45,
+  "candidates": [
+    {
+      "label": "env-access-token",
+      "rc": 0,
+      "http": 200,
+      "username": "NValdislav",
+      "user_id": "1965860408218238976",
+      "body": "{\"data\":{\"id\":\"1965860408218238976\",\"name\":\"Beaver\",\"username\":\"NValdislav\"}}"
+    },
+    {
+      "label": "unquoted-first/second",
+      "rc": 0,
+      "http": 401,
+      "username": null,
+      "user_id": null,
+      "body": "{\n  \"title\": \"Unauthorized\",\n  \"type\": \"about:blank\",\n  \"status\": 401,\n  \"detail\": \"Unauthorized\"\n}"
+    },
+    {
+      "label": "raw-first/second",
+      "rc": 0,
+      "http": 401,
+      "username": null,
+      "user_id": null,
+      "body": "{\n  \"title\": \"Unauthorized\",\n  \"type\": \"about:blank\",\n  \"status\": 401,\n  \"detail\": \"Unauthorized\"\n}"
+    },
+    {
+      "label": "blob/empty",
+      "rc": 0,
+      "http": 401,
+      "username": null,
+      "user_id": null,
+      "body": "{\n  \"title\": \"Unauthorized\",\n  \"type\": \"about:blank\",\n  \"status\": 401,\n  \"detail\": \"Unauthorized\"\n}"
+    },
+    {
+      "label": "unquoted-blob/empty",
+      "rc": 0,
+      "http": 401,
+      "username": null,
+      "user_id": null,
+      "body": "{\n  \"title\": \"Unauthorized\",\n  \"type\": \"about:blank\",\n  \"status\": 401,\n  \"detail\": \"Unauthorized\"\n}"
+    }
+  ]
+}
