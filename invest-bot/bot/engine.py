@@ -14,6 +14,7 @@ from .moex import MSK, MoexData
 from .risk import hard_loss_hit, loss_from_start, max_drawdown_pct
 from .strategy import evaluate
 from .orb import evaluate as evaluate_orb
+from .ml_strategy import evaluate as evaluate_ml
 
 log = logging.getLogger(__name__)
 
@@ -225,11 +226,12 @@ class Engine:
             price = candles[-1].close
             self.prices[ticker] = price
             pos = self._position(ticker)
-            signal = (
-                evaluate_orb(ticker, candles, pos, self.cfg)
-                if self.cfg.strategy == "orb"
-                else evaluate(ticker, candles, pos, self.cfg)
-            )
+            if self.cfg.strategy == "orb":
+                signal = evaluate_orb(ticker, candles, pos, self.cfg)
+            elif self.cfg.strategy == "ml":
+                signal = evaluate_ml(ticker, candles, pos, self.cfg)
+            else:
+                signal = evaluate(ticker, candles, pos, self.cfg)
             if not signal:
                 continue
             self.last_signals[ticker] = {
