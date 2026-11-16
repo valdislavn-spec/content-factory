@@ -1,12 +1,6 @@
 name: tweet-telegram-channels
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/tweet-telegram-channels.yml"
-      - "scripts/x_diag.py"
-      - "scripts/post_telegram_channels_tweet.py"
   workflow_dispatch:
 
 concurrency:

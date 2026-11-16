@@ -1,12 +1,6 @@
 name: post-telegram-channels-buffer
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/post-telegram-channels-buffer.yml"
-      - "scripts/post_telegram_channels_buffer.py"
-      - "growth-funnel/twitter-telegram-channels.png"
   workflow_dispatch:
 
 concurrency:
