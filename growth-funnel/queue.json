@@ -1,0 +1,104 @@
+[
+  {
+    "id": "tg-cheap-flights-en",
+    "platform": "telegram",
+    "due": "2026-11-15",
+    "status": "published",
+    "published_at": "2026-11-15",
+    "message_id": 9,
+    "text": "Cheap flights aren't luck — they're search order. Full guide: https://links-tracker.valdislav-n.workers.dev/r/tg-cheap-flights-en",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-cheap-flights-en"
+  },
+  {
+    "id": "tg-booking-windows-en",
+    "platform": "telegram",
+    "due": "2026-11-16",
+    "status": "published",
+    "published_at": "2026-11-16",
+    "message_id": 12,
+    "text": "When to book flights? 3 rules. Full guide: https://links-tracker.valdislav-n.workers.dev/r/tg-booking-windows-en",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-booking-windows-en"
+  },
+  {
+    "id": "tg-layover-en",
+    "platform": "telegram",
+    "due": "2026-11-16",
+    "status": "published",
+    "published_at": "2026-11-16",
+    "message_id": 13,
+    "text": "A cheap ticket with a bad layover isn't cheap. Full guide: https://links-tracker.valdislav-n.workers.dev/r/tg-layover-en",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-layover-en"
+  },
+  {
+    "id": "pinterest-en-09",
+    "platform": "pinterest",
+    "due": "2026-11-17",
+    "status": "queued",
+    "title": "What's really included in a hotel price",
+    "description": "The nightly rate is not the hotel bill. Taxes, resort fees, breakfast, city tax and the deposit all change the total. Compare the final price for your exact dates and read what's included before you book. The guide includes questions to ask the hotel and a short list of hidden fees. Ad · affiliate link. We may earn a commission at no extra cost to you. Free travel starter kit in Telegram: https://t.me/Novyi0007Bot #hotels #traveltips #citybreak #budgettravel",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-en-09-hotel-price",
+    "board": "Budget Travel",
+    "board_id_env": "PINTEREST_BOARD_ID_BUDGET_TRAVEL",
+    "image": "growth-funnel/manual-pins/batch2/en-09.png"
+  },
+  {
+    "id": "pinterest-en-15",
+    "platform": "pinterest",
+    "due": "2026-11-18",
+    "status": "queued",
+    "title": "5 affordable city breaks in Europe",
+    "description": "Five affordable city breaks in Europe: Porto, Kraków, Budapest, Valencia and Tallinn. The guide compares when to go, what to book first and which costs eat the savings. Pick by travel style, not by a discount label — it also lists the best months and what to reserve first in each city. Ad · affiliate link. We may earn a commission at no extra cost to you. Free travel starter kit in Telegram: https://t.me/Novyi0007Bot #citybreaks #europe #budgettravel #traveltips",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-en-15-city-breaks",
+    "board": "City Breaks",
+    "board_id_env": "PINTEREST_BOARD_ID_CITY_BREAKS",
+    "image": "growth-funnel/manual-pins/batch2/en-15.png"
+  },
+  {
+    "id": "pinterest-en-17",
+    "platform": "pinterest",
+    "due": "2026-11-19",
+    "status": "queued",
+    "title": "Europe: train, bus or plane?",
+    "description": "Europe by rail or by air? Compare the full journey: station vs airport transfers, security time, luggage and flexibility. Rail wins on short city-to-city routes; flying wins when distances are long. The guide has a step-by-step comparison for both, including when a rail pass or a budget flight wins. Ad · affiliate link. We may earn a commission at no extra cost to you. Free travel starter kit in Telegram: https://t.me/Novyi0007Bot #europe #trains #budgettravel #traveltips",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-en-17-train-plane",
+    "board": "Travel ideas",
+    "board_id_env": "PINTEREST_BOARD_ID_TRAVEL_IDEAS",
+    "image": "growth-funnel/manual-pins/batch2/en-17.png"
+  },
+  {
+    "id": "tg-hotel-price-en",
+    "platform": "telegram",
+    "due": "2026-11-18",
+    "status": "queued",
+    "title": "What's really included in a hotel price",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-hotel-price-en",
+    "text": "The nightly rate is not the hotel bill.\n\nTaxes, resort fees, breakfast, city tax and the deposit all change the total. Compare the final price for your exact dates — and check what's included before you book.\n\nFull guide: https://links-tracker.valdislav-n.workers.dev/r/tg-hotel-price-en\n\nAd · affiliate link. We may earn a commission at no extra cost to you.\n#hotels #citybreak #budgettravel"
+  },
+  {
+    "id": "tg-city-breaks-en",
+    "platform": "telegram",
+    "due": "2026-11-19",
+    "status": "queued",
+    "title": "Five affordable city breaks in Europe",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-city-breaks-en",
+    "text": "Five affordable city breaks in Europe: Porto, Kraków, Budapest, Valencia and Tallinn.\n\nThe trick is not the cheapest flight. It's the total cost: transfers, nights, food and what you actually want to do.\n\nFull guide: https://links-tracker.valdislav-n.workers.dev/r/tg-city-breaks-en\n\nAd · affiliate link. We may earn a commission at no extra cost to you.\n#citybreaks #europe #budgettravel"
+  },
+  {
+    "id": "tg-train-plane-en",
+    "platform": "telegram",
+    "due": "2026-11-20",
+    "status": "queued",
+    "title": "Europe: train, bus or plane?",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-train-plane-en",
+    "text": "Europe by train or plane? Compare door to door, not ticket to ticket.\n\nThe plane adds airport transfers and security time. The train leaves from the centre. Under 4–6 hours, rail often wins — if you book early.\n\nFull guide: https://links-tracker.valdislav-n.workers.dev/r/tg-train-plane-en\n\nAd · affiliate link. We may earn a commission at no extra cost to you.\n#europe #trains #traveltips"
+  },
+  {
+    "id": "tg-esim-en",
+    "platform": "telegram",
+    "due": "2026-11-21",
+    "status": "queued",
+    "title": "eSIM before you fly",
+    "link": "https://links-tracker.valdislav-n.workers.dev/r/tg-esim-en",
+    "text": "Landing with data already working removes the first-hour stress.\n\nBefore you fly: check eSIM support, install the profile at home, test it on airport Wi-Fi, and keep your home SIM active for SMS codes.\n\nTravel starter kit: https://links-tracker.valdislav-n.workers.dev/r/tg-esim-en\n\nAd · affiliate link. We may earn a commission at no extra cost to you.\n#esim #traveltips #travelplanning"
+  }
+]

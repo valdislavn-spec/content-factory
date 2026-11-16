@@ -1,0 +1,58 @@
+name: growth-funnel
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: "true = публиковать, false = только показать план"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: growth-funnel
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
+      PINTEREST_BOARD_ID_BUDGET_TRAVEL: ${{ secrets.PINTEREST_BOARD_ID_BUDGET_TRAVEL }}
+      PINTEREST_BOARD_ID_CITY_BREAKS: ${{ secrets.PINTEREST_BOARD_ID_CITY_BREAKS }}
+      PINTEREST_BOARD_ID_TRAVEL_IDEAS: ${{ secrets.PINTEREST_BOARD_ID_TRAVEL_IDEAS }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Publish due items
+        run: |
+          if [ "${{ inputs.execute }}" = "false" ]; then
+            python3 growth-funnel/auto_publish.py --json
+          else
+            python3 growth-funnel/auto_publish.py --execute --limit-per-platform 1 --json
+          fi
+      - name: Commit queue state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- growth-funnel/queue.json; then
+            echo "queue state unchanged"
+            exit 0
+          fi
+          git add growth-funnel/queue.json
+          git commit -m "chore: growth-funnel queue state [skip ci]"
+          git push
