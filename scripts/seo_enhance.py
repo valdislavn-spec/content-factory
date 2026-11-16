@@ -108,9 +108,10 @@ def _faq_html(items: list[tuple[str, str]], title: str, subtitle: str) -> str:
 
 
 def _graph(url: str, lang: str, page_name: str, crumbs: list[tuple[str, str]], extra: list[dict]) -> str:
+    site_name = "Travelata — Travel Deals" if lang == "en" else "Travelata — сводки цен"
     data = {"@context": "https://schema.org", "@graph": [
         {"@type": "WebPage", "@id": url + "#page", "url": url, "name": page_name, "inLanguage": lang,
-         "isPartOf": {"@type": "WebSite", "@id": GH + "/#website", "name": "Travelata — сводки цен", "url": GH + "/"}},
+         "isPartOf": {"@type": "WebSite", "@id": GH + "/#website", "name": site_name, "url": GH + "/"}},
         {"@type": "BreadcrumbList", "@id": url + "#breadcrumb",
          "itemListElement": [{"@type": "ListItem", "position": i, "name": n, "item": u}
                              for i, (n, u) in enumerate(crumbs, 1)]},
@@ -141,8 +142,7 @@ def _nav(lang: str) -> str:
         links = [(SURGE, "Пакетные туры 2026"), (GH + "/flight-hotel-abroad/", "Туры за рубеж"),
                  (GH + "/flight-hotel-us/", "US travel deals"), (GH + "/travel/", "Гайды по путешествиям")]
     else:
-        links = [(GH + "/flight-hotel-us/", "US travel deals"), (SURGE, "Package tours (RU)"),
-                 (GH + "/flight-hotel-abroad/", "Tours abroad (RU)"), (GH + "/travel/", "Travel guides")]
+        links = [(GH + "/flight-hotel-us/", "US travel deals"), (GH + "/travel/", "Travel guides")]
     a = "".join(f'<a href="{u}" style="color:#a5b4fc;text-decoration:none;margin-right:16px">{t}</a>' for u, t in links)
     return f'<nav style="margin:26px 0;font-size:14.5px;line-height:2">{a}</nav>\n'
 
