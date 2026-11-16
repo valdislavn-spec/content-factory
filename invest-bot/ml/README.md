@@ -31,3 +31,11 @@ ML_THRESHOLD=0.60
 On the 180-day sample the model's trading simulation was negative on both train
 and test periods. It is integrated behind `STRATEGY=ml` for research only; do
 not enable it with real money without a fresh out-of-sample test.
+
+## Add more data
+
+```bash
+CANDLES_DELAY=0.5 PYTHONPATH=. ../.venv/bin/python ml/download_history.py --days 365
+```
+
+The trainer loads `*_365d.json` automatically and falls back to `*_180d.json`.
