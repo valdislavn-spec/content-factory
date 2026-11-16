@@ -36,3 +36,18 @@ def test_default_holds_losing_position():
     candles[-2] = Candle(candles[-2].ts, 98.0, 98.0, 98.0, 98.0, 1000)
     signal = evaluate("SBER", candles, pos, Config())
     assert signal is None
+
+
+def test_trend_filter_is_configurable(monkeypatch):
+    monkeypatch.setenv("TREND_FILTER", "1")
+    monkeypatch.setenv("TREND_EMA", "200")
+    cfg = Config.from_env()
+    assert cfg.trend_filter is True
+    assert cfg.trend_ema == 200
+
+
+def test_trend_filter_blocks_short_history():
+    closes = [100.0] * 40
+    candles = make_candles(closes)
+    cfg = Config(trend_filter=True, trend_ema=200)
+    assert evaluate("SBER", candles, None, cfg) is None
