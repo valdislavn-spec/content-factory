@@ -28,8 +28,9 @@ RU_BLOCK = """
 (function(){var f=document.querySelector('.sub-form');if(!f)return;
 f.addEventListener('submit',function(e){e.preventDefault();
 var i=f.querySelector('.sub-email'),m=document.querySelector('.sub-msg');
+var p=new URLSearchParams(location.search),u=p.get('utm_source')||'',c=p.get('utm_content')||'',src=f.dataset.source+(u?':'+u+(c?'-'+c:''):'');
 fetch('__ENDPOINT__',{method:'POST',headers:{'content-type':'application/json'},
-body:JSON.stringify({email:i.value,lang:'ru',source:f.dataset.source})})
+body:JSON.stringify({email:i.value,lang:'ru',source:src})})
 .then(function(r){return r.json()}).then(function(d){m.textContent=d.ok?'Готово — сохранили email.':(d.error||'Не получилось, попробуйте позже');m.style.display='block';if(d.ok)f.reset();})
 .catch(function(){m.textContent='Ошибка сети — попробуйте позже';m.style.display='block';});});})();
 </script>
@@ -50,8 +51,9 @@ EN_BLOCK = """
 (function(){var f=document.querySelector('.sub-form');if(!f)return;
 f.addEventListener('submit',function(e){e.preventDefault();
 var i=f.querySelector('.sub-email'),m=document.querySelector('.sub-msg');
+var p=new URLSearchParams(location.search),u=p.get('utm_source')||'',c=p.get('utm_content')||'',src=f.dataset.source+(u?':'+u+(c?'-'+c:''):'');
 fetch('__ENDPOINT__',{method:'POST',headers:{'content-type':'application/json'},
-body:JSON.stringify({email:i.value,lang:'en',source:f.dataset.source})})
+body:JSON.stringify({email:i.value,lang:'en',source:src})})
 .then(function(r){return r.json()}).then(function(d){m.textContent=d.ok?'Saved — opening your PDF...':(d.error||'Something went wrong');m.style.display='block';if(d.ok){f.reset();setTimeout(function(){location.href='thanks/'},500)}})
 .catch(function(){m.textContent='Network error, try later';m.style.display='block';});});})();
 </script>
