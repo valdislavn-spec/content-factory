@@ -1,5 +1,6 @@
+const CORS = { "access-control-allow-origin": "*" };
 const json = (obj, status = 200) =>
-  new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json" } });
+  new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", ...CORS } });
 
 const slug = (s) =>
   String(s || "").toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
@@ -185,22 +186,9 @@ export default {
       if (request.method === "HEAD") {
         return new Response("", { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
       }
-      const target = JSON.stringify(String(record.target || ""));
-      const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Opening partner…</title>
-<style>body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0f1420;color:#eef3f8;
-display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:24px;text-align:center}
-a{color:#f7931a;font-weight:600;word-break:break-all}p{opacity:.8;font-size:14px}</style></head>
-<body><div><p>Redirecting to our travel partner…</p><p><a id="go" href="#">Continue →</a></p></div>
-<script>
-(async()=>{try{await fetch("/c/${code}",{method:"POST",keepalive:true});}catch(e){}
-const u=${target};document.getElementById("go").href=u;location.replace(u);})();
-</script></body></html>`;
-      return new Response(html, {
-        status: 200,
-        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
-      });
+      await recordClick(env, request, code);
+      const dest = String(record.target || "");
+      return new Response(null, { status: 302, headers: { location: dest, "cache-control": "no-store" } });
     }
 
     // --- учёт клика ---
@@ -209,11 +197,7 @@ const u=${target};document.getElementById("go").href=u;location.replace(u);})();
       const code = slug(path.slice(3));
       const rows = await all(env, "SELECT code FROM links WHERE code = ?", [code]);
       if (!rows.length) return new Response("", { status: 404 });
-      const now = new Date().toISOString();
-      const day = now.slice(0, 10);
-      await run(env, `INSERT INTO clicks (code, day, count, last_click) VALUES (?,?,1,?)
-        ON CONFLICT(code, day) DO UPDATE SET count = clicks.count + 1, last_click = excluded.last_click`,
-        [code, day, now]);
+      await recordClick(env, request, code);
       return new Response(null, { status: 204 });
     }
 
@@ -258,3 +242,19 @@ const u=${target};document.getElementById("go").href=u;location.replace(u);})();
     return json({ ok: false, error: "not found" }, 404);
   },
 };
+
+// Учёт клика: агрегат по дням + построчный лог в click_log.
+async function recordClick(env, request, code) {
+  const now = new Date().toISOString();
+  const day = now.slice(0, 10);
+  const cf = request.cf || {};
+  const ua = (request.headers.get("user-agent") || "").slice(0, 300);
+  const ref = (request.headers.get("referer") || "").slice(0, 300);
+  const u = new URL(request.url);
+  try {
+    await run(env, "INSERT INTO clicks (code, day, count, last_click) VALUES (?,?,1,?) ON CONFLICT(code, day) DO UPDATE SET count = clicks.count + 1, last_click = excluded.last_click", [code, day, now]);
+    await run(env, "INSERT INTO click_log (code, ts, day, country, city, referer, ua, path) VALUES (?,?,?,?,?,?,?,?)", [code, now, day, cf.country || "", cf.city || "", ref, ua, (u.pathname + u.search).slice(0, 300)]);
+  } catch (e) {
+    // учёт не должен ломать редирект
+  }
+}
