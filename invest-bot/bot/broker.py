@@ -252,15 +252,22 @@ class TinkoffBroker:
 
     def _post(self, service: str, method: str, payload: dict) -> dict:
         url = f"{self.base}{self.PREFIX}{service}/{method}"
-        resp = self.session.post(url, json=payload, timeout=self.timeout)
-        try:
-            data = resp.json()
-        except ValueError:
-            data = {}
-        if resp.status_code >= 400:
-            detail = data.get("message") or data.get("description") or resp.text[:300]
-            raise BrokerError(f"{service}/{method}: HTTP {resp.status_code}: {detail}")
-        return data
+        last_error = ""
+        for attempt in range(6):
+            resp = self.session.post(url, json=payload, timeout=self.timeout)
+            try:
+                data = resp.json()
+            except ValueError:
+                data = {}
+            if resp.status_code == 429:
+                last_error = data.get("message") or data.get("description") or "rate limited"
+                time.sleep(2.0 * (attempt + 1))
+                continue
+            if resp.status_code >= 400:
+                detail = data.get("message") or data.get("description") or resp.text[:300]
+                raise BrokerError(f"{service}/{method}: HTTP {resp.status_code}: {detail}")
+            return data
+        raise BrokerError(f"{service}/{method}: HTTP 429: {last_error}")
 
     def connect(self) -> str:
         if self.mode == "sandbox":
@@ -346,6 +353,9 @@ class TinkoffBroker:
                 })
                 raw = data.get("candles", [])
                 added = 0
+                delay = float(os.getenv("CANDLES_DELAY", "0") or 0)
+                if delay > 0:
+                    time.sleep(delay)
                 last_ts = None
                 for c in raw:
                     try:
