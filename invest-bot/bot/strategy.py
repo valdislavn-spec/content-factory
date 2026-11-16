@@ -12,9 +12,9 @@ def evaluate(ticker: str, candles: list[Candle], position: Position | None, cfg:
     # last candle may still be forming; use the previous closed candle
     closed = candles[:-1] if forming and len(candles) > 1 else candles
     closes = [c.close for c in closed]
-    fast = ema(closes, 9)
-    slow = ema(closes, 21)
-    strength = rsi(closes, 14)
+    fast = ema(closes, cfg.ema_fast)
+    slow = ema(closes, cfg.ema_slow)
+    strength = rsi(closes, cfg.rsi_period)
     if fast[-1] is None or slow[-1] is None or strength[-1] is None:
         return None
     if len(fast) < 2 or fast[-2] is None or slow[-2] is None:
@@ -25,8 +25,14 @@ def evaluate(ticker: str, candles: list[Candle], position: Position | None, cfg:
     crossed_down = fast[-2] >= slow[-2] and fast[-1] < slow[-1]
 
     if position is None:
-        if crossed_up and 45 <= strength[-1] <= 72 and cur.close > cur.open:
-            return Signal(ticker, "BUY", cur.close, "EMA9/21 bullish cross", fast[-1], slow[-1], strength[-1])
+        trend_ok = True
+        if cfg.trend_filter:
+            trend = ema(closes, cfg.trend_ema)[-1]
+            trend_ok = trend is not None and cur.close > trend
+        if (crossed_up and trend_ok and cfg.rsi_min <= strength[-1] <= cfg.rsi_max
+                and cur.close > cur.open):
+            return Signal(ticker, "BUY", cur.close,
+                          f"EMA{cfg.ema_fast}/{cfg.ema_slow} bullish cross", fast[-1], slow[-1], strength[-1])
         return None
 
     stop = position.avg_price * (1 - cfg.stop_loss)
