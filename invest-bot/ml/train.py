@@ -21,7 +21,10 @@ from bot.models import Signal  # noqa: E402
 
 def load(history_dir: str) -> dict[str, list[Candle]]:
     data = {}
-    for f in sorted(glob.glob(str(Path(history_dir) / "*_180d.json"))):
+    files = sorted(glob.glob(str(Path(history_dir) / "*_365d.json")))
+    if not files:
+        files = sorted(glob.glob(str(Path(history_dir) / "*_180d.json")))
+    for f in files:
         d = json.load(open(f, encoding="utf-8"))
         data[d["ticker"]] = [
             Candle(datetime.fromisoformat(c["ts"]), c["open"], c["high"], c["low"], c["close"], c["volume"])
