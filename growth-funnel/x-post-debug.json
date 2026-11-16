@@ -1,0 +1,28 @@
+{
+  "credential": "env-access-token",
+  "image": "/home/runner/work/content-factory/content-factory/growth-funnel/twitter-telegram-channels.png",
+  "media": [
+    {
+      "url": "https://upload.twitter.com/1.1/media/upload.json",
+      "rc": 0,
+      "http": 403,
+      "body": "",
+      "media_id": ""
+    },
+    {
+      "url": "https://api.x.com/1.1/media/upload.json",
+      "rc": 0,
+      "http": 404,
+      "body": "",
+      "media_id": ""
+    }
+  ],
+  "tweet": {
+    "rc": 0,
+    "http": 403,
+    "body": "{\"detail\":\"Your client app is not configured with the appropriate oauth1 app permissions for this endpoint.\",\"status\":403,\"title\":\"Forbidden\",\"type\":\"https://api.x.com/2/problems/oauth1-permissions\"}",
+    "payload": {
+      "text": "Telegram channels worth your time — no fluff:\n\n✈️ Travel: https://t.me/GOODTRAVEL007\n🤖 AI: https://t.me/AINEWS0007\n📈 Crypto: https://t.me/HOOPY0007\n🏆 US Sports: https://t.me/SPORTNews0007\n\nSave this post. #Telegram"
+    }
+  }
+}
