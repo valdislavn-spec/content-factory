@@ -173,11 +173,11 @@ footer a { color:#a5b4fc; }
 <nav style="margin:26px 0;font-size:14.5px;line-height:2"><a href="https://valdislavn-spec.github.io/content-factory/flight-hotel-us/" style="color:#a5b4fc;text-decoration:none;margin-right:16px">US travel deals</a><a href="https://valdislavn-spec.github.io/content-factory/travel/" style="color:#a5b4fc;text-decoration:none;margin-right:16px">Travel guides</a></nav>
 
 <section id="subscribe" style="margin:40px 0 0;padding:22px 24px;border-radius:16px;background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.4)">
-<h2 style="font-size:22px;margin:0 0 8px">New deals, once a week</h2>
-<p style="margin:0 0 14px;color:#c7d2fe;font-size:15px">We refresh the page weekly. Leave your email and we'll send the digest with new prices and partner promos.</p>
+<h2 style="font-size:22px;margin:0 0 8px">Get the free 2026 US winter fare cheat sheet</h2>
+<p style="margin:0 0 14px;color:#c7d2fe;font-size:15px">12 winter escapes, real sample one-way fares, best months and a booking checklist. Free PDF — no spam, unsubscribe anytime.</p>
 <form class="sub-form" data-source="landing-us" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 10px">
 <input type="email" required placeholder="your email" aria-label="Email" class="sub-email" style="flex:1;min-width:220px;padding:13px 16px;border-radius:12px;border:1px solid rgba(148,163,255,.35);background:rgba(255,255,255,.06);color:#eef2ff;font-size:15px">
-<button type="submit" class="btn" style="border:0;cursor:pointer;padding:13px 22px">Subscribe</button>
+<button type="submit" class="btn" style="border:0;cursor:pointer;padding:13px 22px">Get the free PDF</button>
 </form>
 <p class="sub-msg" style="margin:0 0 10px;font-size:14px;color:#6ee7b7;display:none"></p>
 </section>
@@ -187,7 +187,7 @@ f.addEventListener('submit',function(e){e.preventDefault();
 var i=f.querySelector('.sub-email'),m=document.querySelector('.sub-msg');
 fetch('https://links-tracker.valdislav-n.workers.dev/subscribe',{method:'POST',headers:{'content-type':'application/json'},
 body:JSON.stringify({email:i.value,lang:'en',source:f.dataset.source})})
-.then(function(r){return r.json()}).then(function(d){m.textContent=d.ok?'Saved — thanks!':(d.error||'Something went wrong');m.style.display='block';if(d.ok)f.reset();})
+.then(function(r){return r.json()}).then(function(d){m.textContent=d.ok?'Saved — opening your PDF...':(d.error||'Something went wrong');m.style.display='block';if(d.ok){f.reset();setTimeout(function(){location.href='thanks/'},500)}})
 .catch(function(){m.textContent='Network error, try later';m.style.display='block';});});})();
 </script>
 </section>
