@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add growth-funnel/x-debug.json || true
+          git add growth-funnel/x-debug.json growth-funnel/x-post-debug.json || true
           if [ -f growth-funnel/.tweeted-telegram-channels ]; then
             git add growth-funnel/.tweeted-telegram-channels
           fi

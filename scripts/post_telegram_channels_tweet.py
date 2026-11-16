@@ -17,6 +17,8 @@ from urllib.parse import quote, unquote
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE = ROOT / "growth-funnel" / "twitter-telegram-channels.png"
 MARKER = ROOT / "growth-funnel" / ".tweeted-telegram-channels"
+DEBUG = ROOT / "growth-funnel" / "x-post-debug.json"
+DEBUG_DATA: dict = {}
 API = "https://api.x.com"
 TEXT = """Telegram channels worth your time — no fluff:
 
@@ -123,10 +125,12 @@ def upload_media(ck: str, cs: str, tok: str, sec: str) -> str | None:
             "-w", "\n%{http_code}",
         ])
         print(f"media[{url}]: rc={rc} http={status} body={body[:180]}")
+        mid = ""
         if status in (200, 201):
             mid = data.get("media_id_string") or (str(data.get("media_id")) if data.get("media_id") else "")
-            if mid:
-                return mid
+        DEBUG_DATA.setdefault("media", []).append({"url": url, "rc": rc, "http": status, "body": body[:800], "media_id": mid})
+        if mid:
+            return mid
     return None
 
 
@@ -150,6 +154,7 @@ def post_tweet(ck: str, cs: str, tok: str, sec: str, media_id: str | None) -> st
     finally:
         Path(path).unlink(missing_ok=True)
     print(f"tweet: rc={rc} http={status} body={body[:300]}")
+    DEBUG_DATA["tweet"] = {"rc": rc, "http": status, "body": body[:2000], "payload": payload}
     if status in (200, 201) and (data.get("data") or {}).get("id"):
         tid = data["data"]["id"]
         return f"https://x.com/i/web/status/{tid}"
@@ -157,30 +162,40 @@ def post_tweet(ck: str, cs: str, tok: str, sec: str, media_id: str | None) -> st
 
 
 def main() -> int:
-    if MARKER.exists():
-        print("marker exists, already posted:", MARKER.read_text().strip())
+    try:
+        if MARKER.exists():
+            print("marker exists, already posted:", MARKER.read_text().strip())
+            return 0
+        creds = find_creds()
+        if not creds:
+            print("no working X OAuth user context found")
+            return 1
+        label, ck, cs, tok, sec = creds
+        DEBUG_DATA["credential"] = label
+        DEBUG_DATA["image"] = str(IMAGE)
+        media_id = upload_media(ck, cs, tok, sec)
+        if media_id:
+            print("media_id:", media_id)
+        else:
+            print("media upload failed, posting text-only")
+        tweet_url = post_tweet(ck, cs, tok, sec, media_id)
+        if not tweet_url:
+            return 1
+        MARKER.write_text(json.dumps({
+            "posted_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "tweet_url": tweet_url,
+            "media_id": media_id,
+            "credential": label,
+        }, ensure_ascii=False, indent=2) + "\n")
+        DEBUG_DATA["tweet_url"] = tweet_url
+        print("TWEET_URL=" + tweet_url)
         return 0
-    creds = find_creds()
-    if not creds:
-        print("no working X OAuth user context found")
+    except Exception as exc:  # noqa: BLE001
+        DEBUG_DATA["exception"] = f"{type(exc).__name__}: {exc}"
+        print("exception:", DEBUG_DATA["exception"])
         return 1
-    label, ck, cs, tok, sec = creds
-    media_id = upload_media(ck, cs, tok, sec)
-    if media_id:
-        print("media_id:", media_id)
-    else:
-        print("media upload failed, posting text-only")
-    tweet_url = post_tweet(ck, cs, tok, sec, media_id)
-    if not tweet_url:
-        return 1
-    MARKER.write_text(json.dumps({
-        "posted_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "tweet_url": tweet_url,
-        "media_id": media_id,
-        "credential": label,
-    }, ensure_ascii=False, indent=2) + "\n")
-    print("TWEET_URL=" + tweet_url)
-    return 0
+    finally:
+        DEBUG.write_text(json.dumps(DEBUG_DATA, ensure_ascii=False, indent=2) + "\n")
 
 
 if __name__ == "__main__":
