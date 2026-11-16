@@ -1,0 +1,74 @@
+{
+  "checked_at": "2026-11-16",
+  "source": "theYahia/travelpayouts-mcp",
+  "departure_date": "2026-12-10",
+  "currency": "USD",
+  "fares": [
+    {
+      "origin": "NYC",
+      "destination": "MIA",
+      "origin_airport": "LGA",
+      "destination_airport": "MIA",
+      "airline": "F9",
+      "price": 148,
+      "transfers": 1,
+      "duration_min": 656,
+      "gate": "Trip.com"
+    },
+    {
+      "origin": "NYC",
+      "destination": "LAX",
+      "origin_airport": "EWR",
+      "destination_airport": "LAX",
+      "airline": "AS",
+      "price": 174,
+      "transfers": 0,
+      "duration_min": 392,
+      "gate": "Trip.com"
+    },
+    {
+      "origin": "NYC",
+      "destination": "CUN",
+      "origin_airport": "EWR",
+      "destination_airport": "CUN",
+      "airline": "UA",
+      "price": 212,
+      "transfers": 1,
+      "duration_min": 1165,
+      "gate": "Farera"
+    },
+    {
+      "origin": "NYC",
+      "destination": "FCO",
+      "origin_airport": "EWR",
+      "destination_airport": "FCO",
+      "airline": "TP",
+      "price": 278,
+      "transfers": 1,
+      "duration_min": 1100,
+      "gate": "Farera"
+    },
+    {
+      "origin": "NYC",
+      "destination": "LHR",
+      "origin_airport": "LGA",
+      "destination_airport": "LHR",
+      "airline": "AC",
+      "price": 314,
+      "transfers": 1,
+      "duration_min": 640,
+      "gate": "Trip.com"
+    },
+    {
+      "origin": "LAX",
+      "destination": "NRT",
+      "origin_airport": "LAX",
+      "destination_airport": "NRT",
+      "airline": "UA",
+      "price": 493,
+      "transfers": 1,
+      "duration_min": 880,
+      "gate": "Trip.com"
+    }
+  ]
+}
