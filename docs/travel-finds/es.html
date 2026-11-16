@@ -8,9 +8,9 @@
   <meta name="keywords" content="vuelos baratos, ofertas de hoteles, eSIM, traslados, comparador de vuelos">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://travel-finds.surge.sh/es.html">
-  <link rel="alternate" hreflang="en" href="https://travel-finds.surge.sh/en.html">
+  <link rel="alternate" hreflang="en" href="https://travel-finds.surge.sh/">
   <link rel="alternate" hreflang="es" href="https://travel-finds.surge.sh/es.html">
-  <link rel="alternate" hreflang="x-default" href="https://travel-finds.surge.sh/en.html">
+  <link rel="alternate" hreflang="x-default" href="https://travel-finds.surge.sh/">
   <link rel="stylesheet" href="assets/style.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%88%3C/text%3E%3C/svg%3E">
 
@@ -50,6 +50,7 @@
   }
   </script>
 <link rel="alternate" type="application/rss+xml" title="Travel Finds RSS" href="https://travel-finds.surge.sh/feed.xml">
+<script src="assets/analytics.js" defer></script>
 </head>
 <body>
   <a class="skip-link visually-hidden" href="#main">Ir al contenido</a>
@@ -61,7 +62,7 @@
         Travel Finds
       </a>
       <nav class="header__nav" aria-label="Navegación">
-        <a href="#deals">Ofertas</a>
+        <a href="#guides">Guías</a>
         <a href="#how">Cómo funciona</a><a href="es/blog/">Guías</a>
         <a class="lang-switch" href="index.html" hreflang="en" lang="en">EN</a>
       </nav>
@@ -92,59 +93,89 @@
 
       <!--
         TravelPayouts White Label widget.
-        Fill site/assets/site-config.js (marker, widget.promoId, widget.campaignId)
-        to enable it. While values start with YOUR_ the widget is replaced with
-        fallback buttons. Official TravelPayouts embed:
+        The White Label widget is configured by widget.wlId in
+        site/assets/site-config.js. If it does not render, the fallback buttons
+        stay visible. Legacy tp.media embed (kept for reference):
         <script charset="utf-8" src="https://tp.media/content?promo_id=...&shmarker=...&campaign_id=...&locale=en&powered_by=true"></script>
       -->
       <section class="search" aria-labelledby="search-title">
         <h2 id="search-title">Busca un vuelo, una eSIM o un traslado</h2>
-        <p>El buscador rellena tu ciudad, fechas y pasajeros. Es una búsqueda de afiliado: el precio que ves es el mismo.</p>
-        <div id="tp-widget" data-locale="es" aria-live="polite"></div>
+        <p>Busca vuelos aquí mismo — el formulario abre los resultados de nuestro socio con nuestro código, y el precio sigue siendo el mismo para ti. ¿Prefieres reservar aparte? Los botones de abajo abren cada servicio directamente.</p>
+        <div id="tp-widget" data-locale="es" aria-live="polite"><div id="tpwl-tickets"></div><div id="tpwl-search"></div></div>
         <div id="widget-fallback" class="widget-fallback">
-          <span>El buscador aún no está configurado (placeholder en <code>site/assets/site-config.js</code>).</span>
-          <a href="https://www.kiwi.com/" data-affiliate-program="kiwi" data-affiliate-target="https://www.kiwi.com/" rel="sponsored nofollow noopener">Buscar vuelos</a>
-          <a href="https://www.trip.com/hotels/" data-affiliate-program="tripcom" data-affiliate-target="https://www.trip.com/hotels/" rel="sponsored nofollow noopener">Buscar hoteles en Trip.com</a>
+          <div class="wf__text">
+            <strong>Busca vuelos y traslados</strong>
+            <span>La búsqueda se abre con nuestro socio: el precio es el mismo y una pequeña parte apoya este sitio.</span>
+          </div>
+          <div class="wf__actions">
+            <a href="https://www.kiwi.com/" data-affiliate-program="kiwi" data-affiliate-target="https://www.kiwi.com/" rel="sponsored nofollow noopener">Buscar vuelos</a>
+            <a href="https://kiwitaxi.com/" data-affiliate-program="kiwitaxi" data-affiliate-target="https://kiwitaxi.com/" rel="sponsored nofollow noopener">Reservar traslado</a>
+          </div>
         </div>
         <p class="muted" style="font-size:12px;margin:12px 0 0">Publicidad · enlace de afiliado. Consulta la divulgación de afiliados más abajo.</p>
       </section>
 
-      <section class="section" id="deals" aria-labelledby="deals-title">
-        <h2 id="deals-title">Últimas ofertas</h2>
+      <section class="section" id="hotels" aria-labelledby="hotels-title" hidden>
+        <h2 id="hotels-title">Hoteles</h2>
+        <p class="section__lead">Compara alojamientos para tus fechas — con la misma lógica de coste total.</p>
+        <div id="tpwl-hotels"></div>
+      </section>
+
+      <section class="section" id="cheap-dates" aria-labelledby="cheap-dates-title" hidden>
+        <h2 id="cheap-dates-title">Calendario de fechas baratas</h2>
+        <p class="section__lead">Mira qué días de salida son más baratos antes de fijar la fecha.</p>
+        <div id="tpwl-calendar"></div>
+      </section>
+
+      <section class="section" id="guides" aria-labelledby="guides-title">
+        <h2 id="guides-title">Guías: cómo pagar menos de verdad</h2>
         <p class="section__lead">
-          Tres tarjetas de ejemplo (datos de muestra, no son tarifas reales).
-          El generador <code>tools/gen_deals.py</code> rellena estas tarjetas con
-          datos de TravelPayouts; verifica siempre el precio para tus fechas.
+          Guías cortas y prácticas — sin cuentas atrás falsas y sin precios inventados.
+          Cada una termina con la misma búsqueda de socio que usamos nosotros.
         </p>
         <div class="deals">
-          <!-- SAMPLE DEAL: layout example, price is made up -->
           <article class="deal">
-            <span class="sample-tag">sample</span>
-            <div class="deal__route">Vuelos: tu ciudad → Bangkok</div>
-            <div class="deal__meta">salida 18 dic 2026 · regreso 28 dic 2026 · ruta de ejemplo</div>
-            <div class="deal__price">desde $249 <small>visto 08 nov 2026</small></div>
-            <a class="deal__cta" href="#" data-affiliate-program="kiwi"
-               data-affiliate-target="https://www.kiwi.com/">Comparar vuelos en Kiwi.com</a>
+            <span class="sample-tag">guía</span>
+            <div class="deal__route">Fechas flexibles: la palanca más barata</div>
+            <div class="deal__meta">por qué ±2 días gana a cualquier cupón</div>
+            <div class="deal__price">cómo se lee el mes completo</div>
+            <a class="deal__cta" href="es/blog/fechas-flexibles-vuelos-baratos.html">Leer la guía</a>
           </article>
-          <!-- SAMPLE DEAL: layout example, price is made up -->
           <article class="deal">
-            <span class="sample-tag">sample</span>
-            <div class="deal__route">eSIM: 5 GB para una semana fuera</div>
-            <div class="deal__meta">activación inmediata · conserva tu número · plan de ejemplo</div>
-            <div class="deal__price">desde $9,90 <small>revisado 08 nov 2026</small></div>
-            <a class="deal__cta" href="#" data-affiliate-program="yesim"
-               data-affiliate-target="https://yesim.app/">Comparar planes eSIM en Yesim</a>
+            <span class="sample-tag">guía</span>
+            <div class="deal__route">Escapadas económicas en Europa 2026</div>
+            <div class="deal__meta">elegir ciudad · timing · coste total</div>
+            <div class="deal__price">trampas del presupuesto</div>
+            <a class="deal__cta" href="es/blog/escapadas-economicas-europa-2026.html">Leer la guía</a>
           </article>
-          <!-- SAMPLE DEAL: layout example, price is made up -->
           <article class="deal">
-            <span class="sample-tag">sample</span>
-            <div class="deal__route">Traslado aeropuerto: llegadas → hotel</div>
-            <div class="deal__meta">precio fijo · el conductor te espera · ruta de ejemplo</div>
-            <div class="deal__price">desde $24 <small>revisado 08 nov 2026</small></div>
-            <a class="deal__cta" href="#" data-affiliate-program="kiwitaxi"
-               data-affiliate-target="https://kiwitaxi.com/">Reservar traslado en Kiwitaxi</a>
+            <span class="sample-tag">guía</span>
+            <div class="deal__route">¿Vuelo, tren o autobús?</div>
+            <div class="deal__meta">puerta a puerta: tiempo y dinero</div>
+            <div class="deal__price">cuándo gana cada opción</div>
+            <a class="deal__cta" href="es/blog/">Ver todas las guías</a>
           </article>
         </div>
+        <p class="muted" style="font-size:13px;margin:14px 0 0">
+          Más: <a href="es/blog/">todas las guías</a> · <a href="blog/">guías en inglés</a>
+        </p>
+      </section>
+
+      <section class="section" id="esenciales" aria-labelledby="esenciales-title">
+<h2 id="esenciales-title">Esenciales: coche, eSIM y traslado</h2>
+<p class="section__lead">Tres decisiones que suelen costar más que el vuelo. Compara el total antes de reservar.</p>
+<div class="deals">
+<article class="deal"><span class="sample-tag">guía</span><div class="deal__route">Alquiler de coches en España sin extras</div><div class="deal__meta">seguro · franquicia · peajes</div><div class="deal__price">checklist del total</div><a class="deal__cta" href="es/guias/alquiler-coches-espana.html">Leer la guía</a></article>
+<article class="deal"><span class="sample-tag">guía</span><div class="deal__route">Mejor eSIM para Latinoamérica</div><div class="deal__meta">Airalo · Yesim · Saily</div><div class="deal__price">cobertura y datos</div><a class="deal__cta" href="es/guias/esim-viajar-latam.html">Comparar eSIM</a></article>
+<article class="deal"><span class="sample-tag">guía</span><div class="deal__route">Traslado del aeropuerto</div><div class="deal__meta">taxi · app · traslado privado</div><div class="deal__price">precio fijo</div><a class="deal__cta" href="es/guias/traslados-aeropuerto.html">Planificar llegada</a></article>
+</div></section>
+      <section class="section" id="telegram" aria-labelledby="telegram-title">
+        <h2 id="telegram-title">Nuestro canal de Telegram</h2>
+        <p class="section__lead">
+          Hallazgos de viaje y consejos prácticos cada día — lo mismo que ves aquí,
+          pero según aparecen. Sin spam.
+        </p>
+        <p><a class="deal__cta" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Abrir @GOODTRAVEL007 →</a></p>
       </section>
 
       <section class="section" id="how" aria-labelledby="how-title">

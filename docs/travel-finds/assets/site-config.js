@@ -11,11 +11,20 @@ window.TRAVEL_CONFIG = {
   marker: "674170",
   market: "non_ru",
   widget: {
-    // White Label: Tools → Widgets/White Label → promo_id (получить позже;
-    // до этого показываем fallback-кнопки).
-    promoId: "YOUR_WIDGET_PROMO_ID",
+    // White Label Web (новый формат, 2026): идентификатор проекта wl_id.
+    // Скрипт: https://tpwdg.com/wl_web/main.js?wl_id=<wlId>
+    // Рендерится в контейнеры #tpwl-tickets / #tpwl-search / #tpwl-modals.
+    wlId: "24664",
+    // Старый формат tp.media/content?promo_id=... — оставлен как резерв.
+    promoId: "",
     campaignId: "",
     poweredBy: "true",
+    // Дополнительные WL-проекты (отели, календарь цен). Пустой wlId = блок скрыт.
+    // Заводится в кабинете TravelPayouts: White Label → новый проект → тип виджета.
+    extra: [
+      { name: "hotels", wlId: "", container: "tpwl-hotels", section: "hotels" },
+      { name: "calendar", wlId: "", container: "tpwl-calendar", section: "cheap-dates" },
+    ],
   },
   // У каждой программы своя короткая ссылка на язык (sub_id seo_en/seo_es
   // зашит при создании). fallback — url для остальных случаев.
@@ -23,8 +32,8 @@ window.TRAVEL_CONFIG = {
     kiwi: {
       url: "",
       urls: {
-        en: "https://kiwi.tpk.ro/RJINNJJm",
-        es: "https://kiwi.tpk.ro/n2alia22",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwi-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwi-es",
       },
       landing: "https://www.kiwi.com/",
       label: "Kiwi.com",
@@ -32,8 +41,8 @@ window.TRAVEL_CONFIG = {
     kiwitaxi: {
       url: "",
       urls: {
-        en: "https://kiwitaxi.tpk.ro/xmQYmqIl",
-        es: "https://kiwitaxi.tpk.ro/8bXhqjhr",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwitaxi-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-kiwitaxi-es",
       },
       landing: "https://kiwitaxi.com/",
       label: "Kiwitaxi",
@@ -41,8 +50,8 @@ window.TRAVEL_CONFIG = {
     yesim: {
       url: "",
       urls: {
-        en: "https://yesim.tpk.ro/uzjpBpju",
-        es: "https://yesim.tpk.ro/KqpvuYgm",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-yesim-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-yesim-es",
       },
       landing: "https://yesim.app/",
       label: "Yesim",
@@ -50,8 +59,8 @@ window.TRAVEL_CONFIG = {
     klook: {
       url: "",
       urls: {
-        en: "https://klook.tpk.ro/2NhHWOSD",
-        es: "https://klook.tpk.ro/RmERIKIk",
+        en: "https://links-tracker.valdislav-n.workers.dev/r/tf-klook-en",
+        es: "https://links-tracker.valdislav-n.workers.dev/r/tf-klook-es",
       },
       landing: "https://www.klook.com/",
       label: "Klook",
@@ -65,6 +74,12 @@ window.TRAVEL_CONFIG = {
     },
   },
   siteUrl: "https://travel-finds.surge.sh",
+  // Наш живой Telegram-канал (EN/ES-каналов пока нет — ведём один).
+  telegram: {
+    urlEn: "https://t.me/GOODTRAVEL007",
+    urlEs: "https://t.me/GOODTRAVEL007",
+    handle: "@GOODTRAVEL007",
+  },
 };
 
 window.TRAVEL_PLACEHOLDER = !window.TRAVEL_CONFIG.programs.kiwi.urls.en;

@@ -86,22 +86,102 @@
       return;
     }
     var locale = host.getAttribute("data-locale") || "ru";
-    if (isPlaceholderValue(config.widget && config.widget.promoId)) {
+    var wlId = (config.widget && config.widget.wlId) || "";
+    var legacyPromo = (config.widget && config.widget.promoId) || "";
+    var hasLegacy = isPlaceholderValue(legacyPromo) ? false : true;
+    if (wlId === "" && hasLegacy === false) {
       if (fallback) {
         fallback.classList.add("is-visible");
       }
       return;
     }
+    if (fallback) {
+      fallback.classList.remove("is-visible");
+    }
+    // White Label рендерит в свой контейнер: tpwl-tickets (поиск билетов)
+    // или tpwl-search (общая форма). Проверяем оба.
+    var mounts = ["tpwl-tickets", "tpwl-search"]
+      .map(function (id) { return document.getElementById(id); })
+      .filter(Boolean);
     var script = document.createElement("script");
-    script.charset = "utf-8";
-    script.src = widgetUrl(locale);
     script.async = true;
     script.onerror = function () {
       if (fallback) {
         fallback.classList.add("is-visible");
       }
     };
-    host.appendChild(script);
+    if (wlId) {
+      // White Label Web: модульный бандл TravelPayouts.
+      script.type = "module";
+      script.src = "https://tpwdg.com/wl_web/main.js?wl_id=" + encodeURIComponent(wlId);
+      document.head.appendChild(script);
+    } else {
+      script.charset = "utf-8";
+      script.src = widgetUrl(locale);
+      host.appendChild(script);
+    }
+    // White Label рендерит форму в #tpwl-search: если через 8 c пусто — показываем fallback.
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries += 1;
+      var rendered = mounts.some(function (node) {
+        // White Label Web рендерит виджет в shadow DOM внутри контейнера.
+        var root = node.shadowRoot || node;
+        return root.children.length > 0;
+      });
+      if (rendered) {
+        clearInterval(timer);
+        if (fallback) {
+          fallback.classList.remove("is-visible");
+        }
+        return;
+      }
+      if (tries > 30) {
+        clearInterval(timer);
+        if (fallback) {
+          fallback.classList.add("is-visible");
+        }
+      }
+    }, 500);
+  }
+
+  function loadWidget(wlId, containerId) {
+    var mount = document.getElementById(containerId);
+    if (mount === null) {
+      return;
+    }
+    var script = document.createElement("script");
+    script.async = true;
+    script.type = "module";
+    script.src = "https://tpwdg.com/wl_web/main.js?wl_id=" + encodeURIComponent(wlId);
+    document.head.appendChild(script);
+    var tries = 0;
+    var timer = setInterval(function () {
+      tries += 1;
+      var root = mount.shadowRoot || mount;
+      if (root.children.length > 0) {
+        clearInterval(timer);
+        mount.setAttribute("data-wl-ready", "1");
+      } else if (tries > 30) {
+        clearInterval(timer);
+      }
+    }, 500);
+  }
+
+  // Дополнительные WL-виджеты (отели, календарь): секция показывается,
+  // только если в конфиг прописан wlId.
+  function injectExtraWidgets() {
+    var list = (config.widget && config.widget.extra) || [];
+    list.forEach(function (item) {
+      if (item.wlId === "" || item.wlId === undefined) {
+        return;
+      }
+      var section = document.getElementById(item.section);
+      if (section) {
+        section.removeAttribute("hidden");
+      }
+      loadWidget(item.wlId, item.container);
+    });
   }
 
   function wireDealCards() {
@@ -112,7 +192,7 @@
       var url = affiliateUrl(program, target);
       if (!url) {
         card.setAttribute("aria-disabled", "true");
-        card.setAttribute("title", "Партнёрские ссылки появятся после настройки site/assets/site-config.js");
+        card.setAttribute("title", "Ссылка для этой программы пока недоступна");
         card.addEventListener("click", function (event) {
           event.preventDefault();
         });
@@ -134,6 +214,7 @@
 
   function init() {
     injectWidget();
+    injectExtraWidgets();
     wireDealCards();
     markYear();
   }
