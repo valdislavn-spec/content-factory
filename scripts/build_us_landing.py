@@ -385,6 +385,7 @@ footer a {{ color:#a5b4fc; }}
   <p class="lead">Hand-picked flight, hotel and experience deals for travelers in the United States.
   Compare options from New York, Los Angeles, Miami, Chicago and other US hubs — flights, city passes,
   tours, eSIM, airport transfers and car rental in one place.</p>
+  <p style="margin:20px 0 0"><a href="#subscribe" style="display:inline-block;padding:13px 20px;border-radius:12px;background:linear-gradient(92deg,#7c3aed,#db2777);color:#fff;font-weight:800;text-decoration:none">Get the free 2026 fare cheat sheet →</a></p>
   {social_html()}
   <div class="kpis">
     <div class="kpi"><b>12</b><span>easy destinations</span></div>
