@@ -36,7 +36,10 @@ def load_history_dir(history_dir: str) -> tuple[dict[str, list[Candle]], dict[st
     """Load previously downloaded 5-minute candles from JSON files."""
     data: dict[str, list[Candle]] = {}
     lots: dict[str, int] = {}
-    for path in sorted(Path(history_dir).glob("*_180d.json")):
+    files = sorted(Path(history_dir).glob("*_365d.json"))
+    if not files:
+        files = sorted(Path(history_dir).glob("*_180d.json"))
+    for path in files:
         payload = json.loads(path.read_text(encoding="utf-8"))
         ticker = payload.get("ticker") or path.name.split("_")[0]
         data[ticker] = [
