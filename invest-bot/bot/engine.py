@@ -200,6 +200,15 @@ class Engine:
             if isinstance(self.broker, PaperBroker):
                 self.broker.update_day(now, self.day_start_equity)
 
+        if self.cfg.live_broker:
+            shorts = [p for p in self._positions() if int(p["qty"]) < 0]
+            if shorts:
+                self.last_error = "negative position detected; entries halted: " + ",".join(
+                    f"{p['ticker']} {p['qty']}" for p in shorts
+                )
+                log.error(self.last_error)
+                return []
+
         results: list[dict] = []
         for ticker in self.cfg.tickers:
             try:
