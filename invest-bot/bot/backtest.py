@@ -32,6 +32,29 @@ class Trade:
     overnight: bool = False
 
 
+def load_history_dir(history_dir: str) -> tuple[dict[str, list[Candle]], dict[str, int]]:
+    """Load previously downloaded 5-minute candles from JSON files."""
+    data: dict[str, list[Candle]] = {}
+    lots: dict[str, int] = {}
+    for path in sorted(Path(history_dir).glob("*_180d.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        ticker = payload.get("ticker") or path.name.split("_")[0]
+        data[ticker] = [
+            Candle(
+                ts=datetime.fromisoformat(row["ts"]),
+                open=float(row["open"]),
+                high=float(row["high"]),
+                low=float(row["low"]),
+                close=float(row["close"]),
+                volume=float(row["volume"]),
+            )
+            for row in payload["candles"]
+        ]
+        lots[ticker] = int(payload.get("lot") or 1)
+        print(f"loaded {ticker}: {len(data[ticker])} candles from {path.name}", flush=True)
+    return data, lots
+
+
 def load_candles(tickers: list[str], days: int, token: str) -> tuple[dict[str, list[Candle]], dict[str, int]]:
     broker = TinkoffBroker(token, "sandbox")
     data: dict[str, list[Candle]] = {}
@@ -211,17 +234,21 @@ def main() -> int:
     ap.add_argument("--tickers", default="SBER,GAZP,ROSN,VTBR,TATN,MTSS")
     ap.add_argument("--token-file", default="")
     ap.add_argument("--out", default="backtest_results.json")
+    ap.add_argument("--history-dir", default="", help="load cached JSON candles instead of Tinkoff")
     args = ap.parse_args()
-    token = ""
-    if args.token_file:
-        token = Path(args.token_file).read_text().strip()
-    if not token:
-        import os
-        token = os.getenv("TINKOFF_TOKEN", "").strip()
-    if not token:
-        raise SystemExit("set TINKOFF_TOKEN or --token-file")
     tickers = [t.strip().upper() for t in args.tickers.split(",") if t.strip()]
-    data, lots = load_candles(tickers, args.days, token)
+    if args.history_dir:
+        data, lots = load_history_dir(args.history_dir)
+    else:
+        token = ""
+        if args.token_file:
+            token = Path(args.token_file).read_text().strip()
+        if not token:
+            import os
+            token = os.getenv("TINKOFF_TOKEN", "").strip()
+        if not token:
+            raise SystemExit("set TINKOFF_TOKEN or --token-file")
+        data, lots = load_candles(tickers, args.days, token)
     if not data:
         raise SystemExit("no data")
     base = dict(
