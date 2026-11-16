@@ -1,0 +1,41 @@
+name: tweet-telegram-channels
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCOUNT_BLOB: ${{ secrets.X_ACCOUNT_BLOB }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Post tweet
+        run: python3 scripts/post_telegram_channels_tweet.py
+      - name: Save posted marker
+        if: success()
+        run: |
+          if [ ! -f growth-funnel/.tweeted-telegram-channels ]; then
+            echo "no marker"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add growth-funnel/.tweeted-telegram-channels
+          git commit -m "chore: mark telegram channels tweet [skip ci]"
+          git push
