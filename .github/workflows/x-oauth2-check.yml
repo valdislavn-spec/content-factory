@@ -1,0 +1,65 @@
+name: x-oauth2-check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      X_OAUTH2_CLIENT_ID: ${{ secrets.X_OAUTH2_CLIENT_ID }}
+      X_OAUTH2_CLIENT_SECRET: ${{ secrets.X_OAUTH2_CLIENT_SECRET }}
+      X_OAUTH2_ACCESS_TOKEN: ${{ secrets.X_OAUTH2_ACCESS_TOKEN }}
+      X_OAUTH2_REFRESH_TOKEN: ${{ secrets.X_OAUTH2_REFRESH_TOKEN }}
+    steps:
+      - name: Check OAuth2 user token and write permission
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request, urllib.error
+          access = os.environ["X_OAUTH2_ACCESS_TOKEN"].strip()
+          headers = {"Authorization": "Bearer " + access, "User-Agent": "content-factory-x-oauth2-check"}
+          for label, url, data in [
+              ("users/me", "https://api.x.com/2/users/me", None),
+              ("tweets empty probe", "https://api.x.com/2/tweets", b"{}"),
+          ]:
+              req = urllib.request.Request(url, data=data, headers={**headers, "Content-Type": "application/json"}, method="POST" if data else "GET")
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as response:
+                      print(label, "HTTP", response.status, response.read().decode()[:300])
+              except urllib.error.HTTPError as error:
+                  print(label, "HTTP", error.code, error.read().decode()[:400])
+              except Exception as error:
+                  print(label, type(error).__name__, str(error)[:300])
+
+      - name: Report OAuth2 scopes via refresh
+        run: |
+          python - <<'PY'
+          import os, json, base64, urllib.parse, urllib.request, urllib.error
+          cid = os.environ["X_OAUTH2_CLIENT_ID"].strip()
+          csec = os.environ["X_OAUTH2_CLIENT_SECRET"].strip()
+          refresh = os.environ["X_OAUTH2_REFRESH_TOKEN"].strip()
+          basic = base64.b64encode((cid + ":" + csec).encode()).decode()
+          form = urllib.parse.urlencode({"grant_type": "refresh_token", "refresh_token": refresh}).encode()
+          req = urllib.request.Request(
+              "https://api.x.com/2/oauth2/token",
+              data=form, method="POST",
+              headers={"Authorization": "Basic " + basic,
+                       "Content-Type": "application/x-www-form-urlencoded",
+                       "User-Agent": "content-factory-x-oauth2-check"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  data = json.loads(response.read())
+                  print("refresh: HTTP", response.status,
+                        "| scope:", data.get("scope"),
+                        "| expires_in:", data.get("expires_in"),
+                        "| new_refresh:", bool(data.get("refresh_token")))
+          except urllib.error.HTTPError as error:
+              print("refresh: HTTP", error.code, "|", error.read().decode()[:400])
+          except Exception as error:
+              print("refresh:", type(error).__name__, str(error)[:300])
+          PY
