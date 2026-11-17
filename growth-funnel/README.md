@@ -20,3 +20,10 @@ Workflow: `.github/workflows/growth-funnel.yml`, запуск ежедневно
 
 Пока Pinterest-токен не задан, Pinterest-элементы пропускаются, Telegram
 продолжает публиковаться.
+
+## GrowthBot storage
+
+GrowthBot worker больше не использует Cloudflare KV. Состояние хранится в
+Redis-совместимом воркере `do-redis-growth` на Durable Objects.
+
+Подробности, проверка и передеплой: [`REDIS.md`](REDIS.md).
