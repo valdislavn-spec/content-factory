@@ -1,0 +1,27 @@
+name: x-check
+
+# Ручная диагностика X/Twitter: OAuth 1.0a (постинг) + app-only bearer.
+# Не публикует твиты: проверяет GET /2/users/me и POST /2/tweets с пустым телом.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      X_ACCOUNT_BLOB: ${{ secrets.X_ACCOUNT_BLOB }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check credentials
+        run: python scripts/x_check.py
