@@ -18,6 +18,7 @@ jobs:
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       X_ACCOUNT_BLOB: ${{ secrets.X_ACCOUNT_BLOB }}
+      X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,5 +26,18 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Check credentials
+      - name: Probe app-only bearer
+        run: |
+          python - <<'PY'
+          import os, urllib.request, urllib.error
+          token = os.environ["X_BEARER_TOKEN"].strip()
+          url = "https://api.x.com/2/users/by/username/NValdislav"
+          req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token, "User-Agent": "content-factory-x-check"})
+          try:
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  print("bearer users/by/username: HTTP", response.status, response.read().decode()[:400])
+          except urllib.error.HTTPError as error:
+              print("bearer users/by/username: HTTP", error.code, error.read().decode()[:400])
+          PY
+      - name: Check OAuth 1.0a credentials/write permission
         run: python scripts/x_check.py
