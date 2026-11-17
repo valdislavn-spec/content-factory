@@ -84,12 +84,14 @@ jobs:
         run: |
           python - <<'PY'
           import os, base64, json, urllib.parse, urllib.request, urllib.error
-          pairs = [
-              ("app_id+client_secret", os.environ.get("X_APP_ID",""), os.environ.get("X_OAUTH2_CLIENT_SECRET","")),
-              ("app_id+client_id", os.environ.get("X_APP_ID",""), os.environ.get("X_OAUTH2_CLIENT_ID","")),
-              ("client_id+client_secret", os.environ.get("X_OAUTH2_CLIENT_ID",""), os.environ.get("X_OAUTH2_CLIENT_SECRET","")),
-              ("api_key+api_secret", os.environ.get("X_API_KEY",""), os.environ.get("X_API_SECRET","")),
-          ]
+          vals = {
+              "app_id": os.environ.get("X_APP_ID","").strip(),
+              "client_id": os.environ.get("X_OAUTH2_CLIENT_ID","").strip(),
+              "client_secret": os.environ.get("X_OAUTH2_CLIENT_SECRET","").strip(),
+              "api_key": os.environ.get("X_API_KEY","").strip(),
+              "api_secret": os.environ.get("X_API_SECRET","").strip(),
+          }
+          pairs = [(a+"+"+b, vals[a], vals[b]) for a in vals for b in vals if a != b]
           for label, cid, csec in pairs:
               if not cid or not csec:
                   print(label, "SKIP empty")
