@@ -98,6 +98,7 @@ jobs:
                   "grant_type": "authorization_code",
                   "code": "invalid-probe-code",
                   "redirect_uri": "http://localhost:8080/callback",
+                  "code_verifier": "a" * 43,
               }).encode()
               basic = base64.b64encode((cid + ":" + csec).encode()).decode()
               req = urllib.request.Request(
