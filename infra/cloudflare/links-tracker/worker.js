@@ -6,6 +6,13 @@ const slug = (s) =>
   String(s || "").toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+const BOT_UA = /bot|crawler|spider|preview|facebookexternalhit|twitterbot|pinterestbot|applebot|trendiction|slackbot|telegrambot|discordbot|linkedinbot|googlebot|bingbot|yandexbot|ahrefsbot|semrushbot|bytespider|curl|wget|python-requests|go-http-client|headlesschrome/i;
+
+function isBotRequest(request, ua) {
+  if (BOT_UA.test(ua)) return true;
+  const bm = request.cf && request.cf.botManagement;
+  return Boolean(bm && bm.verifiedBot);
+}
 
 
 async function hmacHex(secret, message) {
@@ -348,9 +355,12 @@ async function recordClick(env, request, code) {
   const ua = (request.headers.get("user-agent") || "").slice(0, 300);
   const ref = (request.headers.get("referer") || "").slice(0, 300);
   const u = new URL(request.url);
+  const bot = isBotRequest(request, ua);
   try {
-    await run(env, "INSERT INTO clicks (code, day, count, last_click) VALUES (?,?,1,?) ON CONFLICT(code, day) DO UPDATE SET count = clicks.count + 1, last_click = excluded.last_click", [code, day, now]);
-    await run(env, "INSERT INTO click_log (code, ts, day, country, city, referer, ua, path) VALUES (?,?,?,?,?,?,?,?)", [code, now, day, cf.country || "", cf.city || "", ref, ua, (u.pathname + u.search).slice(0, 300)]);
+    if (bot === false) {
+      await run(env, "INSERT INTO clicks (code, day, count, last_click) VALUES (?,?,1,?) ON CONFLICT(code, day) DO UPDATE SET count = clicks.count + 1, last_click = excluded.last_click", [code, day, now]);
+    }
+    await run(env, "INSERT INTO click_log (code, ts, day, country, city, referer, ua, path, is_bot) VALUES (?,?,?,?,?,?,?,?,?)", [code, now, day, cf.country || "", cf.city || "", ref, ua, (u.pathname + u.search).slice(0, 300), bot ? 1 : 0]);
   } catch (e) {
     // учёт не должен ломать редирект
   }
