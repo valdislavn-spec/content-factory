@@ -80,5 +80,45 @@ jobs:
           except Exception as error:
               print("oauth2 exchange:", type(error).__name__, error)
           PY
+      - name: Probe OAuth2 client pairs
+        run: |
+          python - <<'PY'
+          import os, base64, json, urllib.parse, urllib.request, urllib.error
+          pairs = [
+              ("app_id+client_secret", os.environ.get("X_APP_ID",""), os.environ.get("X_OAUTH2_CLIENT_SECRET","")),
+              ("app_id+client_id", os.environ.get("X_APP_ID",""), os.environ.get("X_OAUTH2_CLIENT_ID","")),
+              ("client_id+client_secret", os.environ.get("X_OAUTH2_CLIENT_ID",""), os.environ.get("X_OAUTH2_CLIENT_SECRET","")),
+              ("api_key+api_secret", os.environ.get("X_API_KEY",""), os.environ.get("X_API_SECRET","")),
+          ]
+          for label, cid, csec in pairs:
+              if not cid or not csec:
+                  print(label, "SKIP empty")
+                  continue
+              form = urllib.parse.urlencode({
+                  "grant_type": "authorization_code",
+                  "code": "invalid-probe-code",
+                  "redirect_uri": "http://localhost:8080/callback",
+              }).encode()
+              basic = base64.b64encode((cid + ":" + csec).encode()).decode()
+              req = urllib.request.Request(
+                  "https://api.x.com/2/oauth2/token",
+                  data=form, method="POST",
+                  headers={"Authorization": "Basic " + basic,
+                           "Content-Type": "application/x-www-form-urlencoded",
+                           "User-Agent": "content-factory-x-check"},
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as response:
+                      print(label, "HTTP", response.status)
+              except urllib.error.HTTPError as error:
+                  body = error.read().decode()
+                  try:
+                      data = json.loads(body)
+                      print(label, "HTTP", error.code, "|", data.get("error"), "|", data.get("error_description"))
+                  except Exception:
+                      print(label, "HTTP", error.code, "|", body[:300])
+              except Exception as error:
+                  print(label, type(error).__name__, str(error)[:200])
+          PY
       - name: Check OAuth 1.0a credentials/write permission
         run: python scripts/x_check.py
