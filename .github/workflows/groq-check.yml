@@ -1,0 +1,66 @@
+name: groq-check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+    steps:
+      - name: Check Groq models
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request, urllib.error
+          key = os.environ["GROQ_API_KEY"].strip()
+          req = urllib.request.Request(
+              "https://api.groq.com/openai/v1/models",
+              headers={"Authorization": "Bearer " + key, "User-Agent": "content-factory-groq-check"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  data = json.loads(response.read())
+                  ids = [item.get("id") for item in data.get("data", [])]
+                  print("models HTTP", response.status, "count", len(ids))
+                  print("has gpt-oss-120b:", "openai/gpt-oss-120b" in ids)
+                  print("sample:", ", ".join(ids[:12]))
+          except urllib.error.HTTPError as error:
+              print("models HTTP", error.code, error.read().decode()[:400])
+          except Exception as error:
+              print("models", type(error).__name__, str(error)[:300])
+          PY
+      - name: Check Groq chat completion
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request, urllib.error
+          key = os.environ["GROQ_API_KEY"].strip()
+          body = json.dumps({
+              "model": "openai/gpt-oss-120b",
+              "messages": [{"role": "user", "content": "Reply with exactly: OK"}],
+              "max_tokens": 8,
+              "temperature": 0,
+          }).encode()
+          req = urllib.request.Request(
+              "https://api.groq.com/openai/v1/chat/completions",
+              data=body, method="POST",
+              headers={"Authorization": "Bearer " + key,
+                       "Content-Type": "application/json",
+                       "User-Agent": "content-factory-groq-check"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=40) as response:
+                  data = json.loads(response.read())
+                  print("chat HTTP", response.status,
+                        "| model:", data.get("model"),
+                        "| answer:", (data.get("choices") or [{}])[0].get("message", {}).get("content"),
+                        "| usage:", data.get("usage"))
+          except urllib.error.HTTPError as error:
+              print("chat HTTP", error.code, error.read().decode()[:500])
+          except Exception as error:
+              print("chat", type(error).__name__, str(error)[:300])
+          PY
