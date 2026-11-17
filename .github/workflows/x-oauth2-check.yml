@@ -34,32 +34,3 @@ jobs:
                   print(label, "HTTP", error.code, error.read().decode()[:400])
               except Exception as error:
                   print(label, type(error).__name__, str(error)[:300])
-
-      - name: Report OAuth2 scopes via refresh
-        run: |
-          python - <<'PY'
-          import os, json, base64, urllib.parse, urllib.request, urllib.error
-          cid = os.environ["X_OAUTH2_CLIENT_ID"].strip()
-          csec = os.environ["X_OAUTH2_CLIENT_SECRET"].strip()
-          refresh = os.environ["X_OAUTH2_REFRESH_TOKEN"].strip()
-          basic = base64.b64encode((cid + ":" + csec).encode()).decode()
-          form = urllib.parse.urlencode({"grant_type": "refresh_token", "refresh_token": refresh}).encode()
-          req = urllib.request.Request(
-              "https://api.x.com/2/oauth2/token",
-              data=form, method="POST",
-              headers={"Authorization": "Basic " + basic,
-                       "Content-Type": "application/x-www-form-urlencoded",
-                       "User-Agent": "content-factory-x-oauth2-check"},
-          )
-          try:
-              with urllib.request.urlopen(req, timeout=25) as response:
-                  data = json.loads(response.read())
-                  print("refresh: HTTP", response.status,
-                        "| scope:", data.get("scope"),
-                        "| expires_in:", data.get("expires_in"),
-                        "| new_refresh:", bool(data.get("refresh_token")))
-          except urllib.error.HTTPError as error:
-              print("refresh: HTTP", error.code, "|", error.read().decode()[:400])
-          except Exception as error:
-              print("refresh:", type(error).__name__, str(error)[:300])
-          PY
