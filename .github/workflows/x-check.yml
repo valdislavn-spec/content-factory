@@ -1,6 +1,6 @@
 name: x-check
 
-# Ручная диагностика X/Twitter: OAuth 1.0a (постинг) + app-only bearer.
+# Ручная диагностика X/Twitter: OAuth 1.0a (постинг) + app-only bearer + OAuth2.
 # Не публикует твиты: проверяет GET /2/users/me и POST /2/tweets с пустым телом.
 on:
   workflow_dispatch:
@@ -38,6 +38,44 @@ jobs:
                   print("bearer users/by/username: HTTP", response.status, response.read().decode()[:400])
           except urllib.error.HTTPError as error:
               print("bearer users/by/username: HTTP", error.code, error.read().decode()[:400])
+          PY
+      - name: Probe OAuth2 token exchange
+        run: |
+          python - <<'PY'
+          import os, json, base64, urllib.parse, urllib.request, urllib.error
+          cid = os.environ["X_API_KEY"].strip()
+          csec = os.environ["X_API_SECRET"].strip()
+          at = os.environ["X_ACCESS_TOKEN"].strip()
+          asec = os.environ["X_ACCESS_SECRET"].strip()
+          form = urllib.parse.urlencode({
+              "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+              "subject_token": at,
+              "subject_token_type": "urn:x:params:oauth:token-type:oauth1_token",
+              "oauth_token_secret": asec,
+          }).encode()
+          basic = base64.b64encode((cid + ":" + csec).encode()).decode()
+          req = urllib.request.Request(
+              "https://api.x.com/2/oauth2/token",
+              data=form,
+              method="POST",
+              headers={
+                  "Authorization": "Basic " + basic,
+                  "Content-Type": "application/x-www-form-urlencoded",
+                  "User-Agent": "content-factory-x-check",
+              },
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  data = json.loads(response.read())
+                  print("oauth2 exchange: HTTP", response.status,
+                        "| scope:", data.get("scope"),
+                        "| expires_in:", data.get("expires_in"),
+                        "| refresh:", bool(data.get("refresh_token")))
+          except urllib.error.HTTPError as error:
+              body = error.read().decode()
+              print("oauth2 exchange: HTTP", error.code, "|", body[:500])
+          except Exception as error:
+              print("oauth2 exchange:", type(error).__name__, error)
           PY
       - name: Check OAuth 1.0a credentials/write permission
         run: python scripts/x_check.py
