@@ -1,6 +1,8 @@
 # Buffer: дублирование дневного пина в подключённые соцсети.
 # Buffer: X (twitter) — только редкие ручные посты, без частой публикации
 # (решение владельца 11.11.2026: «не публикуй часто в твиттере»).
+# Отдельный автопостинг ES-каналов: .github/workflows/buffer-es-promo.yml
+# (Mon/Wed/Fri 19:30 UTC, shareNow, без расхода scheduled slots).
 # Facebook заблокирован (2026-11-10) — не публикуем.
 # Bluesky — через прямой AT Protocol (пока канал не переподключён в Buffer).
 # Ключ: BUFFER_API_KEY (Buffer → Settings → API).
