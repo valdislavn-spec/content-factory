@@ -1,7 +1,7 @@
 name: x-check
 
 # Ручная диагностика X/Twitter: OAuth 1.0a (постинг) + app-only bearer + OAuth2.
-# Не публикует твиты: проверяет GET /2/users/me и POST /2/tweets с пустым телом.
+# Ничего не публикует: проверяет GET /2/users/me и POST /2/tweets с пустым телом.
 on:
   workflow_dispatch:
 
@@ -19,6 +19,9 @@ jobs:
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       X_ACCOUNT_BLOB: ${{ secrets.X_ACCOUNT_BLOB }}
       X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+      X_APP_ID: ${{ secrets.X_APP_ID }}
+      X_OAUTH2_CLIENT_ID: ${{ secrets.X_OAUTH2_CLIENT_ID }}
+      X_OAUTH2_CLIENT_SECRET: ${{ secrets.X_OAUTH2_CLIENT_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,8 +46,8 @@ jobs:
         run: |
           python - <<'PY'
           import os, json, base64, urllib.parse, urllib.request, urllib.error
-          cid = os.environ["X_API_KEY"].strip()
-          csec = os.environ["X_API_SECRET"].strip()
+          cid = os.environ["X_OAUTH2_CLIENT_ID"].strip()
+          csec = os.environ["X_OAUTH2_CLIENT_SECRET"].strip()
           at = os.environ["X_ACCESS_TOKEN"].strip()
           asec = os.environ["X_ACCESS_SECRET"].strip()
           form = urllib.parse.urlencode({
