@@ -1,0 +1,66 @@
+name: xai-check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+    steps:
+      - name: Check xAI models
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request, urllib.error
+          key = os.environ["XAI_API_KEY"].strip()
+          req = urllib.request.Request(
+              "https://api.x.ai/v1/models",
+              headers={"Authorization": "Bearer " + key, "User-Agent": "content-factory-xai-check"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  data = json.loads(response.read())
+                  ids = [item.get("id") for item in data.get("data", [])]
+                  print("models HTTP", response.status, "count", len(ids))
+                  print("ids:", ", ".join(str(x) for x in ids[:20]))
+          except urllib.error.HTTPError as error:
+              print("models HTTP", error.code, error.read().decode()[:400])
+          except Exception as error:
+              print("models", type(error).__name__, str(error)[:300])
+          PY
+      - name: Check xAI chat completion
+        run: |
+          python - <<'PY'
+          import os, json, urllib.request, urllib.error
+          key = os.environ["XAI_API_KEY"].strip()
+          for model in ["grok-4", "grok-3", "grok-2-latest"]:
+              body = json.dumps({
+                  "model": model,
+                  "messages": [{"role": "user", "content": "Reply with exactly: OK"}],
+                  "max_tokens": 10,
+                  "temperature": 0,
+              }).encode()
+              req = urllib.request.Request(
+                  "https://api.x.ai/v1/chat/completions",
+                  data=body, method="POST",
+                  headers={"Authorization": "Bearer " + key,
+                           "Content-Type": "application/json",
+                           "User-Agent": "content-factory-xai-check"},
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=40) as response:
+                      data = json.loads(response.read())
+                      print(model, "HTTP", response.status,
+                            "| answer:", (data.get("choices") or [{}])[0].get("message", {}).get("content"),
+                            "| usage:", data.get("usage"))
+                      break
+              except urllib.error.HTTPError as error:
+                  print(model, "HTTP", error.code, error.read().decode()[:300])
+              except Exception as error:
+                  print(model, type(error).__name__, str(error)[:250])
+          PY
