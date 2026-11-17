@@ -1,0 +1,78 @@
+name: x-oauth2-authorize
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exchange:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      X_OAUTH2_CLIENT_ID: ${{ secrets.X_OAUTH2_CLIENT_ID }}
+      X_OAUTH2_CLIENT_SECRET: ${{ secrets.X_OAUTH2_CLIENT_SECRET }}
+      X_OAUTH2_CODE_VERIFIER: ${{ secrets.X_OAUTH2_CODE_VERIFIER }}
+      X_OAUTH2_AUTH_CODE: ${{ secrets.X_OAUTH2_AUTH_CODE }}
+      GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+    steps:
+      - name: Install PyNaCl
+        run: pip install pynacl
+      - name: Exchange authorization code and persist tokens
+        run: |
+          python - <<'PY'
+          import os, json, base64, urllib.parse, urllib.request, urllib.error
+          from nacl import encoding, public
+
+          cid = os.environ["X_OAUTH2_CLIENT_ID"].strip()
+          csec = os.environ["X_OAUTH2_CLIENT_SECRET"].strip()
+          verifier = os.environ["X_OAUTH2_CODE_VERIFIER"].strip()
+          code = os.environ["X_OAUTH2_AUTH_CODE"].strip()
+          basic = base64.b64encode((cid + ":" + csec).encode()).decode()
+          form = urllib.parse.urlencode({
+              "grant_type": "authorization_code",
+              "code": code,
+              "redirect_uri": "http://localhost:8080/callback",
+              "code_verifier": verifier,
+          }).encode()
+          req = urllib.request.Request(
+              "https://api.x.com/2/oauth2/token",
+              data=form, method="POST",
+              headers={"Authorization": "Basic " + basic,
+                       "Content-Type": "application/x-www-form-urlencoded",
+                       "User-Agent": "content-factory-x-oauth2-authorize"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  tokens = json.loads(response.read())
+          except urllib.error.HTTPError as error:
+              print("exchange HTTP", error.code, error.read().decode()[:500])
+              raise SystemExit(1)
+          print("exchange HTTP 200 | scope:", tokens.get("scope"), "| expires_in:", tokens.get("expires_in"))
+
+          repo = "valdislavn-spec/content-factory"
+          gh = os.environ["GH_SECRETS_TOKEN"].strip()
+          headers = {"Authorization": "Bearer " + gh,
+                     "Accept": "application/vnd.github+json",
+                     "User-Agent": "content-factory-x-oauth2-authorize",
+                     "Content-Type": "application/json"}
+          with urllib.request.urlopen(urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/actions/secrets/public-key",
+                  headers=headers), timeout=20) as response:
+              pk = json.loads(response.read())
+          box = public.SealedBox(public.PublicKey(pk["key"].encode(), encoding.Base64Encoder()))
+          updates = {
+              "X_OAUTH2_ACCESS_TOKEN": tokens["access_token"],
+              "X_OAUTH2_REFRESH_TOKEN": tokens["refresh_token"],
+          }
+          for name, value in updates.items():
+              encrypted = base64.b64encode(box.encrypt(value.encode())).decode()
+              body = json.dumps({"encrypted_value": encrypted, "key_id": pk["key_id"]}).encode()
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/actions/secrets/{name}",
+                  data=body, method="PUT", headers=headers)
+              with urllib.request.urlopen(req, timeout=20) as response:
+                  print("updated secret", name, response.status)
+          print("SUCCESS")
+          PY
