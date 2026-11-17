@@ -1,0 +1,122 @@
+name: x-oauth2-wait
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wait:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      X_OAUTH2_CLIENT_ID: ${{ secrets.X_OAUTH2_CLIENT_ID }}
+      X_OAUTH2_CLIENT_SECRET: ${{ secrets.X_OAUTH2_CLIENT_SECRET }}
+      X_OAUTH2_CODE_VERIFIER: ${{ secrets.X_OAUTH2_CODE_VERIFIER }}
+      GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+    steps:
+      - name: Install PyNaCl
+        run: pip install pynacl
+      - name: Wait for code and exchange
+        run: |
+          python - <<'PY'
+          import os, json, base64, time, urllib.parse, urllib.request, urllib.error
+          from nacl import encoding, public
+
+          repo = "valdislavn-spec/content-factory"
+          path = "data/x_auth_code.txt"
+          gh = os.environ["GH_SECRETS_TOKEN"].strip()
+          cid = os.environ["X_OAUTH2_CLIENT_ID"].strip()
+          csec = os.environ["X_OAUTH2_CLIENT_SECRET"].strip()
+          verifier = os.environ["X_OAUTH2_CODE_VERIFIER"].strip()
+          headers = {"Authorization": "Bearer " + gh,
+                     "Accept": "application/vnd.github+json",
+                     "User-Agent": "content-factory-x-oauth2-wait",
+                     "Content-Type": "application/json"}
+
+          def read_code():
+              try:
+                  req = urllib.request.Request(
+                      f"https://api.github.com/repos/{repo}/contents/{path}",
+                      headers=headers)
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      data = json.loads(response.read())
+                  return base64.b64decode(data["content"]).decode().strip(), data.get("sha")
+              except urllib.error.HTTPError as error:
+                  if error.code == 404:
+                      return "", None
+                  raise
+
+          def write_code(text, sha=None):
+              payload = {"message": "x oauth2 auth code mailbox", "content": base64.b64encode(text.encode()).decode(), "branch": "main"}
+              if sha:
+                  payload["sha"] = sha
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/contents/{path}",
+                  data=json.dumps(payload).encode(), method="PUT", headers=headers)
+              with urllib.request.urlopen(req, timeout=20) as response:
+                  return json.loads(response.read())["content"]["sha"]
+
+          def exchange(code):
+              basic = base64.b64encode((cid + ":" + csec).encode()).decode()
+              form = urllib.parse.urlencode({
+                  "grant_type": "authorization_code",
+                  "code": code,
+                  "redirect_uri": "http://localhost:8080/callback",
+                  "code_verifier": verifier,
+              }).encode()
+              req = urllib.request.Request(
+                  "https://api.x.com/2/oauth2/token",
+                  data=form, method="POST",
+                  headers={"Authorization": "Basic " + basic,
+                           "Content-Type": "application/x-www-form-urlencoded",
+                           "User-Agent": "content-factory-x-oauth2-wait"},
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      return response.status, json.loads(response.read())
+              except urllib.error.HTTPError as error:
+                  try:
+                      body = json.loads(error.read())
+                  except Exception:
+                      body = {}
+                  return error.code, body
+
+          def update_secret(name, value, pk):
+              box = public.SealedBox(public.PublicKey(pk["key"].encode(), encoding.Base64Encoder()))
+              encrypted = base64.b64encode(box.encrypt(value.encode())).decode()
+              body = json.dumps({"encrypted_value": encrypted, "key_id": pk["key_id"]}).encode()
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/actions/secrets/{name}",
+                  data=body, method="PUT", headers=headers)
+              with urllib.request.urlopen(req, timeout=20) as response:
+                  print("updated secret", name, response.status)
+
+          for attempt in range(300):
+              try:
+                  content, sha = read_code()
+              except Exception as error:
+                  print("read error", type(error).__name__, str(error)[:200])
+                  time.sleep(3)
+                  continue
+              if content.startswith("CODE:"):
+                  code = content[5:].strip()
+                  print("got code, exchanging...")
+                  status, body = exchange(code)
+                  print("exchange HTTP", status, "| error:", body.get("error"), "| scope:", body.get("scope"))
+                  if status == 200 and body.get("access_token"):
+                      with urllib.request.urlopen(urllib.request.Request(
+                              f"https://api.github.com/repos/{repo}/actions/secrets/public-key",
+                              headers=headers), timeout=20) as response:
+                          pk = json.loads(response.read())
+                      update_secret("X_OAUTH2_ACCESS_TOKEN", body["access_token"], pk)
+                      update_secret("X_OAUTH2_REFRESH_TOKEN", body["refresh_token"], pk)
+                      write_code("DONE", sha)
+                      print("SUCCESS")
+                      break
+                  write_code("INVALID", sha)
+              time.sleep(2)
+          else:
+              print("timeout waiting for code")
+          PY
