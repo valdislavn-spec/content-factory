@@ -6,7 +6,7 @@ const slug = (s) =>
   String(s || "").toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64);
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
-const BOT_UA = /bot|crawler|spider|preview|facebookexternalhit|twitterbot|pinterestbot|applebot|trendiction|slackbot|telegrambot|discordbot|linkedinbot|googlebot|bingbot|yandexbot|ahrefsbot|semrushbot|bytespider|curl|wget|python-requests|go-http-client|headlesschrome/i;
+const BOT_UA = /bot|crawler|spider|preview|facebookexternalhit|twitterbot|pinterestbot|applebot|trendiction|anthill|slackbot|telegrambot|discordbot|linkedinbot|googlebot|bingbot|yandexbot|ahrefsbot|semrushbot|bytespider|curl|wget|python-requests|go-http-client|headlesschrome/i;
 
 function isBotRequest(request, ua) {
   if (BOT_UA.test(ua)) return true;
