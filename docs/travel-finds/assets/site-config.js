@@ -65,6 +65,28 @@ window.TRAVEL_CONFIG = {
       landing: "https://www.klook.com/",
       label: "Klook",
     },
+    booking: {
+      // Ожидает Join Booking.com в кабинете Travelpayouts; кнопка появится после ссылки.
+      status: "pending",
+      url: "",
+      urls: { en: "", es: "" },
+      landing: "https://www.booking.com/",
+      label: "Booking.com",
+    },
+    hotellook: {
+      status: "pending",
+      url: "",
+      urls: { en: "", es: "" },
+      landing: "https://www.hotellook.com/",
+      label: "Hotellook",
+    },
+    getyourguide: {
+      status: "pending",
+      url: "",
+      urls: { en: "", es: "" },
+      landing: "https://www.getyourguide.com/",
+      label: "GetYourGuide",
+    },
     tripcom: {
       // Website-проект пока не подписан на Trip.com → pending (кнопка off).
       url: "",

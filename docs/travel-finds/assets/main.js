@@ -69,6 +69,12 @@
     if (isPlaceholderValue(url)) {
       return null;
     }
+    // Always expose the language SubID in the URL; the tracker/worker also
+    // forwards it to Travelpayouts short links.
+    var subId = lang === "es" ? "seo_es" : "seo_en";
+    if (url.indexOf("sub_id=") === -1) {
+      url += (url.indexOf("?") === -1 ? "?" : "&") + "sub_id=" + encodeURIComponent(subId);
+    }
     // 2026: no tp.media/r links in the browser; deep links are converted via
     // the TravelPayouts Links API (tools/links_api.py) in the content pipeline.
     if (target && programInfo.deeplinkTemplate) {
