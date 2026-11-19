@@ -1,4 +1,8 @@
 (function () {
+  var key = "cf_consent_v1";
+  var stored = "";
+  try { stored = localStorage.getItem(key) || ""; } catch (error) { stored = ""; }
+  if (stored !== "granted") return;
   var id = "G-LC39S1FD7B";
   window.dataLayer = window.dataLayer || [];
   window.gtag = function () { window.dataLayer.push(arguments); };
