@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 GH = "https://valdislavn-spec.github.io/content-factory"
-SURGE = "https://nezabyvaemoe.surge.sh/"
+PACKAGE_URL = GH + "/flight-hotel-abroad/"
 
 PRICE_FALLBACK = {
     "Абхазия": "18473", "Турция": "41754", "ОАЭ": "66704", "Египет": "74015",
@@ -139,7 +139,7 @@ def _head(url: str, lang: str) -> str:
 
 def _nav(lang: str) -> str:
     if lang == "ru":
-        links = [(SURGE, "Пакетные туры 2026"), (GH + "/flight-hotel-abroad/", "Туры за рубеж"),
+        links = [(GH + "/flight-hotel-abroad/", "Туры за рубеж"),
                  (GH + "/flight-hotel-us/", "US travel deals"), (GH + "/travel/", "Гайды по путешествиям")]
     else:
         links = [(GH + "/flight-hotel-us/", "US travel deals"), (GH + "/travel/", "Travel guides")]
@@ -205,7 +205,7 @@ def enhance_us(html: str) -> str:
 
 
 def enhance_package(html: str) -> str:
-    url = SURGE
+    url = PACKAGE_URL
     if 'application/ld+json' in html and 'id="faq"' in html:
         return html
     html = re.sub(r"<title>Незабываемое путешествие — Travelata</title>",

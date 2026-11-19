@@ -192,7 +192,6 @@ def page(d: dict) -> str:
 <link rel="canonical" href="{url}">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="alternate" hreflang="ru" href="{url}">
-<link rel="alternate" hreflang="en" href="{GH}/en/destinations/{d['slug']}/">
 <link rel="alternate" hreflang="x-default" href="{url}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{esc(title)}">
@@ -278,7 +277,7 @@ def hub() -> str:
 <p style="margin:0"><a class="btn" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Подписаться в Telegram</a>
 <a href="mailto:valdislav.n@gmail.com?subject=%D0%9F%D0%BE%D0%B4%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D1%81%D0%B2%D0%BE%D0%B4%D0%BA%D1%83%20%D1%82%D1%83%D1%80%D0%BE%D0%B2" style="margin-left:14px;color:#a5b4fc;font-size:15px">Получать на email</a></p>
 </section>
-<nav><a href="{GH}/en/">EN</a><a href="{GH}/resorts/">Курорты</a><a href="{GH}/seasons/">Подборки</a><a href="{ABROAD}">Полная сводка цен</a><a href="{GH}/travel/">Гайды</a></nav>
+<nav><a href="{GH}/flight-hotel-us/">EN</a><a href="{GH}/resorts/">Курорты</a><a href="{GH}/seasons/">Подборки</a><a href="{ABROAD}">Полная сводка цен</a><a href="{GH}/travel/">Гайды</a></nav>
 <footer>Данные: Travelata · цены за двоих · не является офертой.</footer>
 </div></body></html>
 """

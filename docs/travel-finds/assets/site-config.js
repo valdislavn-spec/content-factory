@@ -7,6 +7,12 @@
    пользователь откладывает партнёрские кнопки; замените urls на новые).
    API-токен на сайте НЕ НУЖЕН и НЕ ДОЛЖЕН попадать в репозиторий.
    ========================================================================== */
+// TravelPayouts project 24664 has showHotels=true. On this landing the
+// "Search flights" button must run a flight search, not open Booking.com.
+window.TPWL_CONFIGURATION = Object.assign({}, window.TPWL_CONFIGURATION, {
+  showHotels: false,
+});
+
 window.TRAVEL_CONFIG = {
   marker: "674170",
   market: "non_ru",

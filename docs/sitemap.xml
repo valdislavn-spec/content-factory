@@ -145,60 +145,6 @@
   </url>
 
   <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/europe-under-300.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/bali-budget.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/rome-48-hours.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/travel-esim.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/car-rental-europe.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/airport-transfer-guide.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/luggage-storage-guide.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/travel/skip-the-line-tickets-guide.html</loc>
-    <lastmod>2026-11-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://valdislavn-spec.github.io/content-factory/travel/almaty-48-hours.html</loc>
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
@@ -209,12 +155,6 @@
     <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nezabyvaemoe.surge.sh/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://valdislavn-spec.github.io/content-factory/flight-hotel-us/</loc>
@@ -607,84 +547,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/turciya/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/egipet/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/oae/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/tailand/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/maldivy/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/kipr/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/greciya/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/vietnam/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/indoneziya/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/ispaniya/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/italiya/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/destinations/abkhaziya/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://valdislavn-spec.github.io/content-factory/en/</loc>
-    <lastmod>2026-11-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://valdislavn-spec.github.io/content-factory/travel/offers/</loc>
     <lastmod>2026-11-17</lastmod>
     <changefreq>weekly</changefreq>
@@ -696,4 +558,6 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+
+
 </urlset>
