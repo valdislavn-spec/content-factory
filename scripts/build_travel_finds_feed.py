@@ -94,14 +94,15 @@ def link_pages() -> int:
 
 
 def link_sitemap() -> bool:
+    """Keep the RSS feed out of sitemap.xml (Google indexes pages, not feeds)."""
     sm = SITE_DIR / "sitemap.xml"
     if not sm.exists():
         return False
     text = sm.read_text(encoding="utf-8")
     entry = f"  <url><loc>{SITE}/feed.xml</loc></url>\n"
-    if f"{SITE}/feed.xml" in text:
+    if entry not in text:
         return False
-    sm.write_text(text.replace("</urlset>", entry + "</urlset>", 1), encoding="utf-8")
+    sm.write_text(text.replace(entry, "", 1), encoding="utf-8")
     return True
 
 
