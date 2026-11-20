@@ -74,6 +74,7 @@ def list_boards() -> int:
 def publish(meta_path: Path, board_id: str, dry_run: bool) -> int:
     entries = json.loads(meta_path.read_text(encoding="utf-8"))
     ok = 0
+    pending = 0
     for entry in entries:
         payload = entry.get("payload") or {}
         body = {
@@ -91,10 +92,14 @@ def publish(meta_path: Path, board_id: str, dry_run: bool) -> int:
         if status in (200, 201):
             ok += 1
             print(f"published: {response.get('id')}  {body['title'][:60]}")
+        elif status == 403 and "trial" in json.dumps(response, ensure_ascii=False).lower():
+            pending += 1
+            print(f"[pending] {body['title'][:60]} — Standard access ещё не одобрен (Trial)")
         else:
             print(f"failed ({status}): {response}", file=sys.stderr)
-    print(f"done: {ok}/{len(entries)} published")
-    return 0 if ok == len(entries) or dry_run else 1
+    suffix = f" (pending: {pending})" if pending else ""
+    print(f"done: {ok}/{len(entries)} published{suffix}")
+    return 0 if dry_run or ok + pending == len(entries) else 1
 
 
 def main(argv: list[str] | None = None) -> int:

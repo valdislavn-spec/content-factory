@@ -110,6 +110,18 @@ def post_telegram(item: dict[str, Any], env: dict[str, str]) -> dict[str, Any]:
     return {"ok": True, "message_id": mid, "url": url}
 
 
+def _is_trial_restriction(status: int, data: dict[str, Any]) -> bool:
+    """Pinterest Trial-доступ: production-публикация запрещена до одобрения Standard."""
+    if status != 403:
+        return False
+    if data.get("code") == 29:
+        return True
+    for err in data.get("errors") or []:
+        if isinstance(err, dict) and err.get("code") == 29:
+            return True
+    return "trial" in json.dumps(data, ensure_ascii=False).lower()
+
+
 def post_pinterest(item: dict[str, Any], env: dict[str, str], allow_sandbox: bool = False) -> dict[str, Any]:
     token = (env.get("PINTEREST_ACCESS_TOKEN") or "").strip()
     if not token:
@@ -167,6 +179,12 @@ def post_pinterest(item: dict[str, Any], env: dict[str, str], allow_sandbox: boo
     if err:
         return {"ok": False, "error": err}
     if status >= 400 or not data.get("id"):
+        if _is_trial_restriction(status, data):
+            return {
+                "ok": False,
+                "skipped": True,
+                "error": "Pinterest: Trial-доступ — публикация ждёт одобрения Standard access",
+            }
         return {"ok": False, "error": str(data)[:300]}
     pin_id = data.get("id")
     return {"ok": True, "pin_id": pin_id, "url": f"https://www.pinterest.com/pin/{pin_id}/"}
