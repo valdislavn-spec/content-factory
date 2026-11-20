@@ -4,7 +4,7 @@
 Items are taken from docs/travel-finds/blog/*.html (title, description, canonical,
 og:image).  The script is idempotent: it rewrites feed.xml, injects
 ``<link rel="alternate" type="application/rss+xml">`` into pages that lack it,
-and adds the feed to sitemap.xml once.
+and keeps the RSS feed out of sitemap.xml.
 
 Usage (from content-factory):
     python3 scripts/build_travel_finds_feed.py
