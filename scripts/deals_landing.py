@@ -28,6 +28,8 @@ DEFAULT_DATA = ROOT / "data" / "deals" / "landing.yaml"
 DEFAULT_OUT = ROOT / "build" / "deals"
 
 BUILD_ID = ""
+GOOGLE_SITE_VERIFICATION = "jP_DHgYF6wanBmRXzjZB0ov50wIJ3R2JQfgvcL12yqk"
+INDEXNOW_KEY = "79baf24dc0f238079df76bfe525ce384"
 
 CSS = """
 :root{--bg:#0b1220;--card:#121b2e;--card-hover:#17233c;--text:#e8eefc;--muted:#93a4c4;--accent:#4f8cff;--border:#22304d;--good:#46d39a;--warn:#ffb454}
@@ -110,6 +112,7 @@ def page(title: str, description: str, canonical: str, body: str, channels_url: 
 <meta property="og:type" content="website">
 <meta property="og:url" content="{esc(canonical)}">
 <link rel="canonical" href="{esc(canonical)}">
+<meta name="google-site-verification" content="{GOOGLE_SITE_VERIFICATION}">
 <meta name="robots" content="index,follow">
 <style>{CSS}</style>
 </head>
@@ -275,6 +278,7 @@ def build(data: Dict[str, Any], out: Path) -> List[Path]:
     if channels:
         urls.append(base + "/canales.html")
     urls += [f"{base}/{prog.get('slug')}.html" for prog in programs] + [f"{base}/p-{p.get('id')}.html" for p in products]
+    write(out / f"{INDEXNOW_KEY}.txt", INDEXNOW_KEY + "\n")
     sitemap = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     sitemap += [f"  <url><loc>{esc(u)}</loc></url>" for u in urls]
     sitemap.append("</urlset>")
