@@ -1,0 +1,59 @@
+name: archive-invest-bot-status
+
+on:
+  schedule:
+    # every 30 min, Mon-Fri, roughly 06:00-16:30 UTC (10:00-19:30 MSK)
+    - cron: "*/30 6-16 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch bot status and append changed snapshot
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, urllib.request
+          from datetime import datetime, timezone
+          url = "https://http--invest-bot--sm4j47bvw78l.code.run/status"
+          data = json.load(urllib.request.urlopen(url, timeout=30)).get("data")
+          if not data:
+              raise SystemExit("no status data")
+          key = (data.get("day_pnl"), data.get("trades_today"), data.get("equity"),
+                 data.get("last_tick"), json.dumps(data.get("positions") or []))
+          path = pathlib.Path("invest-bot/data/automation/status-%s.jsonl" % datetime.now(timezone.utc).strftime("%Y-%m"))
+          path.parent.mkdir(parents=True, exist_ok=True)
+          if path.exists():
+              last = path.read_text(encoding="utf-8").strip().splitlines()[-1:]
+              if last:
+                  try:
+                      prev = json.loads(last[0]).get("status") or {}
+                      pkey = (prev.get("day_pnl"), prev.get("trades_today"), prev.get("equity"),
+                              prev.get("last_tick"), json.dumps(prev.get("positions") or []))
+                      if pkey == key:
+                          print("no change")
+                          raise SystemExit(0)
+                  except (ValueError, IndexError):
+                      pass
+          row = {"fetched_at": datetime.now(timezone.utc).isoformat(), "status": data}
+          with path.open("a", encoding="utf-8") as f:
+              f.write(json.dumps(row, ensure_ascii=False) + "\n")
+          print("appended", path)
+          PY
+
+      - name: Commit if changed
+        run: |
+          git config user.name "invest-bot-archive"
+          git config user.email "actions@users.noreply.github.com"
+          git add invest-bot/data/automation
+          if git diff --cached --quiet; then
+            echo "nothing to commit"
+            exit 0
+          fi
+          git commit -m "chore(invest-bot): archive status $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
