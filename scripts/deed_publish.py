@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Публикация папки на deed.page (нейтральный домен, без имени).
 
-    ./.venv/bin/python scripts/deed_publish.py --dir docs/deals --slug deals-finds
+    ./.venv/bin/python scripts/deed_publish.py --dir build/deals --slug ofertas-finds
 
 Токен хранится в ~/.local/keys/deed-page.json (workspace .local/keys/deed-page.json).
 Первый publish создаёт сайт и возвращает токен; обновления — сAuthorization: Bearer.
@@ -63,7 +63,7 @@ def publish(dir_path: Path, slug: str, proxy: str) -> dict:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Publish static site to deed.page")
     parser.add_argument("--dir", default=str(ROOT / "build" / "deals"))
-    parser.add_argument("--slug", default="deals-finds")
+    parser.add_argument("--slug", default="ofertas-finds")
     parser.add_argument("--proxy", default=PROXY)
     args = parser.parse_args(argv)
     result = publish(Path(args.dir), args.slug, args.proxy)
