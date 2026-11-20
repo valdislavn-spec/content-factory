@@ -10,12 +10,19 @@ EXTRA_PAGES = ["https://travel-finds.surge.sh/","https://travel-finds.surge.sh/e
 
 def campaign_for(url):
     p = urllib.parse.urlparse(url)
+    host = p.netloc.lower()
+    host_slug = {
+        "valdislavn-spec.github.io": "content-factory",
+        "travel-finds.surge.sh": "travel-finds",
+        "ofertas-finds.deed.page": "ofertas-finds",
+    }.get(host, re.sub(r"[^a-z0-9]+", "-", host).strip("-"))
     path = p.path.strip("/")
-    if not path or path == "content-factory":
-        return "home"
-    path = path.removeprefix("content-factory/")
+    if path.startswith("content-factory/"):
+        path = path[len("content-factory/"):]
+    if path == "content-factory":
+        path = ""
     slug = re.sub(r"[^a-z0-9]+", "-", path.lower()).strip("-")
-    return slug or "home"
+    return f"{host_slug}-{slug}" if slug else f"{host_slug}-home"
 
 def tagged(url, source, medium):
     p = urllib.parse.urlparse(url)
