@@ -279,7 +279,6 @@ def build(data: Dict[str, Any], out: Path) -> List[Path]:
         urls.append(base + "/canales.html")
     urls += [f"{base}/{prog.get('slug')}.html" for prog in programs] + [f"{base}/p-{p.get('id')}.html" for p in products]
     write(out / f"{INDEXNOW_KEY}.txt", INDEXNOW_KEY + "\n")
-    write(out / "robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {base}/sitemap.xml\n")
     sitemap = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     sitemap += [f"  <url><loc>{esc(u)}</loc></url>" for u in urls]
     sitemap.append("</urlset>")

@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ofertas-finds.deed.page/sitemap.xml
