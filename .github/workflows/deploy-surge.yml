@@ -36,6 +36,13 @@ jobs:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
           npx --yes surge@0.57.0 ./docs/landing-redirect nezabyvaemoe.surge.sh
+      - name: Purge Surge edge cache
+        env:
+          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+        run: |
+          npx --yes surge@0.57.0 bust travel-finds.surge.sh
+          npx --yes surge@0.57.0 bust nezabyvaemoe.surge.sh
       - name: Summary
         run: |
           echo "https://travel-finds.surge.sh/" >> "$GITHUB_STEP_SUMMARY"
