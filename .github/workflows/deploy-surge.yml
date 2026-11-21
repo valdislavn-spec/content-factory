@@ -36,6 +36,12 @@ jobs:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
           npx --yes surge@0.57.0 ./docs/landing-redirect nezabyvaemoe.surge.sh
+      - name: Ensure public project config
+        env:
+          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+        run: |
+          npx --yes surge@0.57.0 config --public travel-finds.surge.sh || true
       - name: Purge Surge edge cache
         env:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
