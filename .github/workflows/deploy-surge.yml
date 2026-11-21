@@ -24,23 +24,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Capture Surge project diagnostics
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-        run: |
-          npx --yes surge@0.57.0 config travel-finds.surge.sh > docs/travel-finds/surge-config.txt 2>&1 || true
-          npx --yes surge@0.57.0 files travel-finds.surge.sh > docs/travel-finds/surge-files.txt 2>&1 || true
-          npx --yes surge@0.57.0 audit travel-finds.surge.sh > docs/travel-finds/surge-audit.txt 2>&1 || true
-      - name: Create robots behaviour test site
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-        run: |
-          mkdir -p /tmp/robots-test
-          printf 'User-agent: *\nAllow: /\n' > /tmp/robots-test/robots.txt
-          printf '<h1>robots test</h1>\n' > /tmp/robots-test/index.html
-          npx --yes surge@0.57.0 /tmp/robots-test travel-finds-robots-test-2026.surge.sh
       - name: Publish site to travel-finds.surge.sh
         env:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
@@ -53,25 +36,7 @@ jobs:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
           npx --yes surge@0.57.0 ./docs/landing-redirect nezabyvaemoe.surge.sh
-      - name: Ensure public project config
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-        run: |
-          npx --yes surge@0.57.0 travel-finds.surge.sh config --public || true
-          npx --yes surge@0.57.0 travel-finds.surge.sh config --private false || true
-      - name: Purge Surge edge cache
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-        run: |
-          npx --yes surge@0.57.0 bust travel-finds.surge.sh || true
-          npx --yes surge@0.57.0 travel-finds.surge.sh bust || true
-          npx --yes surge@0.57.0 travel-finds.surge.sh debug bust || true
-          npx --yes surge@0.57.0 cutover travel-finds.surge.sh || true
-          npx --yes surge@0.57.0 bust travel-finds.surge.sh || true
-          npx --yes surge@0.57.0 bust nezabyvaemoe.surge.sh || true
       - name: Summary
         run: |
           echo "https://travel-finds.surge.sh/" >> "$GITHUB_STEP_SUMMARY"
-          echo "(old: https://nezabyvaemoe.surge.sh/ -> redirect)" >> "$GITHUB_STEP_SUMMARY"
+          echo "canonical: https://valdislavn-spec.github.io/content-factory/travel-finds/" >> "$GITHUB_STEP_SUMMARY"

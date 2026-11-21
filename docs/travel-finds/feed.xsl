@@ -24,7 +24,7 @@ a{color:#1857e6}.item{background:#fff;border:1px solid #e4e8f0;border-radius:14p
 <p><xsl:value-of select="description"/></p>
 </div>
 </xsl:for-each>
-<p class="note">RSS 2.0 feed · <a href="https://travel-finds.surge.sh/">travel-finds.surge.sh</a></p>
+<p class="note">RSS 2.0 feed · <a href="https://valdislavn-spec.github.io/content-factory/travel-finds/">Travel Finds</a></p>
 </div></body></html>
 </xsl:template>
 </xsl:stylesheet>

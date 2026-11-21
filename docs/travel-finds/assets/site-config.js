@@ -101,7 +101,7 @@ window.TRAVEL_CONFIG = {
       label: "Trip.com",
     },
   },
-  siteUrl: "https://travel-finds.surge.sh",
+  siteUrl: "https://valdislavn-spec.github.io/content-factory/travel-finds",
   // Наш живой Telegram-канал (EN/ES-каналов пока нет — ведём один).
   telegram: {
     urlEn: "https://t.me/GOODTRAVEL007",

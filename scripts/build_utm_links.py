@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "marketing"
 SITEMAPS = [ROOT/"docs"/"sitemap.xml", ROOT/"docs"/"travel-finds"/"sitemap.xml", ROOT/"build"/"deals"/"sitemap.xml"]
 SOURCES = [("telegram","social"),("pinterest","social"),("email","newsletter"),("x","social"),("reddit","social"),("tiktok","bio"),("facebook","social"),("vk","social"),("dzen","social")]
-EXTRA_PAGES = ["https://travel-finds.surge.sh/","https://travel-finds.surge.sh/es.html","https://ofertas-finds.deed.page/","https://valdislavn-spec.github.io/seller-launch-kit/","https://erpsas-seller-launch-kit.static.hf.space/"]
+EXTRA_PAGES = ["https://valdislavn-spec.github.io/content-factory/travel-finds/","https://valdislavn-spec.github.io/content-factory/travel-finds/es.html","https://ofertas-finds.deed.page/","https://valdislavn-spec.github.io/seller-launch-kit/","https://erpsas-seller-launch-kit.static.hf.space/"]
 
 def campaign_for(url):
     p = urllib.parse.urlparse(url)
@@ -17,7 +17,10 @@ def campaign_for(url):
         "ofertas-finds.deed.page": "ofertas-finds",
     }.get(host, re.sub(r"[^a-z0-9]+", "-", host).strip("-"))
     path = p.path.strip("/")
-    if path.startswith("content-factory/"):
+    if path.startswith("content-factory/travel-finds"):
+        host_slug = "travel-finds"
+        path = path[len("content-factory/travel-finds"):].strip("/")
+    elif path.startswith("content-factory/"):
         path = path[len("content-factory/"):]
     if path == "content-factory":
         path = ""

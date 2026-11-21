@@ -3,42 +3,42 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Travel Finds — cheap flights &amp; hotels</title>
-    <link>https://travel-finds.surge.sh/</link>
-    <atom:link href="https://travel-finds.surge.sh/feed.xml" rel="self" type="application/rss+xml"/>
+    <link>https://valdislavn-spec.github.io/content-factory/travel-finds/</link>
+    <atom:link href="https://valdislavn-spec.github.io/content-factory/travel-finds/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Flexible-date flight and hotel finds, city breaks and fare math. Ad · affiliate links.</description>
     <language>en</language>
     <lastBuildDate>Sun, 15 Nov 2026 19:47:38 GMT</lastBuildDate>
     <item>
       <title>Train vs Bus vs Plane in Europe: Which Is Actually Cheaper?</title>
-      <link>https://travel-finds.surge.sh/blog/train-bus-plane-europe-compare.html</link>
-      <guid isPermaLink="true">https://travel-finds.surge.sh/blog/train-bus-plane-europe-compare.html</guid>
+      <link>https://valdislavn-spec.github.io/content-factory/travel-finds/blog/train-bus-plane-europe-compare.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel-finds/blog/train-bus-plane-europe-compare.html</guid>
       <pubDate>Sun, 15 Nov 2026 17:46:59 GMT</pubDate>
       <description>Train, bus or plane in Europe? How to compare door-to-door time and cost, when each option wins, and the booking habits that save you money.</description>
-      <enclosure url="https://travel-finds.surge.sh/assets/photos/train-compare.jpg" type="image/jpeg" length="0"/>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/travel-finds/assets/photos/train-compare.jpg" type="image/jpeg" length="0"/>
     </item>
     <item>
       <title>How to Find Cheap Flights in 2026: A Practical Playbook</title>
-      <link>https://travel-finds.surge.sh/blog/how-to-find-cheap-flights-2026.html</link>
-      <guid isPermaLink="true">https://travel-finds.surge.sh/blog/how-to-find-cheap-flights-2026.html</guid>
+      <link>https://valdislavn-spec.github.io/content-factory/travel-finds/blog/how-to-find-cheap-flights-2026.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel-finds/blog/how-to-find-cheap-flights-2026.html</guid>
       <pubDate>Sun, 15 Nov 2026 17:46:59 GMT</pubDate>
       <description>A step-by-step guide to finding cheaper flights in 2026: flexible dates, alternative airports, total-cost comparison and the booking rules that actually help.</description>
-      <enclosure url="https://travel-finds.surge.sh/assets/photos/cheap-flights.jpg" type="image/jpeg" length="0"/>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/travel-finds/assets/photos/cheap-flights.jpg" type="image/jpeg" length="0"/>
     </item>
     <item>
       <title>Flexible Dates: How to Find Cheaper Flights</title>
-      <link>https://travel-finds.surge.sh/blog/flexible-dates-cheaper-flights.html</link>
-      <guid isPermaLink="true">https://travel-finds.surge.sh/blog/flexible-dates-cheaper-flights.html</guid>
+      <link>https://valdislavn-spec.github.io/content-factory/travel-finds/blog/flexible-dates-cheaper-flights.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel-finds/blog/flexible-dates-cheaper-flights.html</guid>
       <pubDate>Sun, 15 Nov 2026 17:46:59 GMT</pubDate>
       <description>Why shifting your dates by a day or two often beats any promo code, how to search a whole month and when to stop looking for a cheaper fare.</description>
-      <enclosure url="https://travel-finds.surge.sh/assets/photos/flexible-dates.jpg" type="image/jpeg" length="0"/>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/travel-finds/assets/photos/flexible-dates.jpg" type="image/jpeg" length="0"/>
     </item>
     <item>
       <title>Cheapest City Breaks in Europe for 2026</title>
-      <link>https://travel-finds.surge.sh/blog/cheap-city-breaks-europe-2026.html</link>
-      <guid isPermaLink="true">https://travel-finds.surge.sh/blog/cheap-city-breaks-europe-2026.html</guid>
+      <link>https://valdislavn-spec.github.io/content-factory/travel-finds/blog/cheap-city-breaks-europe-2026.html</link>
+      <guid isPermaLink="true">https://valdislavn-spec.github.io/content-factory/travel-finds/blog/cheap-city-breaks-europe-2026.html</guid>
       <pubDate>Sun, 15 Nov 2026 17:46:59 GMT</pubDate>
       <description>How to plan an affordable city break in Europe in 2026: picking the city, timing the trip, cutting the total cost and avoiding the classic budget traps.</description>
-      <enclosure url="https://travel-finds.surge.sh/assets/photos/city-breaks.jpg" type="image/jpeg" length="0"/>
+      <enclosure url="https://valdislavn-spec.github.io/content-factory/travel-finds/assets/photos/city-breaks.jpg" type="image/jpeg" length="0"/>
     </item>
   </channel>
 </rss>

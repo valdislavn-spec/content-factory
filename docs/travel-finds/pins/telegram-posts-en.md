@@ -9,7 +9,7 @@ Links already carry UTM: `utm_source=telegram`. Add “Ad · affiliate links” 
 A fixed-date search shows you one fare. A flexible search shows you the cheapest day in the window — often 20–40% less.
 
 Full guide + free comparison tips:
-👉 https://travel-finds.surge.sh/?utm_source=telegram&utm_medium=channel&utm_campaign=travelfinds
+👉 https://valdislavn-spec.github.io/content-factory/travel-finds/?utm_source=telegram&utm_medium=channel&utm_campaign=travelfinds
 
 ## Post 2 — Europe under $300
 
@@ -18,7 +18,7 @@ Full guide + free comparison tips:
 The math: cheapest months, carry-on only, Mon–Wed departures, 6–8 week booking window.
 
 Breakdown:
-👉 https://travel-finds.surge.sh/?utm_source=telegram&utm_medium=channel&utm_campaign=travelfinds
+👉 https://valdislavn-spec.github.io/content-factory/travel-finds/?utm_source=telegram&utm_medium=channel&utm_campaign=travelfinds
 
 ## Post 3 — train vs bus vs plane
 
@@ -26,4 +26,4 @@ Breakdown:
 
 Sometimes the 6-hour bus beats a 1-hour flight once transfers and bags are added.
 
-👉 https://travel-finds.surge.sh/?utm_source=telegram&utm_medium=channel&utm_campaign=travelfinds
+👉 https://valdislavn-spec.github.io/content-factory/travel-finds/?utm_source=telegram&utm_medium=channel&utm_campaign=travelfinds
