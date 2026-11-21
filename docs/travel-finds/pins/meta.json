@@ -1,16 +1,16 @@
 [
   {
     "slug": "pin-01-search-dates",
-    "file": "docs/travel-finds/pins/pin-01-search-dates.png",
-    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-01-search-dates.png",
+    "file": "docs/travel-finds/pins/pin-01-search-dates-v2.png",
+    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-01-search-dates-v2.png",
     "payload": {
       "board_id": "<BOARD_ID>",
-      "title": "Cheap flights + hotels: search every date instead of one",
-      "description": "A flexible-date search beats a fixed one: compare a whole month of fares at once and pick the cheapest day to fly. Free tools, no hidden fees, ad · affiliate links.",
-      "alt_text": "Cheap flights + hotels: search every date instead of one",
+      "title": "Cheap flights: search every date, not just one",
+      "description": "The cheapest fare usually isn't on the date you picked. Compare a whole month in one search, then book the day that saves you the most. Flexible-date trick + 2026 booking window inside. Save this for your next trip. Ad · affiliate links. #cheaptravel #budgettravel #traveltips #flighthacks",
+      "alt_text": "Cheap flights and hotels: compare every date instead of one",
       "media_source": {
         "source_type": "image_url",
-        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-01-search-dates.png"
+        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-01-search-dates-v2.png"
       },
       "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-search-dates",
       "board": "Travel ideas",
@@ -19,16 +19,16 @@
   },
   {
     "slug": "pin-02-europe-300",
-    "file": "docs/travel-finds/pins/pin-02-europe-300.png",
-    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-02-europe-300.png",
+    "file": "docs/travel-finds/pins/pin-02-europe-300-v2.png",
+    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-02-europe-300-v2.png",
     "payload": {
       "board_id": "<BOARD_ID>",
-      "title": "Europe for under $300: real cheap city breaks",
-      "description": "How to do 3 nights in a European city on a $300 budget: cheapest months, carry-on only, Mon–Wed departures and the booking window that actually saves money.",
-      "alt_text": "Europe for under $300: real cheap city breaks",
+      "title": "Europe for under $300: 3 nights, flights + hotel",
+      "description": "Yes, Europe can still be done for under $300: 3 nights, carry-on only, Mon–Wed flights and the right booking window. I broke down the cheapest months and the exact costs. Save this for your next city break. Ad · affiliate links. #europe #citybreak #budgettravel #cheapeurope",
+      "alt_text": "Europe for under $300: flights plus 3 nights",
       "media_source": {
         "source_type": "image_url",
-        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-02-europe-300.png"
+        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-02-europe-300-v2.png"
       },
       "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-europe-300",
       "board": "Travel ideas",
@@ -37,16 +37,16 @@
   },
   {
     "slug": "pin-03-flexible",
-    "file": "docs/travel-finds/pins/pin-03-flexible.png",
-    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-03-flexible.png",
+    "file": "docs/travel-finds/pins/pin-03-flexible-v2.png",
+    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-03-flexible-v2.png",
     "payload": {
       "board_id": "<BOARD_ID>",
-      "title": "Flexible dates = cheaper flights: shift ±3 days, save up to 40%",
-      "description": "Why shifting a trip by a few days changes the fare, which weekdays are cheapest to fly, and how to compare a whole date grid in one search.",
-      "alt_text": "Flexible dates = cheaper flights: shift ±3 days, save up to 40%",
+      "title": "Shift your dates 3 days, save up to 40% on flights",
+      "description": "Same trip. Different dates. Up to 40% cheaper. Compare a whole date grid in one search and learn which weekdays actually save money. The flexible-date trick most travelers miss. Ad · affiliate links. #flighthacks #cheaptravel #traveltips #budgettravel",
+      "alt_text": "Flexible dates equal cheaper flights: shift three days and save up to 40 percent",
       "media_source": {
         "source_type": "image_url",
-        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-03-flexible.png"
+        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-03-flexible-v2.png"
       },
       "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-flexible",
       "board": "Travel ideas",
@@ -55,38 +55,20 @@
   },
   {
     "slug": "pin-04-book-window",
-    "file": "docs/travel-finds/pins/pin-04-book-window.png",
-    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-04-book-window.png",
+    "file": "docs/travel-finds/pins/pin-04-book-window-v2.png",
+    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-04-book-window-v2.png",
     "payload": {
       "board_id": "<BOARD_ID>",
-      "title": "When to book flights: the 6–8 week window",
-      "description": "Booking too early and too late both cost more. Here is the timing window that usually captures the lowest fare, by season and route.",
-      "alt_text": "When to book flights: the 6–8 week window",
+      "title": "Book flights 6–8 weeks ahead: the sweet spot",
+      "description": "Booking too early can cost as much as booking too late. The 6–8 week window is the sweet spot for most routes — here's the math by season and route. Save this before you book. Ad · affiliate links. #traveltips #cheapflights #bookinghacks #budgettravel",
+      "alt_text": "Book flights six to eight weeks ahead: the sweet spot for cheap fares",
       "media_source": {
         "source_type": "image_url",
-        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-04-book-window.png"
+        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-04-book-window-v2.png"
       },
       "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-book-window",
       "board": "Travel ideas",
       "keywords": "when to book flights, booking window, travel timing, cheap fares"
-    }
-  },
-  {
-    "slug": "pin-05-train-bus-plane",
-    "file": "docs/travel-finds/pins/pin-05-train-bus-plane.png",
-    "image_url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-05-train-bus-plane.png",
-    "payload": {
-      "board_id": "<BOARD_ID>",
-      "title": "Train vs bus vs plane: the cheapest way across Europe",
-      "description": "A side-by-side comparison of train, bus and plane for city-to-city hops in Europe: real costs, time, and when the slow option wins.",
-      "alt_text": "Train vs bus vs plane: the cheapest way across Europe",
-      "media_source": {
-        "source_type": "image_url",
-        "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/pins/pin-05-train-bus-plane.png"
-      },
-      "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-transport",
-      "board": "Travel ideas",
-      "keywords": "train vs bus vs plane, europe travel, cheap transport, city to city"
     }
   }
 ]
