@@ -126,7 +126,13 @@
   @media (prefers-reduced-motion:reduce){
     *{transition:none;scroll-behavior:auto}
   }
+  #tpwl-search:empty,#tpwl-tickets:empty{display:none}
+  .wl-box{margin:18px 0 8px;padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.035)}
+  .wl-fallback{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .wl-fallback a{display:inline-block;padding:11px 16px;border-radius:12px;text-decoration:none;font-weight:800;font-size:14px;background:rgba(148,163,255,.14);border:1px solid rgba(165,180,252,.25);color:var(--ink)}
+  .wl-fallback a:hover{background:rgba(148,163,255,.22)}
 </style>
+<script type="module" src="https://tpwdg.com/wl_web/main.js?wl_id=24884"></script>
 </head>
 <body>
 <script type="application/ld+json">
@@ -151,6 +157,18 @@
       <span><i></i>Updated November 2026</span>
     </p>
   </header>
+  <section class="wl-box" aria-labelledby="search-title">
+    <div class="sec-head">
+      <h2 id="search-title">Search flights &amp; hotels</h2>
+      <p class="sec-note">Live prices from our partners. The price stays the same; we may earn a commission.</p>
+    </div>
+    <div id="tpwl-search"></div>
+    <div id="tpwl-tickets"></div>
+    <div class="wl-fallback">
+      <a href="https://kiwi.tpk.ro/RJINNJJm" target="_blank" rel="sponsored nofollow noopener">Find flights on Kiwi.com →</a>
+      <a href="https://kiwitaxi.tpk.ro/xmQYmqIl" target="_blank" rel="sponsored nofollow noopener">Book an airport transfer →</a>
+    </div>
+  </section>
   <section id="guides" aria-labelledby="guides-title">
     <div class="sec-head">
       <h2 id="guides-title">Latest guides</h2>
