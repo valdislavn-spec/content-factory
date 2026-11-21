@@ -36,12 +36,6 @@ jobs:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
           npx --yes surge@0.57.0 ./docs/landing-redirect nezabyvaemoe.surge.sh
-      - name: Remove temporary robots test domain
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
-        run: |
-          npx --yes surge@0.57.0 teardown travel-finds-robots-test-2026.surge.sh || true
       - name: Summary
         run: |
           echo "https://travel-finds.surge.sh/" >> "$GITHUB_STEP_SUMMARY"
