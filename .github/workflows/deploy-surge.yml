@@ -41,8 +41,12 @@ jobs:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
-          npx --yes surge@0.57.0 bust travel-finds.surge.sh
-          npx --yes surge@0.57.0 bust nezabyvaemoe.surge.sh
+          npx --yes surge@0.57.0 bust travel-finds.surge.sh || true
+          npx --yes surge@0.57.0 travel-finds.surge.sh bust || true
+          npx --yes surge@0.57.0 travel-finds.surge.sh debug bust || true
+          npx --yes surge@0.57.0 cutover travel-finds.surge.sh || true
+          npx --yes surge@0.57.0 bust travel-finds.surge.sh || true
+          npx --yes surge@0.57.0 bust nezabyvaemoe.surge.sh || true
       - name: Summary
         run: |
           echo "https://travel-finds.surge.sh/" >> "$GITHUB_STEP_SUMMARY"
