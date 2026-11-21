@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 KEY = "79baf24dc0f238079df76bfe525ce384"
 SITES = [
     {"host": "valdislavn-spec.github.io", "sitemap": ROOT/"docs"/"sitemap.xml", "prefix": "https://valdislavn-spec.github.io/content-factory/", "key_location": f"https://valdislavn-spec.github.io/content-factory/{KEY}.txt"},
-    {"host": "travel-finds.surge.sh", "sitemap": ROOT/"docs"/"travel-finds"/"sitemap.xml", "prefix": "https://travel-finds.surge.sh/", "key_location": f"https://travel-finds.surge.sh/{KEY}.txt"},
+    {"host": "valdislavn-spec.github.io", "sitemap": ROOT/"docs"/"travel-finds"/"sitemap.xml", "prefix": "https://valdislavn-spec.github.io/content-factory/travel-finds/", "key_location": f"https://valdislavn-spec.github.io/content-factory/{KEY}.txt"},
     {"host": "ofertas-finds.deed.page", "sitemap": ROOT/"build"/"deals"/"sitemap.xml", "prefix": "https://ofertas-finds.deed.page/", "key_location": f"https://ofertas-finds.deed.page/{KEY}.txt"},
 ]
 def main():
