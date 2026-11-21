@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://travel-finds.surge.sh/sitemap.xml
