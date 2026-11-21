@@ -49,7 +49,8 @@ jobs:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: |
-          npx --yes surge@0.57.0 config --public travel-finds.surge.sh || true
+          npx --yes surge@0.57.0 travel-finds.surge.sh config --public || true
+          npx --yes surge@0.57.0 travel-finds.surge.sh config --private false || true
       - name: Purge Surge edge cache
         env:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
