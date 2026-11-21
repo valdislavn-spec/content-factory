@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://valdislavn-spec.github.io/content-factory/sitemap.xml
+Sitemap: https://valdislavn-spec.github.io/content-factory/travel-finds/sitemap.xml
