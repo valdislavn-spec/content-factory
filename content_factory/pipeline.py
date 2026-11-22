@@ -1408,7 +1408,9 @@ def run_channel(
     )
     try:
         if not effective_dry_run:
-            retry_results = process_publish_retries(channel, settings, storage)
+            retry_results = process_publish_retries(
+                channel, settings, storage, now=now
+            )
             result.results.extend(retry_results)
             result.posts_published += sum(1 for item in retry_results if item.ok)
             for item in retry_results:
