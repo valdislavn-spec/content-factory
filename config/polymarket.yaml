@@ -8,7 +8,7 @@ fallback_top: true
 
 affiliate:
   enabled: true
-  url: ""            # реферальная ссылка Polymarket, напр. https://polymarket.com/?via=XXXX
+  url: "https://polymarket.com/?r=Baracabra"   # реферальная ссылка Polymarket (перекрывается Secret POLYMARKET_AFFILIATE_URL)
   disclosure: "Ad · 18+"
   text_en: "🔗 Trade prediction markets on Polymarket: {url} · {disclosure}"
   text_es: "🔗 Opera en mercados de predicción con Polymarket: {url} · {disclosure}"
