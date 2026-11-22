@@ -339,6 +339,67 @@ class TelegramPublisherTests(PublisherTestCase):
         self.assertIn("<b>Привет</b>", payload["text"])
         self.assertIn("disable_web_page_preview", payload)
 
+    def test_parse_entities_error_falls_back_to_plain_text(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post(text="<b>Заголовок без закрывающего тега\n\nТекст поста.")
+        requests, fake_urlopen = self._capture(
+            [
+                FakeResponse(
+                    {
+                        "ok": False,
+                        "description": (
+                            "Bad Request: can't parse entities: "
+                            "Unclosed start tag at byte offset 8"
+                        ),
+                    }
+                ),
+                FakeResponse({"ok": True, "result": {"message_id": 43}}),
+            ]
+        )
+        with mock.patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "123:test-token"}), mock.patch(
+            "content_factory.publishers.telegram.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = TelegramPublisher(settings).publish(post, channel, settings)
+
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(len(requests), 2)
+        self.assertIn("/sendMessage", requests[0]["url"])
+        self.assertNotIn("parse_mode", requests[1]["payload"])
+        self.assertNotIn("<b>", requests[1]["payload"]["text"])
+        self.assertIn("Заголовок без закрывающего тега", requests[1]["payload"]["text"])
+
+    def test_photo_caption_parse_error_falls_back_to_plain_caption(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post(text="<b>Заголовок без закрывающего тега\n\nТекст поста.")
+        post.meta["image_url"] = "https://example.com/image.jpg"
+        requests, fake_urlopen = self._capture(
+            [
+                FakeResponse(
+                    {
+                        "ok": False,
+                        "description": (
+                            "Bad Request: can't parse entities: "
+                            "Unclosed start tag at byte offset 8"
+                        ),
+                    }
+                ),
+                FakeResponse({"ok": True, "result": {"message_id": 44}}),
+            ]
+        )
+        with mock.patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "123:test-token"}), mock.patch(
+            "content_factory.publishers.telegram.urllib.request.urlopen", side_effect=fake_urlopen
+        ):
+            result = TelegramPublisher(settings).publish(post, channel, settings)
+
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(len(requests), 2)
+        self.assertIn("/sendPhoto", requests[0]["url"])
+        self.assertIn("/sendPhoto", requests[1]["url"])
+        self.assertNotIn("parse_mode", requests[1]["payload"])
+        self.assertNotIn("<b>", requests[1]["payload"]["caption"])
+
     def test_ad_photo_file_id_is_sent_as_photo(self) -> None:
         settings = self.make_settings(dry_run=False)
         channel = self.make_channel()

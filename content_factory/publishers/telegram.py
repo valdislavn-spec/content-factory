@@ -43,6 +43,12 @@ def _extract_description(raw: bytes) -> str:
     return ""
 
 
+def _is_parse_entities_error(exc: Exception) -> bool:
+    """Telegram не смог разобрать HTML/Markdown разметку сообщения."""
+    message = str(exc).lower()
+    return "parse entities" in message or "can't parse entities" in message
+
+
 class TelegramPublisher(Publisher):
     """Публикатор в Telegram-канал через Bot API."""
 
@@ -196,6 +202,41 @@ class TelegramPublisher(Publisher):
     # публикация
     # ------------------------------------------------------------------
 
+    def _send_text(
+        self,
+        chat_id: str,
+        text: str,
+        parse_mode: str,
+        disable_preview: bool,
+    ) -> Any:
+        """Отправляет текст; при битой разметке повторяет без parse_mode.
+
+        LLM иногда возвращает незакрытый тег (например, ``<b>`` без ``</b>``).
+        Telegram отклоняет такое сообщение целиком, поэтому для доставки
+        используем безопасный plain-text fallback, а не теряем пост.
+        """
+        payload: Dict[str, Any] = {
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": parse_mode,
+            "disable_web_page_preview": "true" if disable_preview else "false",
+        }
+        try:
+            return self._call("sendMessage", payload)
+        except TelegramAPIError as exc:
+            if not parse_mode or not _is_parse_entities_error(exc):
+                raise
+            plain = strip_html(text)
+            if not plain:
+                raise
+            logger.warning(
+                "Telegram: не удалось разобрать разметку (%s) — отправляю простым текстом",
+                exc,
+            )
+            payload["text"] = plain
+            payload.pop("parse_mode", None)
+            return self._call("sendMessage", payload)
+
     @staticmethod
     def _card_reply_markup(post: Any, channel: Any) -> str:
         """Инлайн-кнопка под фото: источник статьи, иначе — сам канал.
@@ -288,11 +329,20 @@ class TelegramPublisher(Publisher):
                     markup = self._card_reply_markup(post, channel)
                     if markup:
                         fields["reply_markup"] = markup
-                    photo_result = self._call_multipart(
-                        "sendPhoto",
-                        fields,
-                        {"photo": (Path(card_path).name, Path(card_path).read_bytes())},
-                    )
+                    photo_bytes = {"photo": (Path(card_path).name, Path(card_path).read_bytes())}
+                    try:
+                        photo_result = self._call_multipart("sendPhoto", fields, photo_bytes)
+                    except TelegramAPIError as exc:
+                        if not caption or not _is_parse_entities_error(exc):
+                            raise
+                        logger.warning(
+                            "Telegram: подпись карточки содержит битую разметку (%s) — "
+                            "отправляю её простым текстом",
+                            exc,
+                        )
+                        fields["caption"] = strip_html(caption)
+                        fields.pop("parse_mode", None)
+                        photo_result = self._call_multipart("sendPhoto", fields, photo_bytes)
                     message_id = ""
                     if isinstance(photo_result, dict):
                         message_id = str(photo_result.get("message_id") or "")
@@ -344,7 +394,19 @@ class TelegramPublisher(Publisher):
                     }
                     if caption_ok:
                         fields["caption"] = parts[0]
-                    photo_result = self._call("sendPhoto", fields)
+                    try:
+                        photo_result = self._call("sendPhoto", fields)
+                    except TelegramAPIError as exc:
+                        if not caption_ok or not _is_parse_entities_error(exc):
+                            raise
+                        logger.warning(
+                            "Telegram: подпись фото содержит битую разметку (%s) — "
+                            "отправляю её простым текстом",
+                            exc,
+                        )
+                        fields["caption"] = strip_html(parts[0])
+                        fields.pop("parse_mode", None)
+                        photo_result = self._call("sendPhoto", fields)
                     message_id = ""
                     if isinstance(photo_result, dict):
                         message_id = str(photo_result.get("message_id") or "")
@@ -379,15 +441,7 @@ class TelegramPublisher(Publisher):
             message_ids: List[str] = [card_message_id] if card_message_id else []
             for index, part in enumerate(parts, start=1):
                 try:
-                    result = self._call(
-                        "sendMessage",
-                        {
-                            "chat_id": chat_id,
-                            "text": part,
-                            "parse_mode": parse_mode,
-                            "disable_web_page_preview": "true" if disable_preview else "false",
-                        },
-                    )
+                    result = self._send_text(chat_id, part, parse_mode, disable_preview)
                 except TelegramAPIError as exc:
                     sent = len(message_ids)
                     prefix = (

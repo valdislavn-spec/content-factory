@@ -46,8 +46,13 @@ log = logging.getLogger("content_factory.cli")
 
 
 def _print_channel_table(channels: list, settings: Settings) -> None:
-    print(f"{'ID':<18} {'Тема':<26} {'Источники':>9} {'Расписание (МСК)':<24} Публикация")
-    print("-" * 110)
+    # В расписании указано локальное время канала, а не МСК. Показываем
+    # смещение UTC, чтобы не путать его с московским временем.
+    print(
+        f"{'ID':<18} {'Тема':<26} {'Источники':>9} "
+        f"{'Расписание (местное)':<52} {'Пояс':<9} Публикация"
+    )
+    print("-" * 135)
     for channel in channels:
         enabled_sources = sum(1 for source in channel.sources if source.enabled)
         schedule = ", ".join(channel.schedule)
@@ -57,9 +62,10 @@ def _print_channel_table(channels: list, settings: Settings) -> None:
             mode = "Telegram"
         else:
             mode = "нет chat_id"
+        tz_label = f"UTC{channel.timezone_offset:+d}"
         print(
             f"{channel.id:<18} {channel.title[:24]:<26} {enabled_sources:>9} "
-            f"{schedule:<24} {mode}"
+            f"{schedule:<52} {tz_label:<9} {mode}"
         )
     print(f"\nВсего каналов: {len(channels)}. Публикация: {'DRY-RUN (безопасно)' if settings.dry_run else 'ВКЛЮЧЕНА'}")
 
