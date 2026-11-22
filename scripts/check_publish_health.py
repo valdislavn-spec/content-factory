@@ -26,6 +26,13 @@ PATTERNS = {
         re.IGNORECASE,
     ),
     "run_errors": re.compile(r"Ошибка источника"),
+    "channel_summary": re.compile(
+        r"\[(?P<slot>[^\]]+)\]\s+(?P<channel>[A-Za-z0-9_-]+):\s+"
+        r"статей\s+(?P<articles>\d+),\s+"
+        r"постов\s+(?P<posts>\d+),\s+"
+        r"опубликовано\s+(?P<published>\d+),\s+"
+        r"ошибок\s+(?P<errors>\d+)"
+    ),
 }
 
 
@@ -36,12 +43,37 @@ def analyze(text: str) -> dict:
     published = len(PATTERNS["published"].findall(tail))
     error_lines = [m.group(0) for m in PATTERNS["publish_errors"].finditer(tail)]
     source_errors = len(PATTERNS["run_errors"].findall(tail))
+    channels: dict[str, dict[str, int]] = {}
+    for match in PATTERNS["channel_summary"].finditer(tail):
+        channel_id = match.group("channel")
+        row = channels.setdefault(
+            channel_id,
+            {"slots": 0, "articles": 0, "posts": 0, "published": 0, "errors": 0},
+        )
+        row["slots"] += 1
+        row["articles"] += int(match.group("articles"))
+        row["posts"] += int(match.group("posts"))
+        row["published"] += int(match.group("published"))
+        row["errors"] += int(match.group("errors"))
+    channel_problems: list[str] = []
+    for channel_id, row in sorted(channels.items()):
+        if row["errors"] > 0:
+            channel_problems.append(
+                f"{channel_id}: ошибок публикации {row['errors']} "
+                f"(постов {row['posts']}, опубликовано {row['published']})"
+            )
+        elif row["posts"] > 0 and row["published"] == 0:
+            channel_problems.append(
+                f"{channel_id}: постов {row['posts']}, но опубликовано 0"
+            )
     return {
         "slots": slots,
         "published": published,
         "publish_errors": len(error_lines),
         "publish_error_samples": list(dict.fromkeys(error_lines))[:5],
         "source_errors": source_errors,
+        "channels": channels,
+        "channel_problems": channel_problems,
     }
 
 
@@ -85,10 +117,21 @@ def main() -> int:
     )
     for sample in stats["publish_error_samples"]:
         print(f"health: ошибка публикации: {sample[:240]}")
+    for channel_id, row in sorted(stats["channels"].items()):
+        print(
+            f"health: канал {channel_id}: слотов={row['slots']}, "
+            f"постов={row['posts']}, опубликовано={row['published']}, "
+            f"ошибок={row['errors']}"
+        )
+    for problem in stats["channel_problems"]:
+        print(f"health: проблема канала: {problem}")
     for line in llm_quota_lines():
         print("health:", line)
     if stats["publish_errors"] > 0:
         print("health: есть ошибки публикации — падаем для алерта")
+        return 1
+    if stats["channel_problems"]:
+        print("health: есть проблемы каналов — падаем для алерта")
         return 1
     if stats["slots"] >= 2 and stats["published"] == 0:
         print("health: слоты были, но публикаций нет — падаем для алерта")

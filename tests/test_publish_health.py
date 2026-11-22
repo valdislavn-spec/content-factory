@@ -24,3 +24,24 @@ def test_analyze_does_not_count_source_errors_as_publication_errors() -> None:
 
     assert stats["publish_errors"] == 1
     assert stats["source_errors"] == 1
+
+
+def test_analyze_reports_per_channel_failure() -> None:
+    log = """
+2026-11-22 [08:40] sport-news: статей 21, постов 1, опубликовано 0, ошибок 1
+2026-11-22 [08:50] ai-news: статей 9, постов 1, опубликовано 1, ошибок 0
+"""
+    stats = analyze(log)
+
+    assert stats["channels"]["sport-news"]["errors"] == 1
+    assert stats["channels"]["ai-news"]["published"] == 1
+    assert any("sport-news" in problem for problem in stats["channel_problems"])
+    assert not any("ai-news" in problem for problem in stats["channel_problems"])
+
+
+def test_analyze_does_not_flag_empty_slot_without_posts() -> None:
+    log = "2026-11-22 [08:40] sport-news: статей 0, постов 0, опубликовано 0, ошибок 0\n"
+    stats = analyze(log)
+
+    assert stats["channels"]["sport-news"]["posts"] == 0
+    assert stats["channel_problems"] == []

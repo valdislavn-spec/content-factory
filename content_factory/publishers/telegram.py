@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -31,6 +32,16 @@ API_BASE = "https://api.telegram.org"
 class TelegramAPIError(RuntimeError):
     """Ошибка Telegram Bot API (сеть, HTTP-статус или ok=false)."""
 
+    def __init__(
+        self,
+        message: str,
+        status_code: int | None = None,
+        retry_after: float | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.retry_after = retry_after
+
 
 def _extract_description(raw: bytes) -> str:
     """Достаёт человекочитаемое описание ошибки из тела ответа Bot API."""
@@ -47,6 +58,11 @@ def _is_parse_entities_error(exc: Exception) -> bool:
     """Telegram не смог разобрать HTML/Markdown разметку сообщения."""
     message = str(exc).lower()
     return "parse entities" in message or "can't parse entities" in message
+
+
+def _is_retryable_error(exc: TelegramAPIError) -> bool:
+    """Повторяем только явно временные ответы Telegram."""
+    return getattr(exc, "status_code", None) in {429, 500, 502, 503, 504}
 
 
 class TelegramPublisher(Publisher):
@@ -82,7 +98,67 @@ class TelegramPublisher(Publisher):
     # ------------------------------------------------------------------
     # HTTP
     # ------------------------------------------------------------------
+    def _retry_attempts(self) -> int:
+        raw = self._config().get("retry_attempts", 3)
+        try:
+            return max(1, min(5, int(raw)))
+        except (TypeError, ValueError):
+            return 3
+
+    @staticmethod
+    def _retry_delay(exc: TelegramAPIError, attempt: int) -> float:
+        retry_after = getattr(exc, "retry_after", None)
+        if retry_after is not None:
+            try:
+                return min(10.0, max(0.0, float(retry_after)))
+            except (TypeError, ValueError):
+                pass
+        return min(10.0, float(2 ** (attempt - 1)))
+
     def _call(self, method: str, payload: Dict[str, Any]) -> Any:
+        attempts = self._retry_attempts()
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._call_once(method, payload)
+            except TelegramAPIError as exc:
+                if attempt >= attempts or not _is_retryable_error(exc):
+                    raise
+                delay = self._retry_delay(exc, attempt)
+                logger.warning(
+                    "Telegram: временная ошибка %s — повтор %s/%s через %.1f с",
+                    exc,
+                    attempt + 1,
+                    attempts,
+                    delay,
+                )
+                time.sleep(delay)
+        raise AssertionError("unreachable")
+
+    def _call_multipart(
+        self,
+        method: str,
+        fields: Dict[str, Any],
+        files: Dict[str, Tuple[str, bytes]],
+    ) -> Any:
+        attempts = self._retry_attempts()
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._call_multipart_once(method, fields, files)
+            except TelegramAPIError as exc:
+                if attempt >= attempts or not _is_retryable_error(exc):
+                    raise
+                delay = self._retry_delay(exc, attempt)
+                logger.warning(
+                    "Telegram: временная ошибка %s — повтор %s/%s через %.1f с",
+                    exc,
+                    attempt + 1,
+                    attempts,
+                    delay,
+                )
+                time.sleep(delay)
+        raise AssertionError("unreachable")
+
+    def _call_once(self, method: str, payload: Dict[str, Any]) -> Any:
         token = self._token()
         if not token:
             raise TelegramAPIError(
@@ -115,7 +191,9 @@ class TelegramPublisher(Publisher):
             except Exception:  # noqa: BLE001 - тело ошибки может быть недоступно
                 raw = b""
             description = _extract_description(raw) or "HTTP {} {}".format(exc.code, exc.reason)
-            raise TelegramAPIError("Telegram Bot API: {}".format(description)) from exc
+            raise TelegramAPIError(
+                "Telegram Bot API: {}".format(description), status_code=exc.code
+            ) from exc
         except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
             raise TelegramAPIError("Сетевая ошибка Telegram Bot API: {}".format(exc)) from exc
 
@@ -126,14 +204,18 @@ class TelegramPublisher(Publisher):
         if not isinstance(data, dict):
             raise TelegramAPIError("Неожиданный формат ответа Telegram Bot API")
         if not data.get("ok"):
+            parameters = data.get("parameters") if isinstance(data.get("parameters"), dict) else {}
+            retry_after = parameters.get("retry_after")
             raise TelegramAPIError(
                 "Telegram Bot API: {}".format(
                     data.get("description") or "ответ ok=false без описания"
-                )
+                ),
+                status_code=data.get("error_code"),
+                retry_after=retry_after,
             )
         return data.get("result")
 
-    def _call_multipart(
+    def _call_multipart_once(
         self,
         method: str,
         fields: Dict[str, Any],
@@ -182,7 +264,9 @@ class TelegramPublisher(Publisher):
             except Exception:  # noqa: BLE001
                 raw = b""
             description = _extract_description(raw) or "HTTP {} {}".format(exc.code, exc.reason)
-            raise TelegramAPIError("Telegram Bot API: {}".format(description)) from exc
+            raise TelegramAPIError(
+                "Telegram Bot API: {}".format(description), status_code=exc.code
+            ) from exc
         except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
             raise TelegramAPIError("Сетевая ошибка Telegram Bot API: {}".format(exc)) from exc
 
@@ -193,8 +277,13 @@ class TelegramPublisher(Publisher):
         if not isinstance(data, dict):
             raise TelegramAPIError("Неожиданный формат ответа Telegram Bot API")
         if not data.get("ok"):
+            parameters = data.get("parameters") if isinstance(data.get("parameters"), dict) else {}
             raise TelegramAPIError(
-                "Telegram Bot API: {}".format(data.get("description") or "ответ ok=false без описания")
+                "Telegram Bot API: {}".format(
+                    data.get("description") or "ответ ok=false без описания"
+                ),
+                status_code=data.get("error_code"),
+                retry_after=parameters.get("retry_after"),
             )
         return data.get("result")
 

@@ -445,6 +445,33 @@ class TelegramPublisherTests(PublisherTestCase):
         self.assertFalse(result.ok)
         self.assertIn("bot is not a member", result.error)
 
+    def test_retry_on_429_then_success(self) -> None:
+        settings = self.make_settings(dry_run=False)
+        channel = self.make_channel()
+        post = self.make_post(text="<b>Привет</b>\n\nТекст.")
+        requests, fake_urlopen = self._capture(
+            [
+                FakeResponse(
+                    {
+                        "ok": False,
+                        "error_code": 429,
+                        "description": "Too Many Requests: retry later",
+                        "parameters": {"retry_after": 0},
+                    }
+                ),
+                FakeResponse({"ok": True, "result": {"message_id": 45}}),
+            ]
+        )
+        with mock.patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "123:test-token"}), mock.patch(
+            "content_factory.publishers.telegram.urllib.request.urlopen", side_effect=fake_urlopen
+        ), mock.patch("content_factory.publishers.telegram.time.sleep") as sleep:
+            result = TelegramPublisher(settings).publish(post, channel, settings)
+
+        self.assertTrue(result.ok, result.error)
+        self.assertEqual(len(requests), 2)
+        self.assertEqual(result.external_id, "45")
+        sleep.assert_called_once_with(0.0)
+
     def test_long_post_is_split_without_breaking_html(self) -> None:
         settings = self.make_settings(dry_run=False)
         channel = self.make_channel()
