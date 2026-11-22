@@ -93,6 +93,7 @@ class ChannelConfig:
     market_line: Dict[str, Any] = field(default_factory=dict)
     # Реферальная строка (BingX и т.п.): link/enabled/every_n_posts/disclaimer
     affiliate: Dict[str, Any] = field(default_factory=dict)
+    polymarket: Dict[str, Any] = field(default_factory=dict)  # строка прогноза Polymarket
     telegram_chat_id: str = ""
     publisher_ids: List[str] = field(default_factory=lambda: ["telegram"])
     enabled: bool = True
