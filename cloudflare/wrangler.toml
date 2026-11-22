@@ -7,7 +7,7 @@ compatibility_date = "2026-01-01"
 # и его id подставляется ниже.
 
 [triggers]
-crons = ["*/22 * * * *"]
+crons = ["*/15 * * * *"]  # каждые 15 минут: слоты каналов идут по 10-минутной сетке
 
 [[kv_namespaces]]
 binding = "STATE"
