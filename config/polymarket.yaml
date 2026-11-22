@@ -1,0 +1,49 @@
+# Polymarket digests -> Telegram: один пост каждые 2 часа, каналы по кругу.
+# Публичные данные Gamma API (без ключа). Партнёрская ссылка — affiliate.url
+# или Secret POLYMARKET_AFFILIATE_URL (перекрывает конфиг).
+limit: 100
+pages: 3
+min_volume_24h: 25000
+fallback_top: true
+
+affiliate:
+  enabled: true
+  url: ""            # реферальная ссылка Polymarket, напр. https://polymarket.com/?via=XXXX
+  disclosure: "Ad · 18+"
+  text_en: "🔗 Trade prediction markets on Polymarket: {url} · {disclosure}"
+  text_es: "🔗 Opera en mercados de predicción con Polymarket: {url} · {disclosure}"
+
+footer_en: "Polymarket data, probabilities move — not financial advice."
+footer_es: "Datos de Polymarket, las probabilidades cambian — no es asesoramiento financiero."
+
+# Порядок ротации: (UTC-час // 2) % len(digests).
+digests:
+  - channel: crypto-news
+    language: en
+    title: "📊 Crypto prediction markets right now"
+    keywords: [bitcoin, btc, ethereum, eth, solana, sol, xrp, crypto, etf, sec, stablecoin, halving]
+    max_items: 3
+
+  - channel: sport-news
+    language: en
+    title: "🏈 Sports prediction markets"
+    # Свежие игры важнее фьючерсов: топ по объёму, но только спортивные
+    # рынки. US-лиги: без соккера/киберспорта/политики.
+    require_keywords: false
+    must_include: [" vs", "vs.", "win", "playoff", "championship", "super bowl", "world series", "stanley cup", "mvp", "ncaa", "college", "nfl", "nba", "mlb", "nhl", "draft", "trade", "injur"]
+    exclude: [fed, "interest rate", election, president, ceasefire, bitcoin, ethereum, crypto, counter-strike, cs2, dota, valorant, "league of legends", esports, uefa, "champions league", "europa league", "conference league", "la liga", "liga mx", "premier league", epl, "serie a", bundesliga, "ligue 1", eredivisie, copa, soccer, fútbol, futbol, barcelona, "real madrid", psg, "paris saint", brighton, hove, albion, " fc ", " afc", " cf ", " sc ", " ac ", "fc ", "afc ", "uefa", fifa, "world cup", premier, libertadores, sudamericana, mls, liga]
+    max_items: 3
+
+  - channel: crypto-es
+    language: es
+    title: "📊 Mercados de predicción cripto ahora"
+    keywords: [bitcoin, btc, ethereum, eth, solana, cripto, crypto, etf, sec, stablecoin]
+    max_items: 3
+
+  - channel: futbol-es
+    language: es
+    title: "⚽ Mercados de predicción de fútbol"
+    keywords: ["la liga", "liga mx", "champions league", copa, "real madrid", barcelona, atletico, futbol, fútbol, "river plate", "boca juniors", seleccion]
+    # Только футбол: без киберспорта и US-лиг.
+    exclude: [counter-strike, cs2, dota, valorant, "league of legends", esports, nba, nfl, mlb, nhl, basketball, hockey, baseball, "super bowl"]
+    max_items: 3
