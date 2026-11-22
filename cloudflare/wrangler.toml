@@ -13,6 +13,7 @@ crons = ["*/15 * * * *"]  # каждые 15 минут: слоты канало�
 binding = "STATE"
 id = "4d766ea68e1f46299c862681ab32d012"
 
+# D1 для состояния планировщика и очереди ретраев.
 [[d1_databases]]
 binding = "DB"
 database_name = "content-factory-state"
