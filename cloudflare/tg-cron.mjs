@@ -10,6 +10,7 @@ const STALE_MIN = 8;            // не дублируем запуск, есл�
 const HEALTH_MAX_AGE_MIN = 120; // health: запуск старше 2 часов = проблема
 const ALERT_COOLDOWN_MIN = 180; // один и тот же алерт не чаще раза в 3 часа
 const SCHEDULE_GAP_MAX_MIN = 45; // cron */22 не должен «молчать» дольше 45 минут
+const RETRY_STUCK_MIN = 30;      // очередь ретраев не должна стоять дольше 30 минут
 
 function api(path) {
   return `https://api.github.com/repos/${GH_REPO}${path}`;
@@ -109,14 +110,37 @@ function healthOf(last) {
   return { healthy, age, known };
 }
 
-function healthPayload(last) {
+async function queueSummary(env) {
+  if (env.DB === undefined || env.DB === null) return null;
+  try {
+    const row = await env.DB.prepare(
+      "SELECT COUNT(*) AS total, " +
+      "SUM(CASE WHEN attempts >= 5 THEN 1 ELSE 0 END) AS exhausted, " +
+      "MIN(next_attempt_at) AS oldest FROM publish_retries"
+    ).first();
+    const total = Number((row && row.total) || 0);
+    const exhausted = Number((row && row.exhausted) || 0);
+    const oldest = row && row.oldest ? String(row.oldest) : null;
+    const oldestMs = oldest ? Date.parse(oldest) : null;
+    const stuck = total > 0 && oldestMs !== null &&
+      oldestMs < Date.now() - RETRY_STUCK_MIN * 60000;
+    return { total, exhausted, oldest, stuck };
+  } catch (e) {
+    console.log("queue summary error", String(e));
+    return { error: String(e).slice(0, 200) };
+  }
+}
+
+async function healthPayload(last, env) {
   const { healthy, age } = healthOf(last);
+  const queue = await queueSummary(env);
   return {
     ok: healthy,
     worker: 'tg-cron',
     mode: 'scheduled-only',
     last_run: last || null,
     age_min: age === null ? null : Math.round(age),
+    queue,
     checked_at: new Date().toISOString(),
   };
 }
@@ -134,7 +158,7 @@ export default {
       return apiFetch(request, env);
     }
     const last = await latestRun(env);
-    const payload = healthPayload(last);
+    const payload = await healthPayload(last, env);
     return new Response(JSON.stringify(payload), {
       status: payload.ok ? 200 : 503,
       headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
@@ -196,6 +220,20 @@ export default {
           // должны навсегда заглушиться «залипшим» alert_active.
           state.alert_active = false;
           await tgAlert(env, '✅ content-factory восстановился: публикации снова идут.');
+        }
+
+        // 4) health D1-очереди ретраев: застрявшие due-записи → алерт.
+        const queue = await queueSummary(env);
+        if (queue && queue.stuck && cooldownPassed(state) && state.queue_alert_active !== true) {
+          await tgAlert(
+            env,
+            `⚠️ content-factory: очередь ретраев стоит ${queue.total} шт., самая старая с ${queue.oldest}. Проверь последние запуски и D1.`
+          );
+          state.last_alert_at = new Date().toISOString();
+          state.queue_alert_active = true;
+        } else if (queue && queue.stuck === false && state.queue_alert_active === true) {
+          state.queue_alert_active = false;
+          await tgAlert(env, '✅ content-factory: очередь ретраев разобрана.');
         }
         } finally {
           // Состояние сохраняем всегда — иначе падение шага оставляет

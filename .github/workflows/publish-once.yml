@@ -40,6 +40,9 @@ jobs:
     env:
       CONTENT_FACTORY_CHANNELS: config/channels.${{ inputs.language }}.yaml
       CONTENT_FACTORY_POST_MODE: ${{ inputs.post_mode }}
+      # D1 health/queue mirror (необязательно; без токена работает локальная SQLite).
+      CONTENT_FACTORY_STATE_URL: ${{ vars.CONTENT_FACTORY_STATE_URL }}
+      CONTENT_FACTORY_STATE_TOKEN: ${{ secrets.CONTENT_FACTORY_STATE_TOKEN }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
       TELEGRAM_CHAT_ID_TECH_AI_ES: ${{ secrets.TELEGRAM_CHAT_ID_TECH_AI_ES }}
