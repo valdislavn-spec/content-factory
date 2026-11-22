@@ -14,6 +14,7 @@ import json
 import logging
 import re
 import shutil
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -215,20 +216,32 @@ def collect_channel_articles(
     """Скачивает источники канала и возвращает только новые релевантные статьи."""
     errors: List[str] = []
     collected: List[Article] = []
-    for source in channel.sources:
-        if not source.enabled:
-            continue
-        try:
-            adapter = get_adapter(source.type)
-            items = adapter.fetch(source, settings) or []
-            collected.extend(items)
-            log.info(
-                "Источник %s (%s): %d статей", source.name, source.type, len(items)
-            )
-        except Exception as exc:  # источники не должны ронять канал
-            message = f"{source.id} ({source.url}): {exc}"
-            errors.append(message)
-            log.warning("Ошибка источника %s", message)
+    sources = [source for source in channel.sources if source.enabled]
+    try:
+        workers = int((getattr(settings, "pipeline", None) or {}).get("source_workers", 6))
+    except (TypeError, ValueError, AttributeError):
+        workers = 6
+    workers = max(1, min(workers, len(sources) or 1))
+
+    def _fetch(source):
+        # Адаптеры источников не хранят состояния — параллельный вызов безопасен.
+        adapter = get_adapter(source.type)
+        return source, adapter.fetch(source, settings) or []
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_fetch, source): source for source in sources}
+        for future in as_completed(futures):
+            source = futures[future]
+            try:
+                _, items = future.result()
+                collected.extend(items)
+                log.info(
+                    "Источник %s (%s): %d статей", source.name, source.type, len(items)
+                )
+            except Exception as exc:  # источники не должны ронять канал
+                message = f"{source.id} ({source.url}): {exc}"
+                errors.append(message)
+                log.warning("Ошибка источника %s", message)
     filtered = filter_articles(channel, collected, settings, now=now)
     new_articles = storage.filter_new_articles(channel.id, filtered)
     storage.save_articles(channel.id, new_articles)
