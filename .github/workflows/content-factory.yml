@@ -55,6 +55,9 @@ jobs:
     # и падает до запуска шагов (0 steps).
     env:
       TZ: Europe/Moscow
+      # D1-состояние и очередь ретраев (Worker tg-cron, /api/v1).
+      CONTENT_FACTORY_STATE_URL: ${{ vars.CONTENT_FACTORY_STATE_URL }}
+      CONTENT_FACTORY_STATE_TOKEN: ${{ secrets.CONTENT_FACTORY_STATE_TOKEN }}
       # cron → live (если не задана Variable CONTENT_FACTORY_DRY_RUN=true).
       # ручной запуск → dry-run, кроме явного publish=live.
       CONTENT_FACTORY_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish != 'live') || vars.CONTENT_FACTORY_DRY_RUN || 'false' }}

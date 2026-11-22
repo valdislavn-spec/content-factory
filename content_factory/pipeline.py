@@ -39,6 +39,7 @@ from .nlp.llm import get_llm
 from .nlp.quality import QualityReport, score_post
 from .integrations.dify_posts import build_post_generator
 from .publishers import Publisher, get_publisher
+from .remote_state import get_remote_state
 from .sources import get_adapter
 from .storage import Storage
 from .utils import (
@@ -639,7 +640,7 @@ def publish_post(
             log.error("Не удалось опубликовать %s через %s: %s", post.id, name, result.error)
             if name == "telegram" and not result.dry_run:
                 try:
-                    storage.enqueue_publish_retry(
+                    retry_row = storage.enqueue_publish_retry(
                         post,
                         name,
                         result.error,
@@ -647,6 +648,12 @@ def publish_post(
                             settings.pipeline.get("publish_retry_base_minutes", 5)
                         ),
                     )
+                    remote = get_remote_state()
+                    if remote.enabled and retry_row:
+                        try:
+                            remote.queue_put(retry_row)
+                        except Exception:  # noqa: BLE001 - D1 не должна ронять публикацию
+                            log.warning("Не удалось сохранить ретрай в D1", exc_info=True)
                 except Exception:  # noqa: BLE001 - очередь не должна ронять публикацию
                     log.exception("Не удалось поставить пост %s в очередь ретраев", post.id)
     return results
@@ -1336,6 +1343,13 @@ def process_publish_retries(
     results: List[PublishResult] = []
     max_attempts = int(settings.pipeline.get("publish_retry_max_attempts", 5))
     base_minutes = float(settings.pipeline.get("publish_retry_base_minutes", 5))
+    remote = get_remote_state()
+    if remote.enabled:
+        try:
+            for remote_row in remote.queue_due(channel.id, limit=limit, now=now):
+                storage.import_publish_retry(remote_row)
+        except Exception:  # noqa: BLE001 - локальная очередь остаётся рабочей
+            log.warning("Не удалось прочитать очередь ретраев из D1", exc_info=True)
     for row in storage.due_publish_retries(channel.id, limit=limit, now=now):
         post = _post_from_retry_row(row)
         publisher_name = str(row.get("publisher") or "telegram")
@@ -1360,6 +1374,11 @@ def process_publish_retries(
         if result.ok:
             storage.finish_publish_retry(post.id, publisher_name)
             storage.mark_post_status(post.id, "published", result.url)
+            if remote.enabled:
+                try:
+                    remote.queue_done(post.id, publisher_name)
+                except Exception:  # noqa: BLE001
+                    log.warning("Не удалось удалить ретрай из D1", exc_info=True)
             log.info("Ретрай: пост %s опубликован (%s)", post.id, publisher_name)
         else:
             attempts = storage.fail_publish_retry(
@@ -1369,6 +1388,15 @@ def process_publish_retries(
                 max_attempts=max_attempts,
                 base_minutes=base_minutes,
             )
+            if remote.enabled:
+                try:
+                    saved = storage.get_publish_retry(post.id, publisher_name)
+                    if saved:
+                        remote.queue_put(saved)
+                    else:
+                        remote.queue_done(post.id, publisher_name)
+                except Exception:  # noqa: BLE001
+                    log.warning("Не удалось обновить ретрай в D1", exc_info=True)
             if attempts >= max_attempts:
                 log.error(
                     "Ретрай: пост %s не опубликован после %d попыток — снимаю с очереди: %s",
@@ -1496,6 +1524,16 @@ def run_channel(
             storage.save_run(result)
         except Exception:
             logger.exception("Не удалось сохранить статистику запуска")
+        try:
+            remote = get_remote_state()
+            if remote.enabled:
+                remote.health_tick(
+                    channel.id,
+                    last_post_at=utcnow() if result.posts_published > 0 else None,
+                    last_error="; ".join(result.errors[:3]),
+                )
+        except Exception:  # noqa: BLE001 - health mirror не должен ронять канал
+            logger.warning("Не удалось отправить health в D1", exc_info=True)
         logger.info(
             "Итог «%s»: статей %d, сюжетов %d, постов %d, опубликовано %d, ошибок %d (%.1f c)",
             channel.title,

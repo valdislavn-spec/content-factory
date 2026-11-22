@@ -18,6 +18,12 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from content_factory.remote_state import get_remote_state  # noqa: E402
+
 REPO = os.environ.get("STATE_SYNC_REPO", "valdislavn-spec/content-factory")
 VAR = os.environ.get("STATE_SYNC_VAR", "CF_SCHEDULE_STATE")
 FILES = {
@@ -95,6 +101,23 @@ def load_files():
 
 
 def pull() -> int:
+    remote = get_remote_state()
+    if remote.enabled:
+        written = 0
+        for key, path in FILES.items():
+            try:
+                state = remote.get_state(key)
+            except Exception as exc:  # noqa: BLE001 - GitHub fallback ниже
+                print(f"state pull: D1 {key} недоступен ({type(exc).__name__})")
+                continue
+            if isinstance(state, dict):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+                written += 1
+        if written:
+            print(f"state pull: D1, записано файлов {written}")
+            return 0
+
     status, data = api("GET", f"/actions/variables/{VAR}")
     if status != 200 or not isinstance(data, dict):
         print(f"state pull: переменная недоступна ({status}) — работаем на кэше")
@@ -125,6 +148,22 @@ def push() -> int:
     if len(raw.encode()) > MAX_BYTES:
         print("state push: состояние слишком большое — пропуск")
         return 0
+
+    remote = get_remote_state()
+    remote_saved = 0
+    if remote.enabled:
+        for key, state in payload.items():
+            try:
+                remote.put_state(key, state)
+                remote_saved += 1
+            except Exception as exc:  # noqa: BLE001 - GitHub остаётся резервом
+                print(f"state push: D1 {key} ошибка ({type(exc).__name__})")
+        if remote_saved:
+            print(f"state push: D1 ok ({remote_saved} шт.)")
+
+    if not token():
+        print("state push: GitHub token отсутствует — D1 достаточно")
+        return 0
     status, data = api("GET", f"/actions/variables/{VAR}")
     if status == 200:
         status, data = api("PATCH", f"/actions/variables/{VAR}", {"name": VAR, "value": raw})
@@ -139,7 +178,8 @@ def push() -> int:
 
 if __name__ == "__main__":
     command = sys.argv[1] if len(sys.argv) > 1 else "pull"
-    if not token():
-        print("state sync: нет ALERT_GITHUB_TOKEN/GITHUB_TOKEN — пропуск")
+    remote = get_remote_state()
+    if not token() and not remote.enabled:
+        print("state sync: нет ни D1, ни ALERT_GITHUB_TOKEN/GITHUB_TOKEN — пропуск")
         sys.exit(0)
     sys.exit(pull() if command == "pull" else push())

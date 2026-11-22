@@ -1,3 +1,4 @@
+import { API_PREFIX, apiFetch } from "./state-api.mjs";
 // Планировщик публикаций + мониторинг content-factory.
 // Cloudflare cron (*/22) дёргает GitHub Actions через workflow_dispatch с
 // антидублем. Сбои диспатча, «протухшее» состояние и пропуски самого cron
@@ -128,6 +129,10 @@ function cooldownPassed(state) {
 export default {
   // Публичный HTTP: только health-check, запуск публикации снаружи невозможен.
   async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith(API_PREFIX + "/")) {
+      return apiFetch(request, env);
+    }
     const last = await latestRun(env);
     const payload = healthPayload(last);
     return new Response(JSON.stringify(payload), {

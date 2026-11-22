@@ -41,11 +41,31 @@ https://<worker-domain>/
 Он отдаёт `200`, если последний запуск content-factory свежий и успешный,
 иначе `503`. Достаточно бесплатного HTTP-монитора с интервалом 5 минут.
 
+## Cloudflare D1 (основное durable-хранилище)
+
+Создана D1-база `content-factory-state` и API в Worker `tg-cron`:
+
+- `GET/PUT /api/v1/state/:name` — состояние планировщика EN/ES;
+- `POST /api/v1/queue` — снимок поста для повтора;
+- `GET /api/v1/queue/due` — очередь к повтору;
+- `POST /api/v1/queue/done` — успешная публикация;
+- `POST /api/v1/health/tick` — health канала;
+- `GET /api/v1/health` — очередь и health каналов.
+
+Запись защищена `STATE_API_TOKEN`. В GitHub Actions нужны:
+
+- Repository variable `CONTENT_FACTORY_STATE_URL` =
+  `https://tg-cron.valdislav-n.workers.dev`;
+- Repository secret `CONTENT_FACTORY_STATE_TOKEN` — тот же токен, что
+  `wrangler secret put STATE_API_TOKEN`.
+
+Pipeline сначала читает очередь из D1, затем работает с локальной SQLite;
+успешные/неудачные попытки синхронизируются обратно в D1. Если D1
+недоступна, публикации продолжаются на локальной очереди.
+
 ## Ограничения
 
-- GitHub Actions cache и артефакты — не вечное хранилище.
-- SQLite-очередь живёт в кэше; при полной потере кэша она пропадёт.
-- Следующий шаг для максимальной устойчивости — перенести state и очередь
-  в Cloudflare D1.
+- D1 и Worker — внешний сервис; при полном отказе Cloudflare публикации
+  приостанавливаются, но состояние не теряется.
 - Бесплатные тарифы не дают SLA; для критичного продакшена нужен платный
   тариф или собственный runner.

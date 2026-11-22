@@ -502,7 +502,7 @@ class Storage:
         publisher: str,
         error: str,
         base_minutes: float = 5.0,
-    ) -> None:
+    ) -> Dict[str, Any]:
         """Сохраняет снимок поста для повторной публикации.
 
         Снимок нужен потому, что ``publish_post`` добавляет к тексту рыночную
@@ -554,6 +554,43 @@ class Storage:
             ),
         )
         self.conn.commit()
+        saved = self.conn.execute(
+            "SELECT * FROM publish_retries WHERE post_id = ? AND publisher = ?",
+            (post.id, publisher),
+        ).fetchone()
+        return dict(saved) if saved is not None else {}
+
+    def get_publish_retry(self, post_id: str, publisher: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            "SELECT * FROM publish_retries WHERE post_id = ? AND publisher = ?",
+            (post_id, publisher),
+        ).fetchone()
+        return dict(row) if row is not None else None
+
+    def import_publish_retry(self, row: Dict[str, Any]) -> bool:
+        """Импортирует снимок из D1, не перетирая более свежую локальную запись."""
+        if not row.get("post_id") or not row.get("publisher"):
+            return False
+        now = format_iso(utcnow())
+        cursor = self.conn.execute(
+            """INSERT OR IGNORE INTO publish_retries
+            (post_id, channel_id, publisher, post_json, attempts, next_attempt_at,
+             last_error, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                str(row.get("post_id")),
+                str(row.get("channel_id") or ""),
+                str(row.get("publisher")),
+                str(row.get("post_json") or ""),
+                int(row.get("attempts") or 0),
+                str(row.get("next_attempt_at") or now),
+                str(row.get("last_error") or "")[:2000],
+                str(row.get("created_at") or now),
+                str(row.get("updated_at") or now),
+            ),
+        )
+        self.conn.commit()
+        return cursor.rowcount > 0
 
     def due_publish_retries(
         self, channel_id: str, limit: int = 20, now: Optional[datetime] = None

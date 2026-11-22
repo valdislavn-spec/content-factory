@@ -12,3 +12,8 @@ crons = ["*/15 * * * *"]  # каждые 15 минут: слоты канало�
 [[kv_namespaces]]
 binding = "STATE"
 id = "4d766ea68e1f46299c862681ab32d012"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "content-factory-state"
+database_id = "7008a2a9-3d15-4ab8-aec6-db304da7bc92"
