@@ -1357,6 +1357,18 @@ def process_publish_retries(
             storage.finish_publish_retry(str(row.get("post_id") or ""), publisher_name)
             log.error("Ретрай: повреждён снимок поста %s — удаляю из очереди", row.get("post_id"))
             continue
+        existing = storage.get_post(post.id)
+        if existing is not None and str(existing.get("status") or "") == "published":
+            # D1 мог вернуть уже обработанный снимок, если queue_done не дошёл.
+            storage.finish_publish_retry(post.id, publisher_name)
+            if remote.enabled:
+                try:
+                    remote.queue_done(post.id, publisher_name)
+                except Exception:  # noqa: BLE001
+                    log.warning("Не удалось удалить уже опубликованный ретрай из D1", exc_info=True)
+            continue
+        if existing is None:
+            storage.save_post(post, status="generated")
         try:
             publisher = get_publisher(publisher_name, settings)
             result = publisher.publish(post, channel, settings)

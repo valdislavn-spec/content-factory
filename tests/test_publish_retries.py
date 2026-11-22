@@ -1,6 +1,7 @@
 """Повторная публикация постов, не дошедших до Telegram."""
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from datetime import timedelta
@@ -40,6 +41,14 @@ class FakePublisher:
 
 class PublishRetryTest(unittest.TestCase):
     def setUp(self) -> None:
+        # Тесты не должны писать в реальную D1, даже если она настроена в shell.
+        self.env_patch = mock.patch.dict(
+            os.environ,
+            {"CONTENT_FACTORY_STATE_URL": "", "CONTENT_FACTORY_STATE_TOKEN": ""},
+            clear=False,
+        )
+        self.env_patch.start()
+        self.addCleanup(self.env_patch.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.storage = Storage(Path(self.tmp.name) / "test.sqlite3")
         self.channel = ChannelConfig(id="test", title="Test")
@@ -120,3 +129,18 @@ class PublishRetryTest(unittest.TestCase):
         )
         self.assertEqual(len(queued), 1)
         self.assertEqual(queued[0]["post_id"], "retry-post")
+
+    def test_already_published_post_is_not_sent_twice(self) -> None:
+        self.storage.mark_post_status(self.post.id, "published", "https://t.me/test/1")
+        self.storage.enqueue_publish_retry(self.post, "telegram", "HTTP 500")
+        publisher = FakePublisher(ok=True)
+        with mock.patch("content_factory.pipeline.get_publisher", return_value=publisher):
+            results = process_publish_retries(
+                self.channel,
+                self.settings,
+                self.storage,
+                now=utcnow() + timedelta(minutes=10),
+            )
+        self.assertEqual(results, [])
+        self.assertEqual(publisher.calls, 0)
+        self.assertEqual(self.storage.due_publish_retries("test"), [])
