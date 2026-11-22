@@ -623,6 +623,7 @@ def _parse_channel(
         cta=str(data.get("cta") or ""),
         market_line=data.get("market_line") or {},
         affiliate=data.get("affiliate") or {},
+        polymarket=data.get("polymarket") or {},
         telegram_chat_id=chat_id,
         publisher_ids=[str(p) for p in (data.get("publisher_ids") or ["telegram"])],
         enabled=bool(data.get("enabled", True)),
