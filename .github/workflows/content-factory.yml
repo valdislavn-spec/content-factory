@@ -198,7 +198,7 @@ jobs:
 
       # SQLite, состояние слотов и LLM-кэш переживают запуски через кэш GitHub.
       - name: Restore SQLite, scheduler and LLM state
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             data/factory.sqlite3
@@ -313,8 +313,43 @@ jobs:
             data/outbox
             data/reports
             data/logs
+            data/factory.sqlite3
+            data/schedule_state.json
+            data/schedule_state_es.json
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Save SQLite, scheduler and LLM state
+        if: always()
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            data/factory.sqlite3
+            data/schedule_state.json
+            data/schedule_state_es.json
+            data/llm_cache.sqlite3
+            data/llm_tokens.json
+            data/llm_usage.json
+            data/llm_usage_*.json
+            data/source_*_usage.json
+          key: cf-state-${{ github.run_id }}
+
+      - name: Ping Healthchecks.io
+        if: always()
+        env:
+          HEALTHCHECK_PING_URL: ${{ secrets.HEALTHCHECK_PING_URL }}
+        run: |
+          if [ -z "$HEALTHCHECK_PING_URL" ]; then
+            echo "healthcheck: HEALTHCHECK_PING_URL не задан — пропуск"
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            url="$HEALTHCHECK_PING_URL"
+          else
+            url="${HEALTHCHECK_PING_URL%/}/fail"
+          fi
+          curl -fsS --max-time 10 "$url" >/dev/null || echo "healthcheck: ping не отправлен"
 
       - name: Notify on failure
         if: failure()

@@ -48,6 +48,7 @@ from .utils import (
     strip_html,
     url_hash,
     detect_text_language,
+    parse_datetime,
 )
 
 log = logging.getLogger("content_factory.pipeline")
@@ -636,6 +637,18 @@ def publish_post(
             )
         else:
             log.error("Не удалось опубликовать %s через %s: %s", post.id, name, result.error)
+            if name == "telegram" and not result.dry_run:
+                try:
+                    storage.enqueue_publish_retry(
+                        post,
+                        name,
+                        result.error,
+                        base_minutes=float(
+                            settings.pipeline.get("publish_retry_base_minutes", 5)
+                        ),
+                    )
+                except Exception:  # noqa: BLE001 - очередь не должна ронять публикацию
+                    log.exception("Не удалось поставить пост %s в очередь ретраев", post.id)
     return results
 
 
@@ -1287,6 +1300,93 @@ def _recap_from_posts(
         return None
 
 
+def _post_from_retry_row(row: Dict[str, Any]) -> Optional[GeneratedPost]:
+    try:
+        data = json.loads(row.get("post_json") or "{}")
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    try:
+        created_at = parse_datetime(data.get("created_at")) or utcnow()
+        return GeneratedPost(
+            id=str(data.get("id") or row.get("post_id") or ""),
+            channel_id=str(data.get("channel_id") or row.get("channel_id") or ""),
+            cluster_id=str(data.get("cluster_id") or ""),
+            format=str(data.get("format") or "post"),
+            text=str(data.get("text") or ""),
+            hashtags=list(data.get("hashtags") or []),
+            sources=list(data.get("sources") or []),
+            created_at=created_at,
+            score=float(data.get("score") or 0.0),
+            meta=dict(data.get("meta") or {}),
+        )
+    except (TypeError, ValueError):
+        return None
+
+
+def process_publish_retries(
+    channel: ChannelConfig,
+    settings: Settings,
+    storage: Storage,
+    limit: int = 10,
+    now: Optional[datetime] = None,
+) -> List[PublishResult]:
+    """Повторяет публикацию постов, которые не дошли до Telegram."""
+    results: List[PublishResult] = []
+    max_attempts = int(settings.pipeline.get("publish_retry_max_attempts", 5))
+    base_minutes = float(settings.pipeline.get("publish_retry_base_minutes", 5))
+    for row in storage.due_publish_retries(channel.id, limit=limit, now=now):
+        post = _post_from_retry_row(row)
+        publisher_name = str(row.get("publisher") or "telegram")
+        if post is None:
+            storage.finish_publish_retry(str(row.get("post_id") or ""), publisher_name)
+            log.error("Ретрай: повреждён снимок поста %s — удаляю из очереди", row.get("post_id"))
+            continue
+        try:
+            publisher = get_publisher(publisher_name, settings)
+            result = publisher.publish(post, channel, settings)
+        except Exception as exc:  # noqa: BLE001 - один ретрай не должен ронять канал
+            result = PublishResult(
+                channel_id=channel.id,
+                post_id=post.id,
+                publisher=publisher_name,
+                ok=False,
+                error=str(exc),
+                dry_run=False,
+            )
+        storage.save_publish(result)
+        results.append(result)
+        if result.ok:
+            storage.finish_publish_retry(post.id, publisher_name)
+            storage.mark_post_status(post.id, "published", result.url)
+            log.info("Ретрай: пост %s опубликован (%s)", post.id, publisher_name)
+        else:
+            attempts = storage.fail_publish_retry(
+                post.id,
+                publisher_name,
+                result.error,
+                max_attempts=max_attempts,
+                base_minutes=base_minutes,
+            )
+            if attempts >= max_attempts:
+                log.error(
+                    "Ретрай: пост %s не опубликован после %d попыток — снимаю с очереди: %s",
+                    post.id,
+                    attempts,
+                    result.error,
+                )
+            else:
+                log.warning(
+                    "Ретрай: пост %s не опубликован (попытка %d/%d): %s",
+                    post.id,
+                    attempts,
+                    max_attempts,
+                    result.error,
+                )
+    return results
+
+
 def run_channel(
     channel: ChannelConfig,
     settings: Settings,
@@ -1307,6 +1407,13 @@ def run_channel(
         f", слот {slot}" if slot else "",
     )
     try:
+        if not effective_dry_run:
+            retry_results = process_publish_retries(channel, settings, storage)
+            result.results.extend(retry_results)
+            result.posts_published += sum(1 for item in retry_results if item.ok)
+            for item in retry_results:
+                if not item.ok and item.error:
+                    result.errors.append(f"ретрай {item.publisher}: {item.error}")
         articles, fetch_errors = collect_channel_articles(channel, settings, storage, now=now)
         result.articles_fetched = len(articles)
         result.articles_new = len(articles)

@@ -55,7 +55,9 @@ class ClusterVerifierTest(unittest.TestCase):
 
     def test_off_by_default(self) -> None:
         settings = SimpleNamespace(pipeline={}, llm={"providers": {}})
-        self.assertIsNone(make_cluster_verifier(settings))
+        # Тест не должен зависеть от CLUSTER_VERIFIER в окружении CI/разработчика.
+        with patch.dict(os.environ, {"CLUSTER_VERIFIER": "off"}, clear=False):
+            self.assertIsNone(make_cluster_verifier(settings))
 
     def test_model_and_host_overrides(self) -> None:
         settings = SimpleNamespace(

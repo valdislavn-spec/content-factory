@@ -153,3 +153,42 @@ class StorageTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_publish_retry_queue_roundtrip(self) -> None:
+        post = GeneratedPost(
+            id="retry-post",
+            channel_id="test",
+            cluster_id="cluster-r",
+            format="digest",
+            text="<b>Заголовок</b>\n\nТекст.",
+            hashtags=["#тест"],
+            meta={"generator": "test"},
+        )
+        self.assertTrue(self.storage.save_post(post))
+        self.storage.enqueue_publish_retry(post, "telegram", "HTTP 500")
+        due = self.storage.due_publish_retries(
+            "test", now=utcnow() + timedelta(minutes=10)
+        )
+        self.assertEqual(len(due), 1)
+        self.assertEqual(due[0]["post_id"], "retry-post")
+        self.assertIn("Заголовок", due[0]["post_json"])
+        self.assertEqual(self.storage.get_post("retry-post")["text"], post.text)
+        self.storage.finish_publish_retry("retry-post", "telegram")
+        self.assertEqual(self.storage.due_publish_retries("test"), [])
+
+    def test_publish_retry_drops_after_max_attempts(self) -> None:
+        post = GeneratedPost(
+            id="retry-post-2",
+            channel_id="test",
+            cluster_id="cluster-r2",
+            format="digest",
+            text="Текст.",
+        )
+        self.storage.enqueue_publish_retry(post, "telegram", "HTTP 500")
+        attempts = 0
+        for _ in range(5):
+            attempts = self.storage.fail_publish_retry(
+                "retry-post-2", "telegram", "HTTP 500", max_attempts=5
+            )
+        self.assertEqual(attempts, 5)
+        self.assertEqual(self.storage.due_publish_retries("test"), [])

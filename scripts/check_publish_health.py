@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -104,6 +105,19 @@ def llm_quota_lines() -> list[str]:
     return lines
 
 
+def retry_queue_depth() -> int | None:
+    """Сколько постов ждёт повторной публикации в локальной SQLite."""
+    path = Path("data/factory.sqlite3")
+    if not path.exists():
+        return None
+    try:
+        with sqlite3.connect(path) as conn:
+            row = conn.execute("SELECT COUNT(*) FROM publish_retries").fetchone()
+        return int(row[0]) if row else 0
+    except sqlite3.Error:
+        return None
+
+
 def main() -> int:
     if not LOG.exists():
         print("health: лог не найден — пропуск")
@@ -125,6 +139,9 @@ def main() -> int:
         )
     for problem in stats["channel_problems"]:
         print(f"health: проблема канала: {problem}")
+    queue_depth = retry_queue_depth()
+    if queue_depth is not None:
+        print(f"health: очередь ретраев={queue_depth}")
     for line in llm_quota_lines():
         print("health:", line)
     if stats["publish_errors"] > 0:

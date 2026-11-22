@@ -71,6 +71,21 @@ CREATE TABLE IF NOT EXISTS publishes (
 );
 CREATE INDEX IF NOT EXISTS idx_publishes_channel_time ON publishes (channel_id, published_at);
 
+CREATE TABLE IF NOT EXISTS publish_retries (
+    post_id         TEXT NOT NULL,
+    channel_id      TEXT NOT NULL,
+    publisher       TEXT NOT NULL,
+    post_json       TEXT NOT NULL,
+    attempts        INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TEXT NOT NULL,
+    last_error      TEXT DEFAULT '',
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL,
+    PRIMARY KEY (post_id, publisher)
+);
+CREATE INDEX IF NOT EXISTS idx_publish_retries_due
+    ON publish_retries (channel_id, next_attempt_at);
+
 CREATE TABLE IF NOT EXISTS metrics (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     channel_id   TEXT NOT NULL,
@@ -474,6 +489,123 @@ class Storage:
             ),
         )
         self.conn.commit()
+
+    def get_post(self, post_id: str) -> Optional[Dict[str, Any]]:
+        row = self.conn.execute(
+            "SELECT * FROM posts WHERE post_id = ?", (post_id,)
+        ).fetchone()
+        return self._post_row(row) if row is not None else None
+
+    def enqueue_publish_retry(
+        self,
+        post: GeneratedPost,
+        publisher: str,
+        error: str,
+        base_minutes: float = 5.0,
+    ) -> None:
+        """Сохраняет снимок поста для повторной публикации.
+
+        Снимок нужен потому, что ``publish_post`` добавляет к тексту рыночную
+        и партнёрскую строки; при повторном построении поста их нельзя
+        добавлять второй раз.
+        """
+        now = utcnow()
+        payload = {
+            "id": post.id,
+            "channel_id": post.channel_id,
+            "cluster_id": post.cluster_id,
+            "format": post.format,
+            "text": post.text,
+            "hashtags": list(post.hashtags),
+            "sources": list(post.sources),
+            "created_at": format_iso(post.created_at),
+            "score": float(post.score),
+            "meta": dict(post.meta or {}),
+        }
+        row = self.conn.execute(
+            "SELECT attempts, created_at FROM publish_retries WHERE post_id = ? AND publisher = ?",
+            (post.id, publisher),
+        ).fetchone()
+        attempts = int(row["attempts"] or 0) + 1 if row else 1
+        delay = min(120.0, max(1.0, float(base_minutes) * (2 ** (attempts - 1))))
+        next_at = format_iso(now + timedelta(minutes=delay))
+        self.conn.execute(
+            """INSERT INTO publish_retries
+            (post_id, channel_id, publisher, post_json, attempts, next_attempt_at,
+             last_error, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(post_id, publisher) DO UPDATE SET
+                post_json = excluded.post_json,
+                channel_id = excluded.channel_id,
+                attempts = excluded.attempts,
+                next_attempt_at = excluded.next_attempt_at,
+                last_error = excluded.last_error,
+                updated_at = excluded.updated_at""",
+            (
+                post.id,
+                post.channel_id,
+                publisher,
+                json.dumps(payload, ensure_ascii=False, default=str),
+                attempts,
+                next_at,
+                str(error or "")[:2000],
+                row["created_at"] if row else format_iso(now),
+                format_iso(now),
+            ),
+        )
+        self.conn.commit()
+
+    def due_publish_retries(
+        self, channel_id: str, limit: int = 20, now: Optional[datetime] = None
+    ) -> List[Dict[str, Any]]:
+        current = format_iso(now or utcnow())
+        rows = self.conn.execute(
+            """SELECT * FROM publish_retries
+               WHERE channel_id = ? AND next_attempt_at <= ?
+               ORDER BY next_attempt_at ASC LIMIT ?""",
+            (channel_id, current, max(1, int(limit))),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def finish_publish_retry(self, post_id: str, publisher: str) -> None:
+        self.conn.execute(
+            "DELETE FROM publish_retries WHERE post_id = ? AND publisher = ?",
+            (post_id, publisher),
+        )
+        self.conn.commit()
+
+    def fail_publish_retry(
+        self,
+        post_id: str,
+        publisher: str,
+        error: str,
+        max_attempts: int = 5,
+        base_minutes: float = 5.0,
+    ) -> int:
+        row = self.conn.execute(
+            "SELECT attempts FROM publish_retries WHERE post_id = ? AND publisher = ?",
+            (post_id, publisher),
+        ).fetchone()
+        attempts = int(row["attempts"] or 0) + 1 if row else 1
+        if attempts >= max(1, int(max_attempts)):
+            self.finish_publish_retry(post_id, publisher)
+            return attempts
+        delay = min(120.0, max(1.0, float(base_minutes) * (2 ** (attempts - 1))))
+        self.conn.execute(
+            """UPDATE publish_retries
+               SET attempts = ?, next_attempt_at = ?, last_error = ?, updated_at = ?
+               WHERE post_id = ? AND publisher = ?""",
+            (
+                attempts,
+                format_iso(utcnow() + timedelta(minutes=delay)),
+                str(error or "")[:2000],
+                format_iso(utcnow()),
+                post_id,
+                publisher,
+            ),
+        )
+        self.conn.commit()
+        return attempts
 
     def count_publishes(self, channel_id: Optional[str] = None, days: float = 7) -> Dict[str, int]:
         query = """SELECT COUNT(*) AS total,

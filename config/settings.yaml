@@ -39,6 +39,9 @@ pipeline:
   cluster_verifier_max_calls: 10  # максимум LLM-запросов на один прогон
   cluster_verifier_timeout: 20    # секунд на один запрос
   max_posts_per_run: 1          # 1 пост за запуск: при постинге каждый час этого хватает
+  # Очередь повторной публикации в Telegram: снимок поста хранится в SQLite.
+  publish_retry_max_attempts: 5
+  publish_retry_base_minutes: 5
   # Режим постов: digest — один пост = сводка ВСЕХ новостей за период с прошлого
   # поста канала (а не одна новость на пост). Пусто = обычный микс форматов.
   post_mode: digest
@@ -340,6 +343,8 @@ publishers:
     bot_token_env: TELEGRAM_BOT_TOKEN
     parse_mode: HTML
     disable_preview: false
+    # 429/5xx от Telegram: до 3 попыток с backoff (retry_after учитывается).
+    retry_attempts: 3
     # Фирменные фото-карточки постов: заголовок Playfair Display,
     # тело — Inter (шрифты в assets/fonts, OFL). Публикуются через
     # sendPhoto (multipart) вместо картинки статьи.
