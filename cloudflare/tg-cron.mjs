@@ -97,12 +97,14 @@ function ageMinutes(last) {
 function healthOf(last) {
   const age = ageMinutes(last);
   const known = last && !last.error && !last.none;
+  // Свежий run может быть ещё in_progress — мы сами только что его запустили,
+  // это не проблема. Алертим только по завершённым run'ам или по долгой тишине.
+  const finished = Boolean(last && last.status === 'completed');
   const healthy =
     known &&
     age !== null &&
     age <= HEALTH_MAX_AGE_MIN &&
-    last.status === 'completed' &&
-    last.conclusion !== 'failure';
+    (!finished || last.conclusion !== 'failure');
   return { healthy, age, known };
 }
 
@@ -138,6 +140,7 @@ export default {
       (async () => {
         const state = await getState(env);
         const now = Date.now();
+        try {
 
         // 1) сам cron не запускался дольше ожидаемого → алерт
         if (state.last_scheduled_at) {
@@ -145,7 +148,7 @@ export default {
           if (gap > SCHEDULE_GAP_MAX_MIN && cooldownPassed(state)) {
             await tgAlert(
               env,
-              `⚠️ Cloudflare cron content-factory молчал ${Math.round(gap)} мин (ожидается каждые 22). Проверь Worker tg-cron и триггеры.`
+              `⚠️ Cloudflare cron content-factory молчал ${Math.round(gap)} мин (ожидается каждые 15). Проверь Worker tg-cron и триггеры.`
             );
             state.last_alert_at = new Date().toISOString();
           }
@@ -184,12 +187,17 @@ export default {
             state.alert_active = true;
           }
         } else if (state.alert_active) {
-          await tgAlert(env, '✅ content-factory восстановился: публикации снова идут.');
+          // Сбрасываем флаг ДО отправки: если Telegram недоступен, алерты не
+          // должны навсегда заглушиться «залипшим» alert_active.
           state.alert_active = false;
+          await tgAlert(env, '✅ content-factory восстановился: публикации снова идут.');
         }
-
-        state.last_scheduled_at = new Date().toISOString();
-        await putState(env, state);
+        } finally {
+          // Состояние сохраняем всегда — иначе падение шага оставляет
+          // last_scheduled_at старым и провоцирует ложный алерт о простое.
+          state.last_scheduled_at = new Date().toISOString();
+          await putState(env, state);
+        }
       })()
     );
   },
