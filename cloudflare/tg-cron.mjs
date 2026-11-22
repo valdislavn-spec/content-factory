@@ -1,6 +1,6 @@
 import { API_PREFIX, apiFetch } from "./state-api.mjs";
 // Планировщик публикаций + мониторинг content-factory.
-// Cloudflare cron (*/22) дёргает GitHub Actions через workflow_dispatch с
+// Cloudflare cron (*/15) дёргает GitHub Actions через workflow_dispatch с
 // антидублем. Сбои диспатча, «протухшее» состояние и пропуски самого cron
 // уходят алертом в Telegram (KV хранит антиспам-состояние).
 const GH_REPO = 'valdislavn-spec/content-factory';
@@ -9,7 +9,7 @@ const RUN_NAME = 'content-factory-cloud-en-es';
 const STALE_MIN = 8;            // не дублируем запуск, если он был < N минут назад
 const HEALTH_MAX_AGE_MIN = 120; // health: запуск старше 2 часов = проблема
 const ALERT_COOLDOWN_MIN = 180; // один и тот же алерт не чаще раза в 3 часа
-const SCHEDULE_GAP_MAX_MIN = 45; // cron */22 не должен «молчать» дольше 45 минут
+const SCHEDULE_GAP_MAX_MIN = 45; // cron */15 не должен «молчать» дольше 45 минут
 const RETRY_STUCK_MIN = 30;      // очередь ретраев не должна стоять дольше 30 минут
 
 function api(path) {
