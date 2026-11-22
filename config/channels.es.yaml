@@ -267,6 +267,13 @@ channels:
   timezone_offset: -6
   max_post_chars: 1200
   cta: "Comparte este post con un amigo, así crecemos."
+  # Polymarket: pronóstico de mercado por tema del post (fallback: top de topics).
+  polymarket:
+    enabled: true
+    max_markets: 1
+    topics: [bitcoin, btc, ethereum, eth, solana, sol, xrp, cripto, crypto, etf, sec]
+    min_volume_24h: 25000
+    fallback: true
   sources:
   - id: bingx-announcements
     type: bingx
@@ -446,6 +453,12 @@ channels:
   timezone_offset: -6
   max_post_chars: 1200
   cta: "18+ | Juega con responsabilidad. Comparte este post con un hincha."
+  # Polymarket: строка прогноза рынка по теме поста (LaLiga/Liga MX/Champions и т.п.).
+  polymarket:
+    enabled: true
+    max_markets: 1
+    topics: [la liga, liga mx, champions league, copa, real madrid, barcelona, atletico, river plate, boca juniors, seleccion]
+    min_volume_24h: 25000
   sources:
   - id: espn-laliga
     type: espn
