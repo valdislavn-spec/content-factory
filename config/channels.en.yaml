@@ -63,6 +63,13 @@ channels:
   - NFL
   - NBA
   - MLB
+  # Polymarket: строка прогноза рынка по теме поста (только если рынок
+  # совпал с командой/лигой из новости). Best-effort, без ключей.
+  polymarket:
+    enabled: true
+    max_markets: 1
+    topics: [NFL, NBA, MLB, NHL, NCAA, football, basketball, baseball, hockey]
+    min_volume_24h: 25000
   sources:
   - id: espn-nfl
     type: espn
@@ -423,6 +430,14 @@ channels:
   - Bitcoin
   - Crypto
   - Blockchain
+  # Polymarket: прогноз рынка по теме поста; если тема не совпала —
+  # топ-рынок по темам канала (BTC/ETH). Best-effort, без ключей.
+  polymarket:
+    enabled: true
+    max_markets: 1
+    topics: [bitcoin, btc, ethereum, eth, solana, sol, xrp, crypto, etf, sec, stablecoin, halving]
+    min_volume_24h: 25000
+    fallback: true
   sources:
   - id: bingx-announcements
     type: bingx
