@@ -174,7 +174,7 @@
           var widget = document.getElementById("tpwl-search");
           if (widget && widget.shadowRoot && widget.shadowRoot.querySelector("input,button")) {
             var fallback = document.querySelector(".wl-fallback");
-            if (fallback) fallback.hidden = true;
+            if (fallback) fallback.style.display = "none";
             clearInterval(timer);
           }
           if (++tries >= 24) clearInterval(timer);
