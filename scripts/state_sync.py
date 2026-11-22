@@ -145,9 +145,6 @@ def push() -> int:
         print("state push: нет файлов состояния — пропуск")
         return 0
     raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    if len(raw.encode()) > MAX_BYTES:
-        print("state push: состояние слишком большое — пропуск")
-        return 0
 
     remote = get_remote_state()
     remote_saved = 0
@@ -160,6 +157,13 @@ def push() -> int:
                 print(f"state push: D1 {key} ошибка ({type(exc).__name__})")
         if remote_saved:
             print(f"state push: D1 ok ({remote_saved} шт.)")
+
+    if len(raw.encode()) > MAX_BYTES:
+        if remote_saved:
+            print("state push: GitHub пропущен — состояние больше лимита, D1 сохранено")
+        else:
+            print("state push: состояние слишком большое, D1 недоступна — пропуск")
+        return 0
 
     if not token():
         print("state push: GitHub token отсутствует — D1 достаточно")
