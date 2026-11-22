@@ -551,6 +551,26 @@ def publish_post(
                 post.meta["market_line"] = line
     except Exception:  # noqa: BLE001 - market line не должна мешать публикации
         log.debug("Не удалось добавить строку рынка для %s", channel.id, exc_info=True)
+    # Строка прогнозного рынка Polymarket по теме поста (спорт/крипто-каналы).
+    try:
+        polymarket_config = getattr(channel, "polymarket", None)
+        if isinstance(polymarket_config, dict) and polymarket_config.get("enabled"):
+            from .integrations.polymarket import (
+                build_polymarket_line,
+                insert_line as insert_polymarket_line,
+            )
+
+            line = build_polymarket_line(
+                polymarket_config,
+                post.text,
+                language=channel.language,
+                channel_id=channel.id,
+            )
+            if line:
+                post.text = insert_polymarket_line(post.text, line)
+                post.meta["polymarket"] = line
+    except Exception:  # noqa: BLE001 - строка Polymarket не должна мешать публикации
+        log.debug("Не удалось добавить строку Polymarket для %s", channel.id, exc_info=True)
     # Реферальная строка (например, BingX): 1 раз в N постов, с маркировкой.
     try:
         affiliate_config = getattr(channel, "affiliate", None)
