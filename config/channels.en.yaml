@@ -477,14 +477,6 @@ channels:
     options:
       trust: true
       max_items: 10
-  - id: dlnews
-    type: rss
-    url: https://www.dlnews.com/arc/outboundfeeds/rss/
-    name: DL News
-    weight: 1.0
-    options:
-      trust: true
-      max_items: 10
   - id: sec-press
     type: rss
     url: https://www.sec.gov/news/pressreleases.rss
