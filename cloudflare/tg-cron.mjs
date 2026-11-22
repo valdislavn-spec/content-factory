@@ -134,8 +134,9 @@ async function queueSummary(env) {
 async function healthPayload(last, env) {
   const { healthy, age } = healthOf(last);
   const queue = await queueSummary(env);
+  const queueOk = queue === null || queue.stuck === false || queue.stuck === undefined;
   return {
-    ok: healthy,
+    ok: healthy && queueOk,
     worker: 'tg-cron',
     mode: 'scheduled-only',
     last_run: last || null,
