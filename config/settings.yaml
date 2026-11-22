@@ -28,6 +28,7 @@ app:
 
 pipeline:
   lookback_hours: 30            # окно свежести новостей
+  source_workers: 6             # параллельная загрузка источников (быстрее тик)
   max_articles_per_channel: 150
   cluster_similarity: 0.34      # порог склейки новостей об одном событии
   min_cluster_sources: 1        # 2 = публиковать только сюжеты, подтверждённые 2+ источниками
@@ -92,11 +93,12 @@ llm:
   # cohere          — Cohere API (Trial: 1000 запросов/мес, 20/мин; OpenAI-совместимый
   #                   Compatibility API; из РФ api.cohere.ai отдаёт 403 — нужен GitHub Actions/VPN)
   # Основной провайдер + fallback-цепочка.
-  # Основной бесплатный провайдер — Groq (gpt-oss-120b), резерв — Cloudflare
-  # Workers AI, Gemini, Pollinations и OpenRouter. Ollama Cloud оставлен
+  # Основной провайдер — Cloudflare Workers AI: 22.11.2026 Groq отдавал HTTP
+  # 403 (Forbidden), и каждый пост платил лишний fallback-таймаут. Groq оставлен
+  # первым резервом, затем Gemini, Pollinations и OpenRouter. Ollama Cloud —
   # последним: 15.11.2026 он отдавал HTTP 402 (usage credits depleted).
-  provider: groq
-  fallback: [gemini, pollinations, openrouter, ollama_cloud, cloudflare, ollama, gigachat, yandexgpt, dify, cohere, sambanova]  # платные (openai/hf/deepseek) выключены до монетизации
+  provider: cloudflare
+  fallback: [groq, gemini, pollinations, openrouter, ollama_cloud, ollama, gigachat, yandexgpt, dify, cohere, sambanova]  # платные (openai/hf/deepseek) выключены до монетизации
   # Суточные лимиты по провайдерам: после исчерпания провайдер помечается
   # недоступным, и цепочка автоматически переходит к следующему (вплоть до
   # платного DeepSeek). Счётчики: data/llm_usage_<провайдер>.json, сброс в 00:00 UTC.
@@ -113,16 +115,16 @@ llm:
     gemini: 200           # AI Studio free tier; fallback-1, расход выше
     pollinations: 100     # без ключа, анонимный лимит ~1 запрос/3 сек
     xai: 20               # платный резерв: бережём кредиты
-  # Гибрид по этапам: анализ — Cloudflare (дешёвые вызовы), генерация — Groq
-  # (быстрый бесплатный лимит). Ollama Cloud не ставим первым: 15.11.2026 он
-  # отдавал 402, из-за чего каждый пост ждал лишние fallback-таймауты.
+  # Гибрид по этапам: анализ и генерация — Cloudflare (дешёвые вызовы, работает
+  # стабильно; Groq 22.11.2026 отдавал HTTP 403 и стоял в начале цепочки зря).
+  # Ollama Cloud не ставим первым: 15.11.2026 он отдавал 402.
   stage_routes:
     analysis:
       provider: cloudflare
       fallback: [groq, gemini, pollinations, cohere, openrouter]
     generation:
-      provider: groq
-      fallback: [cloudflare, gemini, pollinations, cohere, openrouter, ollama_cloud]
+      provider: cloudflare
+      fallback: [groq, gemini, pollinations, cohere, openrouter, ollama_cloud]
   timeout: 300          # CPU/GPU-генерация локальной 9B — десятки секунд, 120 с мало
   max_tokens: 500
   temperature: 0.3
