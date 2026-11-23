@@ -22,6 +22,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 QUEUE = ROOT / "growth-funnel" / "queue.json"
+TRACKER_REDIRECT_PREFIX = "https://links-tracker.valdislav-n.workers.dev/r/"
 
 sys.path.insert(0, str(ROOT / "affiliate-fanout"))
 try:
@@ -122,6 +123,11 @@ def _is_trial_restriction(status: int, data: dict[str, Any]) -> bool:
     return "trial" in json.dumps(data, ensure_ascii=False).lower()
 
 
+def is_tracked_link(link: str) -> bool:
+    """Pinterest posts must go through /r/{code}; direct affiliate URLs lose attribution."""
+    return str(link or "").strip().startswith(TRACKER_REDIRECT_PREFIX)
+
+
 def post_pinterest(item: dict[str, Any], env: dict[str, str], allow_sandbox: bool = False) -> dict[str, Any]:
     token = (env.get("PINTEREST_ACCESS_TOKEN") or "").strip()
     if not token:
@@ -129,6 +135,8 @@ def post_pinterest(item: dict[str, Any], env: dict[str, str], allow_sandbox: boo
     link = str(item.get("link") or "").strip()
     if not link:
         return {"ok": False, "error": "пустой link"}
+    if not is_tracked_link(link):
+        return {"ok": False, "error": "Pinterest link must be a tracked /r/ URL"}
     board_env = str(item.get("board_id_env") or "PINTEREST_BOARD_ID")
     board_id = (env.get(board_env) or env.get("PINTEREST_BOARD_ID") or "").strip()
     if not board_id:
@@ -222,7 +230,7 @@ def main() -> int:
     for item in selected:
         platform = item.get("platform")
         if not args.execute:
-            results.append({"id": item.get("id"), "platform": platform, "ok": True, "dry_run": True, "due": item.get("due")})
+            results.append({"id": item.get("id"), "platform": platform, "ok": True, "dry_run": True, "due": item.get("due"), "link": item.get("link")})
             continue
         item["last_attempt_at"] = now_iso()
         try:

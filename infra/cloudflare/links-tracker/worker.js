@@ -279,7 +279,7 @@ export default {
       let location = dest;
       try {
         const destUrl = new URL(dest);
-        for (const key of ["epik", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]) {
+        for (const key of ["epik", "click_id", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]) {
           const value = url.searchParams.get(key);
           if (value && destUrl.searchParams.has(key) === false) destUrl.searchParams.set(key, value);
         }

@@ -2,56 +2,67 @@
   "01-europe-for-under-300": {
     "program": "aviasales",
     "partner_url": "https://aviasales.tpk.ro/b3PI8GVN",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/01-europe-for-under-300.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/01-europe-for-under-300.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-01-europe-for-under-300?utm_source=site&utm_medium=go&utm_content=01-europe-for-under-300"
   },
   "02-bali-on-a-budget": {
     "program": "aviasales",
     "partner_url": "https://aviasales.tpk.ro/rYaenwKl",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/02-bali-on-a-budget.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/02-bali-on-a-budget.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-02-bali-on-a-budget?utm_source=site&utm_medium=go&utm_content=02-bali-on-a-budget"
   },
   "03-48-hours-in-rome": {
     "program": "tiqets",
     "partner_url": "https://tiqets.tpk.ro/ufgJDVmO",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/03-48-hours-in-rome.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/03-48-hours-in-rome.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-03-48-hours-in-rome?utm_source=site&utm_medium=go&utm_content=03-48-hours-in-rome"
   },
   "04-travel-insurance-mistakes": {
     "program": "compensair",
     "partner_url": "https://compensair.tpk.ro/4klXfGpD",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/04-travel-insurance-mistakes.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/04-travel-insurance-mistakes.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-04-travel-insurance-mistakes?utm_source=site&utm_medium=go&utm_content=04-travel-insurance-mistakes"
   },
   "08-travel-esim": {
     "program": "saily",
     "partner_url": "https://saily.tpk.ro/r5oQ96LR",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/08-travel-esim.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-08-travel-esim?utm_source=site&utm_medium=go&utm_content=08-travel-esim"
   },
   "09-car-rental-no-surprises": {
     "program": "localrent",
     "partner_url": "https://localrent.tpk.ro/ZZ36vFV4",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/09-car-rental-no-surprises.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-09-car-rental-no-surprises?utm_source=site&utm_medium=go&utm_content=09-car-rental-no-surprises"
   },
   "10-airport-transfer": {
     "program": "kiwitaxi",
     "partner_url": "https://kiwitaxi.tpk.ro/xmQYmqIl",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/10-airport-transfer.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/10-airport-transfer.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-10-airport-transfer?utm_source=site&utm_medium=go&utm_content=10-airport-transfer"
   },
   "12-tours-and-experiences": {
     "program": "klook",
     "partner_url": "https://klook.tpk.ro/xqUojI5K",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/12-tours-and-experiences.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/12-tours-and-experiences.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-12-tours-and-experiences?utm_source=site&utm_medium=go&utm_content=12-tours-and-experiences"
   },
   "13-car-rental-booking-window": {
     "program": "economybookings",
     "partner_url": "https://economybookings.tpk.ro/FI2DAtBO",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/13-car-rental-booking-window.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/13-car-rental-booking-window.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-13-car-rental-booking-window?utm_source=site&utm_medium=go&utm_content=13-car-rental-booking-window"
   },
   "14-luggage-storage": {
     "program": "radicalstorage",
     "partner_url": "https://radicalstorage.tpk.ro/XilIfuay",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/14-luggage-storage.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/14-luggage-storage.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-14-luggage-storage?utm_source=site&utm_medium=go&utm_content=14-luggage-storage"
   },
   "11-skip-the-line": {
     "program": "klook",
     "partner_url": "https://klook.tpk.ro/xqUojI5K",
-    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html"
+    "hub_link": "https://valdislavn-spec.github.io/content-factory/go/11-skip-the-line.html",
+    "tracked_url": "https://links-tracker.valdislav-n.workers.dev/r/tf-pin-11-skip-the-line?utm_source=site&utm_medium=go&utm_content=11-skip-the-line"
   }
 }

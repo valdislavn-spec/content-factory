@@ -29,6 +29,11 @@ from pathlib import Path
 API_BASE = (os.environ.get("PINTEREST_API_BASE") or "https://api.pinterest.com/v5").rstrip("/")
 API = API_BASE + "/pins"
 BOARDS = API_BASE + "/boards"
+TRACKER_REDIRECT_PREFIX = "https://links-tracker.valdislav-n.workers.dev/r/"
+
+
+def is_tracked_link(link: str) -> bool:
+    return str(link or "").strip().startswith(TRACKER_REDIRECT_PREFIX)
 
 
 def token() -> str:
@@ -75,6 +80,7 @@ def publish(meta_path: Path, board_id: str, dry_run: bool) -> int:
     entries = json.loads(meta_path.read_text(encoding="utf-8"))
     ok = 0
     pending = 0
+    invalid = 0
     for entry in entries:
         payload = entry.get("payload") or {}
         body = {
@@ -85,8 +91,12 @@ def publish(meta_path: Path, board_id: str, dry_run: bool) -> int:
             "alt_text": payload.get("alt_text", ""),
             "media_source": {"source_type": "image_url", "url": entry.get("image_url", "")},
         }
+        if is_tracked_link(body["link"]) is False:
+            invalid += 1
+            print(f"[skip] {body['title'][:60]} — link is not a tracked /r/ URL: {body['link']}", file=sys.stderr)
+            continue
         if dry_run:
-            print(f"[dry-run] {body['title'][:60]} -> board {board_id}")
+            print(f"[dry-run] {body['title'][:60]} -> board {board_id} | {body['link']}")
             continue
         status, response = call("POST", API, body)
         if status in (200, 201):
@@ -98,7 +108,9 @@ def publish(meta_path: Path, board_id: str, dry_run: bool) -> int:
         else:
             print(f"failed ({status}): {response}", file=sys.stderr)
     suffix = f" (pending: {pending})" if pending else ""
-    print(f"done: {ok}/{len(entries)} published{suffix}")
+    print(f"done: {ok}/{len(entries)} published{suffix}" + (f" | invalid links: {invalid}" if invalid else ""))
+    if invalid:
+        return 1
     return 0 if dry_run or ok + pending == len(entries) else 1
 
 

@@ -17,6 +17,12 @@ from pathlib import Path
 
 API_BASE = (os.environ.get("PINTEREST_API_BASE") or "https://api.pinterest.com/v5").rstrip("/")
 API = API_BASE + "/pins"
+TRACKER_REDIRECT_PREFIX = "https://links-tracker.valdislav-n.workers.dev/r/"
+
+
+def is_tracked_link(link: str) -> bool:
+    """True only for links that go through our /r/{code} tracker."""
+    return str(link or "").strip().startswith(TRACKER_REDIRECT_PREFIX)
 
 
 def main(argv=None) -> int:
@@ -40,6 +46,9 @@ def main(argv=None) -> int:
         if args.only_affiliate and not meta.get("affiliate"):
             continue
         payload = dict(meta.get("pin") or {})
+        if args.only_affiliate and not is_tracked_link(payload.get("link", "")):
+            print("skip %s: affiliate link is not a tracked /r/ URL" % file.name)
+            continue
         if args.board:
             payload["board_id"] = args.board
         if "<BOARD_ID>" in str(payload.get("board_id", "")):

@@ -10,13 +10,20 @@ from __future__ import annotations
 
 import json
 import html
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from content_factory.integrations.tracked_links import guide_code, tracker_url
+
 DOCS = ROOT / "docs"
 TRAVEL = DOCS / "travel"
 PUB = "https://valdislavn-spec.github.io/content-factory"
 TODAY = "2026-11-11"
+
+ATTRIBUTION_TAG = '<script src="../assets/cf-attribution.js" defer></script>'
 
 DRIVE = '''  <!-- Travelpayouts Drive -->
   <script nowprocket data-noptimize="1" data-cfasync="false" data-wpfc-render="false" seraph-accel-crit="1" data-no-defer="1" data-cmp-ab="2">
@@ -195,7 +202,7 @@ def render(article: dict, all_links: str) -> str:
         f'<meta property="og:url" content="{PUB}/travel/{article["slug"]}.html">',
         '<meta name="robots" content="index,follow">',
         f'<script type="application/ld+json">{schema}</script>',
-        DRIVE + '</head>',
+        ATTRIBUTION_TAG + '\n' + DRIVE + '</head>',
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fff">',
         '<div style="max-width:760px;margin:0 auto;padding:32px 20px 60px">',
         f'<p style="margin:0 0 18px"><a href="{PUB}/" style="color:#2563eb;text-decoration:none">← All channels</a> · <a href="{PUB}/travel/" style="color:#2563eb;text-decoration:none">Travel guides</a></p>',
@@ -207,8 +214,15 @@ def render(article: dict, all_links: str) -> str:
         parts.append(f'<h2 style="font-size:22px;margin:26px 0 8px">{html.escape(heading)}</h2>')
         parts.append(f'<p style="font-size:16px;line-height:1.65;color:#374151">{html.escape(body)}</p>')
     cta_text, cta_link = article["cta"]
+    if cta_link.startswith("/go/") and cta_link.endswith(".html"):
+        cta_slug = cta_link[len("/go/"):-len(".html")]
+        cta_href = tracker_url(guide_code(cta_slug), utm_source="site", utm_medium="guide", utm_content=article["slug"])
+        cta_rel = ' rel="sponsored nofollow noopener"'
+    else:
+        cta_href = PUB + cta_link
+        cta_rel = ''
     parts += [
-        f'<p style="margin:30px 0 8px"><a href="{PUB}{cta_link}" style="display:inline-block;background:#f59e0b;color:#111;font-weight:600;padding:12px 20px;border-radius:100px;text-decoration:none">{html.escape(cta_text)} →</a></p>',
+        f'<p style="margin:30px 0 8px"><a href="{cta_href}"{cta_rel} style="display:inline-block;background:#f59e0b;color:#111;font-weight:600;padding:12px 20px;border-radius:100px;text-decoration:none">{html.escape(cta_text)} →</a></p>',
         '<p style="color:#6b7280;font-size:13px">Ad · affiliate link. Prices and availability change.</p>',
         '<hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0">',
         f'<p style="font-size:14px;color:#374151">More guides: {all_links}</p>',
@@ -230,7 +244,7 @@ def render_index() -> str:
         '<meta name="description" content="Practical travel guides: cheap European city breaks, Bali on a budget, 48 hours in Rome, eSIM, airport transfers, luggage storage and car rental tips.">',
         f'<link rel="canonical" href="{PUB}/travel/">',
         '<meta name="robots" content="index,follow">',
-        DRIVE + '</head>',
+        ATTRIBUTION_TAG + '\n' + DRIVE + '</head>',
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;background:#fff">',
         '<div style="max-width:760px;margin:0 auto;padding:32px 20px 60px">',
         f'<p style="margin:0 0 18px"><a href="{PUB}/" style="color:#2563eb;text-decoration:none">← All channels</a></p>',

@@ -5,8 +5,8 @@ Pipeline:
 1. read config/travelpayouts.yaml (programs + pin → program mapping);
 2. convert brand URLs to partner links via Travelpayouts links API;
 3. write hub redirect pages docs/go/<slug>.html (noindex) for each converted pin;
-4. rebuild docs/pinterest-import.csv with Link = <hub>/go/<slug>.html for those
-   pins and the plain hub for the rest.
+4. rebuild docs/pinterest-import.csv with Link = tracked /r/tf-pin-<slug>
+   for those pins and the plain hub for the rest.
 
 Env: TRAVELPAYOUTS_TOKEN, TRAVELPAYOUTS_MARKER, TRAVELPAYOUTS_TRS.
 """
@@ -22,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from content_factory.integrations.tracked_links import pin_code, tracker_url  # noqa: E402
 from content_factory.integrations.travelpayouts import (  # noqa: E402
     TravelpayoutsClient,
     TravelpayoutsError,
@@ -113,8 +114,10 @@ def main(argv=None) -> int:
             print("skip (conversion failed):", slug, program)
             continue
         page = go_dir / (slug + ".html")
-        page.write_text(redirect_page(link, title="Redirecting to our travel partner"), encoding="utf-8")
-        affiliate_map[slug] = {"program": program, "partner_url": link, "hub_link": "%s/go/%s.html" % (hub, slug)}
+        tracked = tracker_url(pin_code(slug), utm_source="site", utm_medium="go", utm_content=slug)
+        page.write_text(redirect_page(tracked, title="Redirecting to our travel partner"), encoding="utf-8")
+        pin_tracked = tracker_url(pin_code(slug), utm_source="pinterest", utm_medium="pin", utm_content=slug)
+        affiliate_map[slug] = {"program": program, "partner_url": link, "tracked_url": pin_tracked, "hub_link": "%s/go/%s.html" % (hub, slug)}
         print("affiliate page:", page.name, "->", program)
 
     (go_dir / "affiliate-map.json").write_text(json.dumps(affiliate_map, indent=2), encoding="utf-8")
@@ -123,7 +126,7 @@ def main(argv=None) -> int:
     for slug, meta in pins.items():
         pin = meta.get("pin") or {}
         niche = str(meta.get("niche") or "travel")
-        link = affiliate_map.get(slug, {}).get("hub_link") or (hub + "/")
+        link = affiliate_map.get(slug, {}).get("tracked_url") or affiliate_map.get(slug, {}).get("hub_link") or (hub + "/")
         description = str(pin.get("description") or "")
         if slug in affiliate_map and "Ad" not in description:
             description = (description + " Ad · affiliate link")[:500]

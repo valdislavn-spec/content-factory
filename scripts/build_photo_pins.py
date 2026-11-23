@@ -27,6 +27,7 @@ from content_factory.integrations.partner_links import (
     resolve_program_link,
     validate_link,
 )
+from content_factory.integrations.tracked_links import tracker_url  # noqa: E402
 from content_factory.brand.design import (  # noqa: E402
     DISCLOSURE_AFFILIATE,
     PIN_SIZE,
@@ -189,12 +190,15 @@ def main(argv=None) -> int:
     partner_links = load_partner_links()
     resolved_links = {}
     for item in pins:
-        link = resolve_program_link(item.get("program"), partner_links, fallback=public_base + "/")
-        problems = validate_link(link)
+        direct = resolve_program_link(item.get("program"), partner_links, fallback=public_base + "/")
+        problems = validate_link(direct)
         if problems:
             print("pin %s: неактивная ссылка: %s" % (item["slug"], "; ".join(problems)), file=sys.stderr)
             return 2
-        resolved_links[item["slug"]] = link
+        code = "tf-pin-v5-" + item["slug"]
+        resolved_links[item["slug"]] = tracker_url(
+            code, utm_source="pinterest", utm_medium="pin", utm_content=item["slug"]
+        )
     if args.check_links:
         print("live-check partner links:")
         bad = []

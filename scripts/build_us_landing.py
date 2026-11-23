@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import re
+from urllib.parse import quote
 from datetime import date
 from pathlib import Path
 
@@ -21,6 +22,7 @@ BASE = "https://valdislavn-spec.github.io/content-factory/flight-hotel-us"
 TELEGRAM_URL = "https://t.me/GOODTRAVEL007"
 # Direct channel link is used until a permanent public invite is generated.
 DISCORD_URL = "https://discord.com/channels/1467224878875807878/1571257984364060722"
+TRACKER_BASE = "https://links-tracker.valdislav-n.workers.dev"
 PROMOS_JSON = ROOT.parent / ".local" / "distribution" / "us-promos.json"
 FARES_JSON = ROOT / "docs" / "flight-hotel-us" / "fares.json"
 
@@ -104,9 +106,13 @@ BRAND_LINKS = {
 }
 
 
+def tracked_url(program: str, content: str) -> str:
+    return "{}/r/us-{}?utm_source=site&utm_medium=landing&utm_content={}".format(
+        TRACKER_BASE, program, quote(str(content), safe=""))
+
 def tracked(brand: str) -> str:
     key = BRAND_LINKS.get(re.sub(r"[^a-z0-9]", "", brand.lower()))
-    return LINKS.get(key or "", "")
+    return tracked_url(key, brand) if key else ""
 
 
 def load_promos() -> list[dict]:
@@ -153,7 +159,7 @@ def fares_html() -> str:
         stops = "nonstop" if int(f.get("transfers", 0)) == 0 else f"{f.get('transfers')} stop"
         airline = AIRLINE_NAMES.get(f.get("airline", ""), f.get("airline", ""))
         cards.append(
-            f'<a class="fare" href="{LINKS["aviasales"]}" target="_blank" rel="noopener sponsored">'
+            f'<a class="fare" href="{tracked_url("aviasales", "Fares")}" target="_blank" rel="noopener sponsored">'
             f'<span class="fare-route"><b>{esc(origin)} → {esc(dest)}</b>'
             f'<span>{esc(origin_name)} → {esc(dest_name)}</span></span>'
             f'<span class="fare-price">${int(f["price"]):,}</span>'
@@ -181,7 +187,7 @@ def promos_html(promos: list[dict]) -> str:
         terms = esc(p.get("terms", ""))
         code = p.get("promo_code") or ""
         until = p.get("valid_until") or ""
-        track = p.get("affiliate_url") or tracked(brand)
+        track = tracked(brand) or p.get("affiliate_url")
         url = track or p.get("source_url") or "#"
         ext = "" if track else '<span class="ext">official page</span>'
         code_html = f'<span class="code">{esc(code)}</span>' if code else ""
@@ -210,8 +216,8 @@ def destinations_html() -> str:
             f'<article class="card"><div class="card-top"><span class="emoji">{emoji}</span>'
             f'<h3>{esc(name)}</h3><span class="tag">{esc(region)}</span></div>'
             f'<div class="facts"><span>🛫 {esc(flight)}</span><span>📅 Best: {esc(season)}</span></div>'
-            f'<div class="ctas"><a href="{LINKS["aviasales"]}" target="_blank" rel="noopener sponsored">Flights →</a>'
-            f'<a href="{LINKS[cta]}" target="_blank" rel="noopener sponsored">Experiences →</a></div></article>')
+            f'<div class="ctas"><a href="{tracked_url("aviasales", "Fares")}" target="_blank" rel="noopener sponsored">Flights →</a>'
+            f'<a href="{tracked_url(cta, name)}" target="_blank" rel="noopener sponsored">Experiences →</a></div></article>')
     return f"""
 <section class="sec" id="destinations">
   <h2>🌎 Where to go from the US</h2>
@@ -225,7 +231,7 @@ def tools_html() -> str:
     cards = []
     for title, emoji, text, pairs in TOOLS:
         refs = " · ".join(
-            f'<a href="{LINKS[key]}" target="_blank" rel="noopener sponsored">{esc(label)}</a>'
+            f'<a href="{tracked_url(key, label)}" target="_blank" rel="noopener sponsored">{esc(label)}</a>'
             for key, label in pairs)
         cards.append(f'<div class="tool"><b>{emoji} {esc(title)}</b><span>{esc(text)}</span><span>{refs}</span></div>')
     return f"""
@@ -249,7 +255,7 @@ def social_html() -> str:
 
 def top_partners_html() -> str:
     cards = "".join(
-        f'<a class="partner" href="{LINKS[key]}" target="_blank" rel="noopener sponsored">'
+        f'<a class="partner" href="{tracked_url(key, title)}" target="_blank" rel="noopener sponsored">'
         f'<span class="partner-icon">{emoji}</span>'
         f'<span class="partner-body"><b>{esc(title)}</b><span>{esc(text)}</span></span>'
         f'<span class="partner-cta">{esc(cta)} →</span></a>'
@@ -377,6 +383,7 @@ footer a {{ color:#a5b4fc; }}
 .partner-cta {{ color:#c4b5fd; font-size:12px; font-weight:800; white-space:nowrap; }}
 @media (max-width:820px) {{ .kpis {{ grid-template-columns:repeat(2,1fr); }} }}
 </style>
+<script src="../assets/cf-attribution.js" defer></script>
 </head>
 <body>
 <div class="hero"><div class="wrap">
@@ -410,13 +417,9 @@ def main() -> int:
     html = build()
     from seo_enhance import enhance_us
     html = enhance_us(html)
-    from add_subscribe_forms import EN_BLOCK, ENDPOINT
+    from add_subscribe_forms import block_for
     if 'id="subscribe"' not in html:
-        html = html.replace(
-            '<footer>',
-            EN_BLOCK.replace('__SOURCE__', 'landing-us').replace('__ENDPOINT__', ENDPOINT) + '<footer>',
-            1,
-        )
+        html = html.replace('<footer>', block_for('en', 'landing-us') + '<footer>', 1)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(html, encoding="utf-8")
     promos = len(load_promos())

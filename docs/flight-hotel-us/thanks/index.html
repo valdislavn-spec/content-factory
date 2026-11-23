@@ -20,21 +20,41 @@ p { color:#c7d2fe; line-height:1.65; font-size:15px; }
 .small a { color:#a5b4fc; }
 .partners { margin-top:26px; padding-top:18px; border-top:1px solid rgba(148,163,255,.15); font-size:13px; line-height:1.9; color:#94a3c6; }
 .partners a { color:#c4b5fd; }
-</style></head><body>
+</style><script src="../../assets/cf-attribution.js" defer></script></head><body>
 <main class="card">
 <div class="tag">TRAVELATA · US DEALS</div>
 <h1>Your fare cheat sheet is ready</h1>
-<p>Thanks for subscribing. Download the PDF with 12 winter escapes, sample one-way fares from US hubs, and a 7-point booking checklist.</p>
-<a class="btn" href="../12-winter-escapes-us.pdf" download>Download the free PDF →</a>
+<p>Thanks for subscribing. Your PDF is downloading automatically. It has 12 winter escapes, sample one-way fares from US hubs, and a 7-point booking checklist.</p>
+<a class="btn" id="pdf-download" href="../12-winter-escapes-us.pdf" download>Download the free PDF →</a>
 <a class="btn secondary" href="../">Open the live fare board</a>
 <p class="small">Want more than one email a week? Join the travel chat:<br>
 <a href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Telegram</a> ·
 <a href="https://discord.com/channels/1467224878875807878/1571257984364060722" target="_blank" rel="noopener">Discord</a></p>
 <div class="partners">Useful before you book:<br>
-<a href="https://kiwitaxi.tpk.ro/xmQYmqIl" target="_blank" rel="noopener sponsored nofollow"">Airport transfers — Kiwitaxi</a> ·
-<a href="https://aviasales.tpk.ro/2ZW95Xpf" target="_blank" rel="noopener sponsored nofollow"">Flights — Aviasales</a> ·
-<a href="https://saily.tpk.ro/QSNyiXp7" target="_blank" rel="noopener sponsored nofollow"">eSIM — Saily</a><br>
+<a href="https://links-tracker.valdislav-n.workers.dev/r/us-kiwitaxi?utm_source=site&amp;utm_medium=thanks&amp;utm_content=transfers" target="_blank" rel="noopener sponsored nofollow">Airport transfers — Kiwitaxi</a> ·
+<a href="https://links-tracker.valdislav-n.workers.dev/r/us-aviasales?utm_source=site&amp;utm_medium=thanks&amp;utm_content=flights" target="_blank" rel="noopener sponsored nofollow">Flights — Aviasales</a> ·
+<a href="https://links-tracker.valdislav-n.workers.dev/r/us-saily?utm_source=site&amp;utm_medium=thanks&amp;utm_content=esim" target="_blank" rel="noopener sponsored nofollow">eSIM — Saily</a><br>
 Affiliate links: we may earn a commission, the price you pay stays the same.</div>
 <p class="small">No PDF? Check your browser’s download folder, or <a href="../12-winter-escapes-us.pdf">open it here</a>.</p>
 </main>
+
+<script>
+(function () {
+  var link = document.getElementById("pdf-download");
+  if (link === null) return;
+  fetch(link.getAttribute("href")).then(function (response) {
+    if (response.ok === false) throw new Error("pdf fetch failed");
+    return response.blob();
+  }).then(function (blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "12-winter-escapes-us.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }).catch(function () {});
+})();
+</script>
 </body></html>
