@@ -3,6 +3,7 @@
  * Keep this process alive with: nohup node growth-funnel/pinterest_scheduler.cjs > growth-funnel/pinterest-scheduler.log 2>&1 &
  */
 const { spawn } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -21,6 +22,7 @@ function runOnce() {
     return;
   }
   running = true;
+  try { fs.rmSync('/tmp/goodtravel-pinterest.lock', { force: true }); } catch (err) {}
   console.log(stamp(), 'start pinterest publish');
   const child = spawn(NODE, [PUBLISHER], {
     cwd: ROOT,
