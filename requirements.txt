@@ -9,5 +9,5 @@ PyYAML>=6.0
 # Для тестов (необязательно): python -m pip install pytest
 
 # фото-карточки постов (Playfair Display + Inter)
-Pillow>=10.0
+Pillow>=12.3.0
 segno>=1.6
