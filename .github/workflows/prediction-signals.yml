@@ -43,7 +43,7 @@ jobs:
       - name: Ensure data dir
         run: mkdir -p data
       - name: Restore prediction state
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: data/prediction_state.json
           key: prediction-state-${{ github.run_id }}

@@ -82,7 +82,7 @@ jobs:
 
       # SQLite с таблицами telegram_posts/telegram_channel_metrics.
       - name: Restore SQLite state
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             data/factory.sqlite3
