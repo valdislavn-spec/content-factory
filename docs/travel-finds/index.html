@@ -259,13 +259,24 @@
   <script src="assets/main.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      var url = "";
       if (window.CFAttr && window.CFAttr.botStart) {
-        var url = window.CFAttr.botStart("src_travelkit");
-        var ids = ["bot-cta", "bot-cta-bottom"];
-        for (var i = 0; i < ids.length; i += 1) {
-          var el = document.getElementById(ids[i]);
-          if (el) el.href = url;
+        url = window.CFAttr.botStart("src_travelkit");
+      } else {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var src = (params.get("utm_source") || "direct").replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 24);
+          var content = (params.get("utm_content") || "travelkit").replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 24);
+          var payload = ("src_travelkit_" + src + "_" + content).slice(0, 64);
+          url = "https://t.me/Novyi0007Bot?start=" + encodeURIComponent(payload);
+        } catch (e) {
+          url = "https://t.me/Novyi0007Bot?start=src_travelkit";
         }
+      }
+      var ids = ["bot-cta", "bot-cta-bottom"];
+      for (var i = 0; i < ids.length; i += 1) {
+        var el = document.getElementById(ids[i]);
+        if (el && url) el.href = url;
       }
     });
   </script>
