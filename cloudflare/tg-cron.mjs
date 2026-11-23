@@ -27,10 +27,10 @@ function ghHeaders(env) {
 }
 
 async function latestRun(env) {
-  const res = await fetch(api('/actions/runs?per_page=8'), { headers: ghHeaders(env) });
+  const res = await fetch(api('/actions/workflows/' + GH_WORKFLOW + '/runs?per_page=8'), { headers: ghHeaders(env) });
   if (!res.ok) return { error: res.status, text: (await res.text()).slice(0, 200) };
   const data = await res.json();
-  const runs = (data.workflow_runs || []).filter((r) => r.name === RUN_NAME);
+  const runs = data.workflow_runs || [];
   const last = runs[0];
   if (!last) return { none: true };
   return {

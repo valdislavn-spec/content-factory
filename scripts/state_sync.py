@@ -34,6 +34,63 @@ KEEP_DAYS = 3
 MAX_BYTES = 45000
 
 
+def _load_state(path: Path):
+    if not path.exists():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def _last_check(state) -> datetime | None:
+    if not isinstance(state, dict):
+        return None
+    raw = state.get("last_check")
+    if not raw:
+        return None
+    try:
+        value = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _merge_done(local, remote) -> dict:
+    result = {}
+    for source in (remote, local):
+        if not isinstance(source, dict):
+            continue
+        for channel_id, slots in (source.get("done") or {}).items():
+            bucket = result.setdefault(str(channel_id), [])
+            if not isinstance(slots, list):
+                continue
+            for slot in slots:
+                value = str(slot)
+                if value not in bucket:
+                    bucket.append(value)
+    return result
+
+
+def _merge_state(local, remote) -> dict:
+    merged = dict(local)
+    merged["done"] = _merge_done(local, remote)
+    return merged
+
+
+def _not_older(local, remote) -> bool:
+    local_check = _last_check(local)
+    remote_check = _last_check(remote)
+    if local_check is None:
+        return False
+    if remote_check is None:
+        return True
+    return local_check >= remote_check
+
+
 def token() -> str:
     return os.environ.get("ALERT_GITHUB_TOKEN", "").strip() or os.environ.get("GITHUB_TOKEN", "").strip()
 
@@ -102,6 +159,7 @@ def load_files():
 
 def pull() -> int:
     remote = get_remote_state()
+    d1_has_state = False
     if remote.enabled:
         written = 0
         for key, path in FILES.items():
@@ -110,11 +168,19 @@ def pull() -> int:
             except Exception as exc:  # noqa: BLE001 - GitHub fallback ниже
                 print(f"state pull: D1 {key} недоступен ({type(exc).__name__})")
                 continue
-            if isinstance(state, dict):
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
-                written += 1
-        if written:
+            if not isinstance(state, dict):
+                continue
+            d1_has_state = True
+            local = _load_state(path)
+            if local is not None and not _not_older(state, local):
+                # В локальном кэше более свежий last_check: не откатываем его.
+                print(f"state pull: {key} — локальное состояние свежее D1, оставляю")
+                continue
+            merged = _merge_state(state, local) if local is not None else state
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(merged, ensure_ascii=False), encoding="utf-8")
+            written += 1
+        if d1_has_state:
             print(f"state pull: D1, записано файлов {written}")
             return 0
 
@@ -132,8 +198,13 @@ def pull() -> int:
     for key, path in FILES.items():
         state = payload.get(key)
         if isinstance(state, dict):
+            local = _load_state(path)
+            if local is not None and not _not_older(state, local):
+                print(f"state pull: {key} — локальное состояние свежее GitHub, оставляю")
+                continue
+            merged = _merge_state(state, local) if local is not None else state
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            path.write_text(json.dumps(merged, ensure_ascii=False), encoding="utf-8")
             written += 1
     print(f"state pull: записано файлов {written}")
     return 0
@@ -144,20 +215,47 @@ def push() -> int:
     if not payload:
         print("state push: нет файлов состояния — пропуск")
         return 0
-    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
     remote = get_remote_state()
+    accepted = {}
     remote_saved = 0
+    skipped_older = False
     if remote.enabled:
         for key, state in payload.items():
             try:
-                remote.put_state(key, state)
-                remote_saved += 1
+                existing = remote.get_state(key)
             except Exception as exc:  # noqa: BLE001 - GitHub остаётся резервом
-                print(f"state push: D1 {key} ошибка ({type(exc).__name__})")
+                print(f"state push: D1 {key} чтение ошибка ({type(exc).__name__})")
+                accepted[key] = state
+                continue
+            if isinstance(existing, dict) and not _not_older(state, existing):
+                skipped_older = True
+                print(f"state push: {key} — D1 свежее локального, не откатываю")
+                continue
+            merged = _merge_state(state, existing) if isinstance(existing, dict) else state
+            try:
+                remote.put_state(key, merged)
+            except Exception as exc:  # noqa: BLE001
+                print(f"state push: D1 {key} запись ошибка ({type(exc).__name__})")
+                accepted[key] = merged
+                continue
+            remote_saved += 1
+            accepted[key] = merged
+            path = FILES[key]
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(merged, ensure_ascii=False), encoding="utf-8")
         if remote_saved:
             print(f"state push: D1 ok ({remote_saved} шт.)")
 
+    if skipped_older:
+        print("state push: GitHub не трогаю — хотя бы один файл старее D1")
+        return 0
+
+    if not accepted:
+        print("state push: нечего сохранять — пропуск")
+        return 0
+
+    raw = json.dumps(accepted, ensure_ascii=False, separators=(",", ":"))
     if len(raw.encode()) > MAX_BYTES:
         if remote_saved:
             print("state push: GitHub пропущен — состояние больше лимита, D1 сохранено")
@@ -168,7 +266,22 @@ def push() -> int:
     if not token():
         print("state push: GitHub token отсутствует — D1 достаточно")
         return 0
+
     status, data = api("GET", f"/actions/variables/{VAR}")
+    github_payload = {}
+    if status == 200 and isinstance(data, dict):
+        try:
+            parsed = json.loads(str(data.get("value") or ""))
+            if isinstance(parsed, dict):
+                github_payload = parsed
+        except ValueError:
+            github_payload = {}
+    for key, state in accepted.items():
+        existing = github_payload.get(key)
+        if isinstance(existing, dict) and not _not_older(state, existing):
+            print(f"state push: GitHub {key} свежее локального, не откатываю")
+            return 0
+
     if status == 200:
         status, data = api("PATCH", f"/actions/variables/{VAR}", {"name": VAR, "value": raw})
     else:
