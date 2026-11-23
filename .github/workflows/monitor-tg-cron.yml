@@ -1,0 +1,217 @@
+name: monitor-tg-cron
+
+# Второй, независимый контур мониторинга: GitHub проверяет публичный health
+# Worker tg-cron. Если Worker или его D1-очередь сломались — workflow падает
+# и отправляет Telegram-алерт. Если Worker жив, но его cron молчит — это
+# ловит уже сам Worker через свой health.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monitor-tg-cron
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      WORKER_URL: https://tg-cron.valdislav-n.workers.dev/
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ALERT_CHAT_ID: ${{ secrets.TELEGRAM_ALERT_CHAT_ID }}
+      ALERT_GITHUB_TOKEN: ${{ secrets.ALERT_GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+
+    steps:
+      - name: Probe Worker health
+        id: probe
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          url = os.environ["WORKER_URL"]
+          request = urllib.request.Request(
+              url, headers={"User-Agent": "content-factory-monitor/1.0"}
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  status = response.status
+                  data = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as exc:
+              status = exc.code
+              raw = exc.read().decode("utf-8", "replace")
+              print("health HTTP", status, raw[:1000])
+              sys.exit(1)
+          except Exception as exc:
+              print("health request failed:", type(exc).__name__, exc)
+              sys.exit(1)
+
+          print("health HTTP", status)
+          print(json.dumps(data, ensure_ascii=False)[:2000])
+          queue = data.get("queue") or {}
+          if data.get("ok") is not True:
+              print("health is not ok")
+              sys.exit(1)
+          if queue.get("stuck") is True:
+              print("retry queue is stuck")
+              sys.exit(1)
+          PY
+
+      - name: Telegram alert on failure
+        if: failure()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timedelta, timezone
+
+          repo = os.environ["GH_REPO"]
+          token = os.environ.get("ALERT_GITHUB_TOKEN", "").strip()
+          var_name = "TG_MONITOR_LAST_ALERT"
+          headers = {
+              "Authorization": "Bearer " + token,
+              "Accept": "application/vnd.github+json",
+              "User-Agent": "content-factory-monitor",
+              "Content-Type": "application/json",
+          }
+          base = "https://api.github.com/repos/" + repo
+
+          def gh(method, path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              request = urllib.request.Request(
+                  base + path, data=data, headers=headers, method=method
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      return response.status, json.loads(response.read().decode() or "{}")
+              except urllib.error.HTTPError as exc:
+                  return exc.code, exc.read().decode("utf-8", "replace")
+
+          state = {}
+          status, data = gh("GET", "/actions/variables/" + var_name)
+          if status == 200 and isinstance(data, dict):
+              try:
+                  state = json.loads(str(data.get("value") or "{}"))
+              except ValueError:
+                  state = {}
+
+          last = state.get("last_alert_at")
+          if last:
+              try:
+                  passed = datetime.now(timezone.utc) - datetime.fromisoformat(
+                      str(last).replace("Z", "+00:00")
+                  )
+                  if passed < timedelta(minutes=180):
+                      print("alert cooldown active:", last)
+                      sys.exit(0)
+              except ValueError:
+                  pass
+
+          text = (
+              "❌ monitor-tg-cron: Worker или D1 health не в порядке. "
+              "Проверь https://github.com/" + repo + "/actions и Worker tg-cron."
+          )
+          bot = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+          chat = os.environ.get("TELEGRAM_ALERT_CHAT_ID", "").strip()
+          if bot and chat:
+              body = urllib.parse.urlencode({"chat_id": chat, "text": text[:3900]}).encode()
+              request = urllib.request.Request(
+                  "https://api.telegram.org/bot" + bot + "/sendMessage",
+                  data=body,
+                  headers={"Content-Type": "application/x-www-form-urlencoded"},
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      print("telegram", response.status)
+              except Exception as exc:
+                  print("telegram error:", type(exc).__name__, exc)
+          else:
+              print("telegram skipped: secrets missing")
+
+          state["last_alert_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+          state["alert_active"] = True
+          value = json.dumps(state, ensure_ascii=False)
+          if status == 200:
+              gh("PATCH", "/actions/variables/" + var_name, {"name": var_name, "value": value})
+          else:
+              gh("POST", "/actions/variables", {"name": var_name, "value": value})
+          PY
+
+      - name: Telegram recovery
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          repo = os.environ["GH_REPO"]
+          token = os.environ.get("ALERT_GITHUB_TOKEN", "").strip()
+          var_name = "TG_MONITOR_LAST_ALERT"
+          headers = {
+              "Authorization": "Bearer " + token,
+              "Accept": "application/vnd.github+json",
+              "User-Agent": "content-factory-monitor",
+              "Content-Type": "application/json",
+          }
+          base = "https://api.github.com/repos/" + repo
+
+          def gh(method, path, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              request = urllib.request.Request(
+                  base + path, data=data, headers=headers, method=method
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      return response.status, json.loads(response.read().decode() or "{}")
+              except urllib.error.HTTPError as exc:
+                  return exc.code, exc.read().decode("utf-8", "replace")
+
+          status, data = gh("GET", "/actions/variables/" + var_name)
+          state = {}
+          if status == 200 and isinstance(data, dict):
+              try:
+                  state = json.loads(str(data.get("value") or "{}"))
+              except ValueError:
+                  state = {}
+          if state.get("alert_active") is not True:
+              print("no active monitor alert")
+              sys.exit(0)
+
+          bot = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+          chat = os.environ.get("TELEGRAM_ALERT_CHAT_ID", "").strip()
+          if bot and chat:
+              text = "✅ monitor-tg-cron: Worker и D1 health снова в норме."
+              body = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
+              request = urllib.request.Request(
+                  "https://api.telegram.org/bot" + bot + "/sendMessage",
+                  data=body,
+                  headers={"Content-Type": "application/x-www-form-urlencoded"},
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      print("telegram", response.status)
+              except Exception as exc:
+                  print("telegram error:", type(exc).__name__, exc)
+
+          state["alert_active"] = False
+          state["last_recovery_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+          value = json.dumps(state, ensure_ascii=False)
+          gh("PATCH", "/actions/variables/" + var_name, {"name": var_name, "value": value})
+          PY
