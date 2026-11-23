@@ -67,7 +67,7 @@ jobs:
         run: python scripts/telegram_branding.py --dump-photos avatars-out
       - name: Upload avatars
         if: always() && inputs.dump
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: channel-avatars
           path: avatars-out/
