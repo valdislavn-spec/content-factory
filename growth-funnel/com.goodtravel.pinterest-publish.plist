@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.goodtravel.pinterest-publish</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>cd /Users/vd/Documents/deepseek-harness/default-workspace/content-factory; PLAYWRIGHT_BROWSERS_PATH=/Users/vd/Documents/deepseek-harness/default-workspace/tools/playwright-mcp/ms-playwright /Users/vd/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node growth-funnel/pinterest_playwright_publish.cjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/vd/Documents/deepseek-harness/default-workspace/content-factory</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PLAYWRIGHT_BROWSERS_PATH</key>
+    <string>/Users/vd/Documents/deepseek-harness/default-workspace/tools/playwright-mcp/ms-playwright</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Hour</key><integer>10</integer><key>Minute</key><integer>15</integer></dict>
+    <dict><key>Hour</key><integer>18</integer><key>Minute</key><integer>15</integer></dict>
+  </array>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/growth-funnel/pinterest-publish.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/vd/Documents/deepseek-harness/default-workspace/content-factory/growth-funnel/pinterest-publish.err.log</string>
+</dict>
+</plist>

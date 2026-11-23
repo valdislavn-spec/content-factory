@@ -91,6 +91,10 @@
           <li>Hotels and apartments</li>
           <li>No hidden fees from this site</li>
         </ul>
+        <div class="hero__cta">
+          <a id="bot-cta" class="deal__cta" href="https://t.me/Novyi0007Bot?start=src_travelkit" target="_blank" rel="noopener">Get the free Travel Kit in Telegram →</a>
+          <p class="muted" style="margin:10px 0 0">Cheap-flight checklist, city-break budgets, eSIM and insurance picks. Free, no spam.</p>
+        </div>
       </section>
 
       <!--
@@ -110,8 +114,8 @@
             <span>Search opens with our partner — the price is the same, and a small share supports this site.</span>
           </div>
           <div class="wf__actions">
-            <a href="https://www.kiwi.com/" data-affiliate-program="kiwi" data-affiliate-target="https://www.kiwi.com/" rel="sponsored nofollow noopener">Search flights</a>
-            <a href="https://kiwitaxi.com/" data-affiliate-program="kiwitaxi" data-affiliate-target="https://kiwitaxi.com/" rel="sponsored nofollow noopener">Book a transfer</a>
+            <a href="https://links-tracker.valdislav-n.workers.dev/r/offer-kiwi" data-affiliate-program="kiwi" data-affiliate-target="https://www.kiwi.com/" rel="sponsored nofollow noopener">Search flights</a>
+            <a href="https://links-tracker.valdislav-n.workers.dev/r/offer-kiwitaxi" data-affiliate-program="kiwitaxi" data-affiliate-target="https://kiwitaxi.com/" rel="sponsored nofollow noopener">Book a transfer</a>
           </div>
         </div>
         <p class="muted" style="font-size:12px;margin:12px 0 0">Ad · affiliate link. See the affiliate disclosure below.</p>
@@ -172,12 +176,13 @@
 <article class="deal"><span class="sample-tag">guide</span><div class="deal__route">US airport transfers</div><div class="deal__meta">taxi · rideshare · private transfer</div><div class="deal__price">fixed-price options</div><a class="deal__cta" href="guides/us-airport-transfers.html">Plan arrival</a></article>
 </div></section>
       <section class="section" id="telegram" aria-labelledby="telegram-title">
-        <h2 id="telegram-title">Our Telegram channel</h2>
+        <h2 id="telegram-title">Get the free Travel Kit</h2>
         <p class="section__lead">
-          Daily travel finds and practical tips — the same picks we put on this page,
-          but as they come up. No spam, unsubscribe in one tap.
+          Open the bot for the cheap-flight checklist, city-break budgets and the
+          eSIM/insurance picks. The channel has the daily finds.
         </p>
-        <p><a class="deal__cta" href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Open @GOODTRAVEL007 →</a></p>
+        <p><a id="bot-cta-bottom" class="deal__cta" href="https://t.me/Novyi0007Bot?start=src_travelkit" target="_blank" rel="noopener">Open @Novyi0007Bot →</a></p>
+        <p style="margin-top:10px"><a href="https://t.me/GOODTRAVEL007" target="_blank" rel="noopener">Or follow the @GOODTRAVEL007 channel →</a></p>
       </section>
 
       <section class="section" id="how" aria-labelledby="how-title">
@@ -252,5 +257,17 @@
 
   <script src="assets/site-config.js?v=20261116"></script>
   <script src="assets/main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.CFAttr && window.CFAttr.botStart) {
+        var url = window.CFAttr.botStart("src_travelkit");
+        var ids = ["bot-cta", "bot-cta-bottom"];
+        for (var i = 0; i < ids.length; i += 1) {
+          var el = document.getElementById(ids[i]);
+          if (el) el.href = url;
+        }
+      }
+    });
+  </script>
 </body>
 </html>

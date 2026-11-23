@@ -1,0 +1,32 @@
+name: travel-report
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LINK_TRACKER_BASE: https://links-tracker.valdislav-n.workers.dev
+      LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_API_BASE: https://telegram-proxy.valdislav-n.workers.dev
+      GROWTH_STATS_TOKEN: ${{ secrets.GROWTH_STATS_TOKEN }}
+      GROWTH_ADMIN_ID: "8337412751"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and send report
+        run: python3 growth-funnel/travel_report.py --send --json
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-report
+          path: growth-funnel/reports/
+          if-no-files-found: warn

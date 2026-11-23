@@ -29,7 +29,7 @@ done
 
 curl -s -X PUT "$API/workers/scripts/$NAME/schedules" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
-  -d '[{"cron":"17 10,14,16,18,22 * * *"},{"cron":"10 3 * * *"},{"cron":"0 */5 * * *"}]' \
+  -d '[{"cron":"5 9 * * *"},{"cron":"30 9 * * *"}]' \
   -o /dev/null -w 'schedules HTTP %{http_code}\n'
 
 curl -s -X POST "$API/workers/scripts/$NAME/subdomain" \

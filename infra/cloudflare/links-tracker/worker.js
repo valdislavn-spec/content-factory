@@ -105,7 +105,71 @@ export default {
 
     if (path === "/" || path === "") {
       return json({ ok: true, service: "cf-links", storage: "d1",
-        endpoints: ["/r/{code}", "/c/{code}", "/stats", "/admin/links", "/subscribe", "/admin/subscribers", "/admin/conversion", "/admin/pinterest-status"] });
+        endpoints: ["/r/{code}", "/c/{code}", "/stats", "/admin/links", "/subscribe", "/admin/subscribers", "/admin/conversion", "/admin/pinterest-status", "/admin/queue", "/admin/funnel"] });
+    }
+
+    // --- durable growth queue (travel funnel) ---
+    if (path === "/admin/queue" || path === "/admin/queue/seed" || path === "/admin/queue/update") {
+      if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: "forbidden" }, 403);
+      const now = new Date().toISOString();
+      if (path === "/admin/queue" && request.method === "GET") {
+        const platform = url.searchParams.get("platform") || "";
+        const status = url.searchParams.get("status") || "";
+        const dueBefore = url.searchParams.get("due_before") || "";
+        const clauses = [];
+        const params = [];
+        if (platform) { clauses.push("platform = ?"); params.push(platform); }
+        if (status) { clauses.push("status = ?"); params.push(status); }
+        if (dueBefore) { clauses.push("due <= ?"); params.push(dueBefore); }
+        const where = clauses.length ? " WHERE " + clauses.join(" AND ") : "";
+        const rows = await all(env, "SELECT * FROM growth_queue" + where + " ORDER BY due, id", params);
+        const items = rows.map((r) => {
+          let payload = {};
+          try { payload = JSON.parse(r.payload || "{}"); } catch (e) { payload = {}; }
+          return { ...payload, id: r.id, platform: r.platform, due: r.due, status: r.status,
+            attempts: r.attempts, last_error: r.last_error, published_at: r.published_at,
+            published_url: r.published_url, message_id: r.message_id, updated_at: r.updated_at };
+        });
+        return json({ ok: true, count: items.length, items });
+      }
+      if (path === "/admin/queue/seed" && request.method === "POST") {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ ok: false, error: "bad json" }, 400); }
+        const items = Array.isArray(body) ? body : (Array.isArray(body.items) ? body.items : []);
+        let count = 0;
+        const sql = "INSERT INTO growth_queue (id,platform,due,status,payload,attempts,updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET platform=excluded.platform, due=excluded.due, payload=excluded.payload, updated_at=excluded.updated_at";
+        for (const item of items) {
+          const id = slug(item.id);
+          const platform = slug(item.platform || "");
+          const due = String(item.due || "").slice(0, 10);
+          if (id === "" || platform === "" || due === "") continue;
+          await run(env, sql, [id, platform, due, String(item.status || "queued"), JSON.stringify(item), Number(item.attempts) || 0, now]);
+          count += 1;
+        }
+        return json({ ok: true, count });
+      }
+      if (path === "/admin/queue/update" && request.method === "POST") {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ ok: false, error: "bad json" }, 400); }
+        const id = slug(body.id || "");
+        if (id === "") return json({ ok: false, error: "id required" }, 400);
+        const allowed = ["status", "attempts", "last_error", "published_at", "published_url", "message_id", "payload"];
+        const sets = [];
+        const params = [];
+        for (const key of allowed) {
+          if (Object.prototype.hasOwnProperty.call(body, key)) {
+            sets.push(key + " = ?");
+            params.push(key === "payload" ? JSON.stringify(body[key]) : body[key]);
+          }
+        }
+        if (sets.length === 0) return json({ ok: false, error: "no fields" }, 400);
+        sets.push("updated_at = ?");
+        params.push(now);
+        params.push(id);
+        await run(env, "UPDATE growth_queue SET " + sets.join(", ") + " WHERE id = ?", params);
+        return json({ ok: true, id });
+      }
+      return json({ ok: false, error: "method not allowed" }, 405);
     }
 
     // --- ссылки ---
@@ -299,6 +363,15 @@ export default {
     }
 
     // --- статистика ---
+    if (path === "/admin/funnel") {
+      if (token !== env.ADMIN_TOKEN && token !== env.STATS_TOKEN) {
+        return json({ ok: false, error: "forbidden" }, 403);
+      }
+      const rows = await all(env, "SELECT code, SUM(count) AS total, MAX(last_click) AS last_click FROM clicks GROUP BY code ORDER BY total DESC");
+      const links = rows.map((r) => ({ code: r.code, total: Number(r.total || 0), last_click: r.last_click || null }));
+      return json({ ok: true, count: links.length, links });
+    }
+
     if (path === "/stats") {
       if (token !== env.STATS_TOKEN && token !== env.ADMIN_TOKEN) {
         return json({ ok: false, error: "forbidden" }, 403);

@@ -1,13 +1,11 @@
 name: growth-funnel
 
 on:
-  schedule:
-    - cron: "0 9 * * *"
   workflow_dispatch:
     inputs:
       execute:
         description: "true = публиковать, false = только показать план"
-        required: true
+        required: false
         default: true
         type: boolean
 
@@ -24,12 +22,14 @@ jobs:
     timeout-minutes: 10
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_API_BASE: ${{ vars.TELEGRAM_API_BASE }}
+      TELEGRAM_API_BASE: https://telegram-proxy.valdislav-n.workers.dev
       PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
       PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
       PINTEREST_BOARD_ID_BUDGET_TRAVEL: ${{ secrets.PINTEREST_BOARD_ID_BUDGET_TRAVEL }}
       PINTEREST_BOARD_ID_CITY_BREAKS: ${{ secrets.PINTEREST_BOARD_ID_CITY_BREAKS }}
       PINTEREST_BOARD_ID_TRAVEL_IDEAS: ${{ secrets.PINTEREST_BOARD_ID_TRAVEL_IDEAS }}
+      GROWTH_QUEUE_URL: https://links-tracker.valdislav-n.workers.dev/admin/queue
+      GROWTH_QUEUE_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,23 +37,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Restore queue state
-        uses: actions/cache/restore@v4
-        with:
-          path: growth-funnel/queue.json
-          key: growth-funnel-queue-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            growth-funnel-queue-
-      - name: Publish due items
+      - name: Publish due items (durable D1 queue)
         run: |
           if [ "${{ inputs.execute }}" = "false" ]; then
-            python3 growth-funnel/auto_publish.py --json
+            python3 growth-funnel/auto_publish.py --platforms telegram --json
           else
-            python3 growth-funnel/auto_publish.py --execute --limit-per-platform 1 --json
+            python3 growth-funnel/auto_publish.py --platforms telegram --execute --limit-per-platform 1 --json
           fi
-      - name: Save queue state
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: growth-funnel/queue.json
-          key: growth-funnel-queue-${{ github.run_id }}-${{ github.run_attempt }}

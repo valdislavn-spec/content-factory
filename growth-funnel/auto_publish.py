@@ -19,10 +19,12 @@ import tempfile
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parent.parent
 QUEUE = ROOT / "growth-funnel" / "queue.json"
 TRACKER_REDIRECT_PREFIX = "https://links-tracker.valdislav-n.workers.dev/r/"
+DEFAULT_QUEUE_URL = "https://links-tracker.valdislav-n.workers.dev/admin/queue"
 
 sys.path.insert(0, str(ROOT / "affiliate-fanout"))
 try:
@@ -53,6 +55,35 @@ def load_queue(path: Path) -> list[dict[str, Any]]:
 def save_queue(path: Path, data: list[dict[str, Any]]) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
+def remote_queue(url: str, token: str, platform: str = "", status: str = "", due_before: str = "") -> list[dict[str, Any]]:
+    filters = {"platform": platform, "status": status, "due_before": due_before}
+    query = urlencode({k: v for k, v in filters.items() if v})
+    target = url + (("?" + query) if query else "")
+    data, http_status, err = curl_json(["-H", "x-token: " + token, target])
+    if err:
+        raise RuntimeError("queue read failed: " + err)
+    if http_status >= 400 or not data.get("ok"):
+        raise RuntimeError("queue read failed: " + str(data)[:300])
+    return list(data.get("items") or [])
+
+
+def remote_seed(url: str, token: str, items: list[dict[str, Any]]) -> None:
+    data, http_status, err = curl_json(
+        ["-X", "POST", "-H", "x-token: " + token, "-H", "content-type: application/json", "--data-binary", "@-", url + "/seed"],
+        stdin_text=json.dumps(items, ensure_ascii=False),
+    )
+    if err or http_status >= 400 or not data.get("ok"):
+        raise RuntimeError("queue seed failed: " + (err or str(data)[:300]))
+
+
+def remote_update(url: str, token: str, item_id: str, fields: dict[str, Any]) -> None:
+    payload = {"id": item_id, **fields}
+    data, http_status, err = curl_json(
+        ["-X", "POST", "-H", "x-token: " + token, "-H", "content-type: application/json", "--data-binary", "@-", url + "/update"],
+        stdin_text=json.dumps(payload, ensure_ascii=False),
+    )
+    if err or http_status >= 400 or not data.get("ok"):
+        raise RuntimeError("queue update failed: " + (err or str(data)[:300]))
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -212,6 +243,8 @@ def select_items(queue: list[dict[str, Any]], platforms: set[str], due_date: str
 def main() -> int:
     parser = argparse.ArgumentParser(description="GOODTRAVEL007 daily publisher")
     parser.add_argument("--queue", default=str(QUEUE))
+    parser.add_argument("--queue-url", default="", help="D1 queue endpoint; empty = GROWTH_QUEUE_URL or local file")
+    parser.add_argument("--queue-token", default="", help="D1 queue admin token; empty = env")
     parser.add_argument("--date", default=date.today().isoformat(), help="YYYY-MM-DD; по умолчанию сегодня")
     parser.add_argument("--platforms", default="telegram,pinterest")
     parser.add_argument("--limit-per-platform", type=int, default=1, help="0 = все due-элементы")
@@ -222,7 +255,16 @@ def main() -> int:
 
     env = merged_env()
     queue_path = Path(args.queue)
-    queue = load_queue(queue_path)
+    queue_url = (args.queue_url or env.get("GROWTH_QUEUE_URL") or "").strip().rstrip("/")
+    queue_token = (args.queue_token or env.get("GROWTH_QUEUE_TOKEN") or env.get("LINK_TRACKER_ADMIN_TOKEN") or "").strip()
+    use_remote = bool(queue_url and queue_token)
+    if use_remote:
+        queue = remote_queue(queue_url, queue_token)
+        if not queue:
+            remote_seed(queue_url, queue_token, load_queue(queue_path))
+            queue = remote_queue(queue_url, queue_token)
+    else:
+        queue = load_queue(queue_path)
     platforms = {x.strip() for x in args.platforms.split(",") if x.strip()}
     selected = select_items(queue, platforms, args.date, args.limit_per_platform)
 
@@ -243,20 +285,31 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             outcome = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
         result = {"id": item.get("id"), "platform": platform, "due": item.get("due"), **outcome}
+        item["attempts"] = int(item.get("attempts") or 0) + 1
         if outcome.get("ok"):
             item["status"] = "published"
             item["published_at"] = args.date
             if outcome.get("message_id"):
                 item["message_id"] = outcome["message_id"]
-            if outcome.get("url"):
-                item["published_url"] = outcome["url"]
+            if outcome.get("url") or outcome.get("pin_url"):
+                item["published_url"] = outcome.get("url") or outcome.get("pin_url")
             item.pop("last_error", None)
         else:
             item["last_error"] = str(outcome.get("error") or "unknown")[:300]
+        if args.execute:
+            if use_remote:
+                fields = {"status": item.get("status", "queued"), "attempts": item["attempts"], "payload": item}
+                if outcome.get("ok"):
+                    fields["published_at"] = item.get("published_at")
+                    fields["published_url"] = item.get("published_url")
+                    fields["message_id"] = item.get("message_id")
+                    fields["last_error"] = None
+                else:
+                    fields["last_error"] = item.get("last_error")
+                remote_update(queue_url, queue_token, str(item.get("id")), fields)
+            else:
+                save_queue(queue_path, queue)
         results.append(result)
-
-    if args.execute:
-        save_queue(queue_path, queue)
 
     payload = {"mode": "execute" if args.execute else "dry-run", "date": args.date, "count": len(results), "results": results}
     if args.json:

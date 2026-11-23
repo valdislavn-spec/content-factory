@@ -26,3 +26,8 @@ exports/landing/
 # Telethon sessions contain account access
 *.session
 *.session-journal
+
+# growth funnel runtime artifacts
+growth-funnel/reports/
+growth-funnel/pinterest-*.log
+growth-funnel/pinterest-failure.png

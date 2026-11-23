@@ -35,7 +35,9 @@ fi
 for SQL in \
   "CREATE TABLE IF NOT EXISTS links (code TEXT PRIMARY KEY, target TEXT NOT NULL, channel TEXT, network TEXT, label TEXT, active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT);" \
   "CREATE TABLE IF NOT EXISTS clicks (code TEXT NOT NULL, day TEXT NOT NULL, count INTEGER DEFAULT 0, last_click TEXT, PRIMARY KEY (code, day));" \
-  "CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, source TEXT, lang TEXT, created_at TEXT);" ; do
+  "CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, source TEXT, lang TEXT, created_at TEXT);" \
+  "CREATE TABLE IF NOT EXISTS growth_queue (id TEXT PRIMARY KEY, platform TEXT NOT NULL, due TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'queued', payload TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, last_error TEXT, published_at TEXT, published_url TEXT, message_id INTEGER, updated_at TEXT NOT NULL);" \
+  "CREATE INDEX IF NOT EXISTS idx_growth_queue_due ON growth_queue(platform, status, due);" ; do
   curl -s -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H 'content-type: application/json' \
     -d "$(python3 -c "import json,sys;print(json.dumps({'sql':sys.argv[1]}))" "$SQL")" \
     "$API/d1/database/$D1_ID/query" -o /dev/null -w 'd1 schema HTTP %{http_code}\n'

@@ -108,10 +108,19 @@
     }
   }
 
+  function botStart(base) {
+    var sourceName = clean(data.utm_source) || (clean(data.epik) ? "pinterest" : "direct");
+    var contentName = clean(data.utm_content) || "travelkit";
+    var payload = String(base || "src_travelkit") + "_" + sourceName + "_" + contentName;
+    payload = payload.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 64);
+    return "https://t.me/Novyi0007Bot?start=" + encodeURIComponent(payload);
+  }
+
   window.CFAttr = {
     get: function () { return Object.assign({}, data); },
     merge: merge,
-    source: source
+    source: source,
+    botStart: botStart
   };
 
   if (document.readyState === "loading") {

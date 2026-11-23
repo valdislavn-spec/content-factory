@@ -5,7 +5,7 @@
 
 const DEDUPE_TTL = 600; // секунд
 
-async function dispatch(env, workflow, ref) {
+async function dispatch(env, workflow, ref, inputs) {
   const repo = env.REPO;
   if (!repo || !env.GITHUB_TOKEN || !workflow) return { workflow, ok: false, error: "not configured" };
   const response = await fetch(
@@ -18,7 +18,7 @@ async function dispatch(env, workflow, ref) {
         "User-Agent": "cf-github-cron",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ref: ref || "main" }),
+      body: JSON.stringify({ ref: ref || "main", inputs: inputs || {} }),
     }
   );
   return { workflow, ok: response.status === 204, status: response.status };
@@ -30,18 +30,17 @@ export default {
     const minute = at.getUTCMinutes();
     const hour = at.getUTCHours();
     const jobs = [];
-    if (minute === 17 && [10, 14, 18, 22].includes(hour)) jobs.push("fediverse-mix.yml");
-    if (minute === 17 && hour === 16) jobs.push("mastodon-growth.yml");
-    if (minute === 10 && hour === 3) jobs.push("buffer-queue.yml");
-    if (minute === 0 && hour % 5 === 0) jobs.push("tumblr-digest.yml");
-    for (const workflow of jobs) {
+    if (minute === 5 && hour === 9) jobs.push({ workflow: "growth-funnel.yml", inputs: { execute: true } });
+    if (minute === 30 && hour === 9) jobs.push({ workflow: "travel-report.yml", inputs: {} });
+    for (const job of jobs) {
+      const workflow = job.workflow;
       const key = `run:${at.toISOString().slice(0, 16)}:${workflow}`;
       if (env.CRON_KV) {
         const seen = await env.CRON_KV.get(key);
         if (seen) continue;
         await env.CRON_KV.put(key, "1", { expirationTtl: DEDUPE_TTL });
       }
-      const result = await dispatch(env, workflow, env.REF);
+      const result = await dispatch(env, workflow, env.REF, job.inputs);
       console.log("dispatch", JSON.stringify(result));
     }
   },
@@ -53,7 +52,7 @@ export default {
       if (token !== env.ADMIN_TOKEN) return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
       const workflow = url.searchParams.get("workflow") || "";
       if (!workflow) return Response.json({ ok: false, error: "workflow required" }, { status: 400 });
-      const result = await dispatch(env, workflow, url.searchParams.get("ref") || env.REF);
+      const result = await dispatch(env, workflow, url.searchParams.get("ref") || env.REF, {});
       return Response.json({ ok: result.ok, result });
     }
     return Response.json({
@@ -61,10 +60,8 @@ export default {
       service: "github-cron",
       repo: env.REPO || "",
       slots: {
-        "fediverse-mix.yml": "10:17, 14:17, 18:17, 22:17 UTC",
-        "mastodon-growth.yml": "16:17 UTC",
-        "buffer-queue.yml": "03:10 UTC",
-        "tumblr-digest.yml": "every 5 hours (:00)",
+        "growth-funnel.yml": "09:05 UTC daily",
+        "travel-report.yml": "09:30 UTC daily",
       },
     });
   },
