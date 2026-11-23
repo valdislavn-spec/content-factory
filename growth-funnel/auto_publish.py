@@ -64,7 +64,16 @@ def remote_queue(url: str, token: str, platform: str = "", status: str = "", due
         raise RuntimeError("queue read failed: " + err)
     if http_status >= 400 or not data.get("ok"):
         raise RuntimeError("queue read failed: " + str(data)[:300])
-    return list(data.get("items") or [])
+    rows = list(data.get("items") or [])
+    flattened = []
+    for row in rows:
+        item = dict(row)
+        payload = item.get("payload")
+        if isinstance(payload, dict):
+            for key, value in payload.items():
+                item.setdefault(key, value)
+        flattened.append(item)
+    return flattened
 
 
 def remote_seed(url: str, token: str, items: list[dict[str, Any]]) -> None:
