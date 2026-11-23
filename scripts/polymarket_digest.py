@@ -202,7 +202,7 @@ def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
         if not question or not url.startswith("https://polymarket.com/") or not probability:
             continue
         lines.append('• <a href="%s">%s</a> — %s %s' % (
-            html.escape(url, quote=True), html.escape(question), yes, probability))
+            html.escape(url, quote=True), html.escape(question), yes, html.escape(probability)))
     if len(lines) <= 2:
         return ""
     footer = config.get("footer_es") if spanish else config.get("footer_en")
