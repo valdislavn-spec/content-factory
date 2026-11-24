@@ -146,7 +146,7 @@ def inject_abroad(html: str, links: dict[str, str]) -> str:
     html = html.replace("</style>", CSS + "</style>", 1)
     # промо-блок перед футером
     abroad = section(
-        "partners", "🎁 Промо и акции партнёров",
+        "partners", "🧭 Сервисы для поездки",
         "Перелёт, трансферы, экскурсии, авто и eSIM со скидками — добираем поездку дешевле.",
         ["aviasales", "kiwitaxi", "tiqets", "klook", "localrent", "airalo"], links,
         extra='<div class="promo-pair">' + mini(

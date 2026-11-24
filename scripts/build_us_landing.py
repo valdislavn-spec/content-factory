@@ -200,7 +200,7 @@ def promos_html(promos: list[dict]) -> str:
             f'<span class="p-meta">{code_html}{until_html}{ext}</span></a>')
     return f"""
 <section class="sec" id="promos">
-  <h2>🔥 Deals &amp; promo codes right now</h2>
+  <h2>Travel services</h2>
   <p class="lead">Verified offers from our travel partners. Codes are applied on the partner site; terms are shown on their page.</p>
   <div class="grid promos">{''.join(cards)}</div>
   <p class="note">Affiliate links: we may earn a commission — the price you pay stays the same.
