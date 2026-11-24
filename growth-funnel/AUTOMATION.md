@@ -7,7 +7,8 @@
 - **Telegram** — GitHub Actions `growth-funnel.yml`, ежедневно в **09:05 UTC**
   через Cloudflare `github-cron` (`workflow_dispatch`).
 - **Pinterest** — локальный Playwright-планировщик
-  `growth-funnel/pinterest_scheduler.cjs`, запуск при старте и каждые 6 часов.
+  `growth-funnel/pinterest_scheduler.cjs`, запуск при старте и каждые 6 часов;
+  проверка wall-clock раз в минуту, поэтому после сна Mac догоняет расписание.
   Официальный Pinterest API ждёт Standard access, поэтому используется
   залогиненный профиль `tools/playwright-mcp/profile-tp2`.
 - **Отчёт** — GitHub Actions `travel-report.yml`, ежедневно в **09:30 UTC**;
@@ -16,9 +17,10 @@
 
 ## Состояние очереди
 
-- 10 элементов уже опубликованы (Telegram + Pinterest).
-- 12 будущих элементов: по одному Pinterest и одному Telegram в день
-  с 2026-11-24 по 2026-11-29.
+- 11 элементов уже опубликованы (Telegram + Pinterest).
+- 10 будущих элементов: по одному Pinterest и одному Telegram в день
+  с 2026-11-25 по 2026-11-29. Первый будущий пин (Лиссабон) уже
+  опубликован 2026-11-24.
 - Pinterest-пины лежат в `content-factory/docs/travel-finds/pins/future-*.png`
   и деплоятся вместе с лендингом.
 
