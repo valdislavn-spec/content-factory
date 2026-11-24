@@ -457,10 +457,8 @@ def render_page(col: Collection, cols: Sequence[Collection], updated: Optional[d
         '<th style="padding:8px 12px">Авиакомпания</th><th style="padding:8px 12px">Цена</th>'
         '<th style="padding:8px 12px"></th></tr></thead>',
         "<tbody>" + _deal_rows(col, public) + "</tbody></table>",
-        f'<p style="margin:24px 0 6px"><a href="{AVIASALES_CTA}" style="display:inline-block;'
-        'background:#f59e0b;color:#111;font-weight:600;padding:12px 20px;border-radius:100px;'
-        'text-decoration:none">Проверить все билеты →</a></p>',
-        '<p style="color:#6b7280;font-size:13px">Реклама · партнёрские ссылки. Цены меняются '
+        f'<p style="margin:24px 0 6px"><a href="{AVIASALES_CTA}" style="color:#2563eb;text-decoration:underline">Проверить все билеты →</a></p>',
+        '<p style="color:#6b7280;font-size:13px">Партнёрские ссылки. Цены меняются '
         "быстро; финальная цена — на странице бронирования.</p>",
         f'<p style="font-size:14px;color:#374151;margin-top:22px">Свежие цены по городам: '
         f'<a href="{public}/flights/almaty/" style="color:#2563eb;text-decoration:none">из Алматы</a> · '

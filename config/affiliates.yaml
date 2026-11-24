@@ -10,8 +10,8 @@
 # «реклама / advertising», 18+ для спортивных каналов. Без обещаний доходности.
 
 disclosure:
-  en: "Advertising / affiliate link. We may earn a commission if you sign up. No guaranteed returns."
-  es: "Publicidad / enlace de afiliado. Podemos recibir una comisión si te registras. Sin rendimientos garantizados."
+  en: "Affiliate link. We may earn a commission if you sign up. No guaranteed returns."
+  es: "Enlace de afiliado. Podemos recibir una comisión si te registras. Sin rendimientos garantizados."
   age_18: "18+"
 
 rules:

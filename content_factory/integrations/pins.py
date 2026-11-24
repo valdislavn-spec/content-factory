@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional, Tuple
 WIDTH, HEIGHT = 1000, 1500
 DEFAULT_HF_MODEL = "black-forest-labs/FLUX.1-schnell"
 DEFAULT_HF_URL = "https://router.huggingface.co/hf-inference/models/" + DEFAULT_HF_MODEL
-DISCLOSURE = "Ad · affiliate link"
+DISCLOSURE = "Affiliate link"
 
 
 @dataclass

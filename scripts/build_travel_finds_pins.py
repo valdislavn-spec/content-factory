@@ -39,7 +39,7 @@ SITE = "https://travel-finds.surge.sh"
 TRACKER = "https://links-tracker.valdislav-n.workers.dev/r/"
 OUT = ROOT / "docs" / "travel-finds" / "pins"
 PHOTOS = ROOT / "docs" / "assets" / "photos"
-DISCLOSURE = "Ad · affiliate link"
+DISCLOSURE = "Affiliate link"
 BOARD = "Travel ideas"  # существующая доска проекта (см. docs/pinterest.md)
 SITE_LABEL = "travel-finds.surge.sh"
 
@@ -70,7 +70,7 @@ PINS = [
         "title": "Cheap flights + hotels: search every date instead of one",
         "description": (
             "A flexible-date search beats a fixed one: compare a whole month of fares at once and "
-            "pick the cheapest day to fly. Free tools, no hidden fees, ad · affiliate links."
+            "pick the cheapest day to fly. Free tools, no hidden fees, affiliate links."
         ),
         "keywords": "cheap flights, hotel deals, flexible dates, travel deals, flight search, 2026",
     },
@@ -140,7 +140,7 @@ PINS = [
 def telegram_posts(link: str) -> str:
     return f"""# Telegram EN — Travel Finds landing
 
-Links already carry UTM: `utm_source=telegram`. Add “Ad · affiliate links” where the platform requires it.
+Links already carry UTM: `utm_source=telegram`. Add “Affiliate links” where the platform requires it.
 
 ## Post 1 — flexible dates
 

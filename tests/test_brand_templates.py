@@ -52,7 +52,7 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(spec["layout"], "wide")
         self.assertIn("AI", spec["headline"])
         self.assertEqual(spec["partner"]["key"], "mylead")
-        self.assertIn("Advertising", spec["disclosure"])
+        self.assertIn("Affiliate", spec["disclosure"])
 
     def test_plan_custom_text(self):
         spec = templates.plan(self.config, "pinterest_pin", "crypto", "collaborator",

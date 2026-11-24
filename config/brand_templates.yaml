@@ -18,7 +18,7 @@ brand:
 partners:
   file: "config/affiliates.yaml"
   status: "ready"          # только ready-партнёрки попадают в шаблоны
-  disclosure: "Advertising / affiliate link. We may earn a commission if you sign up. No guaranteed returns."
+  disclosure: "Affiliate link. We may earn a commission if you sign up. No guaranteed returns."
 
 topics:
   ai:

@@ -89,7 +89,7 @@ def test_page_has_seo_and_affiliate_links():
     assert '"@type": "BreadcrumbList"' in page
     assert '"@type": "ItemList"' in page
     assert page.count("aviasales.tpk.ro") >= len(cols[0].deals)
-    assert "реклама" in page.lower()
+    assert "партнёр" in page.lower()
 
 
 def test_page_jsonld_is_valid_json():

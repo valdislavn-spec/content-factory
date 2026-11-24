@@ -145,6 +145,6 @@ def redirect_page(target: str, title: str = "Redirecting") -> str:
         "<script>location.replace(%s);</script>\n"
         "</head>\n<body style=\"font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:40px\">\n"
         "<p>%s…</p>\n<p><a href=\"%s\">Continue to the partner site</a></p>\n"
-        "<p style=\"color:#666;font-size:13px\">Ad · affiliate link</p>\n"
+        "<p style=\"color:#666;font-size:13px\">Affiliate link</p>\n"
         "</body>\n</html>\n"
     ) % (title, json.dumps(safe), title, safe)

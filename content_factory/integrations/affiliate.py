@@ -6,9 +6,9 @@ Config block on a channel (``config/channels.*.yaml``)::
       enabled: true
       link: "https://bingxdao.com/invite/WYYEGK/"
       every_n_posts: 3
-      disclaimer: "Ad · affiliate link. Not available in the US, UK, Canada…"
+      disclaimer: "Affiliate link. Not available in the US, UK, Canada…"
       texts:                      # optional per-language overrides
-        en: "🤝 Trade crypto on BingX (ad · affiliate link): {link}"
+        en: "🤝 Trade crypto on BingX (affiliate link): {link}"
 
 Link resolution order: ``AFFILIATE_LINK_<CHANNEL_ID>`` env var, then
 ``AFFILIATE_LINK``, then the YAML ``link``. This keeps the link out of git if
@@ -25,9 +25,9 @@ import os
 from typing import Any, Dict
 
 DEFAULT_TEXTS: Dict[str, str] = {
-    "en": "🤝 Trade crypto on BingX (ad · affiliate link): {link}",
-    "es": "🤝 Opera con cripto en BingX (anuncio · enlace de afiliado): {link}",
-    "ru": "🤝 Торгуйте криптой на BingX (реклама · партнёрская ссылка): {link}",
+    "en": "🤝 Trade crypto on BingX (affiliate link): {link}",
+    "es": "🤝 Opera con cripto en BingX (enlace de afiliado): {link}",
+    "ru": "🤝 Торгуйте криптой на BingX (партнёрская ссылка): {link}",
 }
 
 

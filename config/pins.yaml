@@ -14,7 +14,7 @@ hub_url: https://valdislavn-spec.github.io/content-factory/
 public_base: https://valdislavn-spec.github.io/content-factory
 
 defaults:
-  disclosure_affiliate: "Ad · affiliate link"
+  disclosure_affiliate: "Affiliate link"
   disclosure_guide: "Save this guide"
 
 pins:

@@ -513,7 +513,7 @@ def test_pinterest_payload_includes_link_for_affiliate_pins():
     content = make_content(link="https://example.com/r/travel", disclosure="")
     payload = d.build_pinterest_payload(content, image_url="https://cdn.example.com/pin.png")
     assert payload["link"] == "https://example.com/r/travel"
-    assert "Ad \u00b7 affiliate link" in payload["description"]
+    assert d.DISCLOSURE_AFFILIATE in payload["description"]
 
 
 def test_pinterest_payload_rejects_invalid_media_url():

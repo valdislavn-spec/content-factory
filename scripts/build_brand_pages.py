@@ -146,7 +146,7 @@ def build_pins() -> int:
             )
             if partner:
                 spec["partner"] = {**partner, "commission": ""}
-            spec["disclosure"] = "Advertising / affiliate link."
+            spec["disclosure"] = "Affiliate link."
             filename = f"{channel_id}-{topic}" + (f"-{partner['key']}" if partner else "")
             path = templates.render(spec, PINS_DIR)
             # стабильное имя
@@ -156,7 +156,7 @@ def build_pins() -> int:
             image_url = f"{PAGES_BASE}/assets/pins/brand/{stable.name}"
             pin_title = " ".join(str(headline or topic_cfg.get("headline") or channel_id).split())
             description = (topic_cfg.get("subtitle") or "") + (
-                " Advertising / affiliate link." if partner else "") + " Telegram: " + str(
+                " Affiliate link." if partner else "") + " Telegram: " + str(
                 getattr(channel, "description", "") or "")
             board_id = boards.get(channel_id) or "<BOARD_ID>"
             payload = {
@@ -164,7 +164,7 @@ def build_pins() -> int:
                 "file": str(stable.relative_to(ROOT)),
                 "niche": topic,
                 "affiliate": bool(partner),
-                "disclosure": "Advertising / affiliate link.",
+                "disclosure": "Affiliate link.",
                 "pin": {
                     "board_id": board_id,
                     "title": pin_title,

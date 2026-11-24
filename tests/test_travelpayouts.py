@@ -22,4 +22,4 @@ def test_redirect_page_noindex_and_target():
     html = redirect_page("https://x.tp.st/abc", title="Redirecting")
     assert "noindex,nofollow" in html
     assert 'location.replace("https://x.tp.st/abc")' in html
-    assert "Ad · affiliate link" in html
+    assert "Affiliate link" in html

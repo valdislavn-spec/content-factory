@@ -316,8 +316,8 @@ def render_page(rows: list, origin: str, updated: str, drops: list = None, publi
         '<th style="padding:8px 12px">Destination</th><th style="padding:8px 12px">Dates</th>'
         '<th style="padding:8px 12px">Airline</th><th style="padding:8px 12px">Price</th><th style="padding:8px 12px"></th></tr></thead>',
         '<tbody>' + "".join(table) + '</tbody></table>',
-        '<p style="margin:24px 0 6px"><a href="https://aviasales.tpk.ro/b3PI8GVN" style="display:inline-block;background:#f59e0b;color:#111;font-weight:600;padding:12px 20px;border-radius:100px;text-decoration:none">Compare all flights →</a></p>',
-        '<p style="color:#6b7280;font-size:13px">Ad · affiliate link. Prices change fast; the price is fixed at booking.</p>',
+        '<p style="margin:24px 0 6px"><a href="https://aviasales.tpk.ro/b3PI8GVN" style="color:#2563eb;text-decoration:underline">Compare all flights →</a></p>',
+        '<p style="color:#6b7280;font-size:13px">Affiliate link. Prices change fast; the price is fixed at booking.</p>',
         f'<p style="font-size:14px;color:#374151;margin-top:26px">Read more: <a href="{PUB}/travel/europe-under-300.html">Europe for under $300</a> · <a href="{PUB}/travel/bali-budget.html">Bali on a budget</a> · <a href="{PUB}/travel/travel-esim.html">Travel eSIM</a></p>',
         f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · <a href="{PUB}/privacy.html" style="color:#6b7280">Privacy</a> · <a href="{PUB}/terms.html" style="color:#6b7280">Terms</a></p>',
         '</div></body></html>',
@@ -352,7 +352,7 @@ def render_hub(public: str = PUB) -> str:
         '<p style="color:#6b7280;margin:0 0 24px">Live round-trip deals for local departures: Almaty (Kazakhstan) and Minsk (Belarus). Prices in RUB, updated every morning.</p>',
         cards_html,
         f'<p style="font-size:14px;color:#374151;margin-top:20px">Also: <a href="{public}/collections/" style="color:#2563eb;text-decoration:none">curated collections</a> · <a href="{public}/tours/" style="color:#2563eb;text-decoration:none">package tours from Minsk &amp; Astana</a> · <a href="{public}/travel/travel-esim.html" style="color:#2563eb;text-decoration:none">travel eSIM</a> · <a href="{public}/travel/airport-transfer-guide.html" style="color:#2563eb;text-decoration:none">airport transfers</a></p>',
-        '<p style="color:#6b7280;font-size:13px;margin-top:8px">Ad · affiliate links. Prices change fast; the price is fixed at booking.</p>',
+        '<p style="color:#6b7280;font-size:13px;margin-top:8px">Affiliate links. Prices change fast; the price is fixed at booking.</p>',
         f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · <a href="{public}/privacy.html" style="color:#6b7280">Privacy</a> · <a href="{public}/terms.html" style="color:#6b7280">Terms</a></p>',
         '</div></body></html>',
     ])

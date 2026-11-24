@@ -304,10 +304,8 @@ def render_page(col: Collection, cols: Sequence[Collection], updated: Optional[d
         '<th style="padding:8px 12px">Airline</th><th style="padding:8px 12px">Price</th>'
         '<th style="padding:8px 12px"></th></tr></thead>',
         "<tbody>" + _rows(col) + "</tbody></table>",
-        f'<p style="margin:24px 0 6px"><a href="{AVIASALES_CTA}" style="display:inline-block;'
-        'background:#f59e0b;color:#111;font-weight:600;padding:12px 20px;border-radius:100px;'
-        'text-decoration:none">Search all flights →</a></p>',
-        '<p style="color:#6b7280;font-size:13px">Ad · affiliate links. Prices change fast; the final '
+        f'<p style="margin:24px 0 6px"><a href="{AVIASALES_CTA}" style="color:#2563eb;text-decoration:underline">Search all flights →</a></p>',
+        '<p style="color:#6b7280;font-size:13px">Affiliate links. Prices change fast; the final '
         "price is shown at booking. Amounts in USD, converted from RUB at %.4f (%s)." % (rate, _esc(fx_note)),
         "</p>",
         f'<p style="font-size:14px;color:#374151;margin-top:22px">Live boards: '
@@ -352,7 +350,7 @@ def render_hub(cols: Sequence[Collection], updated: Optional[datetime], rate: fl
         f'<p style="font-size:14px;color:#374151;margin-top:18px">Full board: '
         f'<a href="{public}/flights/almaty/" style="color:#2563eb;text-decoration:none">all flights from Almaty</a> · '
         f'<a href="{public}/collections/" style="color:#2563eb;text-decoration:none">русская версия</a></p>',
-        f'<p style="color:#6b7280;font-size:13px;margin-top:8px">Ad · affiliate links. Prices change fast. '
+        f'<p style="color:#6b7280;font-size:13px;margin-top:8px">Affiliate links. Prices change fast. '
         "USD amounts converted from RUB at %.4f (%s)." % (rate, _esc(fx_note)),
         "</p>",
         f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · '

@@ -129,7 +129,7 @@ def main(argv=None) -> int:
         link = affiliate_map.get(slug, {}).get("tracked_url") or affiliate_map.get(slug, {}).get("hub_link") or (hub + "/")
         description = str(pin.get("description") or "")
         if slug in affiliate_map and "Ad" not in description:
-            description = (description + " Ad · affiliate link")[:500]
+            description = (description + " Affiliate link")[:500]
         rows.append(
             {
                 "Title": str(pin.get("title") or "")[:100],

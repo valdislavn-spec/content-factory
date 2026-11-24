@@ -22,7 +22,7 @@ SITE_DIR = ROOT / "docs" / "travel-finds"
 SITE = "https://travel-finds.surge.sh"
 FEED_PATH = SITE_DIR / "feed.xml"
 CHANNEL_TITLE = "Travel Finds — cheap flights & hotels"
-CHANNEL_DESC = "Flexible-date flight and hotel finds, city breaks and fare math. Ad · affiliate links."
+CHANNEL_DESC = "Flexible-date flight and hotel finds, city breaks and fare math. Affiliate links."
 FEED_LINK = (
     '<link rel="alternate" type="application/rss+xml" title="Travel Finds RSS" href="{}/feed.xml">'.format(SITE)
 )

@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 STATUSES = ("ready", "pending", "awaiting_login", "blocked")
 _DISCLOSURE_DEFAULT = {
-    "en": "Advertising / affiliate link. We may earn a commission if you sign up.",
-    "es": "Publicidad / enlace de afiliado. Podemos recibir una comisión si te registras.",
+    "en": "Affiliate link. We may earn a commission if you sign up.",
+    "es": "Enlace de afiliado. Podemos recibir una comisión si te registras.",
 }
 
 

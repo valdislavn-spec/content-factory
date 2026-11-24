@@ -222,8 +222,8 @@ def render(article: dict, all_links: str) -> str:
         cta_href = PUB + cta_link
         cta_rel = ''
     parts += [
-        f'<p style="margin:30px 0 8px"><a href="{cta_href}"{cta_rel} style="display:inline-block;background:#f59e0b;color:#111;font-weight:600;padding:12px 20px;border-radius:100px;text-decoration:none">{html.escape(cta_text)} →</a></p>',
-        '<p style="color:#6b7280;font-size:13px">Ad · affiliate link. Prices and availability change.</p>',
+        f'<p style="margin:30px 0 8px"><a href="{cta_href}"{cta_rel} style="color:#2563eb;text-decoration:underline">{html.escape(cta_text)} →</a></p>',
+        '<p style="color:#6b7280;font-size:13px">Affiliate link. Prices and availability change.</p>',
         '<hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0">',
         f'<p style="font-size:14px;color:#374151">More guides: {all_links}</p>',
         f'<p style="font-size:13px;color:#6b7280;margin-top:22px">© Content Factory · <a href="{PUB}/privacy.html" style="color:#6b7280">Privacy</a> · <a href="{PUB}/terms.html" style="color:#6b7280">Terms</a></p>',

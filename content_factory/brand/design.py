@@ -52,7 +52,7 @@ PIN_ASPECT = PIN_SIZE[0] / PIN_SIZE[1]  # 2:3 portrait
 TITLE_MAX = 100
 DESCRIPTION_MAX = 500
 ALT_TEXT_MAX = 500
-DISCLOSURE_AFFILIATE = "Ad \u00b7 affiliate link"
+DISCLOSURE_AFFILIATE = "Affiliate link"
 DISCLOSURE_GUIDE = "Save this guide"
 DEFAULT_SITE = "us-travel-finds.pages.dev"
 

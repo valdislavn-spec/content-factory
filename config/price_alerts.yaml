@@ -8,7 +8,7 @@ affiliate:                    # общий блок; можно переопре
   enabled: true
   link: "https://bingxdao.com/invite/WYYEGK/"
   tracked_url: "https://links-tracker.valdislav-n.workers.dev/r/bingx-default"
-  disclaimer: "Ad · affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong. Crypto is volatile — risk of loss."
+  disclaimer: "Affiliate link. Not available in the US, UK, Canada, Singapore, Netherlands and Hong Kong. Crypto is volatile — risk of loss."
 channels_files:
   - config/channels.en.yaml
   - config/channels.es.yaml

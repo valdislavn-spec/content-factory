@@ -203,7 +203,7 @@ def promos_html(promos: list[dict]) -> str:
   <h2>🔥 Deals &amp; promo codes right now</h2>
   <p class="lead">Verified offers from our travel partners. Codes are applied on the partner site; terms are shown on their page.</p>
   <div class="grid promos">{''.join(cards)}</div>
-  <p class="note">Advertising / affiliate links: we may earn a commission — the price you pay stays the same.
+  <p class="note">Affiliate links: we may earn a commission — the price you pay stays the same.
   Deals are checked on {date.today().isoformat()} and can change without notice.</p>
 </section>
 """

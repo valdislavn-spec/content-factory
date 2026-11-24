@@ -186,7 +186,7 @@ def render(pin: dict, out_dir: Path) -> Path:
     draw.text((tx, qy + 108), cta_text, font=cta, fill=(255, 255, 255))
 
     # disclosure bottom
-    draw.text((64, H - 92), "Ad · affiliate link · prices change", font=small, fill=(150, 162, 180))
+    draw.text((64, H - 92), "Affiliate link · prices change", font=small, fill=(150, 162, 180))
     draw.text((64, H - 60), "valdislavn-spec.github.io/content-factory", font=small, fill=(120, 132, 150))
 
     out_dir.mkdir(parents=True, exist_ok=True)
