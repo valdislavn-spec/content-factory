@@ -89,10 +89,30 @@ def telegram_members(env: dict[str, str]) -> dict[str, Any]:
         return {"ok": False, "error": type(exc).__name__ + ": " + str(exc)}
 
 
+
+def queue_stats(env: dict[str, str]) -> dict[str, Any]:
+    base = (env.get("LINK_TRACKER_BASE") or "https://links-tracker.valdislav-n.workers.dev").rstrip("/")
+    token = env.get("LINK_TRACKER_ADMIN_TOKEN") or env.get("LINK_TRACKER_STATS_TOKEN") or ""
+    if token == "":
+        return {"ok": False, "error": "LINK_TRACKER_ADMIN_TOKEN is empty", "total": 0}
+    try:
+        data = get_json(base + "/admin/queue?status=queued", headers={"x-token": token})
+        items = data.get("items") or []
+        by_platform: dict[str, int] = {}
+        for item in items:
+            platform = str(item.get("platform") or "other")
+            by_platform[platform] = by_platform.get(platform, 0) + 1
+        next_due = min([str(item.get("due")) for item in items if item.get("due")], default=None)
+        return {"ok": True, "total": len(items), "by_platform": by_platform, "next_due": next_due}
+    except Exception as exc:
+        return {"ok": False, "error": type(exc).__name__ + ": " + str(exc), "total": 0}
+
+
 def build_report(env: dict[str, str], report_date: str) -> dict[str, Any]:
     tracker = tracker_stats(env)
     growth = growth_stats(env)
     telegram = telegram_members(env)
+    queue = queue_stats(env)
     links = tracker.get("links", []) if isinstance(tracker.get("links"), list) else []
     launch_clicks = 0
     affiliate_clicks = 0
@@ -128,8 +148,9 @@ def build_report(env: dict[str, str], report_date: str) -> dict[str, Any]:
         },
         "sources": sources,
         "telegram_members": telegram.get("result") if telegram.get("ok") else None,
+        "queue": queue,
         "top_links": top_links[:12],
-        "errors": [x.get("error") for x in (tracker, growth, telegram) if x.get("ok") is not True and x.get("error")],
+        "errors": [x.get("error") for x in (tracker, growth, telegram, queue) if x.get("ok") is not True and x.get("error")],
     }
 
 
@@ -146,6 +167,7 @@ def format_markdown(report: dict[str, Any]) -> str:
         "Start rate: " + str(funnel["start_rate_pct"]) + "%",
         "Affiliate clicks: " + str(funnel["affiliate_clicks"]),
         "Telegram members: " + str(report.get("telegram_members") if report.get("telegram_members") is not None else "n/a"),
+        "Queue: " + str((report.get("queue") or {}).get("total", 0)) + " queued, next " + str((report.get("queue") or {}).get("next_due") or "n/a"),
         "Sources: " + source_line,
     ]
     if report.get("top_links"):

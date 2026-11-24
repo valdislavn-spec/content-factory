@@ -1,6 +1,6 @@
 /* Lightweight local scheduler for the Playwright Pinterest fallback.
- * Runs one publish attempt at startup and then every 6 hours.
- * Keep this process alive with: nohup node growth-funnel/pinterest_scheduler.cjs > growth-funnel/pinterest-scheduler.log 2>&1 &
+ * Checks wall-clock every minute and runs one publish attempt per 6 hours.
+ * Keep alive with: nohup node growth-funnel/pinterest_scheduler.cjs >> log 2>&1 &
  */
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -10,7 +10,9 @@ const ROOT = path.resolve(__dirname, '..');
 const PUBLISHER = path.join(__dirname, 'pinterest_playwright_publish.cjs');
 const NODE = process.execPath;
 const INTERVAL_MS = 6 * 60 * 60 * 1000;
+const CHECK_MS = 60 * 1000;
 let running = false;
+let lastRun = 0;
 
 function stamp() {
   return new Date().toISOString();
@@ -22,6 +24,7 @@ function runOnce() {
     return;
   }
   running = true;
+  lastRun = Date.now();
   try { fs.rmSync('/tmp/goodtravel-pinterest.lock', { force: true }); } catch (err) {}
   console.log(stamp(), 'start pinterest publish');
   const child = spawn(NODE, [PUBLISHER], {
@@ -39,6 +42,10 @@ function runOnce() {
   });
 }
 
+function tick() {
+  if (Date.now() - lastRun >= INTERVAL_MS) runOnce();
+}
+
 runOnce();
-setInterval(runOnce, INTERVAL_MS);
-console.log(stamp(), 'scheduler started, interval_ms', INTERVAL_MS);
+setInterval(tick, CHECK_MS);
+console.log(stamp(), 'scheduler started, interval_ms', INTERVAL_MS, 'check_ms', CHECK_MS);
