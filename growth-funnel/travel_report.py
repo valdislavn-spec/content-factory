@@ -188,7 +188,15 @@ def send_report(env: dict[str, str], text: str) -> dict[str, Any]:
     if token == "":
         return {"ok": False, "error": "TELEGRAM_BOT_TOKEN is empty"}
     body = urllib.parse.urlencode({"chat_id": chat, "text": text, "disable_web_page_preview": "true"}).encode("utf-8")
-    request = urllib.request.Request(base + "/bot" + token + "/sendMessage", data=body, method="POST")
+    request = urllib.request.Request(
+        base + "/bot" + token + "/sendMessage",
+        data=body,
+        headers={
+            "content-type": "application/x-www-form-urlencoded",
+            "user-agent": "Mozilla/5.0 (compatible; TravelFunnelReport/1.0)",
+        },
+        method="POST",
+    )
     with urllib.request.urlopen(request, timeout=40) as response:
         return json.loads(response.read().decode("utf-8"))
 
