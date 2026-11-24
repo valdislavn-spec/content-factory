@@ -127,30 +127,53 @@ programs:
     commission: "25–30% × 12 мес [вторично]"
     note: "AI-writing, через PartnerStack; заявка"
 
+  whop_ads_en:
+    title: "Реклама в @HOOPY0007 (Whop)"
+    kind: "affiliate"
+    status: ready
+    url: "https://whop.com/nobisnes/ad-slot-crypto-blockchain-hoopy0007-8-7k?a=tartcoolantb6"
+    commission: "20% через Whop Affiliates"
+    note: "24 ч / 48 ч + закреп / 3 поста, от $39 — ссылка с ?a=tartcoolantb6, проверена 24.11"
+  whop_ads_us:
+    title: "Реклама в US-сетке (16.3k)"
+    kind: "affiliate"
+    status: ready
+    url: "https://whop.com/nobisnes/us-network-3-16-3k?a=tartcoolantb6"
+    commission: "20% через Whop Affiliates"
+    note: "пост в 3 каналах, от $75 — ссылка с ?a=tartcoolantb6, проверена 24.11"
+  whop_ads_es:
+    title: "Реклама в ES-сетке"
+    kind: "affiliate"
+    status: ready
+    url: "https://whop.com/nobisnes/es-network-3?a=tartcoolantb6"
+    commission: "20% через Whop Affiliates"
+    note: "3 испаноязычных канала, от $19 — ссылка с ?a=tartcoolantb6, проверена 24.11"
+
 channels:
   crypto-news:
     language: en
     utm_source: tg_crypto_en
-    programs: [mylead, collaborator, bitget, mexc, kraken, crypto_com, coinbase]
+    programs: [whop_ads_en, whop_ads_us, mylead, collaborator, bitget, mexc, kraken, crypto_com, coinbase]
   ai-news:
     language: en
     utm_source: tg_ai_en
-    programs: [mylead, collaborator, writesonic, jasper]
+    programs: [whop_ads_us, mylead, collaborator, writesonic, jasper]
   sport-news:
     language: en
     utm_source: tg_sport_en
     age_restricted: true
-    programs: [mylead, collaborator, onexbet, n1partners]
+    programs: [whop_ads_us, mylead, collaborator, onexbet, n1partners]
   crypto-es:
     language: es
     utm_source: tg_crypto_es
-    programs: [mylead, collaborator, bitget, mexc, hotmart]
+    programs: [whop_ads_es, mylead, collaborator, bitget, mexc, hotmart]
   tech-ai-es:
     language: es
     utm_source: tg_ai_es
-    programs: [mylead, collaborator, writesonic, jasper, hotmart]
+    programs: [whop_ads_es, mylead, collaborator, writesonic, jasper, hotmart]
   futbol-es:
     language: es
     utm_source: tg_sport_es
     age_restricted: true
-    programs: [mylead, collaborator, onexbet, n1partners, hotmart]
+    programs: [whop_ads_es, mylead, collaborator, onexbet, n1partners, hotmart]
+
