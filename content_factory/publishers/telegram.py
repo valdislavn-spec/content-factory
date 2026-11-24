@@ -19,6 +19,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+from ..affiliate_inject import maybe_inject
 from ..config import Settings
 from ..models import ChannelConfig, GeneratedPost, PublishResult
 from ..utils import env, strip_html
@@ -389,7 +390,18 @@ class TelegramPublisher(Publisher):
                     ),
                 )
 
-            parts = split_html_message(post.text)
+            post_text = post.text
+            # Партнёрский блок в каждый N-й автопост канала (config/affiliates.yaml).
+            # Сбой affiliate-реестра не должен ронять публикацию.
+            try:
+                post_text, affiliate_meta = maybe_inject(post_text, channel.id)
+            except Exception:  # noqa: BLE001 - защитный барьер вокруг affiliate
+                logger.exception("affiliate: не удалось добавить блок в канал %s", channel.id)
+                affiliate_meta = None
+            if affiliate_meta:
+                post.meta = {**(post.meta or {}), "affiliate": affiliate_meta}
+                logger.info("affiliate: блок %s в %s (пост #%s)", affiliate_meta["program"], channel.id, affiliate_meta["index"])
+            parts = split_html_message(post_text)
             if not parts:
                 return self._result(
                     post,
