@@ -51,13 +51,11 @@ PLAYWRIGHT_BROWSERS_PATH=/Users/vd/Documents/deepseek-harness/default-workspace/
 growth-funnel/pinterest_playwright_publish.cjs
 ```
 
-Перезапустить локальный Pinterest-планировщик:
+Перезапустить локальный Pinterest-планировщик (detached-сессия):
 
 ```bash
 cd content-factory
-nohup env PLAYWRIGHT_BROWSERS_PATH=/Users/vd/Documents/deepseek-harness/default-workspace/tools/playwright-mcp/ms-playwright \
-/Users/vd/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node \
-growth-funnel/pinterest_scheduler.cjs >> growth-funnel/pinterest-scheduler.log 2>&1 &
+python3 growth-funnel/start_pinterest_scheduler.py
 ```
 
 Построить отчёт:
