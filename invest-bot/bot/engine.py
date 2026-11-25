@@ -4,6 +4,7 @@ import logging
 import threading
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import requests
 
@@ -12,6 +13,7 @@ from .config import Config
 from .models import Position, Signal
 from .moex import MSK, MoexData
 from .risk import hard_loss_hit, loss_from_start, max_drawdown_pct
+from .state import StateStore
 from .strategy import evaluate
 from .orb import evaluate as evaluate_orb
 from .ml_strategy import evaluate as evaluate_ml
@@ -62,20 +64,23 @@ class Engine:
         self.last_error = ""
         self.started_at = time.time()
         self.last_tick = ""
+        self.last_known_equity = 0.0
         self._stop = threading.Event()
-        self.day = ""
-        self.day_start_equity = cfg.start_equity
-        self.trades_today = 0
+        self.state = StateStore(cfg.state_path)
+        self.day = str(self.state.get("day", "") or "")
+        self.day_start_equity = self.state.get_float("day_start_equity", 0.0)
+        self.trades_today = self.state.get_int("trades_today", 0)
         self.notifier = Notifier(cfg.telegram_bot_token, cfg.telegram_chat_id)
         self.trading_enabled = cfg.trading_enabled
-        self.kill_switch = False
-        self.kill_reason = ""
+        self.kill_switch = self.state.get_bool("kill_switch", False)
+        self.kill_reason = str(self.state.get("kill_reason", "") or "")
 
+        trade_log = cfg.trade_log or str(Path(cfg.state_path).with_name("trades.jsonl"))
         if cfg.live_broker:
             self.broker = TinkoffBroker(
                 cfg.tinkoff_token, cfg.mode, cfg.tinkoff_class_code,
                 cfg.tinkoff_sandbox_topup, verify_tls=cfg.tinkoff_verify_tls,
-                account_id=cfg.tinkoff_account_id,
+                account_id=cfg.tinkoff_account_id, trade_log=trade_log,
             )
             self.broker.connect()
             self.data = self.broker
@@ -83,25 +88,46 @@ class Engine:
             self.broker = PaperBroker(cfg.state_path, cfg.start_equity, cfg.fee)
             self.data = MoexData(class_code=cfg.tinkoff_class_code, interval=10)
         try:
-            self.risk_start_equity = float(self._equity())
+            current_equity = float(self._equity())
         except Exception:
-            self.risk_start_equity = float(cfg.start_equity)
-        self.peak_equity = self.risk_start_equity
-        if hard_loss_hit(self.risk_start_equity, self.risk_start_equity, cfg.max_total_loss_rub):
+            current_equity = 0.0
+        stored_risk = self.state.get_float("risk_start_equity", 0.0)
+        self.risk_start_equity = stored_risk if stored_risk > 0 else float(cfg.start_equity)
+        self.peak_equity = max(self.state.get_float("peak_equity", 0.0), current_equity)
+        today = datetime.now(MSK).date().isoformat()
+        if self.day != today or self.day_start_equity <= 0:
+            self.day = today
+            self.day_start_equity = current_equity if current_equity > 0 else float(cfg.start_equity)
+            self.trades_today = 0
+        self._save_state()
+        if self.kill_switch:
+            log.error("persisted kill switch active: %s", self.kill_reason)
+        elif hard_loss_hit(current_equity, self.risk_start_equity, cfg.max_total_loss_rub):
             self._set_kill("already at loss limit")
 
     def stop(self) -> None:
         self._stop.set()
 
+    def _save_state(self) -> None:
+        self.state.set("risk_start_equity", self.risk_start_equity)
+        self.state.set("peak_equity", self.peak_equity)
+        self.state.set("day", self.day)
+        self.state.set("day_start_equity", self.day_start_equity)
+        self.state.set("trades_today", self.trades_today)
+        self.state.set("kill_switch", self.kill_switch)
+        self.state.set("kill_reason", self.kill_reason)
+
     def _set_kill(self, reason: str) -> None:
         if not self.kill_switch:
             self.kill_switch = True
             self.kill_reason = reason
+            self._save_state()
             log.error("RISK KILL SWITCH: %s", reason)
             self.notifier.send(f"🛑 RISK KILL SWITCH: {reason}\nMode: {self.cfg.mode}")
 
     def _risk_check(self, equity: float) -> None:
         self.peak_equity = max(self.peak_equity, equity)
+        self._save_state()
         if hard_loss_hit(equity, self.risk_start_equity, self.cfg.max_total_loss_rub):
             loss = loss_from_start(equity, self.risk_start_equity)
             self._set_kill(f"loss {loss:.2f} RUB >= limit {self.cfg.max_total_loss_rub:.2f} RUB")
@@ -110,8 +136,14 @@ class Engine:
     def status(self) -> dict:
         with self.lock:
             now = datetime.now(MSK)
-            equity = self._equity()
-            positions = self._positions()
+            try:
+                equity = self._equity()
+            except BrokerError:
+                equity = self.last_known_equity
+            try:
+                positions = self._positions()
+            except BrokerError:
+                positions = []
             trades = self.broker.trades(limit=20)
             return {
                 "mode": self.cfg.mode,
@@ -122,7 +154,7 @@ class Engine:
                 "equity": round(equity, 2),
                 "start_equity": self.cfg.start_equity,
                 "day_start_equity": round(self.day_start_equity, 2),
-                "day_pnl": round(equity - self.day_start_equity, 2),
+                "day_pnl": round(equity - self.day_start_equity, 2) if self.day_start_equity > 0 else 0.0,
                 "cash": round(self._cash(), 2) if not self.cfg.live_broker else None,
                 "positions": positions,
                 "prices": {k: round(v, 3) for k, v in self.prices.items()},
@@ -142,12 +174,14 @@ class Engine:
                     "max_trades_per_day": self.cfg.max_trades_per_day,
                     "trades_today": self.trades_today,
                 },
-                "exposure_rub": round(self._exposure(), 2),
+                "exposure_rub": round(self._safe_exposure(), 2),
                 "risk_guard": {
                     "trading_enabled": self.trading_enabled,
                     "kill_switch": self.kill_switch,
                     "kill_reason": self.kill_reason,
                     "max_total_loss_rub": self.cfg.max_total_loss_rub,
+                    "risk_start_equity": round(self.risk_start_equity, 2),
+                    "peak_equity": round(self.peak_equity, 2),
                     "loss_from_start_rub": round(loss_from_start(equity, self.risk_start_equity), 2),
                     "drawdown_from_peak_pct": round(max_drawdown_pct(self.peak_equity, equity), 3),
                 },
@@ -160,22 +194,30 @@ class Engine:
 
     def _equity(self) -> float:
         if isinstance(self.broker, PaperBroker):
-            return self.broker.equity(self.prices)
+            equity = self.broker.equity(self.prices)
+            self.last_known_equity = float(equity)
+            return float(equity)
         try:
-            return self.broker.equity()
+            equity = float(self.broker.equity())
         except BrokerError as exc:
             self.last_error = str(exc)
-            return 0.0
+            log.warning("equity request failed: %s", exc)
+            if self.last_known_equity > 0:
+                return self.last_known_equity
+            raise
+        self.last_known_equity = equity
+        return equity
 
     def _positions(self) -> list[dict]:
         if isinstance(self.broker, PaperBroker):
             return self.broker.positions()
         try:
             rows = self.broker.positions()
-            return [r for r in rows if r["ticker"] in self.cfg.tickers]
         except BrokerError as exc:
             self.last_error = str(exc)
-            return []
+            log.warning("positions request failed: %s", exc)
+            raise
+        return [r for r in rows if r["ticker"] in self.cfg.tickers]
 
     def _exposure(self) -> float:
         total = 0.0
@@ -183,6 +225,12 @@ class Engine:
             price = self.prices.get(p["ticker"], float(p["avg_price"]))
             total += float(price) * int(p["qty"])
         return total
+
+    def _safe_exposure(self) -> float:
+        try:
+            return self._exposure()
+        except BrokerError:
+            return 0.0
 
     def _position(self, ticker: str) -> Position | None:
         row = next((p for p in self._positions() if p["ticker"] == ticker), None)
@@ -197,9 +245,13 @@ class Engine:
         if self.day != day:
             self.day = day
             self.trades_today = 0
-            self.day_start_equity = self._equity() if self.prices else self.cfg.start_equity
+            equity = self._equity()
+            self.day_start_equity = (
+                equity if equity > 0 else (self.day_start_equity or self.cfg.start_equity)
+            )
             if isinstance(self.broker, PaperBroker):
                 self.broker.update_day(now, self.day_start_equity)
+            self._save_state()
 
         if self.cfg.live_broker:
             shorts = [p for p in self._positions() if int(p["qty"]) < 0]
@@ -270,6 +322,7 @@ class Engine:
                 filled = self.broker.buy(ticker, price, budget, signal.reason, now)
                 if filled:
                     self.trades_today += 1
+                    self._save_state()
                     results.append(filled)
                     self.notifier.send(f"🟢 BUY {ticker} @ {price:.2f}\n{signal.reason}\nMode: {self.cfg.mode}")
             elif signal.action == "SELL" and pos:
@@ -303,7 +356,7 @@ class Engine:
                 if filled:
                     out.append(filled)
                     self.notifier.send(f"⚪ CLOSE {ticker} @ {price:.2f}\n{reason}\nMode: {self.cfg.mode}")
-            except BrokerError as exc:
+            except (BrokerError, requests.RequestException) as exc:
                 self.last_error = str(exc)
                 log.warning("close %s failed: %s", ticker, exc)
         return out

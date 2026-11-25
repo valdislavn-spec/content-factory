@@ -222,7 +222,8 @@ class TinkoffBroker:
 
     def __init__(self, token: str, mode: str, class_code: str = "TQBR",
                  sandbox_topup: float = 100_000.0, timeout: int = 20,
-                 verify_tls: bool = True, account_id: str = ""):
+                 verify_tls: bool = True, account_id: str = "",
+                 trade_log: str = ""):
         if mode not in {"sandbox", "prod"}:
             raise ValueError("TinkoffBroker mode must be sandbox or prod")
         self.token = token
@@ -247,14 +248,23 @@ class TinkoffBroker:
         self.preferred_account_id = account_id.strip()
         self._instruments: dict[str, dict] = {}
         self._ticker_by_figi: dict[str, str] = {}
-        self.trade_log = Path(os.getenv("TRADE_LOG", "/tmp/invest-bot/trades.jsonl"))
+        self.trade_log = Path(
+            trade_log or os.getenv("TRADE_LOG", "/tmp/invest-bot/trades.jsonl")
+        )
         self.trade_log.parent.mkdir(parents=True, exist_ok=True)
 
     def _post(self, service: str, method: str, payload: dict) -> dict:
         url = f"{self.base}{self.PREFIX}{service}/{method}"
         last_error = ""
         for attempt in range(6):
-            resp = self.session.post(url, json=payload, timeout=self.timeout)
+            try:
+                resp = self.session.post(url, json=payload, timeout=self.timeout)
+            except requests.RequestException as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                if attempt == 5:
+                    raise BrokerError(f"{service}/{method}: network error: {last_error}") from exc
+                time.sleep(min(8.0, 0.5 * (2 ** attempt)))
+                continue
             try:
                 data = resp.json()
             except ValueError:
@@ -263,11 +273,17 @@ class TinkoffBroker:
                 last_error = data.get("message") or data.get("description") or "rate limited"
                 time.sleep(2.0 * (attempt + 1))
                 continue
+            if resp.status_code in {500, 502, 503, 504}:
+                last_error = data.get("message") or data.get("description") or f"HTTP {resp.status_code}"
+                if attempt == 5:
+                    raise BrokerError(f"{service}/{method}: HTTP {resp.status_code}: {last_error}")
+                time.sleep(min(8.0, 0.5 * (2 ** attempt)))
+                continue
             if resp.status_code >= 400:
                 detail = data.get("message") or data.get("description") or resp.text[:300]
                 raise BrokerError(f"{service}/{method}: HTTP {resp.status_code}: {detail}")
             return data
-        raise BrokerError(f"{service}/{method}: HTTP 429: {last_error}")
+        raise BrokerError(f"{service}/{method}: retries exhausted: {last_error}")
 
     def connect(self) -> str:
         if self.mode == "sandbox":

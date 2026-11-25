@@ -28,7 +28,8 @@ class Config:
     fee: float = 0.0005
     poll_seconds: int = 60
     port: int = 8000
-    state_path: str = "/tmp/invest-bot/state.db"
+    state_path: str = "data/state.db"
+    trade_log: str = ""
     moex_days: int = 7
     status_token: str = ""
     telegram_bot_token: str = ""
@@ -91,6 +92,7 @@ class Config:
             poll_seconds=int(os.getenv("POLL_SECONDS", default.poll_seconds)),
             port=int(os.getenv("PORT", default.port)),
             state_path=os.getenv("STATE_PATH", default.state_path),
+            trade_log=os.getenv("TRADE_LOG", default.trade_log),
             moex_days=int(os.getenv("MOEX_DAYS", default.moex_days)),
             status_token=os.getenv("STATUS_TOKEN", ""),
             telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),

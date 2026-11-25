@@ -50,6 +50,7 @@ STOP_LOSS=0.012
 POLL_SECONDS=60
 PORT=8000
 STATE_PATH=/app/data/state.db
+TRADE_LOG=/app/data/trades.jsonl
 STATUS_TOKEN=                      # optional: protect /status and /trades
 TINKOFF_TOKEN=                     # sandbox/prod only
 TINKOFF_CLASS_CODE=TQBR
@@ -58,6 +59,37 @@ TINKOFF_ALLOW_LIVE=0
 TELEGRAM_BOT_TOKEN=                # optional notifications
 TELEGRAM_CHAT_ID=
 ```
+
+## Persistence
+
+The engine keeps its risk baseline, daily P&L baseline, peak equity, trade
+counter and kill-switch state in SQLite at `STATE_PATH`. Tinkoff order logs are
+written to `TRADE_LOG`. Both must live on a persistent volume in production:
+
+- Docker image default: `/app/data/state.db` and `/app/data/trades.jsonl`.
+- On Northflank, mount a volume at `/app/data`. Without it, a redeploy resets
+  the baselines and `/trades`; the bot can then under-report cumulative losses.
+- Local default is `data/state.db`; the trade log is placed next to it unless
+  `TRADE_LOG` is set.
+
+## 30-day monitoring
+
+Poll the public `/status` endpoint and rebuild the daily report:
+
+```bash
+python -m bot.monitor --once --append --report MONITORING.md
+```
+
+- `--once` fetches one snapshot.
+- `--append` stores it in `data/automation/status-YYYY-MM.jsonl` (deduplicated).
+- `--report` rebuilds `MONITORING.md` with daily equity, P&L, drawdown, trades
+  and errors.
+- The GitHub workflow `archive-invest-bot.yml` runs the same command on its
+  schedule and commits both the JSONL snapshot and the report.
+
+Decision rule: stay in sandbox until there are at least **30 trading days**
+without infrastructure errors and the report shows positive P&L after fees. A
+sandbox result is not a guarantee of live profitability.
 
 ## API
 
@@ -138,6 +170,10 @@ TINKOFF_TOKEN=... python -m bot.backtest --days 90 --out backtest_results_90d.js
 ```
 
 The default deployed strategy remains `ema_rsi` until the ORB results are reviewed.
+
+Check `/status` for the effective flags. The current sandbox deployment may
+enable `ALLOW_LOSS_EXIT=1` and `MAX_TRADES_PER_DAY=2` even though the default
+config is more conservative; the status response is authoritative.
 
 ## Risk containment (important)
 

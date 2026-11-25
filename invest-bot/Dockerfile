@@ -4,6 +4,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     STATE_PATH=/app/data/state.db \
+    TRADE_LOG=/app/data/trades.jsonl \
     MODE=paper
 
 WORKDIR /app
