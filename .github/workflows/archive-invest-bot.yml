@@ -2,7 +2,7 @@ name: archive-invest-bot-status
 
 on:
   schedule:
-    # every 30 min, Mon-Fri, roughly 06:00-16:30 UTC (10:00-19:30 MSK)
+    # every 30 min, Mon-Fri, 06:00-16:30 UTC (09:00-19:30 MSK)
     - cron: "*/30 6-16 * * 1-5"
   workflow_dispatch:
 
