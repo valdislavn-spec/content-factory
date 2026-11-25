@@ -103,6 +103,12 @@ export default {
       } });
     }
 
+    // Гео-блок: все запросы из Украины (UA) запрещены.
+    const country = (request.cf && request.cf.country) || "";
+    if (country === "UA") {
+      return new Response("Forbidden", { status: 403, headers: { "content-type": "text/plain; charset=utf-8" } });
+    }
+
     if (path === "/" || path === "") {
       return json({ ok: true, service: "cf-links", storage: "d1",
         endpoints: ["/r/{code}", "/c/{code}", "/stats", "/admin/links", "/subscribe", "/admin/subscribers", "/admin/conversion", "/admin/pinterest-status", "/admin/queue", "/admin/funnel"] });
