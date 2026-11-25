@@ -40,8 +40,9 @@ def test_report_has_daily_and_cumulative_pnl():
     assert "2026-11-24" in text
     assert "-100.00" in text
     assert "+200.00" in text
+    assert "До цели (30 наблюдений): **27**" in text
     assert "Доходность: **+0.100%**" in text
-    assert "Сделок за день (сумма последних снимков): **3**" in text
+    assert "Входов за день (сумма последних снимков): **3**" in text
     assert "Снимков с ошибкой: **1**" in text
 
 
