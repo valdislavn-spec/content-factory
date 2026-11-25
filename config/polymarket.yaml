@@ -18,6 +18,11 @@ spreads:
   max_per_event: 1
   min_volume_24h: 0
 
+totals:
+  enabled: true
+  max_per_event: 1
+  min_volume_24h: 0
+
 footer_en: "Polymarket data, probabilities move — not financial advice."
 footer_es: "Datos de Polymarket, las probabilidades cambian — no es asesoramiento financiero."
 
@@ -31,6 +36,7 @@ digests:
 
   - channel: sport-news
     language: en
+    fixed_hour_utc: 13   # 08:00 ET / 05:00 PT — утренний слот под US
     title: "🏈 Sports prediction markets"
     # Свежие игры важнее фьючерсов: топ по объёму, но только спортивные
     # рынки. US-лиги: без соккера/киберспорта/политики.

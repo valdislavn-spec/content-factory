@@ -31,7 +31,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from content_factory.prediction.market import fetch_polymarket  # noqa: E402
+from content_factory.prediction.market import fetch_polymarket, _json  # noqa: E402
+
+
+def _gamma_json(url: str, params: Dict) -> object:
+    return _json(url, params, prefer_curl=True)
+
 
 MAX_QUESTION_CHARS = 90
 MAX_TEXT_CHARS = 3800
@@ -226,13 +231,60 @@ def spread_lines(markets: List[dict], question: str, limit: int = 1, min_volume:
     return lines
 
 
-def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
-    language = str(entry.get("language") or "en")
-    spanish = language.lower().startswith("es")
-    title = str(entry.get("title") or ("Mercados de predicción" if spanish else "Prediction markets"))
+def total_lines(markets: List[dict], question: str, limit: int = 1, min_volume: float = 0.0) -> List[str]:
+    """Строки тоталов для события: «O/U 30.5 — Over 52%»."""
+    tokens = set(_team_tokens(question))
+    if not tokens or limit <= 0:
+        return []
+    found: List[tuple] = []
+    for market in markets:
+        raw = str(market.get("question") or "")
+        if "O/U" not in raw:
+            continue
+        label = raw.split(":", 1)[1].strip() if ":" in raw else raw
+        prefix = raw.split(":", 1)[0].lower()
+        if not any(token in prefix for token in tokens):
+            continue
+        # только тотал всей игры: без 1H/1Q/2Q/3Q/4Q и командных тоталов
+        if any(marker in prefix for marker in ("1h", "1q", "2q", "3q", "4q", "team total", "half", "quarter")):
+            continue
+        try:
+            volume = float(market.get("volume_24h") or 0)
+        except (TypeError, ValueError):
+            volume = 0.0
+        if volume < min_volume:
+            continue
+        try:
+            outcomes = json.loads(market.get("outcomes") or "[]")
+            prices = json.loads(market.get("outcomePrices") or "[]")
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(outcomes, list) or not isinstance(prices, list) or len(prices) < 2:
+            continue
+        try:
+            over_index = next(i for i, name in enumerate(outcomes) if str(name).lower().startswith("over"))
+        except StopIteration:
+            over_index = 0
+        try:
+            probability = float(prices[over_index])
+        except (TypeError, ValueError):
+            continue
+        url = str(market.get("url") or "")
+        found.append((volume, label, url, probability))
+    found.sort(key=lambda item: item[0], reverse=True)
+    lines = []
+    for _, label, url, probability in found[:limit]:
+        text = html.escape(label)
+        if url.startswith("https://polymarket.com/"):
+            text = '<a href="%s">%s</a>' % (html.escape(url, quote=True), text)
+        lines.append("   ↳ total %s — Over %s" % (text, html.escape(_pct(probability))))
+    return lines
+
+
+def selected_for_entry(entry: dict, markets: List[dict], config: Dict) -> List[dict]:
     max_items = int(entry.get("max_items") or config.get("max_items") or 3)
     min_volume = float(entry.get("min_volume_24h") or config.get("min_volume_24h") or 0)
-    selected = select_markets(
+    return select_markets(
         markets,
         [str(k) for k in (entry.get("keywords") or [])],
         max_items,
@@ -243,6 +295,64 @@ def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
         [str(x) for x in (entry.get("must_include") or [])],
         [str(x) for x in (entry.get("url_keywords") or [])],
     )
+
+
+def normalize_event_market(market: Dict) -> Dict:
+    """Мини-нормализация рынка из события (нужна для спредов/тоталов)."""
+    prices = market.get("outcomePrices")
+    probability = None
+    try:
+        if isinstance(prices, str):
+            prices = json.loads(prices)
+        if isinstance(prices, list) and prices:
+            probability = float(prices[0])
+    except (TypeError, ValueError):
+        probability = None
+    slug = str(market.get("slug") or "")
+    try:
+        volume = float(market.get("volume24hr") or 0)
+    except (TypeError, ValueError):
+        volume = 0.0
+    return {
+        "question": str(market.get("question") or ""),
+        "url": ("https://polymarket.com/market/" + slug) if slug else "",
+        "probability": probability,
+        "volume_24h": volume,
+        "outcomes": market.get("outcomes"),
+        "outcomePrices": market.get("outcomePrices"),
+    }
+
+
+def enrich_event_markets(markets: List[dict], selected: List[dict]) -> List[dict]:
+    """Дотянуть рынки событий (спреды/тоталы) по слагу из Gamma API."""
+    extra: List[dict] = []
+    seen = {str(m.get("url") or "") for m in markets}
+    for market in selected:
+        url = str(market.get("url") or "")
+        if "/market/" not in url:
+            continue
+        slug = url.rsplit("/market/", 1)[1]
+        try:
+            rows = _gamma_json("https://gamma-api.polymarket.com/events", {"slug": slug})
+        except Exception as exc:  # noqa: BLE001
+            print("event %s: %s" % (slug, str(exc)[:80]), file=sys.stderr)
+            continue
+        if not isinstance(rows, list) or not rows:
+            continue
+        for child in (rows[0].get("markets") or []):
+            normalized = normalize_event_market(child)
+            if normalized["url"] and normalized["url"] not in seen:
+                seen.add(normalized["url"])
+                extra.append(normalized)
+    return extra
+
+
+def build_digest(entry: dict, markets: List[dict], config: Dict, selected: List[dict] | None = None) -> str:
+    language = str(entry.get("language") or "en")
+    spanish = language.lower().startswith("es")
+    title = str(entry.get("title") or ("Mercados de predicción" if spanish else "Prediction markets"))
+    if selected is None:
+        selected = selected_for_entry(entry, markets, config)
     if not selected:
         return ""
     yes = "Sí" if spanish else "Yes"
@@ -251,6 +361,10 @@ def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
     include_spreads = bool(spread_config.get("enabled", True))
     spreads_per_event = int(spread_config.get("max_per_event") or 1)
     spread_min_volume = float(spread_config.get("min_volume_24h") or 0)
+    total_config = config.get("totals") or {}
+    include_totals = bool(total_config.get("enabled", True))
+    totals_per_event = int(total_config.get("max_per_event") or 1)
+    total_min_volume = float(total_config.get("min_volume_24h") or 0)
     for market in selected:
         question = _shorten(market.get("question", ""))
         url = str(market.get("url") or "").strip()
@@ -261,6 +375,8 @@ def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
             html.escape(url, quote=True), html.escape(question), yes, html.escape(probability)))
         if include_spreads:
             lines.extend(spread_lines(markets, question, spreads_per_event, spread_min_volume))
+        if include_totals:
+            lines.extend(total_lines(markets, question, totals_per_event, total_min_volume))
     if len(lines) <= 2:
         return ""
     footer = config.get("footer_es") if spanish else config.get("footer_en")
@@ -303,6 +419,10 @@ def pick_entries(config: Dict, args) -> List[dict]:
     digests = [entry for entry in (config.get("digests") or []) if isinstance(entry, dict)]
     if args.channel:
         return [entry for entry in digests if str(entry.get("channel") or "") == args.channel]
+    # каналы с фиксированным утренним слотом в ротацию не входят
+    rotating = [entry for entry in digests if not entry.get("fixed_hour_utc")]
+    if args.rotate:
+        digests = rotating
     if not args.rotate:
         return digests
     if not digests:
@@ -346,7 +466,10 @@ def main(argv=None) -> int:
     failures = 0
     for entry in entries:
         channel = str(entry.get("channel") or "").strip()
-        text = build_digest(entry, markets, config)
+        selected = selected_for_entry(entry, markets, config)
+        if selected:
+            markets = markets + enrich_event_markets(markets, selected)
+        text = build_digest(entry, markets, config, selected=selected)
         chat_id = resolve_chat_id(channel, entry, channel_ids)
         if not text:
             print("%s: нет подходящих рынков — пропуск" % channel, file=sys.stderr)
