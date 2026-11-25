@@ -55,7 +55,13 @@ digests:
 
   - channel: futbol-es
     language: es
+    fixed_hour_utc: 14   # 14:00 UTC = 15:00 Мадрид / 09:00 Буэнос-Айрес
     title: "⚽ Mercados de predicción de fútbol"
+    # только конкретные матчи, не фьючерсы на чемпионство
+    require_keywords: false
+    must_include: [" vs", " win on "]
+    # только футбольные лиги: теннис/баскет и прочее отсекаются по слагу
+    url_keywords: [ucl, uel, ufl, epl, laliga, bundesliga, seriea, ligue1, ligue-1, copa, libertadores, mls, eredivisie, primeira, brasileirao, saudi, super-lig, ekstraklasa]
     keywords: ["la liga", "liga mx", "champions league", copa, "real madrid", barcelona, atletico, futbol, fútbol, "river plate", "boca juniors", seleccion]
     # Только футбол: без киберспорта и US-лиг.
     exclude: [counter-strike, cs2, dota, valorant, "league of legends", esports, nba, nfl, mlb, nhl, basketball, hockey, baseball, "super bowl"]

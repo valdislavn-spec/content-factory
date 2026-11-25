@@ -192,7 +192,7 @@ def _team_tokens(question: str) -> List[str]:
     return [w for w in words if len(w) > 3 and w not in {"what", "will", "win", "game", "team", "over", "under"}]
 
 
-def spread_lines(markets: List[dict], question: str, limit: int = 1, min_volume: float = 0.0) -> List[str]:
+def spread_lines(markets: List[dict], question: str, limit: int = 1, min_volume: float = 0.0, yes: str = "Yes") -> List[str]:
     """Строки спредов для события: «Bears -2.5 — Yes 46%» (сгруппировано по линии)."""
     tokens = set(_team_tokens(question))
     if not tokens or limit <= 0:
@@ -227,7 +227,7 @@ def spread_lines(markets: List[dict], question: str, limit: int = 1, min_volume:
         label = html.escape(body)
         if url.startswith("https://polymarket.com/"):
             label = '<a href="%s">%s</a>' % (html.escape(url, quote=True), label)
-        lines.append("   ↳ spread %s — Yes %s" % (label, html.escape(_pct(probability))))
+        lines.append("   ↳ spread %s — %s %s" % (label, yes, html.escape(_pct(probability))))
     return lines
 
 
@@ -338,6 +338,13 @@ def enrich_event_markets(markets: List[dict], selected: List[dict]) -> List[dict
         slug = url.rsplit("/market/", 1)[1]
         try:
             rows = _gamma_json("https://gamma-api.polymarket.com/events", {"slug": slug})
+            if not rows:
+                # рынок матча («…-2026-11-25-bay») — найдём его событие через /markets
+                found = _gamma_json("https://gamma-api.polymarket.com/markets", {"slug": slug})
+                if isinstance(found, list) and found:
+                    events = found[0].get("events") or []
+                    if events and events[0].get("slug"):
+                        rows = _gamma_json("https://gamma-api.polymarket.com/events", {"slug": events[0]["slug"]})
         except Exception as exc:  # noqa: BLE001
             print("event %s: %s" % (slug, str(exc)[:80]), file=sys.stderr)
             continue
@@ -380,9 +387,11 @@ def build_digest(entry: dict, markets: List[dict], config: Dict, selected: List[
             html.escape(url, quote=True), html.escape(question), yes, html.escape(probability)))
         slug = url.rsplit("/market/", 1)[1] if "/market/" in url else ""
         pool = [item for item in markets if item.get("_event_slug") == slug] or markets
-        if include_spreads:
-            lines.extend(spread_lines(pool, question, spreads_per_event, spread_min_volume))
-        if include_totals:
+        # спреды/тоталы только к игровым рынкам («X vs. Y»), не к фьючерсам
+        is_game = " vs" in question.lower()
+        if is_game and include_spreads:
+            lines.extend(spread_lines(pool, question, spreads_per_event, spread_min_volume, yes))
+        if is_game and include_totals:
             lines.extend(total_lines(pool, question, totals_per_event, total_min_volume))
     if len(lines) <= 2:
         return ""
