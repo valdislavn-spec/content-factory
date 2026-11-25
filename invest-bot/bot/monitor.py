@@ -25,8 +25,8 @@ def _key(data: dict[str, Any]) -> tuple:
         data.get("equity"),
         data.get("day_pnl"),
         data.get("trades_today"),
-        data.get("last_tick"),
         json.dumps(data.get("positions") or [], sort_keys=True),
+        data.get("last_error"),
     )
 
 
@@ -44,8 +44,12 @@ def append_snapshot(
         lines = path.read_text(encoding="utf-8").strip().splitlines()[-1:]
         if lines:
             try:
-                previous = json.loads(lines[0]).get("status") or {}
-                if _key(previous) == _key(data):
+                previous_row = json.loads(lines[0])
+                previous = previous_row.get("status") or {}
+                previous_ts = _parse_ts(previous_row.get("fetched_at", ""))
+                previous_day = previous_ts.astimezone(MSK).date() if previous_ts else None
+                current_day = fetched_at.astimezone(MSK).date()
+                if previous_day == current_day and _key(previous) == _key(data):
                     return path, False
             except (ValueError, TypeError):
                 pass

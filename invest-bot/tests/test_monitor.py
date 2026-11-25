@@ -46,12 +46,14 @@ def test_report_has_daily_and_cumulative_pnl():
     assert "Снимков с ошибкой: **1**" in text
 
 
-def test_append_snapshot_dedupes_identical_status(tmp_path):
+def test_append_snapshot_dedupes_same_day_and_keeps_new_day(tmp_path):
     data = {"mode": "sandbox", "equity": 100_000.0, "positions": []}
     path, first = append_snapshot(tmp_path, data, fetched_at=datetime(2026, 11, 25, tzinfo=timezone.utc))
     assert first is True
     path2, second = append_snapshot(tmp_path, data, fetched_at=datetime(2026, 11, 25, 1, tzinfo=timezone.utc))
     assert second is False
     assert path == path2
-    assert len(path.read_text().splitlines()) == 1
-    assert len(list(iter_snapshots(tmp_path))) == 1
+    _, third = append_snapshot(tmp_path, data, fetched_at=datetime(2026, 11, 26, tzinfo=timezone.utc))
+    assert third is True
+    assert len(path.read_text().splitlines()) == 2
+    assert len(list(iter_snapshots(tmp_path))) == 2
