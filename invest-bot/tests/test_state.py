@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from bot.broker import BrokerError
 from bot.config import Config
 from bot.engine import Engine, MSK
 from bot.state import StateStore
@@ -41,3 +42,22 @@ def test_engine_persists_day_baseline_and_trade_count(tmp_path):
     assert second.trades_today == 1
     assert second.risk_start_equity == 100_000.0
     assert second.peak_equity >= 100_000.0
+
+
+def test_equity_falls_back_to_last_known_value(tmp_path):
+    cfg = Config(
+        mode="paper",
+        tickers=("SBER",),
+        start_equity=100_000.0,
+        state_path=str(tmp_path / "engine.db"),
+    )
+    engine = Engine(cfg)
+    engine.last_known_equity = 99_917.56
+
+    class Broken:
+        def equity(self):
+            raise BrokerError("temporary outage")
+
+    engine.broker = Broken()
+    assert engine._equity() == 99_917.56
+    assert engine.last_error == "temporary outage"
