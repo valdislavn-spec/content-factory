@@ -93,7 +93,9 @@ class Engine:
             current_equity = 0.0
         stored_risk = self.state.get_float("risk_start_equity", 0.0)
         self.risk_start_equity = stored_risk if stored_risk > 0 else float(cfg.start_equity)
-        self.peak_equity = max(self.state.get_float("peak_equity", 0.0), current_equity)
+        self.peak_equity = max(
+            self.state.get_float("peak_equity", 0.0), current_equity, float(cfg.start_equity)
+        )
         today = datetime.now(MSK).date().isoformat()
         if self.day != today or self.day_start_equity <= 0:
             self.day = today

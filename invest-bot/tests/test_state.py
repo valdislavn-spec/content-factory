@@ -40,3 +40,4 @@ def test_engine_persists_day_baseline_and_trade_count(tmp_path):
     assert second.day_start_equity == 99_000.0
     assert second.trades_today == 1
     assert second.risk_start_equity == 100_000.0
+    assert second.peak_equity >= 100_000.0
