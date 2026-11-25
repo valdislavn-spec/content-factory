@@ -1,0 +1,128 @@
+{
+ "generated": "2026-11-25",
+ "window": [
+  "2026-10-28",
+  "2026-11-25"
+ ],
+ "properties": {
+  "https://travel-finds.surge.sh/": {
+   "permission": "siteOwner",
+   "sitemaps": [],
+   "queries": [],
+   "pages": [],
+   "inspection": []
+  },
+  "https://valdislavn-spec.github.io/content-factory/": {
+   "permission": "siteOwner",
+   "sitemaps": [
+    {
+     "path": "https://valdislavn-spec.github.io/content-factory/travel-finds/sitemap.xml",
+     "lastSubmitted": "2026-11-21T06:35:33.410Z",
+     "lastDownloaded": null,
+     "errors": "0",
+     "warnings": "0",
+     "contents": null
+    },
+    {
+     "path": "https://valdislavn-spec.github.io/content-factory/sitemap.xml",
+     "lastSubmitted": "2026-11-20T21:12:50.470Z",
+     "lastDownloaded": null,
+     "errors": "0",
+     "warnings": "0",
+     "contents": null
+    }
+   ],
+   "queries": [
+    {
+     "keys": [
+      "saily vs airalo"
+     ],
+     "clicks": 0,
+     "impressions": 1,
+     "ctr": 0,
+     "position": 58
+    },
+    {
+     "keys": [
+      "saily vs yesim"
+     ],
+     "clicks": 0,
+     "impressions": 1,
+     "ctr": 0,
+     "position": 46
+    }
+   ],
+   "pages": [
+    {
+     "keys": [
+      "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-esim.html"
+     ],
+     "clicks": 0,
+     "impressions": 2,
+     "ctr": 0,
+     "position": 52
+    }
+   ],
+   "inspection": [
+    {
+     "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/",
+     "verdict": "PASS",
+     "coverageState": "Submitted and indexed",
+     "crawledAs": "MOBILE",
+     "lastCrawlTime": "2026-11-21T08:32:10Z",
+     "googleCanonical": "https://valdislavn-spec.github.io/content-factory/travel-finds/",
+     "userCanonical": "https://valdislavn-spec.github.io/content-factory/travel-finds/"
+    },
+    {
+     "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-esim.html",
+     "verdict": "PASS",
+     "coverageState": "Submitted and indexed",
+     "crawledAs": "MOBILE",
+     "lastCrawlTime": "2026-11-21T08:53:48Z",
+     "googleCanonical": "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-esim.html",
+     "userCanonical": "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-esim.html"
+    },
+    {
+     "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-car-rental.html",
+     "verdict": "NEUTRAL",
+     "coverageState": "URL is unknown to Google",
+     "crawledAs": null,
+     "lastCrawlTime": null,
+     "googleCanonical": null,
+     "userCanonical": null
+    },
+    {
+     "url": "https://valdislavn-spec.github.io/content-factory/travel-finds/blog/how-to-find-cheap-flights-2026.html",
+     "verdict": "NEUTRAL",
+     "coverageState": "URL is unknown to Google",
+     "crawledAs": null,
+     "lastCrawlTime": null,
+     "googleCanonical": null,
+     "userCanonical": null
+    }
+   ]
+  },
+  "https://ofertas-finds.deed.page/": {
+   "permission": "siteOwner",
+   "sitemaps": [
+    {
+     "path": "https://ofertas-finds.deed.page/sitemap.xml",
+     "lastSubmitted": "2026-11-20T18:13:33.179Z",
+     "lastDownloaded": "2026-11-22T20:39:51.052Z",
+     "errors": "0",
+     "warnings": "0",
+     "contents": [
+      {
+       "type": "web",
+       "submitted": "40",
+       "indexed": "0"
+      }
+     ]
+    }
+   ],
+   "queries": [],
+   "pages": [],
+   "inspection": []
+  }
+ }
+}

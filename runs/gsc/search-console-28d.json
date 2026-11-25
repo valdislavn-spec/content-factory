@@ -1,0 +1,43 @@
+{
+ "https://valdislavn-spec.github.io/content-factory/": {
+  "query": [
+   {
+    "keys": [
+     "saily vs airalo"
+    ],
+    "clicks": 0,
+    "impressions": 1,
+    "ctr": 0,
+    "position": 58
+   },
+   {
+    "keys": [
+     "saily vs yesim"
+    ],
+    "clicks": 0,
+    "impressions": 1,
+    "ctr": 0,
+    "position": 46
+   }
+  ],
+  "page": [
+   {
+    "keys": [
+     "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-esim.html"
+    ],
+    "clicks": 0,
+    "impressions": 2,
+    "ctr": 0,
+    "position": 52
+   }
+  ]
+ },
+ "https://travel-finds.surge.sh/": {
+  "query": [],
+  "page": []
+ },
+ "https://ofertas-finds.deed.page/": {
+  "query": [],
+  "page": []
+ }
+}
