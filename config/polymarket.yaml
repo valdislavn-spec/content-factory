@@ -13,6 +13,11 @@ affiliate:
   text_en: "🔗 Trade prediction markets on Polymarket: {url} · {disclosure}"
   text_es: "🔗 Opera en mercados de predicción con Polymarket: {url} · {disclosure}"
 
+spreads:
+  enabled: true
+  max_per_event: 1
+  min_volume_24h: 0
+
 footer_en: "Polymarket data, probabilities move — not financial advice."
 footer_es: "Datos de Polymarket, las probabilidades cambian — no es asesoramiento financiero."
 
@@ -30,6 +35,8 @@ digests:
     # Свежие игры важнее фьючерсов: топ по объёму, но только спортивные
     # рынки. US-лиги: без соккера/киберспорта/политики.
     require_keywords: false
+    # только US-лиги: слаг рынка содержит nfl/nba/mlb/nhl/ncaa
+    url_keywords: [nfl, nba, mlb, nhl, ncaa, cfb, cbb]
     must_include: [" vs", "vs.", "win", "playoff", "championship", "super bowl", "world series", "stanley cup", "mvp", "ncaa", "college", "nfl", "nba", "mlb", "nhl", "draft", "trade", "injur"]
     exclude: [fed, "interest rate", election, president, ceasefire, bitcoin, ethereum, crypto, counter-strike, cs2, dota, valorant, "league of legends", esports, uefa, "champions league", "europa league", "conference league", "la liga", "liga mx", "premier league", epl, "serie a", bundesliga, "ligue 1", eredivisie, copa, soccer, fútbol, futbol, barcelona, "real madrid", psg, "paris saint", brighton, hove, albion, " fc ", " afc", " cf ", " sc ", " ac ", "fc ", "afc ", "uefa", fifa, "world cup", premier, libertadores, sudamericana, mls, liga]
     max_items: 3

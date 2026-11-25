@@ -24,16 +24,37 @@ from typing import Dict, List
 
 LOGGER = logging.getLogger(__name__)
 
-TIMEOUT = 15.0
+TIMEOUT = 20.0
 UA = "Mozilla/5.0 (compatible; content-factory-prediction/1.0)"
 
 
-def _json(url: str, params: Dict[str, object] | None = None, timeout: float = TIMEOUT):
+def _curl_json(url: str, timeout: float) -> object:
+    """Запасной путь: Gamma API режет python-клиент по TLS, curl проходит."""
+    import subprocess
+
+    proc = subprocess.run(
+        ["curl", "-sS", "-m", str(int(timeout)), "-A", UA, "-H", "Accept: application/json", url],
+        capture_output=True, text=True,
+    )
+    if proc.returncode != 0 or not proc.stdout.strip():
+        raise ValueError("curl: %s" % (proc.stderr.strip()[:120] or "empty response"))
+    return json.loads(proc.stdout)
+
+
+def _json(url: str, params: Dict[str, object] | None = None, timeout: float = TIMEOUT, prefer_curl: bool = False):
     if params:
         url = url + "?" + urllib.parse.urlencode(params)
+    if prefer_curl:
+        try:
+            return _curl_json(url, timeout)
+        except Exception:  # noqa: BLE001 - падаем в urllib
+            pass
     request = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.load(response)
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return _curl_json(url, timeout)
 
 
 def _float(value) -> float | None:
@@ -49,19 +70,26 @@ def fetch_polymarket(limit: int = 100, pages: int = 3) -> List[dict]:
     """Активные рынки Polymarket с движениями вероятности за 24ч."""
     markets: List[dict] = []
     for page in range(max(1, pages)):
-        try:
-            data = _json(
-                "https://gamma-api.polymarket.com/markets",
-                {
-                    "closed": "false",
-                    "limit": limit,
-                    "offset": page * limit,
-                    "order": "volume24hr",
-                    "ascending": "false",
-                },
-            )
-        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:
-            LOGGER.warning("polymarket: страница %d недоступна: %s", page, exc)
+        data = None
+        last_error = None
+        for attempt in range(2):
+            try:
+                data = _json(
+                    "https://gamma-api.polymarket.com/markets",
+                    {
+                        "closed": "false",
+                        "limit": limit,
+                        "offset": page * limit,
+                        "order": "volume24hr",
+                        "ascending": "false",
+                    },
+                    prefer_curl=True,
+                )
+                break
+            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:
+                last_error = exc
+        if data is None:
+            LOGGER.warning("polymarket: страница %d недоступна: %s", page, last_error)
             break
         if not isinstance(data, list) or not data:
             break

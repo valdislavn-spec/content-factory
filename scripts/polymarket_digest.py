@@ -114,6 +114,7 @@ def select_markets(
     exclude: Sequence[str] = (),
     require_keywords: bool = True,
     must_include: Sequence[str] = (),
+    url_keywords: Sequence[str] = (),
 ) -> List[dict]:
     pool: List[dict] = []
     for market in markets:
@@ -131,6 +132,8 @@ def select_markets(
         if exclude and _matches(question, exclude):
             continue
         if must_include and not _matches(question, must_include):
+            continue
+        if url_keywords and not _matches(str(market.get("url") or ""), url_keywords):
             continue
         if require_keywords and keywords and not _matches(question, keywords):
             continue
@@ -151,6 +154,8 @@ def select_markets(
             if not question:
                 continue
             if exclude and _matches(question, exclude):
+                continue
+            if url_keywords and not _matches(str(market.get("url") or ""), url_keywords):
                 continue
             probability = float(market.get("probability") or 0.0)
             pool.append({
@@ -175,6 +180,52 @@ def affiliate_line(config: Dict, language: str) -> str:
     return template.format(url=html.escape(url), disclosure=html.escape(disclosure))
 
 
+def _team_tokens(question: str) -> List[str]:
+    """Слова-команды из вопроса «Bears vs. Lions» -> ["bears", "lions"]."""
+    text = question.lower().replace("vs.", " ").replace("vs", " ")
+    words = [w.strip(".,:()") for w in text.split()]
+    return [w for w in words if len(w) > 3 and w not in {"what", "will", "win", "game", "team", "over", "under"}]
+
+
+def spread_lines(markets: List[dict], question: str, limit: int = 1, min_volume: float = 0.0) -> List[str]:
+    """Строки спредов для события: «Bears -2.5 — Yes 46%» (сгруппировано по линии)."""
+    tokens = set(_team_tokens(question))
+    if not tokens or limit <= 0:
+        return []
+    found: List[tuple] = []
+    seen = set()
+    for market in markets:
+        raw = str(market.get("question") or "")
+        if not raw.lower().startswith("spread:"):
+            continue
+        body = raw.split(":", 1)[1].strip()
+        lowered = body.lower()
+        if not any(token in lowered for token in tokens):
+            continue
+        try:
+            volume = float(market.get("volume_24h") or 0)
+        except (TypeError, ValueError):
+            volume = 0.0
+        if volume < min_volume:
+            continue
+        key = lowered.split("(")[0].strip()
+        if key in seen:
+            continue
+        seen.add(key)
+        probability = market.get("probability")
+        if probability is None:
+            continue
+        found.append((volume, body, market.get("url") or "", float(probability)))
+    found.sort(key=lambda item: item[0], reverse=True)
+    lines = []
+    for _, body, url, probability in found[:limit]:
+        label = html.escape(body)
+        if url.startswith("https://polymarket.com/"):
+            label = '<a href="%s">%s</a>' % (html.escape(url, quote=True), label)
+        lines.append("   ↳ spread %s — Yes %s" % (label, html.escape(_pct(probability))))
+    return lines
+
+
 def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
     language = str(entry.get("language") or "en")
     spanish = language.lower().startswith("es")
@@ -190,11 +241,16 @@ def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
         [str(x) for x in (entry.get("exclude") or [])],
         bool(entry.get("require_keywords", True)),
         [str(x) for x in (entry.get("must_include") or [])],
+        [str(x) for x in (entry.get("url_keywords") or [])],
     )
     if not selected:
         return ""
     yes = "Sí" if spanish else "Yes"
     lines = ["<b>%s</b>" % html.escape(title), ""]
+    spread_config = config.get("spreads") or {}
+    include_spreads = bool(spread_config.get("enabled", True))
+    spreads_per_event = int(spread_config.get("max_per_event") or 1)
+    spread_min_volume = float(spread_config.get("min_volume_24h") or 0)
     for market in selected:
         question = _shorten(market.get("question", ""))
         url = str(market.get("url") or "").strip()
@@ -203,6 +259,8 @@ def build_digest(entry: dict, markets: List[dict], config: Dict) -> str:
             continue
         lines.append('• <a href="%s">%s</a> — %s %s' % (
             html.escape(url, quote=True), html.escape(question), yes, html.escape(probability)))
+        if include_spreads:
+            lines.extend(spread_lines(markets, question, spreads_per_event, spread_min_volume))
     if len(lines) <= 2:
         return ""
     footer = config.get("footer_es") if spanish else config.get("footer_en")
