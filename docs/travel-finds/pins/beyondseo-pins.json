@@ -1,0 +1,110 @@
+[
+  {
+    "slug": "pin-bs-01-search-dates",
+    "file": "docs/travel-finds/pins/pin-bs-01-search-dates.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-bs-01-search-dates.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "How to find cheap flights in 2026: the 7-step playbook",
+      "description": "Cheap flights aren't luck, they're search order. Search a whole month of fares, check secondary airports, compare the total price instead of the headline fare. The free 7-step playbook. Ad · affiliate links.",
+      "alt_text": "How to find cheap flights in 2026: the 7-step playbook",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-bs-01-search-dates.png"
+      },
+      "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-search-dates",
+      "board": "Budget Travel",
+      "keywords": "cheap flights, how to find cheap flights, flexible dates, cheap airfare, travel deals 2026"
+    }
+  },
+  {
+    "slug": "pin-bs-02-flexible",
+    "file": "docs/travel-finds/pins/pin-bs-02-flexible.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-bs-02-flexible.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Flexible dates, cheaper flights: how shifting ±2 days cuts the fare",
+      "description": "The biggest lever on airfare isn't a promo code, it's how flexible your dates are. Search a month instead of a single day, shift one day each way, look at the edges of the season, then watch the hidden costs of a cheaper date.",
+      "alt_text": "Flexible dates, cheaper flights: how shifting ±2 days cuts the fare",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-bs-02-flexible.png"
+      },
+      "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-flexible",
+      "board": "Budget Travel",
+      "keywords": "flexible dates, cheaper flights, save on flights, flight search tips, travel hacks"
+    }
+  },
+  {
+    "slug": "pin-bs-03-transport",
+    "file": "docs/travel-finds/pins/pin-bs-03-transport.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-bs-03-transport.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Train vs bus vs plane in Europe: which is actually cheaper?",
+      "description": "None of them wins every time. Compare door-to-door: a plane adds 2–3 hours of airport overhead, a night train saves a hotel night, and a bus wins on short hops. Costs, time and when the slow option is the smart one.",
+      "alt_text": "Train vs bus vs plane in Europe: which is actually cheaper?",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-bs-03-transport.png"
+      },
+      "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-transport",
+      "board": "Travel ideas",
+      "keywords": "train vs bus vs plane, europe travel, cheap transport, city to city, budget travel europe"
+    }
+  },
+  {
+    "slug": "pin-bs-04-city-breaks",
+    "file": "docs/travel-finds/pins/pin-bs-04-city-breaks.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-bs-04-city-breaks.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Cheapest city breaks in Europe for 2026: five affordable picks",
+      "description": "A cheap city break is five costs stacked: flight, two nights, food, local transport and extras. Midweek departures and secondary airports usually beat Friday evening. Five affordable 2026 picks and the booking order that works.",
+      "alt_text": "Cheapest city breaks in Europe for 2026: five affordable picks",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-bs-04-city-breaks.png"
+      },
+      "link": "https://links-tracker.valdislav-n.workers.dev/r/pin-tf-europe-300",
+      "board": "City Breaks",
+      "keywords": "cheap city breaks, europe city breaks 2026, budget travel, weekend trips, affordable europe"
+    }
+  },
+  {
+    "slug": "pin-bs-05-esim",
+    "file": "docs/travel-finds/pins/pin-bs-05-esim.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-bs-05-esim.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "Best eSIM for a US trip: Airalo vs Yesim vs Saily",
+      "description": "A US eSIM gets you online before you land: install it before you fly, switch it on when you arrive. Coverage, data plans, activation and how much data a trip actually needs — Airalo vs Yesim vs Saily compared.",
+      "alt_text": "Best eSIM for a US trip: Airalo vs Yesim vs Saily",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-bs-05-esim.png"
+      },
+      "link": "https://links-tracker.valdislav-n.workers.dev/r/future-05-esim",
+      "board": "Travel ideas",
+      "keywords": "us esim, esim for travel, airalo vs yesim vs saily, travel data plan, usa travel"
+    }
+  },
+  {
+    "slug": "pin-bs-06-car-rental",
+    "file": "docs/travel-finds/pins/pin-bs-06-car-rental.png",
+    "image_url": "https://travel-finds.surge.sh/pins/pin-bs-06-car-rental.png",
+    "payload": {
+      "board_id": "<BOARD_ID>",
+      "title": "US car rental for visitors: 9 fees that change the total",
+      "description": "The rental price you see is not the rental price you pay. Insurance, tolls, young-driver and one-way fees add up fast. Nine charges to check before you book, and the 'total for stay' view that exposes them.",
+      "alt_text": "US car rental for visitors: 9 fees that change the total",
+      "media_source": {
+        "source_type": "image_url",
+        "url": "https://travel-finds.surge.sh/pins/pin-bs-06-car-rental.png"
+      },
+      "link": "https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-car-rental.html?utm_source=pinterest&utm_medium=pin&utm_campaign=pin-bs-06-car-rental",
+      "board": "Budget Travel",
+      "keywords": "us car rental, car rental fees, rental car insurance, usa road trip, travel fees"
+    }
+  }
+]

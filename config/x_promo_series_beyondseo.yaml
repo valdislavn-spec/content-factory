@@ -1,0 +1,55 @@
+# X/Twitter post series — собрано по аудиту BeyondSEO 2.10.0 (2026-11-24).
+# Источник: content-factory/runs/beyondseo-tf-2026-11-24 (17 страниц, findings: duplicate title/meta
+# на /travel-finds/ vs index.html + canonical — не блокеры для контента).
+# Правило владельца: X — редкие ручные посты (2/нед), не ежедневная лента.
+# Запуск: python3 scripts/x_promo_series.py --config config/x_promo_series_beyondseo.yaml
+# Публикация: добавить --live (создаст посты в Buffer, канал NValdislav).
+
+campaign:
+  name: x-travel-playbooks-2026-11
+  goal: travel_hub_clicks
+  audience: [travel, budget-travel, us-travelers]
+  source: beyondseo-audit-2026-11-24
+
+series:
+  - id: tf-cheap-flights-playbook
+    text: |
+      Cheap flights aren't found — they're sequenced.
+      Search a month, not a day. Check secondary airports. Compare the total, not the fare.
+      The 7-step playbook: https://links-tracker.valdislav-n.workers.dev/r/pin-tf-search-dates
+      #travel #budgettravel
+
+  - id: tf-flexible-dates
+    text: |
+      The biggest lever on airfare isn't a promo code — it's ±2 days.
+      Shift a trip two days either way and you often save more than any coupon would give you.
+      How to price a whole month in one search: https://links-tracker.valdislav-n.workers.dev/r/pin-tf-flexible
+      #travel
+
+  - id: tf-train-vs-plane
+    text: |
+      Train, bus or plane in Europe? None of them wins every time.
+      Compare door-to-door, not station-to-station: a plane adds 2–3 hours of overhead, and a night train saves a hotel night.
+      The honest guide: https://links-tracker.valdislav-n.workers.dev/r/pin-en-17-train-plane
+      #travel #europe
+
+  - id: tf-city-breaks-2026
+    text: |
+      A cheap city break isn't a city with a discount sticker. It's five costs stacked: flight, two nights, food, local transport, extras.
+      Midweek departures and secondary airports usually beat Friday evening.
+      Five affordable picks for 2026: https://links-tracker.valdislav-n.workers.dev/r/pin-en-15-city-breaks
+      #budgettravel
+
+  - id: tf-esim-before-you-fly
+    text: |
+      Land with data, not a phone-shop queue.
+      Install the eSIM before you fly, switch it on when the wheels touch down.
+      Airalo vs Yesim vs Saily — coverage, data and activation: https://links-tracker.valdislav-n.workers.dev/r/future-05-esim
+      #travel #esim
+
+  - id: tf-car-rental-fees
+    text: |
+      The rental price you see is not the rental price you pay.
+      Insurance, tolls, young-driver and one-way fees: 9 charges that change the total.
+      Open the "total for stay" view first: https://valdislavn-spec.github.io/content-factory/travel-finds/guides/us-car-rental.html
+      #travel #carrental

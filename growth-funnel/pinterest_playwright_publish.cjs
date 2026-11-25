@@ -99,41 +99,94 @@ async function verifyPin(page, title) {
   }, title);
 }
 
+async function findExistingPin(page, title) {
+  await page.goto('https://www.pinterest.com/VladislavPint/_created/', { waitUntil: 'domcontentloaded', timeout: 90000 }).catch(function () {});
+  await page.waitForTimeout(8000);
+  for (let i = 0; i < 6; i += 1) {
+    await page.mouse.wheel(0, 1500);
+    await page.waitForTimeout(900);
+  }
+  return page.evaluate(function (wanted) {
+    for (const a of document.querySelectorAll('a[href*="/pin/"]')) {
+      const label = String(a.getAttribute('aria-label') || a.innerText || '');
+      if (label.indexOf(wanted) >= 0 && /\/pin\/\d+/.test(a.href)) {
+        return { ok: true, url: a.href.split('/analytics')[0].replace(/\/+$/, '') };
+      }
+    }
+    return { ok: false, url: '' };
+  }, title);
+}
+
 async function publishOne(page, item) {
   const imagePath = path.isAbsolute(item.image) ? item.image : path.join(ROOT, item.image);
   if (fs.existsSync(imagePath) === false) throw new Error('image missing: ' + imagePath);
+  const existing = await findExistingPin(page, item.title);
+  if (existing.ok) {
+    return { ok: true, pin_url: existing.url, verified: true, already: true, titleOk: true, descOk: true, linkOk: true, boardOk: true, bodyTail: 'existing pin found' };
+  }
   await page.goto('https://www.pinterest.com/pin-builder/', { waitUntil: 'domcontentloaded', timeout: 90000 });
   await page.waitForTimeout(6000);
   await page.locator('input[type=file]').first().setInputFiles(imagePath, { timeout: 20000 });
   await page.waitForTimeout(6000);
 
-  const titleOk = await fillFirst(page, ['textarea[placeholder*="название"]', 'input[placeholder*="название"]'], item.title);
-  const descOk = await fillFirst(page, ['textarea[placeholder*="описание"]', '[aria-label*="описание"]', 'div[contenteditable="true"]'], item.description);
-  const linkOk = await fillFirst(page, ['input[placeholder*="ссылк"]', 'textarea[placeholder*="ссылк"]'], item.link);
+  const titleOk = await fillFirst(page, ['textarea[placeholder*="название"]', 'textarea[placeholder*="title"]', 'input[placeholder*="название"]'], item.title);
+  const descOk = await fillFirst(page, ['[aria-label*="описание"][contenteditable="true"]', 'div[contenteditable="true"]', 'textarea[placeholder*="описание"]'], item.description);
+  const linkOk = await fillFirst(page, ['textarea[placeholder*="ссылк"]', 'input[placeholder*="ссылк"]', 'textarea[placeholder*="link"]'], item.link);
   await page.waitForTimeout(1500);
 
-  await page.locator('[data-test-id="board-dropdown-select-button"]').first().click({ timeout: 12000 });
-  await page.waitForTimeout(1500);
-  let boardOk = false;
-  const row = page.locator('[data-test-id="board-row-' + item.board + '"]').first();
-  if (await row.count().catch(function () { return 0; })) {
-    await row.scrollIntoViewIfNeeded().catch(function () {});
-    await row.click({ timeout: 6000 });
-    boardOk = true;
-  }
+  const selectBtn = page.locator('[data-test-id="board-dropdown-select-button"]').first();
+  const boardText = async function () {
+    return (await selectBtn.innerText().catch(function () { return ''; })).trim();
+  };
+  let boardOk = (await boardText()) === item.board;
   if (boardOk === false) {
-    const byText = page.getByText(item.board, { exact: true }).first();
-    if (await byText.count().catch(function () { return 0; })) {
-      await byText.scrollIntoViewIfNeeded().catch(function () {});
-      await byText.click({ timeout: 6000 });
-      boardOk = true;
+    await selectBtn.click({ timeout: 15000 });
+    await page.waitForTimeout(2500);
+    const search = page.locator('input[placeholder*="Поиск"], input[placeholder*="Search"]').first();
+    if (await search.count().catch(function () { return 0; })) {
+      try {
+        await search.fill(item.board, { timeout: 5000 });
+        await page.waitForTimeout(2000);
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(2500);
+      } catch (e) {}
+    }
+    boardOk = (await boardText()) === item.board;
+    if (boardOk === false) {
+      const option = page.getByText(item.board, { exact: true }).first();
+      if (await option.count().catch(function () { return 0; })) {
+        await option.scrollIntoViewIfNeeded().catch(function () {});
+        await option.click({ timeout: 8000 }).catch(function () {});
+        await page.waitForTimeout(2000);
+        boardOk = (await boardText()) === item.board;
+      }
     }
   }
-  await page.waitForTimeout(1500);
-  await page.locator('[data-test-id="board-dropdown-save-button"]').first().evaluate(function (node) { node.click(); });
-  await page.waitForTimeout(9000);
-  const body = await page.evaluate(function () { return document.body.innerText || ''; });
-  const success = body.indexOf('Вы создали пин') >= 0 || body.indexOf('Открыть пин') >= 0;
+  await page.waitForTimeout(1200);
+  const clickSave = async function () {
+    const saved = await page.locator('[data-test-id="board-dropdown-save-button"]').first().evaluate(function (node) { node.click(); return true; }).catch(function () { return false; });
+    if (saved) return true;
+    const fallback = page.getByRole('button', { name: /Опубликовать|Сохранить/ }).first();
+    if (await fallback.count().catch(function () { return 0; })) {
+      await fallback.click({ timeout: 8000 }).catch(function () {});
+      return true;
+    }
+    return false;
+  };
+  await clickSave();
+  await page.waitForTimeout(12000);
+  let body = await page.evaluate(function () { return document.body.innerText || ''; });
+  if (body.indexOf('Черновик пина') >= 0 && body.indexOf('Вы создали пин') < 0 && body.indexOf('Открыть пин') < 0 && body.indexOf('Пин создан') < 0) {
+    await clickSave();
+    await page.waitForTimeout(12000);
+    body = await page.evaluate(function () { return document.body.innerText || ''; });
+  }
+  let success = body.indexOf('Вы создали пин') >= 0 || body.indexOf('Открыть пин') >= 0 || body.indexOf('Пин создан') >= 0 || body.indexOf('Опубликован') >= 0 || /\/pin\/\d+/.test(page.url());
+  let lateUrl = '';
+  if (success === false) {
+    const lateExisting = await findExistingPin(page, item.title);
+    if (lateExisting.ok) { success = true; lateUrl = lateExisting.url; }
+  }
   const links = await page.evaluate(function () {
     return Array.from(document.querySelectorAll('a[href*="/pin/"]')).map(function (a) { return a.href; });
   });
@@ -141,6 +194,7 @@ async function publishOne(page, item) {
   for (const link of links) {
     if (/\/pin\/\d+/.test(link)) { pinUrl = link; break; }
   }
+  if (lateUrl) pinUrl = lateUrl;
   let verified = { ok: false, url: '' };
   if (success === false) verified = await verifyPin(page, item.title);
   return { ok: success || verified.ok, pin_url: pinUrl || verified.url, verified: verified.ok, titleOk: titleOk, descOk: descOk, linkOk: linkOk, boardOk: boardOk, bodyTail: body.slice(-500) };
@@ -172,7 +226,7 @@ async function main() {
     context = await chromium.launchPersistentContext(PROFILE, {
       headless: false,
       viewport: { width: 1280, height: 900 },
-      args: ['--no-sandbox', '--password-store=basic', '--use-mock-keychain'],
+      args: ['--no-sandbox', '--password-store=basic', '--use-mock-keychain', '--no-proxy-server'],
       locale: 'ru-RU',
     });
     const page = context.pages()[0] || await context.newPage();
