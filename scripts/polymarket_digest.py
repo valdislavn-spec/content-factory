@@ -246,7 +246,8 @@ def total_lines(markets: List[dict], question: str, limit: int = 1, min_volume: 
         if not any(token in prefix for token in tokens):
             continue
         # только тотал всей игры: без 1H/1Q/2Q/3Q/4Q и командных тоталов
-        if any(marker in prefix for marker in ("1h", "1q", "2q", "3q", "4q", "team total", "half", "quarter")):
+        lowered = raw.lower()
+        if any(marker in lowered for marker in ("1h", "1q", "2q", "3q", "4q", "team total", "first half", "quarter")):
             continue
         try:
             volume = float(market.get("volume_24h") or 0)
@@ -255,8 +256,12 @@ def total_lines(markets: List[dict], question: str, limit: int = 1, min_volume: 
         if volume < min_volume:
             continue
         try:
-            outcomes = json.loads(market.get("outcomes") or "[]")
-            prices = json.loads(market.get("outcomePrices") or "[]")
+            outcomes = market.get("outcomes")
+            prices = market.get("outcomePrices")
+            if isinstance(outcomes, str):
+                outcomes = json.loads(outcomes or "[]")
+            if isinstance(prices, str):
+                prices = json.loads(prices or "[]")
         except (TypeError, ValueError):
             continue
         if not isinstance(outcomes, list) or not isinstance(prices, list) or len(prices) < 2:
@@ -326,7 +331,6 @@ def normalize_event_market(market: Dict) -> Dict:
 def enrich_event_markets(markets: List[dict], selected: List[dict]) -> List[dict]:
     """Дотянуть рынки событий (спреды/тоталы) по слагу из Gamma API."""
     extra: List[dict] = []
-    seen = {str(m.get("url") or "") for m in markets}
     for market in selected:
         url = str(market.get("url") or "")
         if "/market/" not in url:
@@ -341,9 +345,10 @@ def enrich_event_markets(markets: List[dict], selected: List[dict]) -> List[dict
             continue
         for child in (rows[0].get("markets") or []):
             normalized = normalize_event_market(child)
-            if normalized["url"] and normalized["url"] not in seen:
-                seen.add(normalized["url"])
-                extra.append(normalized)
+            if not normalized["url"]:
+                continue
+            normalized["_event_slug"] = slug
+            extra.append(normalized)
     return extra
 
 
@@ -373,10 +378,12 @@ def build_digest(entry: dict, markets: List[dict], config: Dict, selected: List[
             continue
         lines.append('• <a href="%s">%s</a> — %s %s' % (
             html.escape(url, quote=True), html.escape(question), yes, html.escape(probability)))
+        slug = url.rsplit("/market/", 1)[1] if "/market/" in url else ""
+        pool = [item for item in markets if item.get("_event_slug") == slug] or markets
         if include_spreads:
-            lines.extend(spread_lines(markets, question, spreads_per_event, spread_min_volume))
+            lines.extend(spread_lines(pool, question, spreads_per_event, spread_min_volume))
         if include_totals:
-            lines.extend(total_lines(markets, question, totals_per_event, total_min_volume))
+            lines.extend(total_lines(pool, question, totals_per_event, total_min_volume))
     if len(lines) <= 2:
         return ""
     footer = config.get("footer_es") if spanish else config.get("footer_en")
