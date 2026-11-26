@@ -3,6 +3,16 @@ name: deploy-link-tracker
 # Деплой воркера links-tracker из репозитория (без wrangler).
 # Токен Cloudflare лежит в секретах, поэтому деплой идёт из CI, а не с ноутбука.
 on:
+  # Как только меняется код воркера — пробуем задеплоить. Если токен не принят,
+  # прогон завершается предупреждением, а не красным крестом.
+  push:
+    paths:
+      - "infra/cloudflare/links-tracker/**"
+      - "scripts/deploy_link_tracker.sh"
+      - ".github/workflows/deploy-link-tracker.yml"
+  # Раз в сутки: подхватит деплой, как только секрет обновят.
+  schedule:
+    - cron: "30 3 * * *"
   workflow_dispatch:
     inputs:
       verify_only:
@@ -25,18 +35,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify Cloudflare token
+        id: verify
         run: |
           code=$(curl -s -o /tmp/verify.json -w '%{http_code}' \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             https://api.cloudflare.com/client/v4/user/tokens/verify)
           echo "verify HTTP ${code}"
           head -c 400 /tmp/verify.json; echo
-          test "${code}" = "200" || { echo "::error::токен Cloudflare не принят"; exit 1; }
+          if [ "${code}" = "200" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::токен Cloudflare не принят (HTTP ${code}) — деплой пропущен, обнови секрет CLOUDFLARE_API_TOKEN"
+          fi
       - name: Deploy worker
-        if: ${{ !inputs.verify_only }}
+        if: ${{ steps.verify.outputs.ok == 'true' && !inputs.verify_only }}
         run: bash scripts/deploy_link_tracker.sh --update
       - name: Check stats endpoint
-        if: ${{ !inputs.verify_only }}
+        if: ${{ steps.verify.outputs.ok == 'true' && !inputs.verify_only }}
         run: |
           sleep 5
           for i in 1 2 3; do
