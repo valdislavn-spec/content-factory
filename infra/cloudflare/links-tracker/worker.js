@@ -398,15 +398,22 @@ export default {
       const links = await all(env, "SELECT * FROM links ORDER BY created_at DESC");
       const agg = await all(env, "SELECT code, SUM(count) AS total, MAX(last_click) AS last_click FROM clicks GROUP BY code");
       const byCode = Object.fromEntries(agg.map((r) => [r.code, r]));
+      // Один запрос на все дни вместо отдельного запроса на каждую ссылку:
+      // раньше 196 ссылок = 197 обращений к D1 и ответ обрывался по таймауту.
+      const dayRows = await all(env, "SELECT code, day, count FROM clicks ORDER BY day");
+      const daysByCode = {};
+      for (const row of dayRows) {
+        (daysByCode[row.code] = daysByCode[row.code] || {})[row.day] = row.count;
+      }
       const out = [];
       for (const link of links) {
         const a = byCode[link.code] || {};
-        const days = await all(env, "SELECT day, count FROM clicks WHERE code = ? ORDER BY day", [link.code]);
+        const days = daysByCode[link.code] || {};
         out.push({
           code: link.code, channel: link.channel || "", network: link.network || "",
           label: link.label || "", target: link.target || "",
           total: Number(a.total || 0),
-          days: Object.fromEntries(days.map((d) => [d.day, d.count])),
+          days,
           channels: link.channel ? { [link.channel]: Number(a.total || 0) } : {},
           last_click: a.last_click || null,
         });

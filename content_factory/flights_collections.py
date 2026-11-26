@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -29,6 +30,24 @@ from content_factory import flights_geo as geo
 
 PUBLIC = "https://valdislavn-spec.github.io/content-factory"
 AVIASALES_CTA = "https://aviasales.tpk.ro/b3PI8GVN"
+GA_ID_DEFAULT = "G-LC39S1FD7B"
+
+
+def analytics_head(ga_id: str = "") -> str:
+    """GA4 + событие affiliate_click: без него переходы по подборкам не видны нигде."""
+    ga = (ga_id or os.environ.get("GA4_MEASUREMENT_ID") or GA_ID_DEFAULT).strip()
+    if not ga:
+        return ""
+    return (
+        f'<script async src="https://www.googletagmanager.com/gtag/js?id={ga}"></script>'
+        "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}"
+        f"gtag('js',new Date());gtag('config','{ga}',{{anonymize_ip:true}});"
+        "document.addEventListener('click',function(e){"
+        "var a=e.target.closest?e.target.closest('a[href*=\".tpk.ro\"]'):null;"
+        "if(a){gtag('event','affiliate_click',{link_url:a.href,page_path:location.pathname,"
+        "collection:document.title});}},true);</script>"
+    )
+
 TELEGRAM_LIMIT = 4096
 
 ORIGINS: Dict[str, Dict[str, str]] = {
@@ -440,6 +459,7 @@ def render_page(col: Collection, cols: Sequence[Collection], updated: Optional[d
         f'<meta property="og:description" content="{_esc(description)}">',
         f'<meta property="og:url" content="{public}/collections/{col.slug}/">',
         f'<script type="application/ld+json">{schema}</script>',
+        analytics_head(),
         "</head>",
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'
         'color:#111;background:#fff">',
@@ -488,6 +508,7 @@ def render_hub(cols: Sequence[Collection], updated: Optional[datetime],
         '<meta property="og:title" content="Подборки дешёвых билетов">',
         f'<meta property="og:description" content="{_esc(description)}">',
         f'<meta property="og:url" content="{public}/collections/">',
+        analytics_head(),
         "</head>",
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'
         'color:#111;background:#fff">',

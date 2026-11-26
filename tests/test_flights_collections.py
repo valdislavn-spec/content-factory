@@ -135,3 +135,13 @@ def test_sitemap_update_is_idempotent(tmp_path):
     assert xml.count("<loc>https://example.com/collections/turciya/</loc>") == 1
     assert "<lastmod>2026-11-14</lastmod>" in xml
     assert xml.rstrip().endswith("</urlset>")
+
+
+def test_pages_carry_analytics():
+    deals = fc.parse_page(PAGE, "ALA")
+    cols = fc.build_collections(deals, min_deals=2)
+    page = fc.render_page(cols[0], cols, None)
+    hub = fc.render_hub(cols, None)
+    for html in (page, hub):
+        assert "googletagmanager.com/gtag/js" in html
+        assert "affiliate_click" in html  # клик по партнёрской ссылке виден в GA4

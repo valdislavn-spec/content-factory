@@ -20,7 +20,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import time
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +32,43 @@ if str(ROOT) not in sys.path:
 
 from content_factory import flights_collections as fc  # noqa: E402
 from content_factory import flights_collections_en as en  # noqa: E402
+
+
+def telegram_send(text: str, chat: str, token: str, api_base: str = "") -> str:
+    """Отправка одного поста. Возвращает message_id или текст ошибки."""
+    base = (api_base or os.environ.get("TELEGRAM_API_BASE") or "https://api.telegram.org").rstrip("/")
+    payload = json.dumps({"chat_id": chat, "text": text, "parse_mode": "HTML",
+                          "disable_web_page_preview": True}).encode("utf-8")
+    request = urllib.request.Request("%s/bot%s/sendMessage" % (base, token), data=payload,
+                                     headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            data = json.loads(response.read() or b"{}")
+        return str((data.get("result") or {}).get("message_id") or "ok")
+    except Exception as error:  # noqa: BLE001
+        body = getattr(error, "read", lambda: b"")()
+        return "ошибка: %s %s" % (type(error).__name__, body[:120].decode("utf-8", "replace") if body else "")
+
+
+def publish(cols, args, lang: str) -> int:
+    """Отправляет посты в канал. Ничего не делает без TELEGRAM_BOT_TOKEN/чата."""
+    token = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip()
+    chat = (args.chat or os.environ.get("TELEGRAM_CHAT_ID_TRAVEL") or "").strip()
+    if not token or not chat:
+        print("[%s] публикация: нет TELEGRAM_BOT_TOKEN или chat id — пропуск" % lang)
+        return 0
+    render = fc.render_post if lang == "ru" else en.render_post
+    selected = [c for c in cols if not args.only or c.slug == args.only]
+    if args.only and not selected:
+        print("[%s] подборка %r не найдена" % (lang, args.only))
+        return 1
+    sent = 0
+    for col in selected:
+        result = telegram_send(render(col, fc.page_updated(Path(args.docs)), fc.PUBLIC), chat, token)
+        print("[%s] отправлено %-20s → %s" % (lang, col.slug, result))
+        sent += 1
+        time.sleep(1.5)
+    return 0 if sent == len(selected) else 1
 
 
 def build_ru(args) -> int:
@@ -59,6 +99,8 @@ def build_ru(args) -> int:
     snapshot = fc.write_snapshot(Path(args.snapshot), cols, updated)
     print("[ru] страниц: %d | постов: %d | снимок: %s" % (len(pages), len(posts), snapshot))
 
+    if args.publish:
+        publish(cols, args, "ru")
     if not args.no_sitemap:
         urls = fc.sitemap_urls(cols)
         added = fc.update_sitemap(Path(args.sitemap), urls,
@@ -111,6 +153,8 @@ def build_en(args) -> int:
         encoding="utf-8")
     print("[en] страниц: %d | постов: %d | снимок: %s" % (len(pages), len(posts), snapshot))
 
+    if args.publish:
+        publish(cols, args, "en")
     if not args.no_sitemap:
         urls = en.sitemap_urls(cols)
         added = fc.update_sitemap(Path(args.sitemap), urls,
@@ -132,6 +176,9 @@ def main(argv=None) -> int:
     parser.add_argument("--min-deals", type=int, default=3, help="минимум сделок в подборке")
     parser.add_argument("--no-sitemap", action="store_true", help="не трогать sitemap.xml")
     parser.add_argument("--dry-run", action="store_true", help="только показать результат")
+    parser.add_argument("--publish", action="store_true", help="отправить посты в Telegram-канал")
+    parser.add_argument("--only", default="", help="только одна подборка (slug)")
+    parser.add_argument("--chat", default="", help="chat id канала (по умолчанию TELEGRAM_CHAT_ID_TRAVEL)")
     args = parser.parse_args(argv)
 
     code = 0

@@ -31,6 +31,7 @@ from content_factory.flights_collections import (
     TELEGRAM_LIMIT,
     Collection,
     Deal,
+    analytics_head,
     load_deals,
     page_updated,
     parse_page,
@@ -287,6 +288,7 @@ def render_page(col: Collection, cols: Sequence[Collection], updated: Optional[d
         f'<meta property="og:description" content="{_esc(description)}">',
         f'<meta property="og:url" content="{public}{ROOT_PREFIX}/{col.slug}/">',
         f'<script type="application/ld+json">{schema}</script>',
+        analytics_head(),
         "</head>",
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'
         'color:#111;background:#fff">',
@@ -335,6 +337,7 @@ def render_hub(cols: Sequence[Collection], updated: Optional[datetime], rate: fl
         '<meta property="og:title" content="Cheap flights from Almaty — curated collections">',
         f'<meta property="og:description" content="{_esc(description)}">',
         f'<meta property="og:url" content="{public}{ROOT_PREFIX}/">',
+        analytics_head(),
         "</head>",
         '<body style="margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'
         'color:#111;background:#fff">',
