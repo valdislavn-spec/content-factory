@@ -1,0 +1,51 @@
+name: deploy-link-tracker
+
+# Деплой воркера links-tracker из репозитория (без wrangler).
+# Токен Cloudflare лежит в секретах, поэтому деплой идёт из CI, а не с ноутбука.
+on:
+  workflow_dispatch:
+    inputs:
+      verify_only:
+        description: "Только проверить токен, ничего не деплоить"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
+      LINK_TRACKER_STATS_TOKEN: ${{ secrets.LINK_TRACKER_STATS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Cloudflare token
+        run: |
+          code=$(curl -s -o /tmp/verify.json -w '%{http_code}' \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            https://api.cloudflare.com/client/v4/user/tokens/verify)
+          echo "verify HTTP ${code}"
+          head -c 400 /tmp/verify.json; echo
+          test "${code}" = "200" || { echo "::error::токен Cloudflare не принят"; exit 1; }
+      - name: Deploy worker
+        if: ${{ !inputs.verify_only }}
+        run: bash scripts/deploy_link_tracker.sh --update
+      - name: Check stats endpoint
+        if: ${{ !inputs.verify_only }}
+        run: |
+          sleep 5
+          for i in 1 2 3; do
+            curl -s -m 20 -o /tmp/stats.json -w "stats HTTP %{http_code} %{size_download}B %{time_total}s\n" \
+              "https://links-tracker.valdislav-n.workers.dev/stats?token=${LINK_TRACKER_STATS_TOKEN}" && break
+            sleep 10
+          done
+          python3 - <<'PY'
+          import json
+          data = json.load(open('/tmp/stats.json'))
+          print('ok:', data.get('ok'), '| links:', data.get('count'))
+          PY

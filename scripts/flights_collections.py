@@ -59,6 +59,10 @@ def publish(cols, args, lang: str) -> int:
         return 0
     render = fc.render_post if lang == "ru" else en.render_post
     selected = [c for c in cols if not args.only or c.slug == args.only]
+    if args.rotate and len(selected) > 1:
+        # Ротация: слот 12 часов -> следующая подборка по кругу, без состояния в файлах.
+        slot = int(time.time() // (12 * 3600))
+        selected = [selected[slot % len(selected)]]
     if args.only and not selected:
         print("[%s] подборка %r не найдена" % (lang, args.only))
         return 1
@@ -179,6 +183,7 @@ def main(argv=None) -> int:
     parser.add_argument("--publish", action="store_true", help="отправить посты в Telegram-канал")
     parser.add_argument("--only", default="", help="только одна подборка (slug)")
     parser.add_argument("--chat", default="", help="chat id канала (по умолчанию TELEGRAM_CHAT_ID_TRAVEL)")
+    parser.add_argument("--rotate", action="store_true", help="отправить одну подборку по кругу (для расписания)")
     args = parser.parse_args(argv)
 
     code = 0

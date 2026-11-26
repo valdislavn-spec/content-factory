@@ -3,6 +3,9 @@ name: travel-collections
 # Публикация подборок в канал «Путешествия» (@GOODTRAVEL007).
 # Запуск вручную: можно выбрать язык, одну подборку или проверку без отправки.
 on:
+  schedule:
+    # Каждые 12 часов: 00:00 и 12:00 UTC — одна подборка по кругу.
+    - cron: "0 0,12 * * *"
   workflow_dispatch:
     inputs:
       lang:
@@ -37,10 +40,14 @@ jobs:
       - name: Build and publish
         run: |
           set -e
-          ARGS="--lang ${{ inputs.lang }}"
-          if [ -n "${{ inputs.slug }}" ]; then ARGS="$ARGS --only ${{ inputs.slug }}"; fi
-          if [ "${{ inputs.dry_run }}" != "true" ]; then ARGS="$ARGS --publish"; fi
-          python scripts/flights_collections.py $ARGS
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python scripts/flights_collections.py --lang ru --publish --rotate
+          else
+            ARGS="--lang ${{ inputs.lang }}"
+            if [ -n "${{ inputs.slug }}" ]; then ARGS="$ARGS --only ${{ inputs.slug }}"; fi
+            if [ "${{ inputs.dry_run }}" != "true" ]; then ARGS="$ARGS --publish"; fi
+            python scripts/flights_collections.py $ARGS
+          fi
       - name: Commit refreshed pages
         run: |
           git config user.name "dsh-agent"
