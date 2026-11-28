@@ -48,7 +48,7 @@ jobs:
       TELEGRAM_CHAT_ID_CRYPTO_SIGNALS: ${{ secrets.TELEGRAM_CHAT_ID_CRYPTO_SIGNALS }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
