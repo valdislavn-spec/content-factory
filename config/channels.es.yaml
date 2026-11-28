@@ -275,6 +275,18 @@ channels:
     min_volume_24h: 25000
     fallback: true
   sources:
+  - id: soso-daily
+    type: sosovalue
+    name: SoSoValue daily
+    weight: 1.25
+    options:
+      language: es
+      symbols: [BTC, ETH]
+      country_code: US
+      summary: true
+      hour_utc: 7
+      trust: true
+      cache_ttl: 1800
   - id: bingx-announcements
     type: bingx
     url: https://bingx.com/en/support/notice-center

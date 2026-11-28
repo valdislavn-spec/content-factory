@@ -185,9 +185,21 @@ def filter_articles(
         title_and_body = ((article.title or "") + " " + (article.content_for_analysis or "")).lower()
         excluded = any(bad and bad in title_and_body for bad in channel.exclude_keywords)
         if article.source_id in trusted_sources and not excluded:
-            if not strict_topics:
+            if not strict_topics or article.meta.get("prewritten_html"):
                 relevance = max(relevance, 0.5)
                 matched = matched or ["тематический источник"]
+        # Недоверенный источник без тематического заголовка — в канал не пускаем.
+        # Совпадений только в теле статьи недостаточно: так в крипто-канал
+        # просачиваются рыночные отчёты и пресс-релизы, где тема канала
+        # упоминается мимоходом (например, «Aerosol Industry Market»).
+        # Заголовок — обязательный фильтр тематики. Тематические источники
+        # (options.trust: true) и strict_topics — отдельные управляемые режимы.
+        if article.source_id not in trusted_sources:
+            title_matched = any(
+                match_keyword(keyword, article.title or "") for keyword in channel.topics
+            )
+            if not title_matched:
+                continue
         if relevance < min_relevance:
             continue
         if is_duplicate_title(article.title, seen_titles, threshold=0.72):
@@ -1020,6 +1032,28 @@ def generate_posts(
     posts: List[GeneratedPost] = []
     if not clusters:
         return posts, errors
+    # Готовые блоки от источников (например, SoSoValue): текст уже собран
+    # детерминированно, цифры сверены, LLM его не переписывает.
+    prewritten = [c for c in clusters if c.articles and str(c.articles[0].meta.get("prewritten_html") or "").strip()]
+    if prewritten:
+        clusters = [c for c in clusters if c not in prewritten]
+        for cluster in prewritten:
+            article = cluster.articles[0]
+            posts.append(GeneratedPost(
+                id=stable_id(channel.id, cluster.id, slot or ""),
+                channel_id=channel.id,
+                cluster_id=cluster.id,
+                format="digest",
+                text=article.meta["prewritten_html"] + (
+                    (chr(10) * 2 + " ".join(channel.hashtags)) if getattr(channel, "hashtags", None) else ""
+                ),
+                hashtags=list(getattr(channel, "hashtags", []) or []),
+                sources=[{"source": "SoSoValue", "title": "Daily digest", "url": article.url}],
+                score=cluster.score or 1.0,
+                meta={"format": "digest", "prewritten": True, "slot_local": slot},
+            ))
+        if len(posts) >= max_posts:
+            return posts, errors
     analysis_llm = analysis_llm if analysis_llm is not None else llm
     # Готовые посты из Dify workflow-приложения (research + SEO внутри).
     dify_generator = build_post_generator(settings)

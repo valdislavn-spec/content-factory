@@ -477,13 +477,13 @@ def _parse_source_entry(src: Any, index: int) -> SourceConfig:
         raise ConfigError(f"источник #{index} должен быть объектом")
     src_id = str(src.get("id") or f"source-{index}").strip()
     src_type = str(src.get("type") or "rss").strip().lower()
-    if src_type not in ("rss", "web", "telegram", "worldnews", "newsdata", "currents", "espn", "bingx", "docs"):
+    if src_type not in ("rss", "web", "telegram", "worldnews", "newsdata", "currents", "espn", "bingx", "docs", "sosovalue"):
         raise ConfigError(
             f"источник {src_id}: неизвестный type={src_type!r} "
-            "(rss/web/telegram/worldnews/newsdata/currents/espn/bingx/docs)"
+            "(rss/web/telegram/worldnews/newsdata/currents/espn/bingx/docs/sosovalue)"
         )
     url = str(src.get("url") or "").strip()
-    if src_type != "telegram" and not url:
+    if src_type not in ("telegram", "sosovalue") and not url:
         raise ConfigError(f"источник {src_id}: нужен url")
     if src_type == "telegram" and not url:
         raise ConfigError(f"источник {src_id}: для telegram нужен url вида https://t.me/channel")

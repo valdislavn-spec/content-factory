@@ -20,6 +20,7 @@ from .telegram import TelegramAdapter
 from .web import WebAdapter
 from .worldnews import WorldNewsAdapter
 from .jsonnews import CurrentsAdapter, NewsDataAdapter
+from .sosovalue import SosoValueAdapter
 
 # Экземпляры адаптеров не хранят состояния, поэтому их можно переиспользовать.
 _ADAPTERS: Dict[str, SourceAdapter] = {
@@ -32,6 +33,7 @@ _ADAPTERS: Dict[str, SourceAdapter] = {
     ESPNAdapter.type: ESPNAdapter(),
     DocsAdapter.type: DocsAdapter(),
     BingXAnnouncementsAdapter.type: BingXAnnouncementsAdapter(),
+    SosoValueAdapter.type: SosoValueAdapter(),
 }
 
 

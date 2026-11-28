@@ -1,0 +1,40 @@
+# SoSoValue digest -> Telegram channels of the content factory.
+# Hours are UTC; GitHub Actions runs the script hourly and each theme fires once.
+enabled: true
+symbols: [BTC, ETH]
+country_code: US
+top_sectors: 3
+
+# Theme -> hour (UTC) -> channels. Channel ids come from config/channels.*.yaml;
+# the chat_id is read from telegram_chat_id or TELEGRAM_CHAT_ID_<ID>.
+themes:
+  - key: flows
+    hour_utc: 7
+    channels: [crypto-news, crypto-es]
+  - key: sectors
+    hour_utc: 9
+    channels: [crypto-news, crypto-es]
+  - key: macro
+    hour_utc: 11
+    channels: [crypto-news, crypto-es]
+  - key: sentiment
+    hour_utc: 14
+    channels: [crypto-news, crypto-es]
+  - key: derivatives
+    hour_utc: 16
+    channels: [crypto-news, crypto-es]
+  - key: ecosystems
+    hour_utc: 18
+    channels: [crypto-news, crypto-es]
+
+# Optional referral line. Off by default: the factory already owns affiliate logic.
+affiliate:
+  enabled: false
+  url: "https://bingxdao.com/invite/WYYEGK/"
+  disclosure: "Ad · 18+"
+  every_n_posts: 3
+  text_en: "🔗 Trade on BingX: {url} · {disclosure}"
+  text_es: "🔗 Opera en BingX: {url} · {disclosure}"
+
+footer_en: "SoSoValue data · not investment advice"
+footer_es: "Datos de SoSoValue · no es asesoramiento financiero"
