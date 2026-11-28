@@ -35,7 +35,7 @@ jobs:
       PINTEREST_BOARD_ID: ${{ vars.PINTEREST_BOARD_ID || secrets.PINTEREST_BOARD_ID }}
       PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: List boards
         if: ${{ inputs.mode == 'list' }}
         run: python3 scripts/pinterest_travel_finds.py --list

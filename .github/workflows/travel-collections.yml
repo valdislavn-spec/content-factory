@@ -33,7 +33,7 @@ jobs:
       TELEGRAM_CHAT_ID_TRAVEL: ${{ secrets.TELEGRAM_CHAT_ID_TRAVEL }}
       GA4_MEASUREMENT_ID: "G-LC39S1FD7B"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
