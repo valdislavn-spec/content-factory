@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "list = показать доски, publish = опубликовать пины"
+        description: "list = показать доски, verify = какие пины уже на доске, publish = опубликовать недостающие"
         required: true
         default: "list"
         type: choice
-        options: ["list", "publish"]
+        options: ["list", "verify", "publish"]
       board:
         description: "board id для publish (пусто = PINTEREST_BOARD_ID из секретов)"
         required: false
@@ -39,6 +39,13 @@ jobs:
       - name: List boards
         if: ${{ inputs.mode == 'list' }}
         run: python3 scripts/pinterest_travel_finds.py --list
+      - name: Verify pins
+        if: ${{ inputs.mode == 'verify' }}
+        run: |
+          python3 scripts/pinterest_travel_finds.py --verify docs/travel-finds/pins/meta.json \
+            ${BOARD:+--board "$BOARD"}
+        env:
+          BOARD: ${{ inputs.board }}
       - name: Publish pins
         if: ${{ inputs.mode == 'publish' }}
         run: |
