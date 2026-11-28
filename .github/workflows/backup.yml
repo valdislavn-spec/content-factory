@@ -41,7 +41,7 @@ jobs:
           echo "selected run $RUN_ID"
 
       - name: Restore exact state cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             data/factory.sqlite3

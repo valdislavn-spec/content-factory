@@ -201,7 +201,7 @@ jobs:
 
       # SQLite, состояние слотов и LLM-кэш переживают запуски через кэш GitHub.
       - name: Restore SQLite, scheduler and LLM state
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             data/factory.sqlite3
@@ -325,7 +325,7 @@ jobs:
       - name: Save SQLite, scheduler and LLM state
         if: always()
         continue-on-error: true
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             data/factory.sqlite3
