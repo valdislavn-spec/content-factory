@@ -764,26 +764,133 @@ FGI_ES = {"Extreme Fear": "Miedo extremo", "Fear": "Miedo", "Neutral": "Neutral"
           "Greed": "Codicia", "Extreme Greed": "Codicia extrema"}
 
 
+
+EXPLAIN = {
+    "en": {
+        "out_streak": "{n} straight outflow days, institutions keep cutting exposure",
+        "in_streak": "{n} straight inflow days, institutional demand is back",
+        "mixed": "flows are mixed, no clear institutional bias",
+        "leader": "{name} leads, {lag} lags",
+        "all_red": "all three are negative: risk-off inside crypto",
+        "hold": "the Fed is expected to hold at {rng}",
+        "move": "the market prices a move to {rng}",
+        "fear": "retail is in capitulation mode",
+        "greed": "retail is euphoric — contrarian warning",
+        "neutral": "sentiment is neutral",
+        "fund_hot": "longs pay heavily: overheated, squeeze risk",
+        "fund_pos": "longs pay a small premium, mild long bias",
+        "fund_neg": "shorts pay: short-squeeze fuel",
+        "oi_cool": "leverage is cooling",
+        "rot": "capital is rotating into {name}",
+    },
+    "es": {
+        "out_streak": "{n} días seguidos de salida, las instituciones recortan exposición",
+        "in_streak": "{n} días seguidos de entrada, vuelve la demanda institucional",
+        "mixed": "flujos mixtos, sin sesgo institucional claro",
+        "leader": "lidera {name}, rezaga {lag}",
+        "all_red": "los tres en negativo: risk-off dentro del cripto",
+        "hold": "el mercado espera que la Fed mantenga en {rng}",
+        "move": "el mercado descuenta un movimiento a {rng}",
+        "fear": "el retail está capitulando",
+        "greed": "euforia en el retail — señal contraria",
+        "neutral": "sentimiento neutral",
+        "fund_hot": "los longs pagan caro — sobrecalentamiento, riesgo de squeeze",
+        "fund_pos": "los longs pagan una prima pequeña, sesgo largo suave",
+        "fund_neg": "pagan los shorts — combustible para short squeeze",
+        "oi_cool": "el apalancamiento se enfría",
+        "rot": "el capital rota hacia {name}",
+    },
+}
+
+
+def _why_flows(d, lang):
+    t = EXPLAIN[lang]
+    streak = d.get("btc_etf_streak_days") or 0
+    if streak <= -5:
+        return t["out_streak"].format(n=abs(streak))
+    if streak >= 5:
+        return t["in_streak"].format(n=streak)
+    return t["mixed"]
+
+
+def _why_sectors(d, lang, sectors):
+    if not sectors:
+        return ""
+    t = EXPLAIN[lang]
+    if all(v is not None and v < 0 for _, v in sectors[:3]):
+        return t["all_red"]
+    return t["leader"].format(name=sectors[0][0], lag=sectors[-1][0])
+
+
+def _why_macro(d, lang):
+    prob = d.get("fomc_top_prob_pct")
+    rng = d.get("fomc_top_range")
+    if prob is None or not rng:
+        return ""
+    t = EXPLAIN[lang]
+    return t["hold"].format(rng=rng) if prob >= 90 else t["move"].format(rng=rng)
+
+
+def _why_sentiment(d, lang):
+    idx = d.get("fear_greed_index")
+    if idx is None:
+        return ""
+    t = EXPLAIN[lang]
+    if idx < 25:
+        return t["fear"]
+    if idx > 75:
+        return t["greed"]
+    return t["neutral"]
+
+
+def _why_derivatives(d, lang):
+    t = EXPLAIN[lang]
+    funding = d.get("funding_binance_pct")
+    if funding is not None:
+        if funding >= 0.01:
+            return t["fund_hot"]
+        if funding <= -0.001:
+            return t["fund_neg"]
+        if funding > 0:
+            return t["fund_pos"]
+    change = d.get("open_interest_change_7d_pct")
+    if change is not None and change < 0:
+        return t["oi_cool"]
+    return ""
+
+
+def _why_tvl(d, lang):
+    name = d.get("tvl_top_growth_name")
+    change = d.get("tvl_top_growth_7d_pct")
+    if not name or change is None:
+        return ""
+    return EXPLAIN[lang]["rot"].format(name=name) if change >= 10 else ""
+
+
 def render_summary(d, lang="en", footer="", affiliate=""):
-    """One compact post: every theme as a single line (fits 1200 chars)."""
+    """One compact post: numbers plus a deterministic one-line explanation."""
     t = _lang(lang)
+    lang = lang if lang in EXPLAIN else "en"
     lab = SUMMARY_LABELS.get(lang, SUMMARY_LABELS["en"])
     lines = ["<b>%s</b> · %s" % (lab["title"], _when(d.get("as_of_utc"), t)), ""]
 
     if d.get("btc_etf_net_7d_usd") is not None:
-        lines.append("• %s: BTC %s%s, ETH %s; AUM %s / %s" % (
+        lines.append("• <b>%s:</b> BTC %s, ETH %s; AUM %s / %s — %s" % (
             lab["flows"], fmt_usd(d.get("btc_etf_net_7d_usd")),
-            _streak(d.get("btc_etf_streak_days"), t),
             fmt_usd(d.get("eth_etf_net_7d_usd")),
-            fmt_usd(d.get("btc_etf_aum_usd")), fmt_usd(d.get("eth_etf_aum_usd"))))
+            fmt_usd(d.get("btc_etf_aum_usd")), fmt_usd(d.get("eth_etf_aum_usd")),
+            _why_flows(d, lang)))
 
     sectors = []
     for i in (1, 2, 3):
         name = d.get("sector_%d_name" % i)
         if name:
-            sectors.append("%s %s" % (name, fmt_pct(d.get("sector_%d_roi_7d_pct" % i))))
+            sectors.append((name, d.get("sector_%d_roi_7d_pct" % i)))
     if sectors:
-        lines.append("• %s: %s" % (lab["sectors"], " · ".join(sectors)))
+        lines.append("• <b>%s:</b> %s — %s" % (
+            lab["sectors"],
+            " · ".join("%s %s" % (n, fmt_pct(v)) for n, v in sectors),
+            _why_sectors(d, lang, sectors)))
 
     macro = []
     if d.get("sofr_pct") is not None:
@@ -791,23 +898,24 @@ def render_summary(d, lang="en", footer="", affiliate=""):
     if d.get("on_rrp_usd") is not None:
         macro.append("%s %s" % (lab["rrp"], fmt_usd(d["on_rrp_usd"])))
     if d.get("fomc_next_date"):
-        macro.append("%s %s %s %.0f%%" % (lab["fomc"], _when(d["fomc_next_date"], t),
-                                          d.get("fomc_top_range") or "", d.get("fomc_top_prob_pct") or 0.0))
+        macro.append("%s %s %s bp %.0f%%" % (lab["fomc"], _when(d["fomc_next_date"], t),
+                                              d.get("fomc_top_range") or "", d.get("fomc_top_prob_pct") or 0.0))
     if macro:
-        lines.append("• %s: %s" % (lab["macro"], " · ".join(macro)))
+        why = _why_macro(d, lang)
+        lines.append("• <b>%s:</b> %s%s" % (lab["macro"], " · ".join(macro), " — " + why if why else ""))
 
     if d.get("fear_greed_index") is not None:
-        hot = []
-        for i in (1, 2, 3):
-            name = d.get("hot_sector_%d_name" % i)
-            if name:
-                hot.append("%s %s" % (name, fmt_pct(d.get("hot_sector_%d_change_24h_pct" % i))))
         fgi_label = d.get("fear_greed_label") or t["na"]
         if lang == "es":
             fgi_label = FGI_ES.get(fgi_label, fgi_label)
-        lines.append("• %s: %s %s (%s)%s" % (
+        why = _why_sentiment(d, lang)
+        hot = ", ".join("%s %s" % (d.get("hot_sector_%d_name" % i), fmt_pct(d.get("hot_sector_%d_change_24h_pct" % i)))
+                        for i in (1, 2, 3) if d.get("hot_sector_%d_name" % i))
+        lines.append("• <b>%s:</b> %s %s (%s)%s%s%s" % (
             lab["sentiment"], lab["fgi"], d["fear_greed_index"], fgi_label,
-            " · " + lab["hot"] + " " + ", ".join(hot) if hot else ""))
+            " %+d/7d" % d["fear_greed_change_7d"] if d.get("fear_greed_change_7d") is not None else "",
+            "; hot: " + hot if hot else "",
+            " — " + why if why else ""))
 
     deriv = []
     if d.get("funding_binance_pct") is not None:
@@ -818,21 +926,20 @@ def render_summary(d, lang="en", footer="", affiliate=""):
     if d.get("long_short_ratio") is not None:
         deriv.append("%s %.2f" % (lab["ls"], d["long_short_ratio"]))
     if deriv:
-        lines.append("• %s: %s" % (lab["derivatives"], " · ".join(deriv)))
+        why = _why_derivatives(d, lang)
+        lines.append("• <b>%s:</b> %s%s" % (lab["derivatives"], " · ".join(deriv), " — " + why if why else ""))
 
     tvl = []
     for key in ("ethereum", "solana", "sui"):
         if d.get("tvl_%s_usd" % key) is not None:
             tvl.append("%s %s (%s)" % (key.capitalize(), fmt_usd(d["tvl_%s_usd" % key]),
                                        fmt_pct(d.get("tvl_%s_7d_pct" % key))))
-    if d.get("tvl_top_growth_name"):
-        tvl.append("leader %s %s" % (d["tvl_top_growth_name"], fmt_pct(d.get("tvl_top_growth_7d_pct"))))
     if tvl:
-        lines.append("• %s: %s" % (lab["tvl"], " · ".join(tvl)))
+        why = _why_tvl(d, lang)
+        lines.append("• <b>%s:</b> %s%s" % (lab["tvl"], " · ".join(tvl), " — " + why if why else ""))
 
     text = "\n".join(lines)
     tail = [part for part in (affiliate, ("<i>%s</i>" % footer) if footer else "") if part]
     if tail:
         text += "\n\n" + "\n".join(tail)
     return text[:4000]
-

@@ -92,4 +92,5 @@ def test_summary_is_one_compact_post():
         assert len(text) <= 1200, (lang, len(text))
         assert text.count("•") == 6, text
         assert "10" in text and "Sui" in text
+        assert ("straight outflow" in text) or ("días seguidos" in text), text
 
