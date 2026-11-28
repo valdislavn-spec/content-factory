@@ -51,16 +51,24 @@ function pinterestToken() {
   return JSON.parse(fs.readFileSync(tokenPath, 'utf8')).access_token;
 }
 
-async function api(method, url, token, body) {
-  const res = await fetch(url, {
-    method,
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
+function api(method, url, token, body) {
+  // Node's built-in fetch is unreliable behind the local sandbox proxy here
+  // ("terminated" on api.pinterest.com), so use curl for the few read calls.
+  const { spawnSync } = require('child_process');
+  const args = ['-sS', '-m', '45', '-X', method, url,
+    '-H', `Authorization: Bearer ${token}`,
+    '-H', 'Content-Type: application/json',
+    '-w', '\n%{http_code}'];
+  if (body !== undefined) args.push('--data-binary', JSON.stringify(body));
+  const res = spawnSync('curl', args, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+  if (res.error) throw res.error;
+  const out = (res.stdout || '').trimEnd();
+  const nl = out.lastIndexOf('\n');
+  const status = parseInt(out.slice(nl + 1), 10) || 0;
+  const text = nl >= 0 ? out.slice(0, nl) : '';
   let json = null;
   try { json = JSON.parse(text); } catch (_) {}
-  return { status: res.status, json, text };
+  return { status, json, text };
 }
 
 async function boardPins(boardId, token) {
@@ -194,10 +202,13 @@ async function markAiDisclosure(page, log) {
       const { pin, boardName, boardId } = item;
       const r = { id: pin.id, title: pin.title, board: boardName, publishedPinId: null, error: null };
       try {
+        console.log('STEP goto', pin.id);
         await page.goto('https://www.pinterest.com/pin-builder/', { waitUntil: 'domcontentloaded', timeout: 90000 });
         await page.waitForTimeout(8000);
+        console.log('STEP upload', pin.id, page.url().slice(0, 80));
         await page.locator('input[type="file"]').first().setInputFiles(path.join(REPO, pin.file), { timeout: 30000 });
         await page.waitForTimeout(9000);
+        console.log('STEP uploaded', pin.id);
         await page.locator('textarea[placeholder*="название"]').first().fill(pin.title, { timeout: 10000 });
         await page.locator('textarea[placeholder*="ссылк"]').first().fill(pin.link, { timeout: 10000 });
         r.descFilled = await fillDescription(page, pin.description);
