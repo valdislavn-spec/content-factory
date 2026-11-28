@@ -98,7 +98,10 @@ class SosoValueAdapter(SourceAdapter):
                          settings: Settings) -> List[Article]:
         # SOSO_FORCE_HOUR is a test hook: run the daily post at any hour.
         hour = int(os.environ.get("SOSO_FORCE_HOUR") or options.get("hour_utc", 7))
-        if datetime.now(timezone.utc).hour != hour:
+        # Offer the digest from the configured hour until the end of the day:
+        # the pipeline tick may not land exactly at 07:00, and storage dedupe
+        # (one post per URL per day) prevents repeats on later ticks.
+        if datetime.now(timezone.utc).hour < hour:
             return []
         digest = self._digest(options, settings)
         language = str(options.get("language") or "en").lower()
