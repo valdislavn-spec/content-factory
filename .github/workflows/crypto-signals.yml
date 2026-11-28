@@ -62,7 +62,7 @@ jobs:
             python scripts/crypto_signals.py --dry-run
           fi
       - name: Upload state
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: crypto-signals-state
