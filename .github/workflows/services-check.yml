@@ -13,7 +13,7 @@ jobs:
     env:
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -28,7 +28,7 @@ jobs:
       PINTEREST_IMAGE_URL: ${{ vars.PINTEREST_IMAGE_URL }}
       PINTEREST_API_BASE: ${{ vars.PINTEREST_API_BASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -44,7 +44,7 @@ jobs:
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       X_ACCOUNT_BLOB: ${{ secrets.X_ACCOUNT_BLOB }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -58,7 +58,7 @@ jobs:
     env:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -72,7 +72,7 @@ jobs:
     env:
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -141,7 +141,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -173,7 +173,7 @@ jobs:
       DIFY_SEO_API_KEY: ${{ secrets.DIFY_SEO_API_KEY }}
       DIFY_BASE_URL: ${{ secrets.DIFY_BASE_URL }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

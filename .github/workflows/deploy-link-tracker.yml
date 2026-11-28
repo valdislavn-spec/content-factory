@@ -33,7 +33,7 @@ jobs:
       LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
       LINK_TRACKER_STATS_TOKEN: ${{ secrets.LINK_TRACKER_STATS_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify Cloudflare token
         id: verify
         run: |

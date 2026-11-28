@@ -42,7 +42,7 @@ jobs:
       LINK_TRACKER_BASE: ${{ secrets.LINK_TRACKER_BASE }}
       LINK_TRACKER_ADMIN_TOKEN: ${{ secrets.LINK_TRACKER_ADMIN_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: List links
         if: ${{ inputs.action == 'list' }}
         run: python3 scripts/link_tracker_admin.py --list
